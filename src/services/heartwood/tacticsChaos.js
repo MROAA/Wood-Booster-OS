@@ -17,6 +17,7 @@
 // (circular, call-time only - same pattern as tacticsObjects.js).
 // Public API: knockback, blockedPushSideEffects, knockbackPreview,
 // aiKnockbackRisk, hasKnockTool, CHAOS.
+import { onKnockback } from "./tacticsDepth"
 import { isOnBoard, samePos } from "./targeting"
 import { TERRAIN, terrainAt } from "./tacticsTerrain"
 import { emit, getUnit, setUnit, livingUnits, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood } from "./tacticsEngine"
@@ -174,7 +175,8 @@ export function knockback(state, actorId, targetId, dir, tiles = 1) {
   // A real chain (2+ things happened): one big banner + a log line.
   const chain = (next.events || []).filter((e) => e.seq > seq0 && (e.kind === "chaos" || (e.kind === "object" && ["boom", "spore", "fall", "roll", "shatter", "grassfire"].includes(e.fx)))).length
   if (chain >= 2) next = emit(addLog(next, `Chain reaction x${chain}!`), { kind: "chaos", unitId: targetId, label: `Chain reaction x${chain}!`, chain, big: true, tiles: [] })
-  return checkTacticsBattleEnd(next)
+  // Combat depth: a hero's shove leaves the enemy Off-balance + Staggered.
+  return checkTacticsBattleEnd(onKnockback(next, actorId, targetId))
 }
 
 // The signature Shove keeps its own "slams into it" bonus damage on the

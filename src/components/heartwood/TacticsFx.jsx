@@ -152,6 +152,8 @@ export default function TacticsFx({ battle }) {
   const [banner, setBanner] = useState(null)
   // Chaos sprint: a "CHAIN REACTION xN" banner for 2+ step chains.
   const [chain, setChain] = useState(null)
+  // Combat depth sprint: a big "COMBO! Finisher" banner when heroes combo.
+  const [comboBanner, setComboBanner] = useState(null)
   const flashSeqRef = useRef(battle.bossFlash?.seq ?? null)
   const counterRef = useRef(0)
   const lastSeqRef = useRef(null)
@@ -210,6 +212,19 @@ export default function TacticsFx({ battle }) {
           timers.push(setTimeout(() => pop(ev.targetId, "GRAZE", "graze", { offset: 1.2 }), at + IMPACT_DELAY_MS))
         } else if (ev.kind === "ward") {
           timers.push(setTimeout(() => { restartClass(tokenEl(ev.targetId), "hw-hit-flash", 400); pop(ev.targetId, "Warded!", "ward"); play("block", { gain: 0.7 }) }, at + IMPACT_DELAY_MS))
+        } else if (ev.kind === "heroCombo") {
+          // Combat depth: setup -> cash-in. Big callout, tile flash, banner.
+          timers.push(setTimeout(() => {
+            pop(ev.unitId, ev.label, "combo", { offset: 1.4, big: true, combo: "hero-combo" })
+            flashTiles(ev.tiles, "hero-combo")
+            shakeBoard()
+            play("hitBig")
+            setComboBanner({ key: ev.seq, label: ev.label })
+            timers.push(setTimeout(() => setComboBanner((c) => (c && c.key === ev.seq ? null : c)), 1700))
+          }, at + IMPACT_DELAY_MS))
+        } else if (ev.kind === "reaction" && ev.depthReaction) {
+          // Combat depth: a held Parry / Counter / Interrupt fires - big callout.
+          timers.push(setTimeout(() => { pop(ev.unitId, ev.label, "combo", { offset: 1.4, big: true, combo: `react-${ev.depthReaction}` }); play(ev.depthReaction === "parry" ? "block" : "hit", { gain: 0.9 }) }, at))
         } else if (ev.kind === "reaction" && ev.label === "Overwatch!") {
           // XCOM part 1: an Overwatch shot gets a big eye callout on the shooter.
           timers.push(setTimeout(() => { pop(ev.unitId, "👁 Overwatch!", "combo", { offset: 1.4, big: true, combo: "overwatch" }); play("hit", { gain: 0.8 }) }, at))
@@ -296,6 +311,11 @@ export default function TacticsFx({ battle }) {
         <div className="hwt-boss-phase-banner" key={banner.key} data-phase-index={banner.index}>
           <span className="hwt-boss-phase-banner-num">Phase {banner.index + 1}</span>
           <span className="hwt-boss-phase-banner-name">{banner.name}</span>
+        </div>
+      )}
+      {comboBanner && (
+        <div className="hwt-combo-banner" key={comboBanner.key}>
+          COMBO! <b>{comboBanner.label}</b>
         </div>
       )}
       {chain && (

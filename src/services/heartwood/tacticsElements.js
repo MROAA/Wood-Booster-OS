@@ -22,6 +22,7 @@ import {
   trySpawnBrood,
 } from "./tacticsEngine"
 import { elementNear } from "./tacticsObjects"
+import { onChill } from "./tacticsDepth"
 
 export const ELEMENTS = {
   fire: { status: "burn", name: "Fire", word: "Burning", icon: "🔥" },
@@ -153,6 +154,8 @@ function applyElementToUnit(state, unitId, element, amount) {
   const status = ELEMENTS[element].status
   const patch = element === "nature" ? { entangle: Math.max(u.entangle || 0, amount || ENTANGLE_DURATION) } : { [status]: (u[status] || 0) + (amount || 0) }
   let next = setUnit(state, unitId, patch)
+  // Combat depth: Frost soaks an enemy (a Shock combo setup).
+  if (element === "frost") next = onChill(next, unitId)
   if (combo === "freeze") next = resolveCombo(next, unitId, "freeze", element, amount)
   return next
 }

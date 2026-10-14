@@ -193,7 +193,8 @@ export function FloatingNumber({ popup, onDone }) {
   const [rect, setRect] = useState(null)
 
   useEffect(() => {
-    const el = document.querySelector(`[data-unit-id="${popup.unitId}"]`)
+    // Tactics: the board token first (the squad bar also carries data-unit-id).
+    const el = document.querySelector(`.hwt-token[data-unit-id="${popup.unitId}"]`) || document.querySelector(`[data-unit-id="${popup.unitId}"]`)
     if (!el) return
     const r = el.getBoundingClientRect()
     setRect({ top: r.top + r.height / 2 - popup.offset * 26, left: r.left + r.width / 2 })

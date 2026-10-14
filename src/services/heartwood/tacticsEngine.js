@@ -53,6 +53,8 @@ import { auraOn as gearAuraOn } from "./gear"
 import * as smart from "./tacticsSmartAi"
 import * as ultFx from "./tacticsUltimates"
 import { difficultyQa } from "./tacticsDifficulty"
+// Combat depth sprint: turn order (Delay/Stagger), hero combos, stances, reactions.
+import * as depth from "./tacticsDepth"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -1239,7 +1241,8 @@ function chebyshevDist(a, b) {
 // unit (`undefined > 0` is `false`, the same safety `weak`/`fearsome`
 // checks already rely on) - byte-identical for every existing check.
 function effectiveMove(unit) {
-  return unit.slow > 0 ? Math.max(1, unit.move - 1) : unit.move
+  // Combat depth: a Defensive stance moves 1 less (never below 1).
+  return depth.stanceMove(unit, unit.slow > 0 ? Math.max(1, unit.move - 1) : unit.move)
 }
 
 // Reachable tiles for a unit right now: the grid's own BFS, blocked by
@@ -1394,6 +1397,8 @@ export function dashMove(state, unitId, target) {
 export function overwatchAction(state, unitId) {
   const unit = getUnit(state, unitId)
   if (!unit || unit.hp <= 0 || unit.ap < 1 || state.phase !== unit.side || !(unit.attack > 0) || unit.structure) return state
+  // Combat depth: Overwatch is one of the reactions - one per hero.
+  if (unit.reaction) return state
   // Melee rework: an ENGAGED shooter (enemy melee next to it) can't watch.
   if (ranged.isEngaged(state, unit)) return state
   const turns = unit.side === "player" ? 1 : 2
@@ -1902,7 +1907,9 @@ function facingMultiplier(attacker, defender, facing) {
   return 1 + pp / 100
 }
 
-function modifiedAttackAmount(attacker, defender, baseAmount, state = null) {
+// `ctx` (combat depth) = what kind of hit this is (depth.hitCtx) - a combo
+// may need a skill / an area skill; null = a basic attack.
+function modifiedAttackAmount(attacker, defender, baseAmount, state = null, ctx = null) {
   let amount = baseAmount
   if (attacker.woundedFury > 0 && attacker.hp < attacker.maxHp * 0.5) amount += 3
   if (attacker.weak > 0) amount = Math.floor(amount * 0.75)
@@ -1921,6 +1928,8 @@ function modifiedAttackAmount(attacker, defender, baseAmount, state = null) {
   if (attacker.castBonus > 0) amount += attacker.castBonus
   if (attacker.castPct > 0 && amount > 0) amount += Math.max(1, Math.round((amount * attacker.castPct) / 100))
   if (attacker.empowered && amount > 0) amount = Math.round(amount * manaFx.EMPOWER_MULT)
+  // Combat depth: stances (both sides) and a hero combo's +50%.
+  amount = depth.depthAmount(attacker, defender, amount, state, ctx)
   return relicFx.dampenedAmount(attacker, classFx.classDamageMod(attacker, defender, amount, facing))
 }
 
@@ -2365,12 +2374,17 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
     next = setUnit(next, targetId, { suppressed: (target.suppressed || 0) + SUPPRESSED_DURATION })
     suppressedNote = ` ${target.name}'s guard falters, reactions weakened!`
   }
+  // Combat depth: the combo this hit cashes in (read before the hit lands).
+  const combo = depth.comboFor(state, actor, effectiveTarget)
   const fullAmount = modifiedAttackAmount(actor, effectiveTarget, highGroundAmount(next, actor.pos, effectiveTarget.pos, actor.attack + blightAttackBonus(next, actor)), state)
   // XCOM part 2: the hit roll (a miss is a GRAZE - half damage, no riders).
   const roll = cover.rollHit(next, actor, effectiveTarget, facing)
   const graze = roll.graze
   next = graze ? manaFx.onGraze(emit(roll.state, { kind: "graze", targetId }), targetId) : roll.state
-  const rawAmount = graze ? cover.grazeAmount(fullAmount) : fullAmount
+  // Combat depth: a held Parry (hero) / a bracing enemy halves a melee blow.
+  const parried = opts.isReaction ? { state: next, amount: graze ? cover.grazeAmount(fullAmount) : fullAmount } : depth.parryHit(next, actorId, targetId, graze ? cover.grazeAmount(fullAmount) : fullAmount)
+  next = parried.state
+  const rawAmount = parried.amount
   const guardian = eligibleGuardian(next, effectiveTarget) || classFx.classGuardFor(next, effectiveTarget)
   let remaining, fell, revived, absorbedNote, fellNote, interceptNote = ""
   const extraVictims = []
@@ -2422,6 +2436,7 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   // Element combos: a frosty unit's basic hits Chill.
   if (actor.frosty && !fell && !graze) next = elements.applyElement(next, targetId, "frost", 1)
   if (actor.side === "player") next = classFx.afterPlayerHit(gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell), actorId, targetId)
+  if (actor.side === "player") next = depth.afterHeroHit(next, actorId, targetId, combo, { graze })
   if (actor.side === "enemy") next = applyLeechOnHit(next, actorId, targetId, remaining)
   next = checkEnemyPhase(next, targetId)
   next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
@@ -2439,6 +2454,8 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   }
   // Class system: a Duelist struck in melee ripostes.
   if (!opts.isReaction && actor.side === "enemy") next = classFx.riposte(next, actorId, targetId)
+  // Combat depth: a hero holding Counter strikes back.
+  if (!opts.isReaction && actor.side === "enemy") next = depth.afterEnemyAttack(checkTacticsBattleEnd(next), actorId, targetId)
   next = checkTacticsBattleEnd(next)
   // Haste (autoBattleEngine.js's own actSide): a structurally different
   // kind of "more damage" than Strength/Execute - the WHOLE action
@@ -2574,7 +2591,9 @@ function castAbilityInner(state, actorId, targetId) {
     if (tauntersOnTargetSide.length && !(target.taunt > 0)) return state
     let next = setUnit(state, actorId, { ap: actor.ap - ability.cost, cooldownRemaining: ability.cooldown })
     next = emit(next, { kind: "strike", actorId, targetId: target.id, ranged: actor.range > 1, ability: ability.name })
-    const full = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, actor.attack * ability.multiplier), state)
+    const burstCtx = depth.hitCtx(ability)
+    const burstCombo = depth.comboFor(state, actor, target, burstCtx)
+    const full = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, actor.attack * ability.multiplier), state, burstCtx)
     const roll = cover.rollHit(next, actor, target, classifyFacingAttack(actor, target, state))
     next = roll.graze ? manaFx.onGraze(emit(roll.state, { kind: "graze", targetId: target.id }), target.id) : roll.state
     const amount = roll.graze ? cover.grazeAmount(full) : full
@@ -2584,6 +2603,7 @@ function castAbilityInner(state, actorId, targetId) {
     const fellNote = fell ? " It falls." : ""
     next = { ...next, log: [...next.log, `${actor.name} unleashes ${ability.name} on ${target.name} for ${remaining}${cover.rollNote(roll)}!${absorbedNote}${fellNote}${describeRevive(revived, target.name)}`] }
     next = classFx.afterPlayerHit(gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell), actorId, target.id)
+    next = depth.afterHeroHit(next, actorId, target.id, burstCombo, { graze: roll.graze })
     next = checkEnemyPhase(next, target.id)
     next = checkOnDealDamageTriggers(next, actorId, target.id, remaining)
     if (fell) next = trySpawnBrood(next, target.id)
@@ -2692,7 +2712,10 @@ function abilityHit(state, actorId, targetId, baseAmount, ability) {
   const actor = getUnit(state, actorId)
   const target = getUnit(state, targetId)
   let next = emit(state, { kind: "strike", actorId, targetId, ranged: chebyshevDist(actor.pos, target.pos) > 1, ability: ability.name })
-  const full = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, baseAmount), state)
+  // Combat depth: skills / area skills cash in their own combos.
+  const ctx = depth.hitCtx(ability)
+  const combo = depth.comboFor(state, actor, target, ctx)
+  const full = modifiedAttackAmount(actor, target, highGroundAmount(state, actor.pos, target.pos, baseAmount), state, ctx)
   // Ranged rework: a skill's shot rules (aim bonus / ignores cover) ride on `ability.shot`.
   const roll = cover.rollHit(next, actor, target, classifyFacingAttack(actor, target, state), ability?.shot || null)
   const graze = roll.graze
@@ -2701,6 +2724,7 @@ function abilityHit(state, actorId, targetId, baseAmount, ability) {
   next = hit
   next = { ...next, log: [...next.log, `${actor.name}'s ${ability.name} ${graze ? "grazes" : "hits"} ${target.name} for ${remaining}${cover.rollNote(roll)}!${describeAbsorb(absorbed, armourUsed)}${fell ? " It falls." : ""}${describeRevive(revived, target.name)}`] }
   next = actor.side === "player" ? classFx.afterPlayerHit(gainXp(grantStrengthOnKill(next, actorId, fell), actorId, remaining, fell), actorId, targetId) : grantStrengthOnKill(next, actorId, fell)
+  if (actor.side === "player") next = depth.afterHeroHit(next, actorId, targetId, combo, { graze })
   next = checkEnemyPhase(next, targetId)
   next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
   if (fell) next = trySpawnBrood(next, targetId)
@@ -2977,7 +3001,8 @@ function enemyPhaseStart(state) {
   // applyCovenTick and applyRotMendTick never touch hp downward, so
   // neither can end the battle - no phase guard needed for either,
   // unlike the two ticks below.
-  const lavaBurned = applyLavaBurn(classFx.classPlayerTurnEnd(objTicked), "player")
+  // Combat depth: Defensive / Focus stances pay out as the turn ends.
+  const lavaBurned = applyLavaBurn(classFx.classPlayerTurnEnd(depth.playerTurnEnd(objTicked)), "player")
   if (lavaBurned.phase !== "player") return lavaBurned
   const covened = applyCovenTick(relicFx.relicTurnEnd(lavaBurned, "player"))
   const mended = applyRotMendTick(covened)
@@ -3039,7 +3064,8 @@ function enemyPhaseStart(state) {
   // Mana: ranged heroes that held still focus; enemies regen (shared
   // with previewEnemyIntents, so the telegraph stays exact).
   // Difficulty sprint 2: enemy ULTIMATE bars fill here too (exact preview).
-  const regenTicked = ultFx.enemyUltTick(applyRegenTick(manaFx.enemyPhaseMana(ranged.rangedEnemyPhaseStart(resetForEnemyPhase))))
+  // Combat depth: enemies pick a stance (wounded ones brace, Berserkers rage).
+  const regenTicked = ultFx.enemyUltTick(applyRegenTick(manaFx.enemyPhaseMana(ranged.rangedEnemyPhaseStart(depth.enemyStances(resetForEnemyPhase)))))
   // A unit's own turnStart trigger (Deepwarden's post-phase "the ground
   // answers" Block, etc.) is applied AFTER the flat fortressBlock reset
   // above, never before - that reset is a per-unit overwrite, not an
@@ -3110,7 +3136,9 @@ function aiEstimateHit(attacker, target, state = null) {
 // XCOM part 2: full hit / graze / hit chance; `expected` weighs both.
 function aiHitOdds(attacker, target, state = null, shot = null) {
   if (target.ward > 0) return { full: 0, graze: 0, p: 1, expected: 0 }
-  const raw = hunkeredAmount(target, modifiedAttackAmount(attacker, target, highGroundAmount(state, attacker.pos, target.pos, attacker.attack + blightAttackBonus(state, attacker)), state), state)
+  const raw0 = hunkeredAmount(target, modifiedAttackAmount(attacker, target, highGroundAmount(state, attacker.pos, target.pos, attacker.attack + blightAttackBonus(state, attacker)), state), state)
+  // Combat depth: the AI sees a held Parry coming.
+  const raw = Math.floor(raw0 * depth.aiParryFactor(state, attacker, target, attacker.pos))
   const soak = (target.block || 0) + (target.bulwark || 0)
   const full = Math.max(0, raw - soak)
   if (!cover.rollsOn(state) || target.structure) return { full, graze: full, p: 1, expected: full }
@@ -3803,7 +3831,9 @@ function decideEnemyIntent(state, enemyId) {
         const facing = classifyFacingAttack(attacker, target, state)
         const score =
           AI_ATTACK_BASE + tileScore + AI_KILL_BONUS * killP + 3 * dmg + oddsScore + aiTargetValue(target, enemy) + AI_FACING_BONUS[facing] + factionTargetBonus(enemy, target) - (healerRole && !kill ? AI_HEALER_ATTACK_PENALTY : 0) +
-          smart.attackBonus(state, enemy, target, { killP, pos, facing })
+          smart.attackBonus(state, enemy, target, { killP, pos, facing }) -
+          // Combat depth: a hero holding Counter makes the AI think twice.
+          (depth.depthOn(state) && target.reaction === "counter" && canReach(state, target, target.pos, pos) ? 2 * aiEstimateHit(target, attacker, state) : 0)
         if (score > best.score) {
           best = { score, intent: stay ? { kind: "attack", targetId: target.id } : { kind: "move-attack", to: moveTo, targetId: target.id } }
         }
@@ -3893,6 +3923,9 @@ function applyFade(state, enemyId) {
 }
 
 function applyEnemyIntent(state, enemyId, intent) {
+  // Combat depth: a hero holding Interrupt cancels a skill / ultimate.
+  const interrupted = depth.tryInterrupt(state, enemyId, intent)
+  if (interrupted) return interrupted
   if (intent.kind === "attack") {
     const hit = attackUnit(state, enemyId, intent.targetId)
     if (intent.fade) return applyFade(hit, enemyId)
@@ -3983,8 +4016,11 @@ export function previewEnemyIntents(state) {
   if (scratch.phase !== "enemy") return []
   scratch = applyPoisonTick(scratch)
   const intents = []
-  for (const enemy of scratch.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
+  // Combat depth: staggered enemies act last (depth.enemyQueue).
+  for (const enemyId of depth.enemyQueue(scratch)) {
+    const enemy = getUnit(scratch, enemyId)
     if (scratch.phase !== "enemy") break
+    if (!enemy || enemy.hp <= 0) continue
     // A stunned enemy skips its turn (relicFx.spendStun in runEnemyTurn).
     const live = getUnit(scratch, enemy.id)
     const frozen = !(live.stun > 0) && live.frozen > 0
@@ -3994,11 +4030,22 @@ export function previewEnemyIntents(state) {
       scratch = ultFx.breakUltimate(stunned, enemy.id, "stun")
       continue
     }
+    // Combat depth: a Stagger is spent here (acts with 1 AP / reels).
+    const begun = depth.beginEnemyAction(scratch, enemy.id)
+    scratch = begun.state
+    if (begun.skip) {
+      intents.push({ enemyId: enemy.id, intent: { kind: "reeling" } })
+      continue
+    }
     const intent = decideEnemyIntent(scratch, enemy.id)
+    const seqBefore = scratch.eventSeq || 0
     scratch = applyEnemyIntent(scratch, enemy.id, intent)
+    // Combat depth: which of your held reactions this action sets off.
+    const reactions = (scratch.events || []).filter((e) => e.seq > seqBefore && e.depthReaction).map((e) => ({ heroId: e.unitId, kind: e.depthReaction }))
+    const shown = { ...intent, ...(begun.staggered ? { staggered: true } : {}), ...(reactions.length ? { reactions } : {}) }
     // Wanderers: telegraph where the Fade lands (the board marks it).
     const faded = intent.fade ? getUnit(scratch, enemy.id) : null
-    intents.push({ enemyId: enemy.id, intent: faded && faded.hp > 0 ? { ...intent, fadeTo: { ...faded.pos } } : intent })
+    intents.push({ enemyId: enemy.id, intent: faded && faded.hp > 0 ? { ...shown, fadeTo: { ...faded.pos } } : shown })
   }
   return intents
 }
@@ -4068,11 +4115,18 @@ export function runEnemyTurn(state) {
   // (it deals its damage directly to hp, never reading Block at all).
   let next = applyPoisonTick(state)
   if (next.phase !== "enemy") return next
-  for (const enemy of next.units.filter((u) => u.side === "enemy" && u.hp > 0)) {
+  // Combat depth: staggered enemies act last (shared with the preview).
+  for (const enemyId of depth.enemyQueue(next)) {
     if (next.phase !== "enemy") break
-    const stunned = relicFx.spendStun(next, enemy.id) || elements.spendFrozen(next, enemy.id)
+    if (!(getUnit(next, enemyId)?.hp > 0)) continue
+    const stunned = relicFx.spendStun(next, enemyId) || elements.spendFrozen(next, enemyId)
     // Difficulty sprint 2: a stun / freeze breaks a channeled ultimate.
-    next = stunned ? ultFx.breakUltimate(stunned, enemy.id, "stun") : decideAndActEnemy(next, enemy.id)
+    if (stunned) {
+      next = ultFx.breakUltimate(stunned, enemyId, "stun")
+      continue
+    }
+    const begun = depth.beginEnemyAction(next, enemyId)
+    next = begun.skip ? begun.state : decideAndActEnemy(begun.state, enemyId)
   }
   if (next.phase !== "enemy") return next
   next = applyLavaBurn(next, "enemy")
@@ -4124,7 +4178,8 @@ export function runEnemyTurn(state) {
   if (objTicked.phase !== "player") return objTicked
   const relicTicked = relicFx.relicTurnStart(objTicked, "player")
   if (relicTicked.phase !== "player") return relicTicked
-  return applyTurnStartTriggers(elements.elementTurnStart(mutFx.mutationTurnStart(relicTicked), "player"), "player")
+  // Combat depth: setups tick, reactions lapse, Delayed heroes get +1 AP.
+  return depth.playerTurnStart(applyTurnStartTriggers(elements.elementTurnStart(mutFx.mutationTurnStart(relicTicked), "player"), "player"))
 }
 
 // A QA-only hook (see HeartwoodTactics.jsx's ?debugLowHp=1) - never a real
@@ -4139,7 +4194,8 @@ export function withLowEnemyHp(state) {
   // QA bot off from the enemy - the hook flattens the board too.
   // Boss fights: arena hazards + weak-point shield off too - QA-only.
   // Difficulty sprint 2: ultimates + the smarter AI / behaviour profiles off too.
-  return difficultyQa(bossQa({ ...state, terrain: {}, wallHp: {}, objHp: {}, objFire: {}, objChill: {}, tileTimers: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [], ult: null, ultCharge: 0, ultArmed: null } : u)) }))
+  // Combat depth: enemy stances / parries off too (a bracing 1-HP enemy).
+  return difficultyQa(bossQa({ ...state, depthQa: true, terrain: {}, wallHp: {}, objHp: {}, objFire: {}, objChill: {}, tileTimers: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [], ult: null, ultCharge: 0, ultArmed: null } : u)) }))
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).
