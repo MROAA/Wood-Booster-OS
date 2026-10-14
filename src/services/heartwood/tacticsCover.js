@@ -8,6 +8,7 @@ import { terrainAt, isHigh } from "./tacticsTerrain"
 import { deterministicRoll } from "./tacticsEngine"
 import { shotMods, smokeAt, consumeAim } from "./tacticsRanged"
 import { auraOn } from "./gear"
+import { comboHitParts } from "./tacticsDepth"
 
 export const COVER = { NONE: 0, HALF: 1, FULL: 2, HUNKERED: 3 }
 export const COVER_NAME = ["No cover", "Half cover", "Full cover", "Full cover (hunkered)"]
@@ -120,6 +121,8 @@ export function hitChance(state, attacker, defender, facing = "front", atkPos = 
   if (FACING_HIT_BONUS[facing]) parts.push({ label: facing === "back" ? "From behind" : "Side attack", value: FACING_HIT_BONUS[facing] })
   if (high) parts.push({ label: "High ground", value: HIGH_GROUND_HIT_BONUS })
   parts.push(...mods.parts)
+  // Combat depth: a Called Shot on a Marked enemy aims better.
+  parts.push(...comboHitParts(state, attacker, defender, dist))
   // Gear board aura (War Banner): allies next to the bearer aim better.
   const banner = attacker.side === "player" ? auraOn(state, attacker, "aim", atkPos) : 0
   if (banner) parts.push({ label: "Banner aura", value: banner })

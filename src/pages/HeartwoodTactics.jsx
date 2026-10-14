@@ -30,6 +30,7 @@ import { BOSS_FIGHTS, BOSS_IDS, arenaTerrainFor, applyBossFight } from "../servi
 import { withObjectShowcase } from "../services/heartwood/tacticsObjects"
 import { withHitRolls } from "../services/heartwood/tacticsCover"
 import { enableMana } from "../services/heartwood/tacticsMana"
+import { enableCombatDepth } from "../services/heartwood/tacticsDepth"
 import { applyDifficulty, difficultySpec } from "../services/heartwood/tacticsDifficulty"
 import { CLASSES } from "../data/heartwood/classes"
 import { UNITS } from "../data/heartwood/units"
@@ -54,7 +55,9 @@ function maybeDebugLowHp(base, showcase = false) {
   // XCOM part 2: hit rolls (cover + graze) on; `?rolls=0` turns them off (QA).
   const rolled0 = params.get("rolls") === "0" ? battle : withHitRolls(battle)
   // Mana step 1: on by default; `?mana=0` turns it off (QA).
-  const manaOn = params.get("mana") === "0" ? rolled0 : enableMana(rolled0)
+  const manaOn0 = params.get("mana") === "0" ? rolled0 : enableMana(rolled0)
+  // Combat depth sprint: on by default; `?depth=0` turns it off (QA).
+  const manaOn = params.get("depth") === "0" ? manaOn0 : enableCombatDepth(manaOn0)
   // QA-only: `?manaStart=N` starts every hero at N mana (test the greyed skills).
   const manaStart = params.get("manaStart")
   const rolled =

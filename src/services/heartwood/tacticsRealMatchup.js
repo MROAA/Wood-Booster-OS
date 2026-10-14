@@ -30,6 +30,7 @@ import { objectiveForNode, applyObjective } from "./tacticsObjectives"
 import { arenaTerrainFor, applyBossFight } from "./tacticsBosses"
 import { applyFaction } from "./tacticsFactions"
 import { enableMana } from "./tacticsMana"
+import { enableCombatDepth } from "./tacticsDepth"
 import { classFieldsFor } from "./tacticsClasses"
 import { collarClassFor } from "./gear"
 
@@ -261,7 +262,8 @@ export function buildRunTacticsBattle(runState, start) {
   // Difficulty sprint 2: the DifficultyEngine (threat tier for this node) -
   // before mana, so escorts get their bars too.
   const threatened = built ? applyDifficulty(built, difficultyForRunNode(runState, runState.nodeIndex, start.difficultyFactor)) : built
-  return threatened ? enableMana(withBredClasses(threatened, runState), runState.relics || []) : threatened
+  // Combat depth sprint: stances, combos, reactions, Delay/Stagger on.
+  return threatened ? enableCombatDepth(enableMana(withBredClasses(threatened, runState), runState.relics || [])) : threatened
 }
 
 // The DifficultyEngine spec for a run node: its Act, how deep into the Act
