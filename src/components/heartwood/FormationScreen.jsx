@@ -23,7 +23,7 @@ import BuildScore from "./BuildScore"
 import ThreatPreview from "./ThreatPreview"
 import { evaluateMatchup, THREATS, THREAT_ANSWER } from "../../data/heartwood/counterplay"
 import { CardGlyph } from "./cardArt"
-import { resolveRealMatchup, objectiveForRunNode } from "../../services/heartwood/tacticsRealMatchup"
+import { resolveRealMatchup, objectiveForRunNode, difficultyForRunNode } from "../../services/heartwood/tacticsRealMatchup"
 import { objectiveSummary } from "../../services/heartwood/tacticsObjectives"
 import { factionInfo } from "../../services/heartwood/tacticsFactions"
 
@@ -100,6 +100,8 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   const isTacticsReady = node.type === "battle" || TACTICS_READY_ENCOUNTER_IDS.has(node.formationId || node.enemyId)
   const tacticsMatchup = isTacticsReady ? resolveRealMatchup(runState, node) : null
   const objectiveSpec = objectiveForRunNode(runState)
+  // Difficulty sprint 2: the fight's threat tier, shown before you commit.
+  const threat = difficultyForRunNode(runState)
   // A Trial (trials.js) is a named narrative wrapper around this exact
   // encounter - real story identity (title, its own intro/victory lines)
   // without touching the underlying enemy's already-tuned combat stats.
@@ -366,6 +368,16 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         </>
       )}
 
+      {threat && (
+        <p className="hwt-formation-threat" data-tier={threat.tier} title={`Difficulty score ${threat.score}: higher threat means tougher, smarter and more enemies${threat.ult.length ? ", and enemy ultimates" : ""}.`}>
+          Threat {threat.id} · {threat.name}
+          <span className="hwt-threat-pips" aria-hidden="true">
+            {Array.from({ length: 5 }, (_, i) => (
+              <span key={i} className="hwt-threat-pip" data-on={i < threat.tier || undefined} />
+            ))}
+          </span>
+        </p>
+      )}
       {objectiveSpec && <p className="hwt-formation-summary-objective" data-objective={objectiveSpec.type}>Objective: {objectiveSummary(objectiveSpec)}</p>}
 
       {isElite && ELITE_GIMMICK[node.enemyId] && (

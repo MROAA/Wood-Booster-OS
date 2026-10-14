@@ -31,6 +31,8 @@ export const TERRAIN = {
   // Chaos sprint: iron spikes (promotion zone skills). Ending a turn here
   // hurts 2; being KNOCKED onto them hurts more (tacticsChaos.js).
   spikes: { cost: 1, burn: 2, spikes: true },
+  // Difficulty + mana sprint 2: a contested Mana Well (tacticsUltimates.js).
+  manawell: { cost: 1, well: true },
 }
 
 export const WALL_MAX_HP = 8
@@ -59,6 +61,7 @@ export const TERRAIN_INFO = {
   ash: { name: "Ash", text: "Burnt ground - walkable." },
   fire: { name: "Flames", text: "Burning ground - ending your turn here burns for 2. Dies down in a couple of turns. Spreads into tall grass." },
   spikes: { name: "Spikes", text: "Iron spikes - ending your turn here hurts for 2, and anyone KNOCKED onto them takes 3." },
+  manawell: { name: "Mana Well", text: "Start your turn standing here: +12 of your resource. An enemy charging an ultimate here charges +15 faster - fight for it!" },
 }
 
 export function terrainAt(state, pos) {

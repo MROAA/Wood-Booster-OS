@@ -2292,8 +2292,11 @@ function newPage() {
     const late = mkRun((n, i) => n.type === "battle" && n.formationId && rt.actIndexForNode(i, rt.RUN_PATH.length) >= 6)
     const lateAuto = rt.startFormationBattle(late).battle
     const lateTac = rt.startTacticsFormationBattle(late, (start) => buildRunTacticsBattle(late, start))
-    const lateEnemies = lateTac.battle.units.filter((u) => u.side === "enemy").map((u, i) => ({
-      tMax: u.maxHp, aMax: lateAuto.enemies[i]?.maxHp, defMax: ENEMIES[u.defId].maxHp,
+    // Difficulty sprint 2: the DifficultyEngine's threat tier scales the
+    // auto-battle twin's HP once more (threatScaled.hp) and adds escorts
+    // (no twin) - compare the twinned enemies against twin x that factor.
+    const lateEnemies = lateTac.battle.units.filter((u) => u.side === "enemy" && !u.escort).map((u, i) => ({
+      tMax: u.maxHp, aMax: lateAuto.enemies[i] ? Math.round(lateAuto.enemies[i].maxHp * (u.threatScaled?.hp || 1)) : undefined, defMax: ENEMIES[u.defId].maxHp,
     }))
     return {
       engine: tac.battle.engine,
