@@ -17,7 +17,8 @@
 // one call. This module never imports saveRunSave or anything else that
 // could write - there is no path from here back into the real run.
 import { loadRunSave } from "./runSaveState"
-import { deserializeRun, RUN_PATH, actIndexForNode } from "./runEngine"
+import { deserializeRun, RUN_PATH, actIndexForNode, DIFFICULTY_TIERS } from "./runEngine"
+import { applyDifficulty, difficultySpec } from "./tacticsDifficulty"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { UNITS } from "../../data/heartwood/units"
@@ -257,7 +258,25 @@ export function buildRunTacticsBattle(runState, start) {
   const factioned = battle && formation.faction ? applyFaction(battle, formation.faction) : battle
   // Mana step 1: every real fight runs with mana (all pools start full).
   const built = applyObjective(arena ? applyBossFight(factioned, encounterId) : factioned, objectiveForRunNode(runState))
-  return built ? enableMana(withBredClasses(built, runState), runState.relics || []) : built
+  // Difficulty sprint 2: the DifficultyEngine (threat tier for this node) -
+  // before mana, so escorts get their bars too.
+  const threatened = built ? applyDifficulty(built, difficultyForRunNode(runState, runState.nodeIndex, start.difficultyFactor)) : built
+  return threatened ? enableMana(withBredClasses(threatened, runState), runState.relics || []) : threatened
+}
+
+// The DifficultyEngine spec for a run node: its Act, how deep into the Act
+// it sits (0 = first node, 1 = last), elite/boss kind. Pure (seed + index),
+// so the formation screen can show the same threat before the fight.
+export function difficultyForRunNode(runState, nodeIndex = runState?.nodeIndex, factor = 1) {
+  const len = RUN_PATH.length
+  const act = actIndexForNode(nodeIndex, len)
+  const progress = len > 1 ? nodeIndex / (len - 1) : 0
+  const from = DIFFICULTY_TIERS[act - 1]?.threshold ?? 0
+  const to = DIFFICULTY_TIERS[act]?.threshold ?? 1
+  const depth = to > from ? Math.max(0, Math.min(1, (progress - from) / (to - from))) : 0
+  const type = runState?.path?.[nodeIndex]?.type || RUN_PATH[nodeIndex]?.type || "battle"
+  const kind = ["elite", "miniboss", "boss"].includes(type) ? type : "battle"
+  return difficultySpec({ act, kind, depth, factor, seedKey: `${runState?.seed ?? 0}:${nodeIndex}` })
 }
 
 // Breeding (hearth.js breedHeroes): a hatchling can carry the OTHER

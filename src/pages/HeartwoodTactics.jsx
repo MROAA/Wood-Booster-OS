@@ -30,6 +30,7 @@ import { BOSS_FIGHTS, BOSS_IDS, arenaTerrainFor, applyBossFight } from "../servi
 import { withObjectShowcase } from "../services/heartwood/tacticsObjects"
 import { withHitRolls } from "../services/heartwood/tacticsCover"
 import { enableMana } from "../services/heartwood/tacticsMana"
+import { applyDifficulty, difficultySpec } from "../services/heartwood/tacticsDifficulty"
 import { CLASSES } from "../data/heartwood/classes"
 import { UNITS } from "../data/heartwood/units"
 import "../components/heartwood/heartwood.css"
@@ -101,8 +102,20 @@ function initialShowcase() {
   return new URLSearchParams(window.location.search).get("objects") === "1"
 }
 
+// Difficulty sprint 2: `?threat=0..5` runs the DifficultyEngine at that
+// tier (escorts, scaling, smarter AI, ultimates, Mana Wells); `&act=N` and
+// `&kind=elite|boss` refine it. Off by default (the prototype stays T-less).
+function withThreat(battle, kind = "battle") {
+  const params = new URLSearchParams(window.location.search)
+  const raw = params.get("threat")
+  if (raw == null || raw === "") return battle
+  const tier = Math.max(0, Math.min(5, Number(raw) || 0))
+  const act = Math.max(1, Math.min(7, Number(params.get("act")) || [1, 1, 2, 3, 4, 6][tier]))
+  return applyDifficulty(battle, difficultySpec({ tier, act, kind: params.get("kind") || kind, seedKey: params.get("seed") || "prototype" }))
+}
+
 function startBattle(formationId, squadDefIds = initialSquad(), choice = initialObjectiveChoice(), showcase = initialShowcase()) {
-  return maybeDebugLowHp(applyObjective(createTacticsBattle(formationId, squadDefIds), objectiveSpecFor(choice)), showcase)
+  return maybeDebugLowHp(withThreat(applyObjective(createTacticsBattle(formationId, squadDefIds), objectiveSpecFor(choice))), showcase)
 }
 
 // Boss fights (sprint 3): ?boss=<id> (or the picker) starts that boss's
@@ -115,7 +128,7 @@ function initialBossId() {
 function startBossBattle(bossId, squadDefIds) {
   const fight = BOSS_FIGHTS[bossId]
   const base = createRealMatchupBattle(squadDefIds || PLAYER_ROSTER_IDS.slice(0, 4), fight.enemyDefIds, "tommy", 0, arenaTerrainFor(bossId))
-  return maybeDebugLowHp(applyBossFight({ ...base, formationId: null, bossPick: bossId }, bossId))
+  return maybeDebugLowHp(withThreat(applyBossFight({ ...base, formationId: null, bossPick: bossId }, bossId), "boss"))
 }
 
 // Static stat lines for the squad-picker's per-slot preview, computed once

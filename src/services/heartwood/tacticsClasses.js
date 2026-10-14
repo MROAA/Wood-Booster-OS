@@ -8,6 +8,7 @@
 // 1 at the start of each player turn (classPlayerTurnStart), so 1 = "until
 // your next turn" and 2 = "for 2 turns". No state.turn needed, which keeps
 // the damage mods pure (previewEnemyIntents stays an exact dry-run).
+import { breakUltimate } from "./tacticsUltimates"
 import { CLASSES, classById, fallbackClassId } from "../../data/heartwood/classes"
 export { upgradeClassSkill, applySkillUpgrades } from "../../data/heartwood/classes"
 import { kingAdjacent, isOnBoard, samePos } from "./targeting"
@@ -434,6 +435,8 @@ function interruptEnemy(state, id, turns = 1) {
     broke = true
   }
   const next = setUnit(state, id, patch)
+  // Difficulty sprint 2: a channeled mana ultimate breaks too.
+  if (t.ultArmed) return breakUltimate(next, id, "interrupt")
   return broke ? callout(addLog(next, `${t.name}'s wind-up is interrupted!`), id, "Interrupted!") : next
 }
 

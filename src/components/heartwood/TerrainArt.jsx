@@ -193,6 +193,17 @@ const TERRAIN_SVG = {
         `<g stroke="#2b2622" stroke-width=".6">${[[16, 20], [40, 16], [28, 38], [52, 40], [14, 52], [44, 56]].map(([x, y]) => `<path d="M${x - 5} ${y + 3}L${x - 3} ${y - 7}L${x - 1} ${y + 3}Z" fill="#9c958a"/><path d="M${x - 1} ${y + 3}L${x + 1} ${y - 10}L${x + 3} ${y + 3}Z" fill="#c8c1b4"/><path d="M${x + 3} ${y + 3}L${x + 5} ${y - 6}L${x + 7} ${y + 3}Z" fill="#8b8478"/>`).join("")}</g>` +
         `<g fill="#e8e2d6">${[[16, 20], [40, 16], [28, 38], [52, 40], [14, 52], [44, 56]].map(([x, y], i) => `<circle cx="${x + 1}" cy="${y - 9}" r=".8">${anim(a, loop("opacity", ".2;1;.2", `${2 + (i % 3) * 0.6}s`, `${i * 0.3}s`))}</circle>`).join("")}</g>`,
     ),
+  // Difficulty + mana sprint 2: a Mana Well - a glowing rune pool that pulses.
+  manawell: (a) =>
+    svg(
+      EARTH +
+        `<circle cx="32" cy="32" r="25" fill="none" stroke="#3b6fd0" stroke-width="2" opacity=".55" stroke-dasharray="4 3">${anim(a, `<animateTransform attributeName="transform" type="rotate" values="0 32 32;360 32 32" dur="18s" repeatCount="indefinite"/>`)}</circle>` +
+        `<circle cx="32" cy="32" r="17" fill="url(#mw)"/>` +
+        `<circle cx="32" cy="32" r="17" fill="none" stroke="#9fd2ff" stroke-width="1.4" opacity=".8">${anim(a, loop("r", "15;19;15", "2.6s"))}${anim(a, loop("opacity", ".9;.25;.9", "2.6s"))}</circle>` +
+        `<g fill="#cfe9ff" opacity=".85">${[[32, 20], [43, 38], [21, 38]].map(([x, y], i) => `<path d="M${x} ${y - 3}l2 3-2 3-2-3z">${anim(a, loop("opacity", ".2;1;.2", "2.2s", `${i * 0.7}s`))}</path>`).join("")}</g>` +
+        `<circle cx="32" cy="32" r="4" fill="#e8f6ff">${anim(a, loop("opacity", ".5;1;.5", "1.6s"))}</circle>`,
+      `<radialGradient id="mw"><stop offset="0" stop-color="#7cc4ff" stop-opacity=".95"/><stop offset=".6" stop-color="#2d63c8" stop-opacity=".75"/><stop offset="1" stop-color="#16285a" stop-opacity=".2"/></radialGradient>`,
+    ),
   // Plain ground under the object sprites.
   tree: () => svg(MOSS),
   sporepod: () => svg(MOSS),

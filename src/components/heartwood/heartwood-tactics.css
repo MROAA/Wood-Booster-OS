@@ -3171,3 +3171,135 @@
 .hw-reduce-motion .hwt-chaos-banner { animation: none; opacity: 1; }
 /* The battle screen makes its direct children position: relative - keep the banners floating. */
 .hw-root[data-screen="battle"] > .hwt-chaos-banner, .hw-root[data-screen="battle"] > .hwt-boss-phase-banner { position: fixed; }
+
+/* ---- Difficulty + mana sprint 2 ------------------------------------- */
+/* Enemy ULTIMATE bar: a violet bar along the token's top edge; glows when
+   full, pulses red with a ⚠ while the enemy channels. */
+.hwt-ult-track {
+  position: absolute;
+  left: 10px;
+  right: 22px;
+  top: -5px;
+  height: 6px;
+  z-index: 5;
+  border-radius: 3px;
+  background: rgba(10, 6, 20, 0.85);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+  cursor: help;
+}
+.hwt-ult-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #6b3fd6, #c27bff);
+  transition: width 0.45s ease-out;
+}
+.hwt-ult-icon {
+  position: absolute;
+  left: -12px;
+  top: -5px;
+  font-size: 11px;
+  line-height: 1;
+  color: #d9b8ff;
+  text-shadow: 0 0 3px black, 0 0 2px black;
+}
+.hwt-ult-track[data-full] .hwt-ult-fill { box-shadow: 0 0 6px #c27bff; }
+.hwt-ult-track[data-armed] .hwt-ult-fill {
+  background: linear-gradient(90deg, #ff4d6d, #ffb347);
+  box-shadow: 0 0 8px #ff4d6d;
+  animation: hwt-ult-pulse 0.8s ease-in-out infinite;
+}
+.hwt-ult-track[data-armed] .hwt-ult-icon { color: #ff6b6b; font-size: 13px; }
+@keyframes hwt-ult-pulse { 50% { filter: brightness(1.5); } }
+
+/* Ultimate tiles: violet = aimed (fires the turn after), red pulse = fires now. */
+.hwt-cell[data-ult-zone="windup"] {
+  --hwt-tint: rgba(150, 90, 255, 0.16);
+  box-shadow: inset 0 0 0 2px rgba(170, 110, 255, 0.7);
+}
+.hwt-cell[data-ult-zone="release"] {
+  --hwt-tint: rgba(255, 60, 90, 0.28);
+  box-shadow: inset 0 0 0 2px #ff4d6d, inset 0 0 18px rgba(255, 60, 90, 0.6);
+  animation: hwt-ult-zone 1s ease-in-out infinite;
+}
+@keyframes hwt-ult-zone { 50% { box-shadow: inset 0 0 0 2px #ff4d6d, inset 0 0 6px rgba(255, 60, 90, 0.3); } }
+.hwt-ult-warn-icon {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  z-index: 2;
+  font-size: 0.9rem;
+  pointer-events: auto;
+  cursor: help;
+  color: #c79bff;
+  text-shadow: 0 1px 2px black;
+}
+.hwt-ult-warn-icon[data-phase="release"] { color: #ff6b6b; font-size: 1.05rem; }
+.hwt-intent-badge[data-intent="ultimate"] {
+  color: #ffd2e0;
+  background: #5a1530;
+  box-shadow: 0 0 8px rgba(255, 77, 109, 0.85);
+}
+.hwt-intent-badge[data-intent="ultimate"][data-ult-phase="windup"] { background: #35205e; box-shadow: 0 0 8px rgba(170, 110, 255, 0.8); }
+.hwt-intent-badge[data-intent="ultimate"][data-ult-phase="fizzle"] { background: #333; box-shadow: none; color: #bbb; }
+.hwt-ult-intent-icon { font-size: 0.75em; margin-left: 1px; }
+.hwt-ambush-mark { font-weight: 900; color: #ff6b6b; margin-left: 1px; }
+.hwt-cell.hwt-combo-flash[data-combo-flash="ultimate"]::after { background: radial-gradient(circle, rgba(255, 80, 120, 0.9), rgba(140, 60, 255, 0.5) 55%, transparent 80%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="ult-break"]::after { background: radial-gradient(circle, rgba(200, 230, 255, 0.9), transparent 75%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="hero-ult"]::after { background: radial-gradient(circle, rgba(255, 215, 120, 0.95), rgba(255, 160, 60, 0.4) 55%, transparent 80%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="mana-link"]::after { background: radial-gradient(circle, rgba(120, 190, 255, 0.9), transparent 75%); }
+@media (prefers-reduced-motion: reduce) {
+  .hwt-cell[data-ult-zone="release"],
+  .hwt-ult-track[data-armed] .hwt-ult-fill { animation: none; }
+}
+.hw-reduce-motion .hwt-cell[data-ult-zone="release"],
+.hw-reduce-motion .hwt-ult-track[data-armed] .hwt-ult-fill { animation: none; }
+
+/* Behaviour profile chip (Berserker, Assassin...) under the role disc. */
+.hwt-behavior-badge {
+  position: absolute;
+  top: 18px;
+  right: -8px;
+  z-index: 4;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 11px;
+  line-height: 1;
+  background: #241a14;
+  border: 1.5px solid color-mix(in srgb, var(--hw-hp) 70%, black);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.7);
+  cursor: help;
+}
+
+/* Threat panel (DifficultyEngine). */
+.hwt-threat {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--hw-border);
+  background: var(--hw-card);
+  font-size: var(--hw-fs-sm);
+}
+.hwt-threat[data-tier="3"], .hwt-threat[data-tier="4"] { border-color: color-mix(in srgb, var(--hw-ember) 55%, var(--hw-border)); }
+.hwt-threat[data-tier="5"] { border-color: color-mix(in srgb, var(--hw-hp) 70%, var(--hw-border)); }
+.hwt-threat-head { display: flex; align-items: center; gap: 8px; }
+.hwt-threat-id { font-weight: 800; color: var(--hw-ember); }
+.hwt-threat-name { font-weight: 600; flex: 1; }
+.hwt-threat-pips { display: flex; gap: 3px; }
+.hwt-threat-pip { width: 9px; height: 9px; border-radius: 2px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15); }
+.hwt-threat-pip[data-on] { background: var(--hw-ember); border-color: var(--hw-ember); box-shadow: 0 0 4px var(--hw-ember); }
+.hwt-threat[data-tier="5"] .hwt-threat-pip[data-on] { background: var(--hw-hp); border-color: var(--hw-hp); }
+.hwt-threat-scaled, .hwt-threat-lines { color: var(--hw-muted); margin-top: 4px; line-height: 1.4; }
+.hwt-threat-line { margin-right: 8px; color: var(--hw-text); }
+.hwt-threat-traits { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.hwt-threat-trait { padding: 1px 6px; border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: var(--hw-text); font-size: 0.72rem; }
+
+/* Hero ultimate button: gold glow when ready. */
+.hwt-hero-ult-btn[data-ready] {
+  border-color: #f3c45a;
+  box-shadow: 0 0 10px rgba(243, 196, 90, 0.7);
+  animation: hwt-res-full 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) { .hwt-hero-ult-btn[data-ready] { animation: none; } }
+.hwt-formation-threat { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--hw-ember); margin: 0 0 6px; }
