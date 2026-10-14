@@ -174,6 +174,21 @@ export function enableHeroIdentity(state) {
   return { ...state, heroSig: true, units: spotted }
 }
 
+// Prototype page only (`?identity=demo`): the test squad gets a little
+// personality so the board shows quirks, a friendship, a rivalry and scars.
+export function withDemoIdentity(state) {
+  if (!state?.units) return state
+  const heroes = state.units.filter((u) => u.side === "player" && !u.structure && !u.npc && u.id !== "player-commander")
+  const [a, b, c, d] = heroes.map((u) => u.id)
+  const demo = {
+    [a]: { quirks: ["loyal", "fears-fire"], scars: ["survivor"], bondMap: b ? { [b]: "friend" } : {} },
+    [b]: { quirks: ["forest-child"], scars: ["giantsbane"], bondMap: a ? { [a]: "friend" } : {} },
+    [c]: { quirks: ["fears-beasts"], scars: [], bondMap: d ? { [d]: "rival" } : {} },
+    [d]: { quirks: ["proud", "loves-heights"], scars: ["slayer"], bondMap: c ? { [c]: "rival" } : {} },
+  }
+  return enableHeroIdentity({ ...state, units: state.units.map((u) => (demo[u.id] ? { ...u, heroUid: `demo-${u.id}`, ...demo[u.id] } : u)) })
+}
+
 // --- After a won fight ---------------------------------------------------------------
 
 const push = (list, line) => [...list, line].slice(-HISTORY_MAX)
@@ -297,17 +312,23 @@ export function signatureDrop(runState, node) {
   if (!chance || !Array.isArray(runState?.bench)) return runState
   const rng = streamRng(runState.seed, "loot", `${runState.nodeIndex}:signature`)
   if (rng() >= chance) return runState
-  const owned = new Set(arr(runState.items).map((it) => it.defId))
-  const classes = []
-  for (const k of arr(runState.deployed)) {
-    const e = runState.bench.find((b) => b.key === k)
-    const cls = e ? e.classId || UNITS[e.defId]?.classId : null
-    const sig = cls ? SIGNATURES[cls]?.legendary : null
-    if (sig && ITEMS[sig.id] && !owned.has(sig.id) && !classes.includes(sig.id)) classes.push(sig.id)
-  }
+  const classes = squadSignatureIds(runState)
   if (!classes.length) return runState
   const id = classes[Math.floor(rng() * classes.length)]
   return grantSignatureItem(runState, id)
+}
+
+// The signature legendaries of the deployed heroes' classes the run doesn't own yet.
+export function squadSignatureIds(runState) {
+  const owned = new Set(arr(runState?.items).map((it) => it.defId))
+  const out = []
+  for (const k of arr(runState?.deployed)) {
+    const e = arr(runState.bench).find((b) => b.key === k)
+    const cls = e ? e.classId || UNITS[e.defId]?.classId : null
+    const sig = cls ? SIGNATURES[cls]?.legendary : null
+    if (sig && ITEMS[sig.id] && !owned.has(sig.id) && !out.includes(sig.id)) out.push(sig.id)
+  }
+  return out
 }
 
 export function grantSignatureItem(runState, id) {

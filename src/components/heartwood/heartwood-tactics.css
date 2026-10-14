@@ -3547,3 +3547,108 @@ button.hwt-tl-chip:hover { border-color: var(--hwt-gold); }
   .hwt-react-badge, .hwt-cell[data-combo] { animation: none; }
 }
 .hw-reduce-motion .hwt-react-badge, .hw-reduce-motion .hwt-cell[data-combo] { animation: none; }
+
+/* ---------------------------------------------------------------------------
+   Hero identity sprint: class signature chip (bottom-right of a hero token),
+   signature marks (top-centre), bond lines, the selected hero's signature +
+   personality cards. Warm tavern palette; gold = legendary.
+   --------------------------------------------------------------------------- */
+.hwt-sig-chip {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 4px 1px 2px;
+  border-radius: 9px;
+  background: rgba(24, 15, 8, 0.92);
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 55%, transparent);
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--hw-text);
+  pointer-events: auto;
+  opacity: 0.8;
+  transition: opacity 0.2s, box-shadow 0.2s;
+}
+.hwt-sig-chip[data-on="true"] { opacity: 1; box-shadow: 0 0 6px color-mix(in srgb, var(--hwt-gold) 70%, transparent); }
+.hwt-sig-chip[data-full="true"] { border-color: #ffd36b; animation: hwt-sig-pulse 1.4s ease-in-out infinite; }
+.hwt-sig-chip[data-legend="true"] { border-color: #f0b23c; background: linear-gradient(135deg, rgba(64, 40, 8, 0.95), rgba(24, 15, 8, 0.95)); }
+.hwt-sig-icon { font-size: 11px; }
+.hwt-sig-pips { display: inline-flex; gap: 1px; }
+.hwt-sig-pip { width: 4px; height: 7px; border-radius: 2px; background: rgba(255, 255, 255, 0.16); }
+.hwt-sig-pip[data-lit="true"] { background: #ffd36b; box-shadow: 0 0 3px #ffd36b; }
+.hwt-sig-count { font-size: 10px; color: #ffd36b; }
+@keyframes hwt-sig-pulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(255, 211, 107, 0.5); }
+  50% { box-shadow: 0 0 10px rgba(255, 211, 107, 0.95); }
+}
+.hwt-sig-marks {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  gap: 1px;
+  pointer-events: auto;
+}
+.hwt-sig-mark {
+  font-size: 10px;
+  line-height: 14px;
+  min-width: 14px;
+  padding: 0 2px;
+  text-align: center;
+  border-radius: 7px;
+  background: rgba(24, 15, 8, 0.9);
+  border: 1px solid #a57ad8;
+  color: #f2e6ff;
+}
+.hwt-sig-mark[data-mark="doom"] { border-color: #e05bd0; }
+.hwt-sig-mark[data-mark="rigged"] { border-color: #ff8a3c; }
+.hwt-sig-mark[data-mark="spotted"] { border-color: #7ddc6f; }
+.hwt-sig-mark[data-mark="quarry"] { border-color: #ffd24a; }
+.hwt-sig-mark[data-mark="scent"] { border-color: #e2483d; }
+.hwt-sig-mark[data-mark="fear"] { border-color: #e07a6a; background: rgba(60, 14, 10, 0.92); }
+.hwt-sig-mark[data-mark="anthem"] { border-color: #ffc857; }
+.hwt-token[data-thrall="true"] { filter: hue-rotate(95deg) saturate(0.7) brightness(0.9); }
+.hwt-bond-overlay { z-index: 3; }
+.hwt-bond-line { stroke-width: 3; stroke-dasharray: 5 4; opacity: 0.75; }
+.hwt-bond[data-bond="rival"] .hwt-bond-line { stroke-dasharray: 2 3; }
+.hwt-bond-dot { fill: rgba(24, 15, 8, 0.92); stroke-width: 2; }
+.hwt-bond-icon { font-size: 11px; }
+.hwt-sig-info,
+.hwt-identity-info {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 40%, transparent);
+}
+.hwt-sig-info[data-legend="true"] { border-color: #f0b23c; box-shadow: inset 0 0 12px rgba(240, 178, 60, 0.18); }
+.hwt-sig-info-head { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: #ffd36b; }
+.hwt-sig-info-tag { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--hw-text-dim, #bfae90); font-weight: 700; }
+.hwt-sig-info-num { margin-left: auto; }
+.hwt-sig-info-text,
+.hwt-sig-info-combo,
+.hwt-sig-info-legend { margin: 3px 0 0; font-size: 11px; line-height: 1.35; color: var(--hw-text); }
+.hwt-sig-info-combo { color: var(--hw-text-dim, #bfae90); }
+.hwt-sig-info-legend { color: #f0b23c; font-weight: 700; }
+.hwt-id-row { display: flex; flex-wrap: wrap; gap: 3px; margin: 2px 0; }
+.hwt-id-chip {
+  font-size: 10.5px;
+  line-height: 16px;
+  padding: 0 6px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--chip, #bfae90) 60%, transparent);
+  color: var(--hw-text);
+  background: rgba(0, 0, 0, 0.25);
+  opacity: 0.8;
+}
+.hwt-id-chip[data-lit="true"] { opacity: 1; background: color-mix(in srgb, var(--chip, #bfae90) 22%, transparent); box-shadow: 0 0 5px color-mix(in srgb, var(--chip, #bfae90) 60%, transparent); }
+.hwt-id-chip[data-scar="scar"] { --chip: #e07a6a; }
+.hwt-id-chip[data-scar="honour"] { --chip: #f0b23c; }
+@media (prefers-reduced-motion: reduce) {
+  .hwt-sig-chip[data-full="true"] { animation: none; }
+}

@@ -9,6 +9,7 @@ import { MUTATIONS } from "../../data/heartwood/mutations"
 import { TRAITS, TRAIT_KINDS } from "../../data/heartwood/traits"
 import { promoTitle } from "../../services/heartwood/promotions"
 import { PROMOTIONS } from "../../data/heartwood/promotions"
+import HeroIdentityRow from "./HeroIdentityRow"
 import { CLASS_GROUPS, classById } from "../../data/heartwood/classes"
 import { signatureAbilityForDef } from "../../services/heartwood/tacticsEngine"
 import { describeAbility, signatureUpgrades, SIGNATURE_SKILL_KEY } from "../../services/heartwood/tacticsAbilities"
@@ -271,6 +272,8 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       {entry?.mutations?.length > 0 && <MutationRow ids={entry.mutations} />}
       {/* Traits (data/heartwood/traits.js): one labelled chip each. */}
       {entry?.heroTraits?.length > 0 && <TraitRow ids={entry.heroTraits} />}
+      {/* Hero identity: signature, quirks, bonds, scars + a short history. */}
+      {entry && <HeroIdentityRow entry={entry} classId={tacticalClass?.id} />}
       {/* Tribe band - promoted to a first-class element directly under
           the cost/HP row (Marc: "heimo tarvitsee näkyvämmän paikan
           kortissa koska se on keskeinen osa pelimekaniikkaa"). Labelled,

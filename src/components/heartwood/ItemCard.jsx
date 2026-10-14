@@ -1,6 +1,7 @@
 import { CardGlyph } from "./cardArt"
 import { RARITY_INFO, GEAR_KINDS } from "../../data/heartwood/items"
 import { CLASSES } from "../../data/heartwood/classes"
+import { SIGNATURES } from "../../data/heartwood/signatures"
 import { recipeHintText } from "../../services/heartwood/gear"
 
 // A small purchasable-or-owned item card - mirrors UnitCard.jsx's
@@ -18,6 +19,9 @@ export default function ItemCard({ def, selected, disabled, onClick, locked, onT
   const kind = GEAR_KINDS[def.kind]
   const combines = recipeHintText(def.id)
   const collarClass = def.kind === "collar" ? CLASSES[def.collarClass] : null
+  // Hero identity sprint: a class SIGNATURE legendary - gold frame + crest.
+  const sigClass = def.kind === "signature" ? CLASSES[def.signatureClass] : null
+  const sig = sigClass ? SIGNATURES[def.signatureClass] : null
   return (
     <div
       className="hw-card hw-card--skill hw-item-card"
@@ -25,6 +29,7 @@ export default function ItemCard({ def, selected, disabled, onClick, locked, onT
       data-selected={!!selected}
       data-tier={def.tier}
       data-rarity={def.rarity}
+      data-signature={sigClass ? def.signatureClass : undefined}
       data-item-id={def.id}
       data-locked={locked || undefined}
       style={{ "--hw-rarity": rarity.color }}
@@ -75,6 +80,11 @@ export default function ItemCard({ def, selected, disabled, onClick, locked, onT
       {kind && (
         <div className="hw-item-kind" data-kind={def.kind}>
           {kind.name}
+        </div>
+      )}
+      {sigClass && (
+        <div className="hw-item-sig" title={`Worn by a ${sigClass.name} it transforms ${sig?.name}: ${sig?.text}`}>
+          <span className="hw-item-sig-crest">{sigClass.icon}</span> {sigClass.name} · {sig?.icon} {sig?.name}
         </div>
       )}
       <div className="hw-card-desc">{def.description}</div>

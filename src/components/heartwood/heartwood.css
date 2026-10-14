@@ -8797,3 +8797,32 @@ img.hw-intent-glyph {
 .hw-gear-row--small .hw-item-slot-plus { font-size: 14px; opacity: 0.7; }
 .hw-gear-row--small .hw-gear-link { font-size: 10.5px; padding: 3px 5px; border-radius: 7px; }
 .hw-gear-row-wrap .hw-gear-open { font-size: 11px; padding: 4px 9px; margin-left: auto; }
+
+/* Hero identity sprint: signature / quirks / bonds / scars / history on a hero card. */
+.hw-card-identity { margin: 2px 4px 1px; display: flex; flex-direction: column; gap: 2px; }
+.hw-id-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+.hw-id-chip { --hw-id: var(--hw-muted); display: inline-flex; align-items: center; gap: 3px; padding: 0 6px; border-radius: 999px; font-size: 10px; line-height: 15px; color: var(--hw-text); background: color-mix(in srgb, var(--hw-id) 14%, var(--hw-panel)); border: 1px solid color-mix(in srgb, var(--hw-id) 65%, transparent); white-space: nowrap; }
+.hw-id-chip[data-id-kind="signature"] { --hw-id: #ffd36b; font-weight: 700; }
+.hw-id-chip[data-id-kind="scar"] { --hw-id: #e07a6a; }
+.hw-id-chip[data-id-kind="honour"] { --hw-id: #f0b23c; }
+.hw-id-history { list-style: none; margin: 1px 0 0; padding: 2px 6px; border-left: 2px solid color-mix(in srgb, var(--hw-ember) 60%, transparent); font-size: 9.5px; line-height: 1.3; font-style: italic; color: var(--hw-text-dim, #bfae90); text-align: left; }
+.hw-id-history li::before { content: "› "; color: var(--hw-ember); }
+
+/* Hero identity sprint: a class SIGNATURE legendary - double gold frame, shimmer, class crest. */
+.hw-item-card[data-signature] {
+  border: 2px solid #f0b23c;
+  background: linear-gradient(160deg, color-mix(in srgb, #f0b23c 22%, var(--hw-card)) 0%, var(--hw-card) 55%, color-mix(in srgb, #f0b23c 14%, var(--hw-card)) 100%);
+  box-shadow: inset 0 0 0 2px rgba(42, 29, 12, 0.9), inset 0 0 0 3px #ffd36b, 0 0 18px rgba(240, 178, 60, 0.55);
+  animation: hw-sig-shimmer 3.2s ease-in-out infinite;
+}
+.hw-item-card[data-signature] .hw-card-name { color: #ffd36b; text-shadow: 0 0 6px rgba(240, 178, 60, 0.6); }
+.hw-item-sig { margin: 1px 4px; padding: 1px 6px; border-radius: 999px; font-size: 10px; font-weight: 700; color: #2a1d0c; background: linear-gradient(90deg, #f0c86a, #d49a3c); text-align: center; }
+.hw-item-sig-crest { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: #2a1d0c; color: #f7dc98; font-size: 9px; }
+@keyframes hw-sig-shimmer {
+  0%, 100% { box-shadow: inset 0 0 0 2px rgba(42, 29, 12, 0.9), inset 0 0 0 3px #ffd36b, 0 0 12px rgba(240, 178, 60, 0.4); }
+  50% { box-shadow: inset 0 0 0 2px rgba(42, 29, 12, 0.9), inset 0 0 0 3px #ffd36b, 0 0 22px rgba(240, 178, 60, 0.8); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-item-card[data-signature] { animation: none; }
+}
+.hw-gear-bag-item[data-signature="true"] { border-color: #f0b23c !important; box-shadow: 0 0 10px rgba(240, 178, 60, 0.45); color: #ffd36b; }

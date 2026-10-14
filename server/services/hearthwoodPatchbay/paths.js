@@ -215,6 +215,11 @@ export const ENTITY_TYPES = {
     // Promotions/Traits sprint: hero traits + class promotions.
     traits: { file: "traits.js", exportName: "TRAITS" },
     promotions: { file: "promotions.js", exportName: "PROMOTIONS" },
+    // Hero identity sprint: class signature mechanics (+ their legendary),
+    // personality quirks, scars & honours.
+    signatures: { file: "signatures.js", exportName: "SIGNATURES" },
+    quirks: { file: "quirks.js", exportName: "QUIRKS" },
+    scars: { file: "quirks.js", exportName: "SCARS" },
     // Gear sprint: item recipes + Class Collars (items themselves: `items`).
     recipes: { file: "recipes.js", exportName: "RECIPES" },
     collars: { file: "collars.js", exportName: "COLLARS" },

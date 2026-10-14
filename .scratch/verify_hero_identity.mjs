@@ -513,5 +513,122 @@ if (!process.env.ENGINE_ONLY) {
 } else process.exitCode = fails.length ? 1 : 0
 
 async function uiChecks() {
-  return ["UI part not written yet"]
+  const { chromium } = await import("playwright")
+  const PORT = process.env.PORT || 5451
+  const SHOT_DIR = `${ROOT}.scratch/shots`
+  await mkdir(SHOT_DIR, { recursive: true })
+  const out = []
+  const ui = {}
+  const check = (cond, msg, data) => cond || out.push(data === undefined ? msg : `${msg} ${JSON.stringify(data).slice(0, 300)}`)
+  const browser = await chromium.launch()
+  try {
+    const ctx = await browser.newContext({ viewport: { width: 1400, height: 950 } })
+    const page = await ctx.newPage()
+    const errs = []
+    page.on("pageerror", (e) => errs.push(String(e)))
+    // 1) Prototype board: signature chips, bond lines, enemy marks, selected card.
+    await page.goto(`http://localhost:${PORT}/heartwood-tactics?squad=hexmother,stormwing,duskclaw,the-fool&identity=demo&front=1`, { waitUntil: "domcontentloaded" })
+    await page.waitForSelector(".hwt-board", { timeout: 30000 })
+    await page.waitForTimeout(600)
+    ui.chips = await page.locator(".hwt-sig-chip").count()
+    ui.friend = await page.locator(".hwt-bond[data-bond='friend']").count()
+    ui.rival = await page.locator(".hwt-bond[data-bond='rival']").count()
+    ui.spotted = await page.locator(".hwt-token[data-side='enemy'] .hwt-sig-mark[data-mark='spotted']").count()
+    ui.stealth = await page.locator(".hwt-token[data-unit-id='player-duskclaw-2'] .hwt-sig-chip[data-on='true']").count()
+    check(ui.chips >= 5, "every hero token shows its signature chip", ui)
+    check(ui.friend === 1 && ui.rival === 1, "bond lines: friends + rivals side by side", ui)
+    check(ui.spotted >= 1, "Scout: Spotted marks on nearby enemies", ui)
+    check(ui.stealth === 1, "Assassin starts in Shadowmeld (chip lit)", ui)
+    ui.chipTitle = await page.locator(".hwt-token[data-unit-id='player-hexmother-0'] .hwt-sig-chip").getAttribute("title")
+    check(/Doom/.test(ui.chipTitle || ""), "signature chip tooltip explains the mechanic", ui.chipTitle)
+    await page.screenshot({ path: `${SHOT_DIR}/hero_identity_board.png` })
+    // Select the Hexer: signature card + quirks / bonds / scars.
+    await page.click(".hwt-token[data-unit-id='player-hexmother-0']")
+    await page.waitForSelector(".hwt-sig-info", { timeout: 5000 })
+    ui.sigInfo = await page.locator(".hwt-sig-info").innerText()
+    ui.idInfo = await page.locator(".hwt-identity-info").innerText().catch(() => "")
+    check(/Doom/.test(ui.sigInfo) && /Signature/i.test(ui.sigInfo), "selected hero: signature card", ui.sigInfo)
+    check(/Loyal/.test(ui.idInfo) && /Stormwing/.test(ui.idInfo) && /Survivor/.test(ui.idInfo), "selected hero: quirks, friend and scar chips", ui.idInfo)
+    await page.locator(".hwt-panel").screenshot({ path: `${SHOT_DIR}/hero_identity_selected.png` }).catch(() => page.screenshot({ path: `${SHOT_DIR}/hero_identity_selected.png` }))
+    // Hexer hits an enemy -> Doom mark on it.
+    const target = await page.evaluate(() => {
+      const el = document.querySelector(".hwt-cell[data-targetable='true'] .hwt-token[data-side='enemy']")
+      return el?.dataset.unitId || null
+    })
+    if (target) {
+      await page.click(`.hwt-token[data-unit-id='${target}']`)
+      await page.waitForTimeout(900)
+      ui.doom = await page.locator(`.hwt-token[data-unit-id='${target}'] .hwt-sig-mark[data-mark='doom']`).count()
+      check(ui.doom === 1, "Hexer's hit lays a Doom mark on the enemy", ui)
+      await page.screenshot({ path: `${SHOT_DIR}/hero_identity_doom.png` })
+    } else out.push("no enemy in the Hexer's reach")
+
+    // 2) A real run: the hero card shows identity; the fight runs signatures; a signature legendary card.
+    const rp = await ctx.newPage()
+    rp.on("pageerror", (e) => errs.push(String(e)))
+    await rp.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+    await rp.evaluate(async () => {
+      localStorage.clear()
+      localStorage.setItem("heartwood-autobattler-intro-seen", "1")
+      localStorage.setItem("heartwood-story-intro-seen", "1")
+      localStorage.setItem("heartwood-tactics-tutorial-v1", "skipped")
+      const rt = await import("/src/services/heartwood/runEngine.js")
+      const identity = (quirks, extra = {}) => ({ quirks, bonds: {}, bondNames: {}, scars: [], history: [], career: { fights: 0, kills: 0, falls: 0, nearDeaths: 0, saves: 0 }, ...extra })
+      const rs = {
+        ...rt.startRun("tommy", null, { forcedSeed: 4321 }),
+        essence: 500,
+        bench: [
+          { key: 10, defId: "hexbreaker", upgradeLevel: 0, upgrades: [], identity: identity(["loyal", "fears-fire"], { bonds: { r11: 4 }, bondNames: { r11: "The Fool" }, scars: ["survivor", "grudge"], grudge: "beast", history: ["Survived Ironmaw at 2 HP", "Saved by The Fool", "Earned Survivor"] }) },
+          { key: 11, defId: "the-fool", upgradeLevel: 0, upgrades: [], identity: identity(["forest-child"], { bonds: { r10: 4 }, bondNames: { r10: "Hexbreaker" }, scars: ["guardian-angel"], history: ["Saved Hexbreaker's life", "Became friends with Hexbreaker"] }) },
+        ],
+        benchKeyCounter: 12,
+        deployed: [10, 11, null, null],
+        items: [
+          { key: 1, defId: "sig-spellblade", equippedTo: null, slotIndex: null },
+          { key: 2, defId: "sig-healer", equippedTo: 11, slotIndex: 0 },
+        ],
+        itemKeyCounter: 3,
+      }
+      localStorage.setItem("heartwood-run-save-v1", JSON.stringify(rt.serializeRun(rs)))
+    })
+    await rp.reload({ waitUntil: "domcontentloaded" })
+    await rp.locator(".hw-squad-tab-btn").click({ timeout: 15000 }).catch(() => {})
+    await rp.waitForSelector(".hw-card-identity", { timeout: 10000 }).catch(() => {})
+    ui.cardIds = await rp.locator(".hw-card-identity").count()
+    ui.cardText = ui.cardIds ? await rp.locator(".hw-card-identity").first().innerText() : ""
+    check(ui.cardIds >= 2 && /Spellweave|Overgrowth/.test(ui.cardText), "hero card: signature + quirks + scars + history", ui.cardText)
+    check((await rp.locator(".hw-id-history li").count()) >= 1, "hero card: a history line")
+    const card = rp.locator(".hw-card-identity").first().locator("xpath=..")
+    await card.screenshot({ path: `${SHOT_DIR}/hero_identity_card.png` }).catch(() => rp.screenshot({ path: `${SHOT_DIR}/hero_identity_card.png` }))
+    // Gear screen: the signature legendary card (gold frame + class crest).
+    await rp.getByRole("button", { name: "Got it" }).click({ timeout: 2000 }).catch(() => {})
+    await rp.locator('[data-gear-open="10"]').first().click({ timeout: 5000 }).catch(() => {})
+    await rp.waitForSelector("[data-gear-screen]", { timeout: 5000 }).catch(() => {})
+    ui.bagSig = await rp.locator('.hw-gear-bag-item[data-signature="true"]').count()
+    check(ui.bagSig === 1, "signature legendary marked in the bag", ui.bagSig)
+    await rp.locator('[data-gear-equip="1"]').click({ timeout: 5000 }).catch(() => {})
+    await rp.waitForSelector('[data-signature="spellblade"]', { timeout: 5000 }).catch(() => {})
+    ui.sigCard = await rp.locator('.hw-item-card[data-signature="spellblade"]').count()
+    ui.sigCardText = ui.sigCard ? await rp.locator('.hw-item-card[data-signature="spellblade"]').first().innerText() : ""
+    check(ui.sigCard >= 1 && /Spellblade/.test(ui.sigCardText) && /Legendary/i.test(ui.sigCardText), "signature legendary: distinct gold card with class crest", ui.sigCardText)
+    if (ui.sigCard) await rp.locator('.hw-item-card[data-signature="spellblade"]').first().screenshot({ path: `${SHOT_DIR}/hero_identity_legendary.png` })
+    await rp.screenshot({ path: `${SHOT_DIR}/hero_identity_gear.png` })
+    check(!errs.length, `no page errors ${JSON.stringify(errs.slice(0, 3))}`)
+
+    // 3) Studio: the Hero Identity editors.
+    const sp = await ctx.newPage()
+    sp.on("pageerror", (e) => errs.push(String(e)))
+    await sp.goto(`http://localhost:${PORT}/hearthwood-studio?view=identity`, { waitUntil: "domcontentloaded" })
+    await sp.waitForSelector("[data-testid='hero-identity-editor']", { timeout: 15000 }).catch(() => {})
+    ui.studioSig = await sp.locator("[data-testid='signature-editor'] [data-entry]").count()
+    await sp.locator("[data-identity-tab='quirks']").click({ timeout: 5000 }).catch(() => {})
+    ui.studioQuirks = await sp.locator("[data-testid='quirk-editor'] [data-entry]").count()
+    check(ui.studioSig === 38 && ui.studioQuirks >= 10, "Studio: Hero Identity editors (38 signatures, quirks)", { sig: ui.studioSig, q: ui.studioQuirks })
+    await sp.screenshot({ path: `${SHOT_DIR}/hero_identity_studio.png` })
+    check(!errs.length, `no page errors (studio) ${JSON.stringify(errs.slice(0, 3))}`)
+  } finally {
+    await browser.close()
+  }
+  console.log("UI", JSON.stringify(ui).slice(0, 1500))
+  return out
 }

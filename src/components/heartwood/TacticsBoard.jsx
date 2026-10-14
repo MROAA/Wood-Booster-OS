@@ -60,6 +60,10 @@ import {
 import { BATTLE_ROLES, roleOf, healReach } from "../../services/heartwood/tacticsRoles"
 import { canAfford, hasMana, manaBlockReason, manaSummary, potionOf, drinkPotion, POTION_AP, ultimateReady, surgeFor, skillCostText, resourceLabel, profileOf, canSacrifice, sacrifice, sacrificeCost, scaleAmount } from "../../services/heartwood/tacticsMana"
 import { ResourceGauge, ResourceInfo } from "./TacticsResourceUi"
+// Hero identity sprint: signature mechanic chips, enemy marks, bonds, quirks.
+import { SigChip, SigMarks, SignatureInfo, IdentityInfo } from "./TacticsIdentityUi"
+import { bondLinks } from "../../services/heartwood/tacticsBonds"
+import { BOND_LEVELS } from "../../data/heartwood/quirks"
 import { isEngaged } from "../../services/heartwood/tacticsRanged"
 import { describeDifficulty, lineOf, LINE_INFO } from "../../services/heartwood/tacticsDifficulty"
 import { behaviorInfo, behaviorsOn } from "../../services/heartwood/tacticsSmartAi"
@@ -286,6 +290,38 @@ function ShieldIcon({ full }) {
       ) : (
         <path d="M10 1 V21 C5.5 19 2 15 2 10 V4 Z" className="hwt-shield-fill" />
       )}
+    </svg>
+  )
+}
+
+// Hero identity: friends / sworn / rivals standing side by side - a coloured
+// line + the bond icon between the two tokens (above the tokens).
+function BondOverlay({ battle }) {
+  const links = bondLinks(battle)
+  if (!links.length) return null
+  const w = battle.grid.cols * (CELL + GAP) - GAP
+  const h = battle.grid.rows * (CELL + GAP) - GAP
+  const byId = new Map(battle.units.map((u) => [u.id, u]))
+  return (
+    <svg className="hwt-overlay hwt-bond-overlay" width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+        {links.map(({ a, b, level }) => {
+          const ua = byId.get(a)
+          const ub = byId.get(b)
+          if (!ua || !ub) return null
+          const p = cellCenter(ua.pos)
+          const q = cellCenter(ub.pos)
+          const mx = (p.x + q.x) / 2
+          const my = (p.y + q.y) / 2
+          return (
+            <g key={`bond-${a}-${b}`} className="hwt-bond" data-bond={level} data-a={a} data-b={b}>
+              <line className="hwt-bond-line" x1={p.x} y1={p.y} x2={q.x} y2={q.y} style={{ stroke: BOND_LEVELS[level]?.color }} />
+              <circle className="hwt-bond-dot" cx={mx} cy={my} r="9" style={{ stroke: BOND_LEVELS[level]?.color }} />
+              <text className="hwt-bond-icon" x={mx} y={my + 4} textAnchor="middle">
+                {BOND_LEVELS[level]?.icon}
+              </text>
+            </g>
+          )
+        })}
     </svg>
   )
 }
@@ -1138,6 +1174,7 @@ export default function TacticsBoard({
               data-spirit={!!unit.isSpirit}
               data-faction={unit.faction || undefined}
               data-echo={!!unit.echo || undefined}
+              data-thrall={unit.thrall || undefined}
               data-unit-id={unit.id}
               data-role={roleOf(unit)}
               data-overwatch={unit.overwatch > 0 || undefined}
@@ -1148,6 +1185,9 @@ export default function TacticsBoard({
             >
               <TokenArt unit={unit} />
               <DepthTokenChips unit={unit} battle={battle} />
+              {/* Hero identity: the class signature chip + signature marks. */}
+              {unit.side === "player" && <SigChip battle={battle} unit={unit} />}
+              <SigMarks battle={battle} unit={unit} />
               {comboTargets.has(unit.id) && (
                 <span className="hwt-combo-ready" title={`COMBO! ${comboTargets.get(unit.id).name} (${comboTargets.get(unit.id).recipe || COMBOS[comboTargets.get(unit.id).id]?.recipe}): +50% damage and +15 resource`}>
                   {comboTargets.get(unit.id).icon} COMBO
@@ -1510,6 +1550,7 @@ export default function TacticsBoard({
           >
             {cells}
             <BoardOverlay battle={battle} pairs={aggro} hoverPath={hoverPath} selected={selected} healReachTiles={healRing.size ? healReach(selected) : 0} />
+            <BondOverlay battle={battle} />
           </div>
         </div>
 
@@ -1592,6 +1633,8 @@ export default function TacticsBoard({
                   )}
                 </span>
                 {hasMana(selected) && <ResourceInfo unit={selected} battle={battle} />}
+                <SignatureInfo battle={battle} unit={selected} />
+                <IdentityInfo battle={battle} unit={selected} />
               </div>
             </div>
           )}

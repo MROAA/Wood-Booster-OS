@@ -37,7 +37,7 @@ import { rollFightMutations, eventMutation } from "./mutations"
 import { applyLevelsToTactics, levelForXp, levelSubject, pendingPerkCount, levelOffers, parseOffer, XP as LEVEL_XP_GAIN, pendingPromotionRank, promotionOffers } from "./unitLevels"
 import { withRolledTraits as rollTraitsOnly, eventTrait } from "./traits"
 // Hero identity sprint: quirks / bonds / scars & history + signature legendaries.
-import { withHeroIdentity, applyIdentityToBattle, recordHeroHistory, signatureDrop } from "./heroIdentity"
+import { withHeroIdentity, applyIdentityToBattle, recordHeroHistory, signatureDrop, squadSignatureIds } from "./heroIdentity"
 import { MAX_TRAITS } from "../../data/heartwood/traits"
 import { CLASSES } from "../../data/heartwood/classes"
 // A new hero rolls its traits AND its personality quirks the moment it joins.
@@ -1935,7 +1935,9 @@ function applyEventEffect(runState, eff, effIndex = 0) {
         ? randomFromList(itemPool().map((i) => i.id), rng)
         : eff.item === "collar"
           ? randomFromList(collarPool().map((i) => i.id), rng)
-          : eff.item
+          : eff.item === "signature"
+            ? randomFromList(squadSignatureIds(runState), rng)
+            : eff.item
     if (!id || !ITEMS[id]) return runState
     return {
       ...runState,
