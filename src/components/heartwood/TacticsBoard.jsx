@@ -17,7 +17,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
 import { ElementBadges, ElementHelp } from "./TacticsElementsUi"
 // Combat depth sprint: round timeline, stances, reactions, combos.
-import { TurnTimeline, DepthActions, DepthTokenChips, IntentReactionMarks } from "./TacticsDepthUi"
+import { TurnTimeline, DepthActions, DepthTokenChips, IntentReactionMarks, DepthHelp } from "./TacticsDepthUi"
 import { comboFor, hitCtx, COMBOS } from "../../services/heartwood/tacticsDepth"
 import { describeAbilityElement } from "../../services/heartwood/tacticsElements"
 import { classInfoFor, classSkillUsable, classSkillStatus, classSkillTiles } from "../../services/heartwood/tacticsClasses"
@@ -1852,6 +1852,7 @@ export default function TacticsBoard({
             </div>
           )}
           <ElementHelp />
+          <DepthHelp battle={battle} />
           <div className="hwt-log-heading">Battle log</div>
           <div className="hwt-log">
             {[...battle.log].reverse().map((line, i) => (

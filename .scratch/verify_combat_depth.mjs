@@ -332,6 +332,9 @@ async function uiChecks() {
       next: document.querySelectorAll(".hwt-timeline [data-tl-next='true']").length,
     }))
     check(tl.heroes >= 4 && tl.enemies >= 2 && tl.next === 1, `timeline renders heroes + enemies + next ${JSON.stringify(tl)}`)
+    await page.click(".hwt-depth-help .hwt-element-help-btn")
+    check(/Finisher|FINISHER/.test(await page.locator(".hwt-depth-help").innerText()), "help panel explains the combos")
+    await page.click(".hwt-depth-help .hwt-element-help-btn")
     // Select the tank, pick Defensive, ready a Parry.
     await page.click(".hwt-token[data-unit-id='player-bulwark-of-ages-0']")
     await page.waitForSelector("[data-action='stance-defensive']")
@@ -380,6 +383,27 @@ async function uiChecks() {
     await page.evaluate(() => document.querySelector(".hwt-sb-bar")?.scrollIntoView({ block: "start" }))
     check(await page.locator(".hwt-timeline [data-tl-side='player'][data-tl-status='ready']").count() >= 4, "new round: heroes ready again")
     await page.screenshot({ path: `${SHOT_DIR}/combat_depth_after_turn.png` })
+    // A REAL run fight carries combatDepth (tacticsRealMatchup) + shows the timeline.
+    const rp = await (await browser.newContext({ viewport: { width: 1300, height: 900 } })).newPage()
+    rp.on("pageerror", (e) => errs.push(String(e)))
+    await rp.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+    await rp.evaluate(async () => {
+      const { startRun, serializeRun, RUN_PATH, actIndexForNode } = await import("/src/services/heartwood/runEngine.js")
+      const idx = RUN_PATH.findIndex((n) => n.type === "battle" && n.formationId)
+      const bench = ["the-fool", "hexbreaker"].map((defId, i) => ({ key: `b${i}`, defId, upgradeLevel: 0, upgrades: [] }))
+      const rs = { ...startRun("tommy", null, { forcedSeed: 424243 }), nodeIndex: idx, path: RUN_PATH.slice(0, idx + 1), phase: "formation", bench, deployed: ["b0", "b1", null, null], items: [], lastSeenAct: actIndexForNode(idx, RUN_PATH.length) }
+      localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(rs)))
+    })
+    await rp.reload({ waitUntil: "domcontentloaded" })
+    await rp.locator(".hw-tactics-start").click()
+    const begin = rp.locator(".hwt-begin-battle")
+    await begin.waitFor({ timeout: 8000 }).catch(() => {})
+    if (await begin.count()) await begin.click()
+    await rp.waitForSelector(".hwt-timeline", { timeout: 10000 }).catch(() => {})
+    const real = await rp.evaluate(() => ({ depth: !!JSON.parse(localStorage.getItem("heartwood-run-save-v1"))?.run?.battle?.combatDepth, timeline: document.querySelectorAll(".hwt-timeline").length }))
+    check(real.depth && real.timeline === 1, `real run fight: combatDepth on + timeline shown ${JSON.stringify(real)}`)
+    await rp.screenshot({ path: `${SHOT_DIR}/combat_depth_real_run.png` })
+    await rp.close()
     check(!errs.length, `no page errors ${JSON.stringify(errs.slice(0, 3))}`)
   } finally {
     await browser.close()

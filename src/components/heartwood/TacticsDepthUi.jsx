@@ -25,6 +25,7 @@ import {
   DELAY_BONUS_AP,
 } from "../../services/heartwood/tacticsDepth"
 import { hasMana, resourceLabel } from "../../services/heartwood/tacticsMana"
+import { useState } from "react"
 
 const INTENT_WORD = {
   attack: "strikes",
@@ -265,5 +266,38 @@ export function IntentReactionMarks({ intent }) {
         </span>
       ))}
     </span>
+  )
+}
+
+// Panel help: the four combat-depth systems in plain words.
+export function DepthHelp({ battle }) {
+  const [open, setOpen] = useState(false)
+  if (!depthOn(battle)) return null
+  return (
+    <div className="hwt-element-help hwt-depth-help" data-open={open}>
+      <button className="hwt-element-help-btn" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        ⤵◎💧 Hero combos &amp; tactics {open ? "▴" : "▾"}
+      </button>
+      {open && (
+        <div className="hwt-element-help-body">
+          <p className="hwt-element-help-intro">Each hero's hits leave a mark on the enemy. ANOTHER hero cashes it in (gold glow + COMBO tag):</p>
+          <ul>
+            {COMBO_HELP.map((c) => (
+              <li key={c.id}>{c.text}</li>
+            ))}
+          </ul>
+          <p className="hwt-element-help-intro">
+            <b>Stance</b> (free, before the hero acts): ⚔ Aggressive hits harder but takes more, 🛡 Defensive braces (Block, 1 less move), ✧ Focus builds resource but hits softer.
+          </p>
+          <p className="hwt-element-help-intro">
+            <b>React</b> (keep 1 AP for the enemy turn): 🛡 Parry, ⚔ Counter, ✋ Interrupt (costs resource). The enemy's plan shows which of its actions set them off. Overwatch counts as the hero's reaction.
+          </p>
+          <p className="hwt-element-help-intro">
+            <b>Turn order</b> (bar above the board): ⏳ Delay a hero to act after the enemies (+{DELAY_BONUS_AP} AP next round). Knockbacks, Finishers, Shocks and Parries ↓ Stagger an enemy: it acts last with 1 AP; twice = ↓↓ Reeling, it loses its action.
+          </p>
+          <p className="hwt-element-help-intro">Enemies brace too: a badly hurt enemy turns Defensive and parries your first melee hit; Berserkers go Aggressive.</p>
+        </div>
+      )}
+    </div>
   )
 }
