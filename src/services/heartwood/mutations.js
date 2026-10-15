@@ -166,7 +166,7 @@ export function rollFightMutations(runState, battle, node) {
     const id = pickMutation(rng, { kind, exclude: arr(e.mutations) })
     if (!id) return e
     const m = MUTATIONS[id]
-    lines.push(`🧬 ${UNITS[e.defId]?.name || e.defId} grew ${m.name} - ${why}. ${m.text}`)
+    lines.push(`🧬 ${e.name || UNITS[e.defId]?.name || e.defId} grew ${m.name} - ${why}. ${m.text}`)
     return { ...e, mutations: addMutation(e.mutations, id) }
   })
   if (!lines.length) return { runState, lines }
@@ -188,7 +188,7 @@ export function eventMutation(runState, eff, rng) {
     const id = kind ? pickMutation(rng, { kind, exclude: arr(e.mutations) }) : MUTATIONS[spec] ? spec : null
     if (!id || arr(e.mutations).includes(id)) continue
     got.set(e.key, id)
-    lines.push(`🧬 ${UNITS[e.defId]?.name || e.defId} grows ${MUTATIONS[id].name}: ${MUTATIONS[id].text}`)
+    lines.push(`🧬 ${e.name || UNITS[e.defId]?.name || e.defId} grows ${MUTATIONS[id].name}: ${MUTATIONS[id].text}`)
   }
   if (!got.size) return { runState, lines }
   return {
