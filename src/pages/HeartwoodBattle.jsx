@@ -111,6 +111,7 @@ import ForestChoiceScreen from "../components/heartwood/ForestChoiceScreen"
 import CoachTip from "../components/heartwood/CoachTip"
 import HelpOverlay from "../components/heartwood/HelpOverlay"
 import TacticsTutorial from "../components/heartwood/TacticsTutorial"
+import CampaignScreen from "../components/heartwood/campaign/CampaignScreen"
 import { tutorialStatus, setTutorialStatus } from "../services/heartwood/tacticsTutorial"
 import { describeFaction } from "../services/heartwood/tacticsFactions"
 import { nextCoachTip, markCoachSeen } from "../data/heartwood/coach"
@@ -135,6 +136,7 @@ const AUTOBATTLER_INTRO_SEEN_KEY = "heartwood-autobattler-intro-seen"
 // first shop, same once-and-skippable contract as the tutorial hint
 // above. Separate key so clearing one doesn't affect the other.
 const STORY_INTRO_SEEN_KEY = "heartwood-story-intro-seen"
+const PLAY_MODE_KEY = "heartwood-play-mode"
 
 // Heartwood Trial as an autobattler: pick a Commander, then a fixed
 // loop of Shop -> Formation -> Auto-Battle repeats until the
@@ -257,6 +259,23 @@ export default function HeartwoodBattle() {
   // Training Grounds (tacticsTutorial.js): the guided practice fight,
   // an overlay like showHelp - it never touches runState.
   const [showTraining, setShowTraining] = useState(false)
+  // The Long Campaign (campaign/CampaignScreen.jsx): its own mode + save.
+  // Remembered across reloads so a campaign player lands back in it.
+  const [showCampaign, setShowCampaign] = useState(() => {
+    try {
+      return localStorage.getItem(PLAY_MODE_KEY) === "campaign"
+    } catch {
+      return false
+    }
+  })
+  function openCampaign(on) {
+    try {
+      localStorage.setItem(PLAY_MODE_KEY, on ? "campaign" : "expedition")
+    } catch {
+      // storage blocked - the mode just isn't remembered
+    }
+    setShowCampaign(on)
+  }
   const [trainingOfferOpen, setTrainingOfferOpen] = useState(() => !tutorialStatus())
   const coachDoneKeyRef = useRef(null)
   const [lastAcornsEarned, setLastAcornsEarned] = useState(null)
@@ -815,6 +834,15 @@ export default function HeartwoodBattle() {
     )
   }
 
+  if (showCampaign) {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="campaign" data-mode="campaign">
+        {exitLink}
+        <CampaignScreen onExit={() => openCampaign(false)} metaUnlocked={meta.unlockedCommanders || []} />
+      </div>
+    )
+  }
+
   if (showTraining) {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="training" data-screen="training">
@@ -1015,6 +1043,9 @@ export default function HeartwoodBattle() {
             </button>
           </div>
         )}
+        <button className="hw-campaign-open-btn" data-campaign-open onClick={() => openCampaign(true)} title="One long campaign: a world map, a growing roster, permadeath. Expeditions stay as quick runs.">
+          &#128506; The Long Campaign
+        </button>
         <button className="hw-hearth-open-btn" data-hearth-open onClick={() => setShowHearth(true)}>
           &#128293; The Hearth{hearth.roster.length ? ` — ${hearth.roster.length} at home` : ""}
         </button>

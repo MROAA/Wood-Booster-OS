@@ -248,6 +248,9 @@ export const regionState = (c, id) => {
   return r.threat >= THREAT_THREATENED ? "threatened" : "safe"
 }
 export const fallenCount = (c) => arr(c.regions).filter((r) => r.fallen).length
+// A region is open once the story reaches it (offset < chapter). Until
+// then it sleeps: no threat growth, no missions ("the Rot hasn't got there").
+export const regionOpen = (c, id) => (regionDef(id)?.offset || 0) < (c?.chapter || 1)
 
 // The extra DifficultyEngine score every campaign fight gets: the chosen
 // difficulty, each fallen region, and how full the doom clock is.
@@ -361,12 +364,12 @@ export function spawnMissions(c0, count = 1) {
   let c = c0
   const rng = rngFor(c, `spawn:${c.day}:${c.nextMissionId}`)
   if (c.chapterWins >= STORY_AFTER_WINS && c.chapter <= MAX_CHAPTER && !arr(c.missions).some((m) => m.type === "story")) {
-    const front = [...CAMPAIGN_REGIONS].reverse().find((r) => !r.home && !arr(c.regions).find((x) => x.id === r.id)?.fallen)
+    const front = [...CAMPAIGN_REGIONS].reverse().find((r) => !r.home && regionOpen(c, r.id) && !arr(c.regions).find((x) => x.id === r.id)?.fallen)
     c = makeMission(c, "story", front?.id || "crownless", rng).c
   }
   const regular = () => arr(c.missions).filter((m) => m.type !== "story").length
   for (let n = 0; n < count && regular() < missionCap(c); n++) {
-    const open = arr(c.regions).filter((r) => !r.fallen)
+    const open = arr(c.regions).filter((r) => !r.fallen && regionOpen(c, r.id))
     const fallen = arr(c.regions).filter((r) => r.fallen && !arr(c.missions).some((m) => m.regionId === r.id))
     if (fallen.length && rng() < 0.25) {
       c = makeMission(c, "retake", pick(fallen, rng).id, rng).c
@@ -557,10 +560,9 @@ export function advanceDay(c0, { fought = [] } = {}) {
   const doomPush = 1 + 0.5 * (c.doom / doomMax(c))
   for (const r of CAMPAIGN_REGIONS) {
     const st = c.regions.find((x) => x.id === r.id)
-    if (!st || st.fallen) continue
+    if (!st || st.fallen || !regionOpen(c, r.id)) continue
     const fallenNear = CAMPAIGN_ROADS.filter(([a, bb]) => (a === r.id || bb === r.id) && c.regions.find((x) => x.id === (a === r.id ? bb : a))?.fallen).length
-    const ahead = r.offset > c.chapter ? 0.5 : 1
-    c = bumpThreat(c, r.id, diff.threatRate * r.threatMult * doomPush * ahead + FALLEN_NEIGHBOUR_THREAT * fallenNear, true)
+    c = bumpThreat(c, r.id, diff.threatRate * r.threatMult * doomPush + FALLEN_NEIGHBOUR_THREAT * fallenNear, true)
   }
 
   // Regions that crossed 100 fall.
@@ -584,6 +586,7 @@ export function advanceDay(c0, { fought = [] } = {}) {
   if (c.missions.length > before) lines.push(`🗺 ${c.missions.length - before} new mission${c.missions.length - before > 1 ? "s" : ""} on the map.`)
 
   c = checkGameOver(c)
+  if (!lines.length) lines.push("A quiet day. The Rot creeps on all the same.")
   return pushLog({ ...c, lastDayReport: { day, lines } }, [`Day ${day}.`, ...lines])
 }
 
@@ -686,7 +689,14 @@ export function launchMission(c, missionId, squadKeys, buildFight) {
   const run = missionRunState(c, missionId, squadKeys)
   const fought = buildFight ? buildFight(run) : run
   if (!fought?.battle) return c
-  return { ...c, activeMission: { missionId, squadKeys: [...squadKeys], run: fought }, lastAftermath: null }
+  // Heroes fight under their own names (the class still shows on the board).
+  const names = {}
+  run.deployed.forEach((k, i) => {
+    const h = run.bench.find((b) => b.key === k)
+    if (h?.name) names[`player-${h.defId}-${i}`] = h.name
+  })
+  const battle = Array.isArray(fought.battle.units) ? { ...fought.battle, units: fought.battle.units.map((u) => (names[u.id] ? { ...u, name: names[u.id] } : u)) } : fought.battle
+  return { ...c, activeMission: { missionId, squadKeys: [...squadKeys], run: { ...fought, battle } }, lastAftermath: null }
 }
 
 export function updateMissionBattle(c, battle) {

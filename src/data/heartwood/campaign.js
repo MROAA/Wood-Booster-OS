@@ -70,7 +70,7 @@ export const THREAT_FALLEN = 100
 // The world map. `offset` = how many Acts ahead of the campaign chapter
 // this region's fights are; x/y = position on the map (0-100).
 export const CAMPAIGN_REGIONS = [
-  { id: "hearthstead", name: "The Hearthstead", short: "Hearthstead", offset: 0, ley: false, home: true, x: 50, y: 78, threatMult: 0.4, blurb: "Home. If it falls, everything falls." },
+  { id: "hearthstead", name: "The Hearthstead", short: "Hearthstead", offset: 0, ley: false, home: true, x: 50, y: 72, threatMult: 0.4, blurb: "Home. If it falls, everything falls." },
   { id: "outer-grove", name: "The Outer Grove", short: "Outer Grove", offset: 0, ley: false, x: 24, y: 62, threatMult: 1, blurb: "Old trees, sick roots. The first to feel the Rot." },
   { id: "mistfen", name: "Mistfen Ley", short: "Mistfen", offset: 0, ley: true, x: 14, y: 34, threatMult: 1, blurb: "A ley marsh. Mana pools in the water here." },
   { id: "deepening", name: "The Deepening Woods", short: "Deepening", offset: 1, ley: false, x: 44, y: 44, threatMult: 1, blurb: "Gold light that won't hold still." },
