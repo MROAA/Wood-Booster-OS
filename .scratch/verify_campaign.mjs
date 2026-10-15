@@ -174,6 +174,7 @@ const logic = await page.evaluate(async () => {
   const took = CE.recruitHero(wiped, rookies[0].id)
   ok(took.roster.length === wiped.roster.length + 1 && took.essence === wiped.essence, "W5 a rookie joins for free")
   ok(wiped.missions.some((m) => m.id === mx.id) === false && wiped.lastAftermath.outcome === "lost" && wiped.lastAftermath.wipe, "W6 the mission failed, aftermath says wipe")
+  ok(CE.rollRecruitOffers(wiped).recruitOffers.filter((o) => o.rookie).length === D.ROOKIE_OFFERS_ON_WIPE, "W8 free rookies wait through the next recruit visit")
   // Retreat: survivors live, the mission fails.
   const fled = CE.resolveMission(finish(launched, "player", [victim]), { retreat: true })
   ok(fled.roster.length === c0.roster.length - 1 && fled.lastAftermath.outcome === "retreat" && fled.stats.missionsLost === 1, "W7 a retreat keeps the living, loses the mission")

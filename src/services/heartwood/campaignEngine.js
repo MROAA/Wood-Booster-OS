@@ -417,7 +417,8 @@ export function rollRecruitOffers(c0, { rookies = 0 } = {}) {
   }
   c = {
     ...c,
-    recruitOffers: rookies ? [...offers, ...arr(c.recruitOffers)] : offers,
+    // Free rookies (after a squad wipe) wait until taken.
+    recruitOffers: rookies ? [...offers, ...arr(c.recruitOffers)] : [...arr(c.recruitOffers).filter((o) => o.rookie), ...offers],
     nextRecruitDay: rookies ? c.nextRecruitDay : c.day + RECRUIT_EVERY_DAYS[lv],
   }
   return c
