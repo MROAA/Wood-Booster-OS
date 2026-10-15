@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react"
+import { setOfRelic, setCountMap } from "../../data/heartwood/buildSets"
+import SetBadge from "./SetBadge"
 import { RELICS, RELIC_REROLL_COST } from "../../data/heartwood/relics"
 import { TRIBES } from "../../data/heartwood/synergies"
 import { benchTribeCounts } from "../../services/heartwood/runEngine"
@@ -125,6 +127,7 @@ export default function RelicChoice({ runState, onChoose, onReroll }) {
                     <CardGlyph name={relic.icon} className="hw-card-glyph" />
                   )}
                   <div className="hw-card-name">{relic.name}</div>
+                  {setOfRelic(relic.id) && <SetBadge setId={setOfRelic(relic.id)} owned={setCountMap(runState)[setOfRelic(relic.id)] || 0} />}
                   {/* Tribe-anchor relics (relics.js) only ever reach one
                       tribe - a small icon makes that scope readable at a
                       glance instead of only living in the description

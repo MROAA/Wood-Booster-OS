@@ -2,6 +2,11 @@ import { ENEMIES } from "../../data/heartwood/enemies"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { CardGlyph } from "./cardArt"
 import { useFreeLayout } from "./useFreeLayout.jsx"
+import { essenceForWin, actIndexForNode, RUN_PATH } from "../../services/heartwood/runEngine"
+import { difficultyForRunNode } from "../../services/heartwood/tacticsRealMatchup"
+import { routePreview, routeScouted } from "../../services/heartwood/betweenFights"
+import { objectiveForNode, objectiveSummary } from "../../services/heartwood/tacticsObjectives"
+import RunBuildPanel from "./RunBuildPanel"
 
 // The branching-path pick (Marc, direct: "haluan tarinankerronnan kuin
 // slay the spiressä... eri tapahtumia ja vihollisia" - storytelling
@@ -55,7 +60,7 @@ export default function FloorChoice({ runState, onChoose, difficultyTier }) {
         data-free-active={layout.freeActive || undefined}
         data-editing-layout={layout.editingLayout || undefined}
       >
-        {layout.renderSection("title", <h1 style={{ fontSize: 22, margin: 0 }}>Two paths through the Hearthwood</h1>)}
+        {layout.renderSection("title", <h1 style={{ fontSize: 22, margin: 0 }}>{options.length === 3 ? "Three" : "Two"} paths through the Hearthwood</h1>)}
         {/* Same act-banner pattern FormationScreen/SquadDraft already use
             for difficultyTier - no new CSS, keeps this choice screen tied
             to the same ongoing story arc instead of feeling like a bare
@@ -84,8 +89,8 @@ export default function FloorChoice({ runState, onChoose, difficultyTier }) {
         {layout.renderSection(
           "flavor",
           <p className="hw-flavor" style={{ marginTop: 14 }}>
-            Two ways forward through {difficultyTier?.name || "the Hearthwood"}. Whichever you leave behind isn't lost -
-            it'll come back around later in the run.
+            Pick your road through {difficultyTier?.name || "the Hearthwood"}. Danger pays better. A quiet road you skip comes back
+            around later - a cursed one closes behind you.
           </p>
         )}
         {layout.renderSection(
@@ -104,8 +109,30 @@ export default function FloorChoice({ runState, onChoose, difficultyTier }) {
               const soloEnemy = ENEMIES[node.enemyId]
               const name = formation.name || soloEnemy?.name || "Unknown"
               const description = formation.description || soloEnemy?.description || ""
+              // Route risk (between-fights build depth): the path's danger, the
+              // threat tier it really fights at, and what it pays.
+              const preview = routePreview(node, essenceForWin(runState, node))
+              const threat = difficultyForRunNode({ ...runState, path: [...runState.path, node] }, runState.nodeIndex + 1)
+              const scouted = routeScouted(runState)
+              const objective = scouted
+                ? objectiveSummary(objectiveForNode(runState.seed, runState.nodeIndex + 1, node.type, actIndexForNode(runState.nodeIndex + 1, RUN_PATH.length)))
+                : null
               return (
-                <div key={`${node.formationId || node.enemyId}-${i}`} className="hw-card hw-card--power" onClick={() => onChoose(i)}>
+                <div
+                  key={`${node.formationId || node.enemyId}-${i}`}
+                  className="hw-card hw-card--power hw-route-card"
+                  data-risk={preview.risk.id}
+                  data-leads-to={preview.leadsTo || undefined}
+                  style={{ "--hw-risk": preview.risk.color }}
+                  onClick={() => onChoose(i)}
+                >
+                  <div className="hw-route-risk" title={preview.risk.blurb}>
+                    <CardGlyph name={preview.risk.icon} className="hw-route-risk-glyph" />
+                    <span>{preview.risk.name}</span>
+                    <span className="hw-route-threat" title={`Threat tier ${threat.id}: ${threat.name}`}>
+                      {threat.id}
+                    </span>
+                  </div>
                   <CardGlyph name={optionArt(node)} className="hw-card-glyph" />
                   <div className="hw-card-name">{name}</div>
                   <div className="hw-card-desc">{description}</div>
@@ -114,12 +141,40 @@ export default function FloorChoice({ runState, onChoose, difficultyTier }) {
                       {pieceCount} enemies
                     </div>
                   )}
+                  {objective && (
+                    <div className="hw-route-scouted" title="Scouted at camp">
+                      👁 {objective}
+                    </div>
+                  )}
+                  <div className="hw-route-reward">
+                    <span className="hw-route-essence">+{preview.essence} Essence</span>
+                    {preview.loot === "item" && <span className="hw-route-loot">+ gear</span>}
+                    {preview.loot === "relic" && <span className="hw-route-loot">+ relic</span>}
+                  </div>
+                  <div className="hw-route-tags">
+                    {preview.leadsTo === "camp" && (
+                      <span className="hw-route-tag" data-tag="camp" title="The stop after this fight is a Camp instead of a Market">
+                        <CardGlyph name="flame" className="hw-route-tag-glyph" /> then Camp
+                      </span>
+                    )}
+                    {preview.leadsTo === "market" && (
+                      <span className="hw-route-tag" data-tag="market">
+                        <CardGlyph name="spark" className="hw-route-tag-glyph" /> then Market
+                      </span>
+                    )}
+                    {preview.closes && (
+                      <span className="hw-route-tag" data-tag="closes" title="If you take another path, this one is gone for good">
+                        🔒 closes if passed
+                      </span>
+                    )}
+                  </div>
                 </div>
               )
             })}
           </div>
         )}
       </div>
+      <RunBuildPanel runState={runState} />
     </div>
   )
 }

@@ -3652,3 +3652,26 @@ button.hwt-tl-chip:hover { border-color: var(--hwt-gold); }
 @media (prefers-reduced-motion: reduce) {
   .hwt-sig-chip[data-full="true"] { animation: none; }
 }
+
+/* Between-fights: a fated ally / rival on the board. */
+.hwt-token[data-fate="ally"] {
+  box-shadow: 0 0 0 2px #e0b04a, 0 0 14px -2px #e0b04a;
+}
+.hwt-token[data-fate="rival"] {
+  box-shadow: 0 0 0 2px #c0503f, 0 0 16px -2px #c0503f;
+}
+.hwt-fate-tag {
+  display: inline-block;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1c140c;
+  background: #e0b04a;
+}
+.hwt-fate-tag[data-fate="rival"] {
+  background: #c0503f;
+  color: #fff3e6;
+}

@@ -33,6 +33,8 @@ import { enableMana } from "./tacticsMana"
 import { enableCombatDepth } from "./tacticsDepth"
 import { classFieldsFor } from "./tacticsClasses"
 import { collarClassFor } from "./gear"
+import { riskOf } from "./betweenFights"
+import { withFateArrivals, withCommunePools, withStartCharge, betweenFightsMana } from "./tacticsBetweenFights"
 
 // Only these two phases mean "the player is standing in front of, or
 // mid-way through, a real fight" - every other phase (shop/relic/event/
@@ -261,9 +263,17 @@ export function buildRunTacticsBattle(runState, start) {
   const built = applyObjective(arena ? applyBossFight(factioned, encounterId) : factioned, objectiveForRunNode(runState))
   // Difficulty sprint 2: the DifficultyEngine (threat tier for this node) -
   // before mana, so escorts get their bars too.
-  const threatened = built ? applyDifficulty(built, difficultyForRunNode(runState, runState.nodeIndex, start.difficultyFactor)) : built
+  // Between-fights: a fated ally / rival joins (before the threat tier, so
+  // the rival is scaled and smart like the rest).
+  const fated = built ? withFateArrivals(built, runState, start.difficultyFactor) : built
+  const threatened = fated ? applyDifficulty(fated, difficultyForRunNode(runState, runState.nodeIndex, start.difficultyFactor)) : fated
   // Combat depth sprint: stances, combos, reactions, Delay/Stagger on.
-  return threatened ? enableCombatDepth(enableMana(withBredClasses(threatened, runState), runState.relics || [])) : threatened
+  // Between-fights mana: build-set tiers, camp Commune, mana-tide fates.
+  return threatened
+    ? enableCombatDepth(
+        withStartCharge(withCommunePools(enableMana(withBredClasses(threatened, runState), runState.relics || [], betweenFightsMana(runState)), runState), runState),
+      )
+    : threatened
 }
 
 // The DifficultyEngine spec for a run node: its Act, how deep into the Act
@@ -278,7 +288,9 @@ export function difficultyForRunNode(runState, nodeIndex = runState?.nodeIndex, 
   const depth = to > from ? Math.max(0, Math.min(1, (progress - from) / (to - from))) : 0
   const type = runState?.path?.[nodeIndex]?.type || RUN_PATH[nodeIndex]?.type || "battle"
   const kind = ["elite", "miniboss", "boss"].includes(type) ? type : "battle"
-  return difficultySpec({ act, kind, depth, factor, seedKey: `${runState?.seed ?? 0}:${nodeIndex}` })
+  // Route risk: a Hunted / Cursed path adds its threat to the score.
+  const riskBonus = riskOf(runState?.path?.[nodeIndex]).threat
+  return difficultySpec({ act, kind, depth, factor, riskBonus, seedKey: `${runState?.seed ?? 0}:${nodeIndex}` })
 }
 
 // Breeding (hearth.js breedHeroes): a hatchling can carry the OTHER

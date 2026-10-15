@@ -15,6 +15,8 @@ import StoryJournal from "./StoryJournal"
 import PlaystyleProfile from "./PlaystyleProfile"
 import PlayerPower from "./PlayerPower"
 import SeedChip from "./SeedChip"
+import RunBuildPanel from "./RunBuildPanel"
+import { riskOf } from "../../services/heartwood/betweenFights"
 
 const FIGHT_TYPES = new Set(["battle", "elite", "miniboss", "boss"])
 // Threat-rating glyph for a scouted battle node (playerPower.scoutReport).
@@ -45,6 +47,7 @@ function ForestStateBadge({ state }) {
 // rewrite against the real current state, not a revival of the old
 // code.
 function nodeGlyph(node) {
+  if (node.type === "camp") return "flame"
   if (node.type === "shop") return "spark"
   if (node.type === "relic") return "rune"
   if (node.type === "event") return "moonGlyph"
@@ -58,11 +61,14 @@ function nodeColor(node) {
   if (node.type === "miniboss") return "var(--hw-curse)"
   if (node.type === "elite") return "var(--hw-hp)"
   if (node.type === "event") return "var(--hw-rune)"
+  if (node.type === "camp") return "var(--hw-tribe-ember)"
+  if (node.risk && node.risk !== "safe") return riskOf(node).color
   if (node.type === "shop" || node.type === "relic") return "var(--hw-moss)"
   return "var(--hw-ember)"
 }
 
 function nodeLabel(node) {
+  if (node.type === "camp") return "Camp"
   if (node.type === "shop") return "Market"
   if (node.type === "relic") return "Relic"
   if (node.type === "event") return "Event"
@@ -81,6 +87,37 @@ function nodeLabel(node) {
 // (runState.nodeIndex) marked. Purely a display branch: no new data
 // model, RUN_PATH/nodeIndex are read exactly as the engine already
 // exposes them.
+// The next few stops on the road (between-fights build depth): every
+// fight is a fork of 2-3 paths, a market a chosen path turned into a
+// Camp shows as a Camp. Read straight off RUN_PATH + runState.campAt.
+const AHEAD = 5
+function stopLabel(node, i, runState) {
+  if (node.type === "shop" && runState.campAt === i) return { label: "Camp", glyph: "flame", tone: "camp" }
+  if (node.type === "battle") return { label: "Fork · pick a path", glyph: "warden", tone: "fork" }
+  if (node.type === "elite") return { label: "Elite", glyph: "sword", tone: "danger" }
+  if (node.type === "miniboss") return { label: "Trial", glyph: "sword", tone: "danger" }
+  if (node.type === "boss") return { label: "Spacemonkey", glyph: "spacemonkeyBoss", tone: "danger" }
+  return { label: nodeLabel(node), glyph: nodeGlyph(node), tone: node.type }
+}
+export function RoadAhead({ runState }) {
+  const from = (runState.nodeIndex || 0) + 1
+  const stops = RUN_PATH.slice(from, from + AHEAD).map((n, k) => ({ i: from + k, ...stopLabel(n, from + k, runState) }))
+  if (!stops.length) return null
+  return (
+    <div className="hw-road-ahead" aria-label="The road ahead">
+      <div className="hw-road-ahead-title">Road ahead</div>
+      <ol className="hw-road-ahead-list">
+        {stops.map((s) => (
+          <li key={s.i} className="hw-road-stop" data-tone={s.tone}>
+            <CardGlyph name={s.glyph} className="hw-road-stop-glyph" />
+            <span>{s.label}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
 function RunRail({ runState, onScout }) {
   const nodeIndex = runState.nodeIndex
   const total = RUN_PATH.length
@@ -129,6 +166,8 @@ function RunRail({ runState, onScout }) {
       <RunModifierStrip modifiers={runState.runModifiers} compact />
       <PlaystyleProfile runState={runState} compact />
       <PlayerPower runState={runState} compact />
+      <RoadAhead runState={runState} />
+      <RunBuildPanel runState={runState} />
       {onScout && (
         <div className="hw-scout">
           <button
@@ -168,7 +207,9 @@ function RunRail({ runState, onScout }) {
             </div>
             <div className="hw-run-rail-pips">
               {indices.map((i) => {
-                const node = RUN_PATH[i]
+                // A visited stop shows what it really was (a chosen path's
+                // risk, a Camp); a planned Camp shows ahead of time.
+                const node = runState.path[i] || (runState.campAt === i ? { type: "camp" } : RUN_PATH[i])
                 const state = i === nodeIndex ? "current" : i < nodeIndex ? "done" : "todo"
                 const major = node.type === "miniboss" || node.type === "boss" || node.type === "elite"
                 // Scouted-fight marker: only the one node at scoutedThrough,

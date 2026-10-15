@@ -1172,6 +1172,7 @@ export default function TacticsBoard({
               data-acted={unit.ap <= 0}
               data-power-surge={unit.side === "player" && battle.activePower?.used && battle.activePower.firedTurn === battle.turn}
               data-spirit={!!unit.isSpirit}
+              data-fate={unit.fateAlly ? "ally" : unit.fateRival ? "rival" : undefined}
               data-faction={unit.faction || undefined}
               data-echo={!!unit.echo || undefined}
               data-thrall={unit.thrall || undefined}
@@ -1514,6 +1515,11 @@ export default function TacticsBoard({
                 )}
               </div>
               <span className="hwt-token-name">{unit.name}</span>
+              {(unit.fateAlly || unit.fateRival) && (
+                <span className="hwt-fate-tag" data-fate={unit.fateAlly ? "ally" : "rival"} title={unit.fateTitle}>
+                  {unit.fateAlly ? "Ally" : "Rival"}
+                </span>
+              )}
               <div className="hwt-hp-track">
                 <div className="hwt-hp-fill" style={{ width: `${Math.max(0, Math.round((unit.hp / unit.maxHp) * 100))}%` }} />
               </div>

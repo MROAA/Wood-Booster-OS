@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { setCountMap } from "../../data/heartwood/buildSets"
 import { UNITS, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
 import { ITEMS, effectiveRole } from "../../data/heartwood/items"
@@ -2135,6 +2136,7 @@ export default function SquadDraft({
                       onClick={() => onBuyItem(itemOffers[i].id)}
                       locked={!!(runState.itemLocks || [])[i]}
                       onToggleLock={onToggleItemLock ? () => onToggleItemLock(i) : undefined}
+                      setCounts={setCountMap(runState)}
                     />
                   ) : null
                 )

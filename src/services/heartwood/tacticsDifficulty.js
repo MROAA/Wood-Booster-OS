@@ -79,13 +79,16 @@ export const AI_TRAITS = [
 // Most enemies a tier can bring to one board.
 export const MAX_ENEMIES = 6
 
-export function difficultyScore({ act = 1, kind = "battle", depth = 0 } = {}) {
+// `riskBonus`: a risky route (betweenFights.js RISK_LEVELS - a Hunted or
+// Cursed path on the run map) adds its threat on top, so a dangerous
+// path really is a higher threat tier.
+export function difficultyScore({ act = 1, kind = "battle", depth = 0, riskBonus = 0 } = {}) {
   const { actScore, kindBonus } = DIFFICULTY_CURVE
   const a = Math.max(1, Math.min(7, act || 1))
   const d = Math.max(0, Math.min(1, depth || 0))
   const from = actScore[a] || 0
   const to = actScore[a + 1] ?? from
-  return Math.round(from + d * (to - from) + (kindBonus[kind] || 0))
+  return Math.round(from + d * (to - from) + (kindBonus[kind] || 0) + (riskBonus || 0))
 }
 
 export function tierForScore(score) {
@@ -95,10 +98,10 @@ export function tierForScore(score) {
 }
 
 // The full spec for one fight. `tier` forces a tier (QA / the prototype).
-export function difficultySpec({ act = 1, kind = "battle", depth = 0, factor = 1, seedKey = "", tier = null } = {}) {
-  const score = tier != null ? THREAT_TIERS[Math.max(0, Math.min(5, tier))].min : difficultyScore({ act, kind, depth })
+export function difficultySpec({ act = 1, kind = "battle", depth = 0, factor = 1, seedKey = "", tier = null, riskBonus = 0 } = {}) {
+  const score = tier != null ? THREAT_TIERS[Math.max(0, Math.min(5, tier))].min : difficultyScore({ act, kind, depth, riskBonus })
   const row = tier != null ? THREAT_TIERS[Math.max(0, Math.min(5, tier))] : tierForScore(score)
-  return { act, kind, depth: Math.round((depth || 0) * 100) / 100, factor, seedKey: String(seedKey), score, ...row }
+  return { act, kind, depth: Math.round((depth || 0) * 100) / 100, factor, seedKey: String(seedKey), score, riskBonus: riskBonus || 0, ...row }
 }
 
 // --- Small deterministic helpers ------------------------------------------------------

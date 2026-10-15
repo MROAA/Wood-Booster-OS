@@ -40,6 +40,27 @@ import { withRolledTraits as rollTraitsOnly, eventTrait } from "./traits"
 import { withHeroIdentity, applyIdentityToBattle, recordHeroHistory, signatureDrop, squadSignatureIds } from "./heroIdentity"
 import { MAX_TRAITS } from "../../data/heartwood/traits"
 import { CLASSES } from "../../data/heartwood/classes"
+// Between-fights build depth (route risk, build sets, camp, fates).
+import {
+  riskOf,
+  decorateRouteOptions,
+  stripRoute,
+  riskLoot,
+  plantFate,
+  fateEffectsForFight,
+  tickFatesAfterFight,
+  tickFatesAfterShop,
+  fatePriceMult,
+  resolveThreads,
+  campActionLimit,
+  canUseCamp,
+  campRest as campRestState,
+  campTrain as campTrainState,
+  campCraft as campCraftState,
+  campScout as campScoutState,
+  campCommune as campCommuneState,
+} from "./betweenFights"
+import { setBonusEffects, setEssenceBonus, activeSetTierKeys, startedSetIds, setOfItem } from "../../data/heartwood/buildSets"
 // A new hero rolls its traits AND its personality quirks the moment it joins.
 const withRolledTraits = (rs) => withHeroIdentity(rollTraitsOnly(rs))
 
@@ -422,6 +443,7 @@ function phaseForNode(node) {
   if (node?.type === "shop") return "shop"
   if (node?.type === "relic") return "relic"
   if (node?.type === "event") return "event"
+  if (node?.type === "camp") return "camp"
   return "formation"
 }
 
@@ -565,6 +587,22 @@ function advanceToNextNode(runState) {
   const nextIndex = runState.nodeIndex + 1
   const template = RUN_PATH[nextIndex]
   if (template?.type !== "battle") {
+    // Camp (between-fights build depth): a fork path that "leads to camp"
+    // turns the market right after that fight into a Camp - same RUN_PATH
+    // index, so every index-based system (Acts, difficulty, seeds) is
+    // unchanged; only what you do at that stop differs.
+    if (template?.type === "shop" && runState.campAt === nextIndex) {
+      const camp = { type: "camp" }
+      return {
+        nodeIndex: nextIndex,
+        path: [...runState.path, camp],
+        battlePool: runState.battlePool,
+        floorChoices: null,
+        phase: "camp",
+        campAt: null,
+        camp: { used: [], limit: campActionLimit(runState), log: [] },
+      }
+    }
     return { nodeIndex: nextIndex, path: [...runState.path, template], battlePool: runState.battlePool, floorChoices: null, phase: phaseForNode(template) }
   }
   const pool = runState.battlePool
@@ -572,8 +610,17 @@ function advanceToNextNode(runState) {
     const chosen = pool[0] ?? template
     return { nodeIndex: nextIndex, path: [...runState.path, chosen], battlePool: [], floorChoices: null, phase: phaseForNode(chosen) }
   }
-  const [a, b, ...rest] = pool
-  return { nodeIndex: runState.nodeIndex, path: runState.path, battlePool: rest, floorChoices: [a, b], phase: "choice" }
+  // Route risk (between-fights build depth): the fork shows 2 paths in
+  // Act I and 3 from Act II on, each a Quiet / Hunted / Cursed path, and
+  // maybe one leading to a Camp instead of the next market. Still drawn
+  // from the same battle pool, so RUN_PATH indexing is untouched.
+  const act = actIndexForNode(nextIndex, RUN_PATH.length)
+  const count = act <= 1 ? 2 : Math.min(3, pool.length)
+  const options = pool.slice(0, count)
+  const rest = pool.slice(count)
+  const campSlot = RUN_PATH[nextIndex + 1]?.type === "shop" ? nextIndex + 1 : null
+  const floorChoices = decorateRouteOptions(options, { seed: runState.seed, nodeIndex: nextIndex, act, campSlot })
+  return { nodeIndex: runState.nodeIndex, path: runState.path, battlePool: rest, floorChoices, phase: "choice" }
 }
 
 // Resolves a pending "choice" phase (see advanceToNextNode above) - the
@@ -585,14 +632,20 @@ export function chooseFloorEncounter(runState, choiceIndex) {
   if (runState.phase !== "choice" || !runState.floorChoices) return runState
   const chosen = runState.floorChoices[choiceIndex]
   if (!chosen) return runState
-  const other = runState.floorChoices[1 - choiceIndex]
+  // Paths you pass by go back to the front of the pool as plain fights -
+  // except a Cursed path, which closes behind you for good.
+  const others = runState.floorChoices.filter((_, i) => i !== choiceIndex)
+  const back = others.filter((o) => !o.closes).map(stripRoute)
+  const closed = others.filter((o) => o.closes)
   return {
     ...runState,
     nodeIndex: runState.nodeIndex + 1,
     path: [...runState.path, chosen],
-    battlePool: other ? [other, ...runState.battlePool] : runState.battlePool,
+    battlePool: [...back, ...runState.battlePool],
     floorChoices: null,
     phase: "formation",
+    campAt: chosen.leadsTo === "camp" ? chosen.campSlot : runState.campAt ?? null,
+    closedPaths: closed.length ? [...(runState.closedPaths || []), ...closed.map((c) => c.formationId || c.enemyId)] : runState.closedPaths || [],
   }
 }
 
@@ -849,13 +902,31 @@ function rollItemShop(rng = Math.random, act = 1, marketLevel = 1, keep = []) {
 
 // Everything a NEW shop visit resets on the gear side: fresh offers
 // (locked ones stay), the item reroll price and the gear purse.
+// Build sets: once you own a set piece, every market shows at least one
+// piece of a set you've started, so you can plan toward the next tier.
+// Its own rng salt, so the normal roll above stays exactly as it was.
+function withSetPiece(offers, rs, nodeIndex, keep) {
+  const started = new Set(startedSetIds(rs))
+  if (!started.size || offers.some((id) => started.has(setOfItem(id)))) return offers
+  const act = actIndexForNode(nodeIndex, RUN_PATH.length)
+  const weights = itemRarityWeights(act, rs.marketLevel || 1)
+  const owned = new Set((rs.items || []).map((it) => it.defId))
+  const pool = itemPool().filter((it) => started.has(setOfItem(it.id)) && weights[it.rarity] > 0 && !offers.includes(it.id) && !owned.has(it.id))
+  const slot = offers.findIndex((id, i) => !keep[i] && !ITEMS[id]?.bendsRoleTo && ITEMS[id]?.kind !== "collar")
+  if (!pool.length || slot === -1) return offers
+  const rng = streamRng(rs.seed, "item", `${nodeIndex}:set`)
+  const next = [...offers]
+  next[slot] = pool[Math.floor(rng() * pool.length)].id
+  return next
+}
+
 export function freshItemShop(rs, nodeIndex) {
   const keep = (rs.itemLocks || []).map((locked, i) => (locked ? (rs.itemOffers || [])[i] : null))
   return {
-    itemOffers: rollItemShop(
-      streamRng(rs.seed, "item", String(nodeIndex)),
-      actIndexForNode(nodeIndex, RUN_PATH.length),
-      rs.marketLevel || 1,
+    itemOffers: withSetPiece(
+      rollItemShop(streamRng(rs.seed, "item", String(nodeIndex)), actIndexForNode(nodeIndex, RUN_PATH.length), rs.marketLevel || 1, keep),
+      rs,
+      nodeIndex,
       keep,
     ),
     itemLocks: keep.map(Boolean),
@@ -1080,6 +1151,15 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     // equipItem/unequipItem below) or sit null while unequipped.
     items: [],
     itemKeyCounter: 0,
+    // Between-fights build depth - all additive, defaulted on read:
+    // fates (event consequences), the market index a chosen path turned
+    // into a Camp, the current camp's actions, set tiers already
+    // celebrated, and Cursed paths closed behind you.
+    fates: [],
+    campAt: null,
+    camp: null,
+    setTiersSeen: [],
+    closedPaths: [],
   }
 
   let rs = applyMetaPerks(base, meta?.chosenPerks || [])
@@ -1192,7 +1272,8 @@ export function effectiveRecruitCost(runState, def) {
   // Market Events (feat/hearthwood-market-events): a special market flatly
   // scales every recruit price this stop (Golden Market ×1.35, Wandering
   // Merchant ×0.75, Blackroot ×0.5). marketEventPriceMult(null) === 1.
-  return Math.ceil(base * (1 - discount) * marketEventPriceMult(runState.marketEvent))
+  // Fates (betweenFights.js): a friendly or furious merchant guild.
+  return Math.ceil(base * (1 - discount) * marketEventPriceMult(runState.marketEvent) * fatePriceMult(runState))
 }
 
 // The Almanac (almanac.js): fold ids into runState.seen[category],
@@ -1896,7 +1977,9 @@ export function leaveShop(runState) {
   // at the NEXT shop entry. The Gamble's own "you got: X" reveal
   // (lastGambleReward) is a "just now" callout too - cleared the same
   // way lastEvolved already is, so it never carries into a later visit.
-  return { ...cleared, marketEvent: null, lastGambleReward: null, ...advanceToNextNode(cleared) }
+  // Fates: market discounts / hikes count down, a debt can come due.
+  const ticked = tickFatesAfterShop(cleared)
+  return { ...ticked, marketEvent: null, lastGambleReward: null, ...advanceToNextNode(ticked) }
 }
 
 // --- Map events (events.js) ---------------------------------------------
@@ -1987,6 +2070,10 @@ function applyEventEffect(runState, eff, effIndex = 0) {
   if (eff.flag) {
     return { ...runState, storyFlags: { ...runState.storyFlags, [eff.flag]: true } }
   }
+  // Fates (fates.js): `{ fate: "<id>" }` plants a lasting consequence -
+  // a curse, an ally, a rival, a market mood, a debt, a mana tide or a
+  // story thread - listed in the run panel until it resolves.
+  if (eff.fate) return plantFate(runState, eff.fate, actIndexForNode(runState.nodeIndex, RUN_PATH.length))
   // Run Modifier (boons.js): a permanent boon/bane. `{ boon: "id" }` and
   // `{ bane: "id" }` are the same channel - `kind` on the modifier def
   // itself says which it is; the two keys just read naturally in the
@@ -2073,6 +2160,8 @@ export function resolveEventChoice(runState, choiceIndex, extraEffects = [], ext
   ;[...(choice.effects || []), ...extraEffects].forEach((eff, i) => {
     next = applyEventEffect(next, eff, i)
   })
+  // Fates: a story thread pays off when its follow-up event is played.
+  next = resolveThreads(next, event)
   next = {
     ...next,
     seenEvents: [...(next.seenEvents || []), event.id],
@@ -2366,7 +2455,9 @@ function encounterAndFactorFor(runState, warn = false) {
   // much harder than baseline is this fight."
   const depthMult = depthModifiersFor(runState.selectedDepth || 0).enemyMult
   const encounterId = resolveEncounterId(node, runState.nodeIndex, act, warn)
-  const difficultyFactor = difficultyFactorForNode(runState.nodeIndex, runState.path.length) * (ACT_STAT_FLOOR[act] || 1) * depthMult
+  // Route risk: a Hunted / Cursed path scales the fight up.
+  const difficultyFactor =
+    difficultyFactorForNode(runState.nodeIndex, runState.path.length) * (ACT_STAT_FLOOR[act] || 1) * depthMult * riskOf(node).hpMult
   // The Mirror faction (sprint 3): the enemy side is a clone of the
   // deployed squad (max 4), and "slightly weakened" - a flat 60% of the
   // ramp (floor 0.8x) instead of the full late-run multiplier.
@@ -2585,7 +2676,14 @@ function autoBattleStartFor(runState) {
     // this call with nothing able to strand it in between. Run Modifiers
     // (boons.js) ride the SAME channel but are permanent - re-expanded
     // and appended here at the start of every battle, never consumed.
-    [...(runState.pendingActiveEffects || []), ...expandRunModifierEffects(runState.runModifiers)],
+    // Build sets (2/4/6 tier bonuses) and active curse Fates ride the same
+    // per-battle channel, re-derived every fight from what you own.
+    [
+      ...(runState.pendingActiveEffects || []),
+      ...expandRunModifierEffects(runState.runModifiers),
+      ...setBonusEffects(runState),
+      ...fateEffectsForFight(runState),
+    ],
     difficultyFactor,
     arenaId,
     // Forest Mood (moods.js) - the world posture the Act crossroads set
@@ -2783,6 +2881,7 @@ export function startFormationBattle(runState) {
     phase: "battle",
     battle: named,
     pendingActiveEffects: [],
+    campOvercharge: 0,
     lastAftermath: null,
     lastLevelUps: null,
     lastMutations: null,
@@ -2813,6 +2912,8 @@ export function startTacticsFormationBattle(runState0, buildTacticsBattle) {
     // mechanics (a worn signature legendary is read off the gear above).
     battle: { ...applyIdentityToBattle(applyGearToBattle(applyLevelsToTactics(tactics, runState), runState, effectiveItemSlots(runState)), runState), engine: "tactics" },
     pendingActiveEffects: [],
+    // Camp Commune "overcharge" is a one-fight charge (read by the tactics build).
+    campOvercharge: 0,
     lastAftermath: null,
     lastLevelUps: null,
     lastMutations: null,
@@ -2913,6 +3014,45 @@ export function scoutAhead(runState) {
   const cost = scoutCost(runState)
   if ((runState.essence || 0) < cost) return runState
   return { ...runState, essence: runState.essence - cost, scoutedThrough: next }
+}
+
+// --- Camp (between-fights build depth, betweenFights.js) ---
+// A Camp replaces one market when the player picked a fork path that
+// "leads to camp". Limited actions (2, +1 from the Hearth & Coin set) -
+// Rest / Train / Craft / Scout / Commune - then the road goes on.
+export function campRest(runState) {
+  return campRestState(runState)
+}
+export function campTrain(runState, key) {
+  return campTrainState(runState, key)
+}
+export function campCraft(runState, recipeId) {
+  return campCraftState(runState, recipeId)
+}
+export function campCommune(runState, mode, key) {
+  return campCommuneState(runState, mode, key)
+}
+// Scout reveals the next TWO fights (threat read on the Run Map) and the
+// next forks in full (enemies, objectives, exact spoils on FloorChoice).
+export function campScout(runState) {
+  if (!canUseCamp(runState, "scout")) return runState
+  const first = nextBattleNodeIndex(runState)
+  const second = first != null ? nextBattleNodeIndex({ ...runState, nodeIndex: first }) : null
+  return campScoutState(runState, second ?? first ?? runState.scoutedThrough ?? 0)
+}
+export function leaveCamp(runState) {
+  if (runState.phase !== "camp") return runState
+  return { ...runState, camp: null, ...advanceToNextNode(runState) }
+}
+
+// Build sets: the UI celebrates a newly reached 2/4/6 tier once, then
+// records it here so the banner never repeats.
+export function ackSetTiers(runState) {
+  return { ...runState, setTiersSeen: activeSetTierKeys(runState) }
+}
+export function newSetTierKeys(runState) {
+  const seen = new Set(runState?.setTiersSeen || [])
+  return activeSetTierKeys(runState || {}).filter((k) => !seen.has(k))
 }
 
 // Field Antidote (feat/hearthwood-rot - the answer to The Rot's poison
@@ -3165,6 +3305,9 @@ export function essenceForWin(runState, node) {
   const economyCrewWinBonus = economyCrewEffects(runState).winBonus
   const flat =
     WIN_ESSENCE +
+    // Route risk (Hunted / Cursed path) + the Hearth & Coin build set.
+    riskOf(node).essence +
+    setEssenceBonus(runState) +
     difficultyBonus +
     essenceBonus +
     (runState.metaWinBonus || 0) +
@@ -3293,7 +3436,13 @@ export function resolveBattleOutcome(runState) {
     const { runState: evoRs, evolved } = applyEvolutions(withWins)
     // Gear sprint: elites (half the time) and minibosses drop a Class Collar.
     // Hero identity: minibosses (always) / elites (sometimes) drop a signature legendary.
-    const rs = signatureDrop(collarDrop(evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs, node), node)
+    const rs0 = signatureDrop(collarDrop(evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs, node), node)
+    // Between-fights: a Hunted / Cursed path pays its promised loot; Fates
+    // tick (allies leave, rivals pay their bounty, curses wear off).
+    // Interest + the win payout below still read the pre-fate balance.
+    const fated = tickFatesAfterFight(riskLoot(rs0, node))
+    const fateEssence = (fated.essence || 0) - (rs0.essence || 0)
+    const rs = { ...fated, essence: rs0.essence }
 
     const advanced = advanceToNextNode(rs)
     // A pending "choice" (see advanceToNextNode above) is never a shop
@@ -3312,7 +3461,7 @@ export function resolveBattleOutcome(runState) {
     // Interest (bankInterest) is on the balance carried INTO this
     // fight - rs.essence here, before the win payout is added on top
     // (TFT order: interest on held gold, then round income).
-    const wonEssence = rs.essence + essenceForWin(rs, node) + bankInterestFor(rs)
+    const wonEssence = rs.essence + essenceForWin(rs0, node) + bankInterestFor(rs0) + fateEssence
     // Playstyle history (styleLog): a grind = a win that ran 8+ rounds;
     // maxEssence tracks the run's peak balance (a steadier "hoarder"
     // signal than the instantaneous number).
@@ -3386,7 +3535,7 @@ export function serializeRun(runState) {
   return { version: RUN_SAVE_VERSION, savedAt: Date.now(), run: runState }
 }
 
-const VALID_PHASES = new Set(["shop", "relic", "event", "formation", "battle", "choice", "victory", "defeat"])
+const VALID_PHASES = new Set(["shop", "relic", "event", "formation", "battle", "choice", "camp", "victory", "defeat"])
 
 // Any failure here - wrong version, corrupted JSON, a shape that
 // doesn't match what this build of the game expects - returns null and
