@@ -24,6 +24,7 @@
 import { ITEMS, ITEM_SLOTS } from "../../data/heartwood/items"
 import { RECIPES } from "../../data/heartwood/recipes"
 import { CLASSES } from "../../data/heartwood/classes"
+import { ITEM_ACTIVES } from "../../data/heartwood/itemBuilds"
 
 // --- fx vocabulary ------------------------------------------------------------
 // Same names as mutations (hp, attack, aim, regen, manaMax...) plus the
@@ -52,10 +53,18 @@ export const GEAR_FX_TEXT = {
   cheaper: (n) => `skills ${n}% cheaper`,
   hurtGain: (n) => `+${n} resource when hit`,
   highAt: () => "",
+  // Dota depth sprint: on-hit riders + the counter answers.
+  trueStrike: () => "basic attacks can't be dodged by a Mist Veil",
+  shred: (n) => `each basic hit strips ${n} armour`,
+  wither: (n) => `basic hits Wither for ${n} turns (no healing)`,
+  manaBurn: (n) => `basic hits burn ${n} mana and crack Runeshells`,
+  cleave: () => "basic attacks cut every foe next to the target for half",
+  reveal: (n) => `reveals hidden foes within ${n} tiles each turn`,
+  scepter: () => "upgrades the class: stronger signature, faster recharges, cheaper skills",
 }
 const RES_KEYS = new Set(["manaMax", "manaRegen", "manaStartPct", "resGain", "overflow", "tapRes", "upkeep", "cheaper", "hurtGain"])
 // Thresholds / costs: never scaled by Rune boosts or half strength.
-const FIXED_KEYS = new Set(["highAt", "tapHp"])
+const FIXED_KEYS = new Set(["highAt", "tapHp", "trueStrike", "cleave", "scepter", "reveal"])
 
 export function fxText(fx) {
   return Object.entries(fx || {})
@@ -261,6 +270,14 @@ export function applyGearFx(u, fx, auras = [], itemIds = []) {
   if (fx.evade) next.evade = Math.max(0, (u.evade || 0) + fx.evade)
   if (fx.aim) next.gearAim = (u.gearAim || 0) + fx.aim
   if (fx.leech > 0) next.mutLeech = (u.mutLeech || 0) + fx.leech
+  // Dota depth sprint: on-hit riders read by tacticsItems.js.
+  if (fx.trueStrike) next.trueStrike = true
+  if (fx.shred > 0) next.gearShred = (u.gearShred || 0) + fx.shred
+  if (fx.wither > 0) next.gearWither = Math.max(u.gearWither || 0, fx.wither)
+  if (fx.manaBurn > 0) next.gearManaBurn = (u.gearManaBurn || 0) + fx.manaBurn
+  if (fx.cleave) next.gearCleave = true
+  if (fx.reveal > 0) next.gearReveal = Math.max(u.gearReveal || 0, fx.reveal)
+  if (fx.scepter) next.scepter = true
   const triggers = [...(u.triggers || [])]
   if (fx.thorns > 0) triggers.push({ trigger: "onHit", effect: { type: "damage", amount: fx.thorns }, source: "Gear" })
   if (fx.regen > 0) triggers.push({ trigger: "turnStart", effect: { type: "heal", amount: fx.regen }, source: "Gear" })
@@ -317,9 +334,25 @@ export function applyGearToBattle(battle, runState, slots = ITEM_SLOTS) {
       const row = gearRow(runState.items, key, slots)
       if (!row.some(Boolean)) return u
       const { fx, auras } = rowEffects(row, u.resource || null)
-      return applyGearFx(u, fx, auras, row.filter(Boolean).map((it) => it.defId))
+      return withItemActives(applyGearFx(u, fx, auras, row.filter(Boolean).map((it) => it.defId)), row)
     }),
   }
+}
+
+// Dota depth sprint: the row's ACTIVE items become action-bar buttons -
+// { id (active id), itemId, itemKey, cd, charges } (charges: uses left,
+// null = unlimited; spent uses are taken off the run item after the fight).
+export function withItemActives(u, row) {
+  const actives = []
+  for (const it of row) {
+    const def = it ? ITEMS[it.defId] : null
+    const a = def?.active ? ITEM_ACTIVES[def.active] : null
+    if (!a) continue
+    const charges = a.charges ? (typeof it.charges === "number" ? it.charges : a.charges) : null
+    if (charges === 0) continue
+    actives.push({ id: a.id, itemId: def.id, itemKey: it.key, cd: 0, charges })
+  }
+  return actives.length ? { ...u, itemActives: actives } : u
 }
 
 // --- board auras (read live by the engine: preview == real) -------------------
