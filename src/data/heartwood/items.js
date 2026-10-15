@@ -39,6 +39,8 @@ import runeboundCofferImg from "../../assets/heartwood/items/runebound-coffer.jp
 import wayfarersTalismanImg from "../../assets/heartwood/items/wayfarers-talisman.jpg"
 import glowmossLanternImg from "../../assets/heartwood/items/glowmoss-lantern.jpg"
 import { COLLARS } from "./collars"
+import { SIGNATURES } from "./signatures"
+import { CLASSES } from "./classes"
 
 // Heartwood - Items: per-UNIT gear, distinct from Relics (relics.js,
 // squad-wide) and Upgrade (units.js, a flat level-based stat scale
@@ -1207,6 +1209,29 @@ for (const c of Object.values(COLLARS)) {
   ITEMS[c.id] = { icon: "moonGlyph", cost: 200, effects: [], fx: {}, ...c, kind: "collar", tags: ["collar"], rarity: "epic" }
 }
 
+// Hero Identity sprint: every class's SIGNATURE legendary (signatures.js)
+// joins the item table as kind "signature" - never in the shop; dropped by
+// minibosses / elites (heroIdentity.signatureDrop) or a rare event. Worn by
+// a hero OF THAT CLASS it transforms the class's signature mechanic.
+for (const s of Object.values(SIGNATURES)) {
+  const L = s.legendary
+  if (!L) continue
+  ITEMS[L.id] = {
+    id: L.id,
+    name: L.name,
+    icon: L.icon || "cosmic",
+    cost: 300,
+    kind: "signature",
+    tags: ["signature"],
+    rarity: "legendary",
+    noShop: true,
+    signatureClass: s.id,
+    description: `${CLASSES[s.id]?.name || s.id} signature: ${L.text}`,
+    effects: [],
+    fx: { ...(L.fx || {}) },
+  }
+}
+
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen
 // liittyville" - make a rarity system for the game and related
 // things) - derived from cost the same way units.js's tierFromCost
@@ -1242,6 +1267,7 @@ export const GEAR_KINDS = {
   armor: { name: "Armor", icon: "stone" },
   charm: { name: "Charm", icon: "cosmic" },
   collar: { name: "Collar", icon: "moonGlyph" },
+  signature: { name: "Signature", icon: "cosmic" },
 }
 for (const item of Object.values(ITEMS)) {
   item.tier = ITEM_TIER_BY_COST[item.cost] || "rare"

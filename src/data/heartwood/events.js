@@ -26,6 +26,8 @@
 //   { relic: "random" }       - gain a random relic not already owned
 //   { item: "random" }        - gain a random item into the bag
 //   { item: "collar" }        - gain a random Class Collar (collars.js)
+//   { item: "signature" }     - gain the SIGNATURE legendary of a deployed
+//                               hero's class (signatures.js; Hero Identity)
 //   { unit: "random-common" } - gain a random common-tier unit on the bench
 //   { squadNextBattle: [ <applyEffect objects> ] } - the squad enters the
 //                               NEXT battle only with these effects
@@ -747,6 +749,11 @@ export const EVENTS = [
         label: "Take the collar from the war-hound's bones.",
         result: "The leather has gone hard as bark, but the stitched sigil on it still remembers the one who wore it - and how they fought. Whoever wears it next will fight that way too.",
         effects: [{ item: "collar" }, { essence: -20 }],
+      },
+      {
+        label: "Dig where the champion fell.",
+        result: "Under the deepest root lies a weapon that never rusted - warm to the touch, humming the name of a fighting style one of your heroes knows by heart. It costs you the afternoon and a good shovel.",
+        effects: [{ item: "signature" }, { essence: -40 }],
       },
     ],
   },

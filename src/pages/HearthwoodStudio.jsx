@@ -21,7 +21,7 @@ import SheetView from "../components/hearthwood-studio/SheetView"
 import ThemePanel from "../components/hearthwood-studio/ThemePanel"
 import ResourceEditor from "../components/hearthwood-studio/ResourceEditor"
 import MutationEditor from "../components/hearthwood-studio/MutationEditor"
-import { TraitEditor, PromotionEditor } from "../components/hearthwood-studio/HeroDataEditor"
+import { TraitEditor, PromotionEditor, HeroIdentityEditor } from "../components/hearthwood-studio/HeroDataEditor"
 import GearEditor from "../components/hearthwood-studio/GearEditor"
 
 /*
@@ -55,7 +55,7 @@ function HearthwoodStudio() {
 
   const [viewMode, setViewMode] = useState(() => {
     const view = new URLSearchParams(window.location.search).get("view")
-    if (view === "resources" || view === "mutations" || view === "gear" || view === "traits" || view === "promotions") return view
+    if (view === "resources" || view === "mutations" || view === "gear" || view === "traits" || view === "promotions" || view === "identity") return view
     return deepLink ? "single" : "dashboard"
   })
   // `browsingType` drives what the LEFT panel shows; `entityType` drives
@@ -331,6 +331,22 @@ function HearthwoodStudio() {
 
           <button
             type="button"
+            data-testid="studio-identity-tab"
+            onClick={() => setViewMode("identity")}
+            className={`
+              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
+              ${
+                viewMode === "identity"
+                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
+                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
+              }
+            `}
+          >
+            ✨ Hero Identity
+          </button>
+
+          <button
+            type="button"
             data-testid="studio-gear-tab"
             onClick={() => setViewMode("gear")}
             className={`
@@ -398,10 +414,12 @@ function HearthwoodStudio() {
       }
 
       {
-        (viewMode === "traits" || viewMode === "promotions") && (
+        (viewMode === "traits" || viewMode === "promotions" || viewMode === "identity") && (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
             <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-              {viewMode === "traits" ? (
+              {viewMode === "identity" ? (
+                <HeroIdentityEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
+              ) : viewMode === "traits" ? (
                 <TraitEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
               ) : (
                 <PromotionEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
@@ -429,7 +447,7 @@ function HearthwoodStudio() {
         )
       }
 
-      {viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && viewMode !== "mutations" && viewMode !== "gear" && viewMode !== "traits" && viewMode !== "promotions" && (
+      {viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && viewMode !== "mutations" && viewMode !== "gear" && viewMode !== "traits" && viewMode !== "promotions" && viewMode !== "identity" && (
       <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
         <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <EntityBrowser
