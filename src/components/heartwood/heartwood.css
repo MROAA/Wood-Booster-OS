@@ -9019,6 +9019,11 @@ img.hw-intent-glyph {
 }
 
 /* -- Fork / route cards (FloorChoice) -- */
+/* The grid's tracks are sized for the 150px .hw-card - route cards are
+   230px, so give their grid matching tracks or they overlap. */
+.hw-select-grid.hw-deck-preview:has(.hw-route-card) {
+  grid-template-columns: repeat(auto-fit, 230px);
+}
 .hw-deck-preview .hw-card.hw-route-card {
   width: 230px;
   min-width: 0;
