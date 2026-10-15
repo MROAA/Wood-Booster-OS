@@ -55,8 +55,10 @@ export function withFateArrivals(battle, runState, factor = 1) {
   return state
 }
 
-// Camp Commune "deepen": bench entry `manaBonus` -> the hero's unit
-// `manaPoolBonus` (tacticsMana initUnit reads it). Call before enableMana.
+// Camp Commune "deepen": bench entry `manaBonus` -> a bigger resource
+// pool on that hero's unit. Call AFTER enableMana (works for every
+// resource profile; the start fill keeps its proportion). Reagent-token
+// resources have no pool to deepen and are skipped.
 export function withCommunePools(battle, runState) {
   if (!battle?.units || !runState) return battle
   const keys = (runState.deployed || []).filter((k) => k !== null && runState.bench.some((e) => e.key === k))
@@ -66,7 +68,33 @@ export function withCommunePools(battle, runState) {
     if (e?.manaBonus > 0) byId[`player-${e.defId}-${i}`] = e.manaBonus
   })
   if (!Object.keys(byId).length) return battle
-  return { ...battle, units: battle.units.map((u) => (byId[u.id] ? { ...u, manaPoolBonus: (u.manaPoolBonus || 0) + byId[u.id] } : u)) }
+  return {
+    ...battle,
+    units: battle.units.map((u) => {
+      const bonus = byId[u.id]
+      if (!bonus || !(u.manaMax > 0) || u.reagents) return u
+      const manaMax = u.manaMax + bonus
+      const mana = Math.min(manaMax, Math.round((u.mana || 0) + (bonus * (u.mana || 0)) / u.manaMax))
+      return { ...u, manaMax, mana, communeBonus: bonus }
+    }),
+  }
+}
+
+// A start-of-fight charge (camp Commune, a mana tide, a set tier) for
+// heroes whose resource can't store Overcharge: they start that much
+// fuller instead (rage, focus, holy...). Overflow resources already got
+// it as real Overcharge from enableMana. Call AFTER enableMana.
+export function withStartCharge(battle, runState) {
+  if (!battle?.units || !runState) return battle
+  const amount = betweenFightsMana(runState).startOvercharge
+  if (!(amount > 0)) return battle
+  return {
+    ...battle,
+    units: battle.units.map((u) => {
+      if (u.side !== "player" || !(u.manaMax > 0) || u.reagents || (u.overcharge || 0) > 0 || u.structure || u.npc) return u
+      return { ...u, mana: Math.min(u.manaMax, (u.mana || 0) + amount), startCharged: amount }
+    }),
+  }
 }
 
 // The `extra` resource bonus for enableMana: set tiers + a camp

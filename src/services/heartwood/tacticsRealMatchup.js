@@ -34,7 +34,7 @@ import { enableCombatDepth } from "./tacticsDepth"
 import { classFieldsFor } from "./tacticsClasses"
 import { collarClassFor } from "./gear"
 import { riskOf } from "./betweenFights"
-import { withFateArrivals, withCommunePools, betweenFightsMana } from "./tacticsBetweenFights"
+import { withFateArrivals, withCommunePools, withStartCharge, betweenFightsMana } from "./tacticsBetweenFights"
 
 // Only these two phases mean "the player is standing in front of, or
 // mid-way through, a real fight" - every other phase (shop/relic/event/
@@ -270,7 +270,9 @@ export function buildRunTacticsBattle(runState, start) {
   // Combat depth sprint: stances, combos, reactions, Delay/Stagger on.
   // Between-fights mana: build-set tiers, camp Commune, mana-tide fates.
   return threatened
-    ? enableCombatDepth(enableMana(withCommunePools(withBredClasses(threatened, runState), runState), runState.relics || [], betweenFightsMana(runState)))
+    ? enableCombatDepth(
+        withStartCharge(withCommunePools(enableMana(withBredClasses(threatened, runState), runState.relics || [], betweenFightsMana(runState)), runState), runState),
+      )
     : threatened
 }
 
