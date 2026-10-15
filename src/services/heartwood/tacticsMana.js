@@ -402,9 +402,12 @@ function initUnit(u, relic) {
 }
 
 // Turns resources on for a fresh battle (every unit at its profile's start).
-export function enableMana(state, relicIds = []) {
+// `extra` (optional, same keys as relicManaFor): resource bonuses from
+// outside relics - build-set tiers, a camp Commune, a mana-tide Fate.
+export function enableMana(state, relicIds = [], extra = null) {
   if (!state?.units) return state
   const relic = relicManaFor(relicIds)
+  if (extra) for (const k of Object.keys(relic)) relic[k] += extra[k] || 0
   return { ...state, manaRules: true, manaRelic: relic, units: state.units.map((u) => initUnit(u, relic)) }
 }
 

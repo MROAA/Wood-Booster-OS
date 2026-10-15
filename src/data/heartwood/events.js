@@ -44,6 +44,11 @@
 //                               Essence-per-win %. `boon`/`bane` are the
 //                               same channel; the modifier def's `kind`
 //                               says which. Ignored if already held.
+//   { fate: "id" }           - plant a lasting consequence (fates.js): a
+//                               curse, an ally who joins a later fight, a
+//                               rival who hunts you, a market mood, a debt,
+//                               a mana tide or a story thread. Listed in
+//                               the run panel's Fates until it resolves.
 // A choice with an empty `effects: []` is flavour only - a valid, often
 // correct, "walk on" option.
 
@@ -133,7 +138,7 @@ export const EVENTS = [
       {
         label: "Cut her loose, take nothing.",
         result: "\"You're the first honest thing I've met out here in a week,\" she says, and tells you where a fighter is holed up who owes her a favour - and puts the word out that you're worth dealing straight with.",
-        effects: [{ unit: "random-common" }, { boon: "forager-friend" }],
+        effects: [{ unit: "random-common" }, { boon: "forager-friend" }, { fate: "merchant-friend" }],
       },
       {
         label: "Leave her. The roots know their own.",
@@ -655,7 +660,7 @@ export const EVENTS = [
       {
         label: "Cut through it.",
         result: "It takes a long, ugly while, and the root bleeds a sap that smells of rot, and every other growing thing nearby leans away from you afterward. You're through, and you kept your coin - but the forest keeps a ledger, and you're in it now.",
-        effects: [{ bane: "root-debt" }, { flag: "cut_the_toll_root" }],
+        effects: [{ bane: "root-debt" }, { flag: "cut_the_toll_root" }, { fate: "merchant-grudge" }],
       },
     ],
   },
@@ -1103,6 +1108,213 @@ export const EVENTS = [
         label: "Tiptoe past.",
         result: "Nobody breathes until the snoring fades behind you.",
         effects: [],
+      },
+    ],
+  },
+  // --- Between-fights build depth: events whose choices come back later
+  // (fates.js). Hand-written; keep them short.
+  {
+    id: "the-ferryman",
+    act: 1,
+    title: "The Ferryman",
+    body: "An old man poles a raft across black water and will not take your coin. \"My daughter's oar went under last spring,\" he says. \"Find me a straight branch, and she'll owe you one.\"",
+    choices: [
+      {
+        label: "Cut him a new oar.",
+        result: "It takes half the afternoon. He tests it, grunts, and says his daughter keeps her debts. After two more fights, she wades in on your side.",
+        effects: [{ essence: -30 }, { fate: "ferryman-ally" }],
+      },
+      {
+        label: "Ask for coin instead.",
+        result: "He pays you in old river silver and doesn't look at you again.",
+        effects: [{ essence: 40 }],
+      },
+    ],
+  },
+  {
+    id: "the-poachers-snare",
+    act: 2,
+    title: "The Poacher's Snare",
+    body: "A grey wolf hangs by one leg from a poacher's snare. It has stopped struggling. Fresh boot prints circle the tree, and a hound's.",
+    choices: [
+      {
+        label: "Cut the wolf down.",
+        result: "It limps off without a sound. Somewhere behind you a hound starts baying. The wolf will remember this - and so will the poacher.",
+        effects: [{ fate: "wolf-ally" }, { fate: "poacher-rival" }],
+      },
+      {
+        label: "Take the pelt.",
+        result: "Quick and clean. The pelt sells, and the snare had a purse hanging beside it.",
+        effects: [{ essence: 70 }],
+      },
+      {
+        label: "Leave it to the poacher.",
+        result: "Not your wolf, not your snare.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-bone-saint",
+    act: 2,
+    title: "The Bone Saint",
+    body: "A shrine of stacked skulls, every one polished. In the middle sits a relic on a cushion of moss, and a note: TAKE IT. PAY LATER.",
+    choices: [
+      {
+        label: "Take it.",
+        result: "It's warm in your hand. Your squad feels the bill at once - they start the next three fights Weak. The relic stays yours.",
+        effects: [{ fate: "bone-saint-curse" }],
+      },
+      {
+        label: "Polish a skull and move on.",
+        result: "It seems like the polite thing to do. Nothing happens, which is probably good.",
+        effects: [{ essence: 20 }],
+      },
+    ],
+  },
+  {
+    id: "the-unlit-lantern",
+    act: 2,
+    title: "The Unlit Lantern",
+    body: "A brass lantern hangs from a branch over an empty path. No flame, no oil, but it is warm. A tag on the handle says, in careful letters: FOR THE KEEPER.",
+    choices: [
+      {
+        label: "Carry it with you.",
+        result: "It weighs almost nothing. You have the odd feeling that someone, somewhere ahead, has just looked up.",
+        effects: [{ fate: "lantern-thread" }],
+      },
+      {
+        label: "Sell it at the next stall.",
+        result: "Brass is brass.",
+        effects: [{ essence: 50 }],
+      },
+    ],
+  },
+  {
+    id: "the-paper-king",
+    act: 3,
+    title: "The Paper King",
+    body: "A man in a paper crown sits on a stump in the middle of the road. \"Tribute,\" he says. \"Or I remember your face.\" Two nervous cousins stand behind him with sticks.",
+    choices: [
+      {
+        label: "Knock the crown off.",
+        result: "It flutters into a puddle. He doesn't laugh. His cousins drop their purse running. In three fights, he'll be back - with better friends.",
+        effects: [{ essence: 60 }, { fate: "crowned-rival" }],
+      },
+      {
+        label: "Pay the tribute.",
+        result: "He is delighted. One of the cousins runs the guild stalls up the road, it turns out. Heroes come cheaper for a while.",
+        effects: [{ essence: -50 }, { fate: "merchant-friend" }],
+      },
+    ],
+  },
+  {
+    id: "the-drowned-bell",
+    act: 3,
+    title: "The Drowned Bell",
+    body: "Under the clear water of a flooded chapel, a bronze bell lies on its side. The rope still floats up to the surface.",
+    choices: [
+      {
+        label: "Ring it.",
+        result: "The sound comes up through your feet, not your ears. Far off, something answers - once. Then the black sap rises in the water around your boots, and clings.",
+        effects: [{ fate: "drowned-bell-thread" }, { fate: "black-sap-curse" }],
+      },
+      {
+        label: "Cut the rope and take it.",
+        result: "Good rope. Better than the bell, probably.",
+        effects: [{ item: "random" }],
+      },
+    ],
+  },
+  {
+    id: "the-moonlender",
+    title: "The Moonlender",
+    body: "A woman with silver rings on every finger has set a table under the trees. A ledger, a scale, a pile of Essence. \"Now,\" she says, \"or later. Everyone pays later.\"",
+    choices: [
+      {
+        label: "Borrow.",
+        result: "150 Essence now. She writes your name in the ledger. When you leave your third market from here, 250 is collected - however much of it you have.",
+        effects: [{ fate: "moonlender-debt" }],
+      },
+      {
+        label: "Walk on.",
+        result: "She doesn't look up. She knows you'll be back. Most people come back.",
+        effects: [],
+      },
+    ],
+  },
+  {
+    id: "the-tide-pool",
+    act: 4,
+    title: "The Tide Pool",
+    body: "Far from any sea, a rock pool fills and empties with a tide of its own. Your casters can feel it pulling at them, in and out.",
+    choices: [
+      {
+        label: "Wait for high tide.",
+        result: "You wait all night. When it comes, it fills everyone to the brim. Your next three fights start Overcharged.",
+        effects: [{ fate: "high-tide" }],
+      },
+      {
+        label: "Bottle some.",
+        result: "It goes still in the flask, but it's still something.",
+        effects: [{ item: "mana-draught" }],
+      },
+    ],
+  },
+  {
+    id: "the-caged-hunter",
+    act: 4,
+    title: "The Caged Hunter",
+    body: "A hunter sits in a wicker cage hung from a branch, bow across her knees. \"The rot-folk caught me. Let me out and I'll find you when it counts.\"",
+    choices: [
+      {
+        label: "Cut her out.",
+        result: "She drops, rolls, and is gone into the ferns. \"Three fights,\" she calls back. \"Watch your left.\"",
+        effects: [{ fate: "hunter-ally" }],
+      },
+      {
+        label: "Ask for her bow first.",
+        result: "She hands it through the bars with a look you'll remember. Then you cut her loose. She doesn't promise anything.",
+        effects: [{ item: "random" }],
+      },
+    ],
+  },
+  // Follow-ups: the threads above pay off here.
+  {
+    id: "the-lantern-keeper",
+    act: 4,
+    requiresFlag: "carries_unlit_lantern",
+    title: "The Lantern Keeper",
+    body: "An old keeper waits at a crossroads with a box of matches and no lantern. He sees yours and his face goes soft. \"There it is. I'd almost stopped waiting.\"",
+    choices: [
+      {
+        label: "Give it to him.",
+        result: "He lights it. The whole crossroads fills with warm light, and when you look down there's something in your hand he must have left there.",
+        effects: [{ relic: "random" }],
+      },
+      {
+        label: "Keep it. Sell him the light.",
+        result: "He pays, slowly, and lights it anyway. It doesn't seem to matter to the lantern who owns it.",
+        effects: [{ essence: 120 }],
+      },
+    ],
+  },
+  {
+    id: "the-bell-answers",
+    act: 5,
+    requiresFlag: "rang_drowned_bell",
+    title: "The Bell Answers",
+    body: "Out of a dry riverbed comes the sound of a bell - the same note you rang under the water, long ago. The ground goes damp. The tide is coming to you.",
+    choices: [
+      {
+        label: "Stand in it.",
+        result: "It rises to your knees, cold and bright, and leaves you full. Your next three fights start Overcharged.",
+        effects: [{ fate: "high-tide" }],
+      },
+      {
+        label: "Dig where it's loudest.",
+        result: "The bell's twin, small enough to carry. Someone will buy it.",
+        effects: [{ essence: 90 }, { item: "random" }],
       },
     ],
   },
