@@ -1,4 +1,5 @@
 import { UNITS } from "../../data/heartwood/units"
+import FightFates from "./FightFates"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
@@ -379,6 +380,8 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         </p>
       )}
       {objectiveSpec && <p className="hwt-formation-summary-objective" data-objective={objectiveSpec.type}>Objective: {objectiveSummary(objectiveSpec)}</p>}
+      {/* Between-fights: the path you chose and the Fates riding into this fight. */}
+      <FightFates runState={runState} node={node} />
 
       {isElite && ELITE_GIMMICK[node.enemyId] && (
         <p className="hw-elite-gimmick hw-section-fade-in">

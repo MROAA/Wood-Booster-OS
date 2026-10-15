@@ -64,6 +64,14 @@ import {
   RUN_PATH,
   chooseLevelPerk,
   choosePromotion,
+  campRest,
+  campTrain,
+  campCraft,
+  campScout,
+  campCommune,
+  leaveCamp,
+  ackSetTiers,
+  newSetTierKeys,
 } from "../services/heartwood/runEngine"
 import { nextPendingLevelUp, levelOffers, nextPendingPromotion, promotionOffers } from "../services/heartwood/unitLevels"
 import LevelUpChoice, { PromotionCeremony } from "../components/heartwood/LevelUpChoice"
@@ -91,6 +99,9 @@ import FormationScreen from "../components/heartwood/FormationScreen"
 import AutoBattleView from "../components/heartwood/AutoBattleView"
 import RelicChoice from "../components/heartwood/RelicChoice"
 import FloorChoice from "../components/heartwood/FloorChoice"
+import CampScreen from "../components/heartwood/CampScreen"
+import SetTierBanner from "../components/heartwood/SetTierBanner"
+import RunBuildPanel from "../components/heartwood/RunBuildPanel"
 import EventScreen from "../components/heartwood/EventScreen"
 import RunEndOverlay from "../components/heartwood/RunEndOverlay"
 import RunMap from "../components/heartwood/RunMap"
@@ -116,7 +127,7 @@ import { withHitRolls } from "../services/heartwood/tacticsCover"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
 
-const LEVEL_UP_PHASES = new Set(["shop", "relic", "event", "choice", "formation"])
+const LEVEL_UP_PHASES = new Set(["shop", "relic", "event", "choice", "formation", "camp"])
 
 const rootStyle = { height: "100%", "--hw-bg-image": `url(${battleBg})` }
 const AUTOBATTLER_INTRO_SEEN_KEY = "heartwood-autobattler-intro-seen"
@@ -470,6 +481,13 @@ export default function HeartwoodBattle() {
     </div>
   )
 
+  // Build sets: a newly reached 2/4/6 tier is celebrated once, between
+  // fights (never over a battle), then acknowledged on the run.
+  const freshSetTiers = runState && runState.phase !== "battle" ? newSetTierKeys(runState) : []
+  const setBanner = freshSetTiers.length ? (
+    <SetTierBanner tierKeys={freshSetTiers} onDone={() => setRunState((current) => ackSetTiers(current))} />
+  ) : null
+
   function dismissIntro() {
     localStorage.setItem(AUTOBATTLER_INTRO_SEEN_KEY, "true")
     setShowIntro(false)
@@ -752,6 +770,12 @@ export default function HeartwoodBattle() {
 
   function handleChooseFloorEncounter(choiceIndex) {
     setRunState((current) => chooseFloorEncounter(current, choiceIndex))
+  }
+
+  // Camp (between-fights build depth).
+  function handleCamp(fn) {
+    playSfx("buy")
+    setRunState((current) => fn(current))
   }
 
   function handleResolveEvent(choiceIndex, extraEffects, extraResult) {
@@ -1168,6 +1192,7 @@ export default function HeartwoodBattle() {
       >
         {mapStripLayout.renderSection("strip", <RunMap runState={runState} />)}
       </div>
+      {setBanner}
     </>
   )
 
@@ -1225,6 +1250,7 @@ export default function HeartwoodBattle() {
         {utilityBar}
         <RunMap runState={runState} />
         <div style={{ padding: "0 21px" }}>
+          <RunBuildPanel runState={runState} />
           <button
             className="hw-end-turn"
             onClick={() => {
@@ -1243,6 +1269,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="shop">
         {utilityBar}
+        {setBanner}
         {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} />}
         <SquadDraft
           runState={runState}
@@ -1288,6 +1315,23 @@ export default function HeartwoodBattle() {
           runState={runState}
           onChoose={handleChooseFloorEncounter}
           difficultyTier={difficultyTierForNode(runState.nodeIndex, RUN_PATH.length)}
+        />
+      </div>
+    )
+  }
+
+  if (runState.phase === "camp") {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="camp">
+        {changeCharacterBar}
+        <CampScreen
+          runState={runState}
+          onRest={() => handleCamp(campRest)}
+          onTrain={(key) => handleCamp((rs) => campTrain(rs, key))}
+          onCraft={(id) => handleCamp((rs) => campCraft(rs, id))}
+          onScout={() => handleCamp(campScout)}
+          onCommune={(mode, key) => handleCamp((rs) => campCommune(rs, mode, key))}
+          onLeave={() => setRunState((current) => leaveCamp(current))}
         />
       </div>
     )

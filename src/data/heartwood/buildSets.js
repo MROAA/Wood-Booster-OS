@@ -213,3 +213,10 @@ export function activeSetTierKeys(runState) {
 export function startedSetIds(runState) {
   return setProgress(runState).map((p) => p.set.id)
 }
+
+// { setId: count } - for set badges on cards ("2 of 6 owned").
+export function setCountMap(runState) {
+  const out = {}
+  for (const p of setProgress(runState)) out[p.set.id] = p.count
+  return out
+}

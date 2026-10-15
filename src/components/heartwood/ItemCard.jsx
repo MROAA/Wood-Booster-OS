@@ -3,6 +3,8 @@ import { RARITY_INFO, GEAR_KINDS } from "../../data/heartwood/items"
 import { CLASSES } from "../../data/heartwood/classes"
 import { SIGNATURES } from "../../data/heartwood/signatures"
 import { recipeHintText } from "../../services/heartwood/gear"
+import { setOfItem } from "../../data/heartwood/buildSets"
+import SetBadge from "./SetBadge"
 
 // A small purchasable-or-owned item card - mirrors UnitCard.jsx's
 // icon+name+cost shape, but items have none of a unit's fields
@@ -14,7 +16,9 @@ import { recipeHintText } from "../../services/heartwood/gear"
 // lines for what makes gear interesting - row adjacency ("Next to: ..."),
 // board auras ("Aura: ..."), recipes ("Combines: ...") and collars.
 // `locked` / `onToggleLock`: the shop's per-offer lock.
-export default function ItemCard({ def, selected, disabled, onClick, locked, onToggleLock }) {
+// `setCounts` (optional, buildSets.setCountMap): shows the piece's build-set
+// family + how many you own. `ownedPiece`: this card IS one you own.
+export default function ItemCard({ def, selected, disabled, onClick, locked, onToggleLock, setCounts = null, ownedPiece = false }) {
   const rarity = RARITY_INFO[def.rarity] || RARITY_INFO.common
   const kind = GEAR_KINDS[def.kind]
   const combines = recipeHintText(def.id)
@@ -88,6 +92,7 @@ export default function ItemCard({ def, selected, disabled, onClick, locked, onT
         </div>
       )}
       <div className="hw-card-desc">{def.description}</div>
+      {setOfItem(def.id) && <SetBadge setId={setOfItem(def.id)} owned={setCounts?.[setOfItem(def.id)] || 0} isOwnedPiece={ownedPiece} />}
       {collarClass && (
         <div className="hw-item-line hw-item-line--collar" data-collar-class={collarClass.id}>
           {collarClass.icon} Class: {collarClass.name}
