@@ -9,7 +9,16 @@ export const HELP_SECTIONS = [
     entries: [
       { term: "Structure", blurb: "A run is a path of fights broken into Acts. Each Act is tougher than the last; the deeper you go, the more Essence a win pays." },
       { term: "Winning & losing", blurb: "Clear the final boss to win. Lose any fight and the run ends - what you carried out seeds your next attempt (the Grove)." },
-      { term: "Choices", blurb: "Between fights you'll pick a path, an event, or a relic. Whatever you leave behind comes back around later in the run." },
+      { term: "Choices", blurb: "Between fights you'll pick a path, an event, or a relic. Most of what you leave behind comes back around later in the run." },
+    ],
+  },
+  {
+    heading: "Between fights",
+    entries: [
+      { term: "Paths", blurb: "Every fight is a fork of 2-3 paths. Quiet is the usual. Hunted is tougher and pays more Essence plus gear. Cursed is much tougher, pays a relic, and closes behind you if you pass it by." },
+      { term: "Camp", blurb: "Some paths lead to a Camp instead of the next Market. You get 2 actions - Rest, Train, Craft, Scout or Commune (mana). You can't do them all." },
+      { term: "Sets", blurb: "Relics and gear belong to families (Wellspring, Emberkin, Thornwall...). Own 2, 4 or 6 different pieces of one family for a growing squad bonus. The badge on a card shows your count." },
+      { term: "Fates", blurb: "Some event choices come back later: a curse, an ally who joins a fight, a rival who hunts you, a merchant's mood, a debt. The run panel lists them until they resolve." },
     ],
   },
   {
