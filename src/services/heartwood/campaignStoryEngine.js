@@ -277,6 +277,9 @@ export function applyStoryChoiceCore(c0, optionId) {
         regions: arr(c.regions).map((r) => (sunk.includes(r.id) ? { ...r, threat: 0, fallen: false } : r)),
       }
     }
+    // A drained region's Ley Sites dry up on the spot.
+    const drained = Object.entries(e.regionMods).filter(([, m]) => m === "drained").map(([id]) => id)
+    if (drained.length) c = { ...c, missions: arr(c.missions).filter((m) => !(m.type === "ley" && drained.includes(m.regionId))) }
   }
   if (e.threat || e.threatAll) {
     c = {
@@ -333,9 +336,9 @@ export function storyStanding(c) {
   if (faction) out.push({ icon: faction.icon, text: `${faction.name} are your allies. Their warriors fight beside you in ${faction.region === "emberwrack" ? "Emberwrack" : faction.region === "mistfen" ? "Mistfen" : "the Deepening"} and every story mission.` })
   if (f.ley === "ward") out.push({ icon: "✦", text: "The Ley Wardens stand with you. Ley regions are Warded; Ley Sites pay an extra shard." })
   if (f.ley === "drain") out.push({ icon: "✦", text: `You drained the ley. Every fight starts +${LEY_DRAIN_OVERCHARGE} Overcharge.` })
-  if (f.void === "sunk") out.push({ icon: "◐", text: "The Hollow Ley is sunk under the King's flood." })
-  if (f.void === "carried") out.push({ icon: "◐", text: "You carry the Hollow King's dark." })
-  if (f.void === "shared") out.push({ icon: "◐", text: "The whole forest holds the Hollow King's dark, a little everywhere." })
+  if (f.void === "sunk") out.push({ icon: "🌑", text: "The Hollow Ley is sunk under the King's flood." })
+  if (f.void === "carried") out.push({ icon: "🌑", text: "You carry the Hollow King's dark." })
+  if (f.void === "shared") out.push({ icon: "🌑", text: "The whole forest holds the Hollow King's dark, a little everywhere." })
   if (f.echo === "carried") out.push({ icon: "✧", text: "Spacemonkey's memory walks with you." })
   const herald = { spared: "You spared Maura the Rot-Herald.", broken: "You broke Maura's staff.", captive: "Maura is your prisoner.", ally: "Maura fights beside you.", regent: "Maura guards the empty throne.", betrayed: "You struck Maura down - she lived.", gone: "Maura laid down the thorn crown and left.", slain: "Maura is dead." }[f.herald]
   if (herald) out.push({ icon: "🥀", text: herald })

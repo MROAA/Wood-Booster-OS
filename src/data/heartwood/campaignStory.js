@@ -117,7 +117,7 @@ export const NEMESES = {
     name: "The Echo That Wears Your Face",
     rivalName: "Your Own Echo",
     title: "The Echo",
-    icon: "◐",
+    icon: "🌑",
     blurb: "You carry the void. Something in it learned your face.",
     enemies: ["mossback-lurker", "duskmoth", "veilgnaw", "duskwither", "ashen-regent", "echo-stalker", "mnemosyne-colossus"],
     routed: "The Echo flickers, smiles your smile, and goes out like a candle.",
@@ -315,7 +315,7 @@ export const STORY_SCENES = {
     id: "hollow-flood",
     chapter: 4,
     title: "The Hollow Flood",
-    icon: "◐",
+    icon: "🌑",
     lines: [
       ["The Hollow King", "I only wanted to keep it safe... I only wanted..."],
       [null, "He comes apart like smoke. But the dark he held doesn't vanish. It spills out over the roots like floodwater, looking for somewhere to go."],
@@ -666,7 +666,7 @@ export const START_VARIANTS = {
   "hollow-road": {
     id: "hollow-road",
     name: "The Hollow Road",
-    icon: "◐",
+    icon: "🌑",
     blurb: "You remember the void. Start with 4 Ley Shards and every fight +10 Overcharge - but doom starts at 2.",
     log: "The void hums at the edge of hearing. You've walked this road before.",
   },

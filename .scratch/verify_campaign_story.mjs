@@ -232,6 +232,8 @@ for (let i = 0; i < 40; i++) {
   leyAnywhere += sc.missions.filter((m) => m.type === "ley").length
 }
 ok(leyInDrained === 0, "L5 a Drained region has no more Ley Sites", leyInDrained)
+const withLey = { ...ch3, missions: [...ch3.missions, { ...anyM, id: 991, type: "ley", regionId: "mistfen", expiresDay: ch3.day + 3 }] }
+ok(!CE.chooseStory(withLey, "drain").missions.some((m) => m.type === "ley" && m.regionId === "mistfen") && CE.chooseStory(withLey, "ward").missions.some((m) => m.id === 991), "L5b draining dries up the Ley Sites already on the map there")
 const leyW = CE.spawnMissions({ ...CE.clearStoryResult(ward), missions: [] }, 0)
 const mkLey = (c) => {
   for (let i = 0; i < 60; i++) {

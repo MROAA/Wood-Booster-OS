@@ -169,7 +169,7 @@ export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onP
                   <circle cx={def.x} cy={def.y} r={R + 1.6} className="hwc-region-ring" strokeDasharray={`${ring * pct} ${ring}`} transform={`rotate(-90 ${def.x} ${def.y})`} />
                   <circle cx={def.x} cy={def.y} r={R} className="hwc-region-core" />
                   <text x={def.x} y={def.y + 1.3} className="hwc-region-icon">
-                    {def.home ? "🔥" : state === "sunk" ? "◐" : state === "fallen" ? "☠" : mod === "drained" ? "🥀" : def.ley ? "✦" : "🌲"}
+                    {def.home ? "🔥" : state === "sunk" ? "🌑" : state === "fallen" ? "☠" : mod === "drained" ? "🥀" : def.ley ? "✦" : "🌲"}
                   </text>
                   {faction && (
                     <g className="hwc-region-banner" data-campaign-banner={faction.id}>
