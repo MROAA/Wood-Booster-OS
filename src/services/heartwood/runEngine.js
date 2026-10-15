@@ -2757,7 +2757,8 @@ export function recordFightAftermath(runState, battle) {
     const id = tactics ? `player-${e.defId}-${i}` : `p${i}`
     const r = endState(list.find((u) => u.id === id), e.wounded)
     if (!r) return e
-    const name = UNITS[e.defId]?.name || e.defId
+    // A named hero (the Long Campaign roster) speaks under their own name.
+    const name = e.name || UNITS[e.defId]?.name || e.defId
     if (r.fell) lines.push(`${name} fell and is Wounded.`)
     const unit = tactics ? list.find((u) => u.id === id) : null
     const xp = tactics ? xpAfter(e.xp, unit, name) : e.xp
