@@ -4218,7 +4218,9 @@ export function withLowEnemyHp(state) {
   // Boss fights: arena hazards + weak-point shield off too - QA-only.
   // Difficulty sprint 2: ultimates + the smarter AI / behaviour profiles off too.
   // Combat depth: enemy stances / parries off too (a bracing 1-HP enemy).
-  return difficultyQa(bossQa({ ...state, depthQa: true, terrain: {}, wallHp: {}, objHp: {}, objFire: {}, objChill: {}, tileTimers: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [], ult: null, ultCharge: 0, ultArmed: null } : u)) }))
+  // Hero identity: fears + rival penalties off too (a random fear quirk made
+  // the naive QA bot miss a 1-HP boss).
+  return difficultyQa(bossQa({ ...state, depthQa: true, identityQa: true, terrain: {}, wallHp: {}, objHp: {}, objFire: {}, objChill: {}, tileTimers: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [], ult: null, ultCharge: 0, ultArmed: null } : u)) }))
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).

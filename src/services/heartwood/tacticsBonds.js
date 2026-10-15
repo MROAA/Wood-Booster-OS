@@ -59,7 +59,7 @@ function fearMatches(state, quirk, hero) {
 
 // The fear this hero is feeling right now ({ quirk, of }) or null.
 export function fearOf(state, hero) {
-  if (!identityOn(state) || !isHero(hero) || hero.hp <= 0 || !hero.quirks?.length) return null
+  if (!identityOn(state) || state.identityQa || !isHero(hero) || hero.hp <= 0 || !hero.quirks?.length) return null
   for (const id of hero.quirks) {
     const q = QUIRKS[id]
     if (q?.kind !== "fear") continue
@@ -165,7 +165,7 @@ export function identityAmount(attacker, defender, amount, state) {
     if (fear) a = Math.max(1, a - (fear.quirk.dmg || 0))
   }
   if (isHero(defender) && attacker.side === "enemy") {
-    if (bondsAround(state, defender).some((b) => b.level === "rival")) a += BONDS.rivalTaken
+    if (!state.identityQa && bondsAround(state, defender).some((b) => b.level === "rival")) a += BONDS.rivalTaken
     for (const s of scarsFor(defender)) if (s.guard && scarOn(state, defender, s, attacker)) a = Math.max(0, a - s.guard)
   }
   return a
