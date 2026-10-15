@@ -289,7 +289,8 @@ export function difficultyForRunNode(runState, nodeIndex = runState?.nodeIndex, 
   const type = runState?.path?.[nodeIndex]?.type || RUN_PATH[nodeIndex]?.type || "battle"
   const kind = ["elite", "miniboss", "boss"].includes(type) ? type : "battle"
   // Route risk: a Hunted / Cursed path adds its threat to the score.
-  const riskBonus = riskOf(runState?.path?.[nodeIndex]).threat
+  // The Long Campaign: difficulty level + fallen regions + doom (campaignEngine.campaignThreatBonus).
+  const riskBonus = riskOf(runState?.path?.[nodeIndex]).threat + (Number(runState?.campaignThreat) || 0)
   return difficultySpec({ act, kind, depth, factor, riskBonus, seedKey: `${runState?.seed ?? 0}:${nodeIndex}` })
 }
 

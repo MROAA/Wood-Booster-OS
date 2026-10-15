@@ -3398,6 +3398,18 @@ export function collarDrop(runState, node) {
   }
 }
 
+// The Long Campaign (campaignEngine.js): the SAME per-fight bookkeeping a
+// run fight gets (end HP + XP, hero history/scars/bonds, and on a win
+// mutations + collar / signature loot), without the run's node advance,
+// shop or payout - the campaign does its own rewards. Pure.
+export function campaignFightAftermath(runState, battle) {
+  const node = currentNode(runState)
+  const base = recordHeroHistory(recordFightAftermath(runState, battle), battle)
+  if (battle?.phase !== "won") return base
+  const mut = rollFightMutations(base, battle, node)
+  return signatureDrop(collarDrop({ ...mut.runState, lastMutations: mut.lines }, node), node)
+}
+
 export function resolveBattleOutcome(runState) {
   const battle = runState.battle
   if (!battle) return runState
