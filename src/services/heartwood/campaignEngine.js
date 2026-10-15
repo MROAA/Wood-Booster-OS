@@ -25,7 +25,17 @@
 // No localStorage here except loadCampaign/saveCampaign/clearCampaign
 // and the unlock store (try/catch, never throws).
 //
-// Public API: see the exports below. Examples: .scratch/verify_campaign.mjs.
+// Part 2 - the branching story (campaignStoryEngine.js + data/heartwood/
+// campaignStory.js): story choice scenes after every chapter, chapter
+// variants, allied factions + unique heroes, nemesis Hunter missions,
+// map marks (allied / warded / drained / sunk) and the endings. The hooks
+// here: createCampaign (story slice, start variants, ending unlocks),
+// regionOpen/regionState, advanceDay (threat marks, hunts), spawnMissions
+// (chapter variant, Call to Arms, Hunted), missionRunState (story fates,
+// Overcharge), resolveMission (queues the chapter's scene) and chooseStory.
+//
+// Public API: see the exports below. Examples: .scratch/verify_campaign.mjs,
+// .scratch/verify_campaign_story.mjs.
 import { UNITS } from "../../data/heartwood/units"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { ITEMS, itemPool } from "../../data/heartwood/items"
@@ -48,6 +58,12 @@ import {
 import { rollTraits } from "./traits"
 import { rollQuirks, identityOf } from "./heroIdentity"
 import { levelForXp } from "./unitLevels"
+import {
+  newStory, normalizeStory, storyOf, storyFlags, storyBeat, storyThreatMult, storyOpened, regionSunk, regionMod,
+  alliedFaction, activeNemeses, huntDue, huntNemesisFor, scheduleNextHunt, beatNemesis, storyFates, storyOvercharge,
+  storyThreatBonus, queueChapterScene, applyStoryChoiceCore, UNIQUE_HEROES, NEMESES, START_VARIANTS, STORY_SCENES,
+} from "./campaignStoryEngine"
+import { LEY_WARD_SHARD_BONUS, HUNT_IGNORED_DOOM } from "../../data/heartwood/campaignStory"
 
 const arr = (v) => (Array.isArray(v) ? v : [])
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n))
@@ -179,8 +195,11 @@ export function campaignCommanderIds(metaUnlocked = [], campaignUnlocks = []) {
     .map((ch) => ch.id)
 }
 
-export function createCampaign({ commanderId = "tommy", difficulty = DEFAULT_DIFFICULTY, seed = 1, unlocks = [] } = {}) {
+// `variant` = a story start unlocked by an ending (START_VARIANTS id);
+// only honoured when `unlocks` holds "variant:<id>".
+export function createCampaign({ commanderId = "tommy", difficulty = DEFAULT_DIFFICULTY, seed = 1, unlocks = [], variant = null } = {}) {
   const diff = CAMPAIGN_DIFFICULTIES[difficulty] ? difficulty : DEFAULT_DIFFICULTY
+  const startVariant = variant && START_VARIANTS[variant] && arr(unlocks).includes(`variant:${variant}`) ? variant : null
   let c = {
     version: CAMPAIGN_VERSION,
     seed: seed >>> 0,
@@ -213,7 +232,11 @@ export function createCampaign({ commanderId = "tommy", difficulty = DEFAULT_DIF
     lastDayReport: null,
     lastAftermath: null,
     activeMission: null,
+    story: newStory(startVariant),
   }
+  // Ending unlocks: starting relics.
+  const startRelics = arr(unlocks).filter((u) => u.startsWith("relic:")).map((u) => u.slice(6)).filter((id) => CAMPAIGN_UNLOCKS.some((x) => x.relicId === id))
+  if (startRelics.length) c = { ...c, relics: [...new Set(startRelics)] }
   // Starting roster: distinct classes from the common pool.
   const seasoned = arr(unlocks).includes("start:seasoned")
   const rng = rngFor(c, "start-roster")
@@ -226,9 +249,15 @@ export function createCampaign({ commanderId = "tommy", difficulty = DEFAULT_DIF
     const made = makeHero(c, u.id, `start:${c.roster.length}`, seasoned ? { xp: 6 } : {})
     c = { ...made.c, roster: [...made.c.roster, made.hero] }
   }
+  // Story starts (ending unlocks).
+  if (startVariant === "hollow-road") c = { ...c, leyShards: 4, doom: 2 }
+  if (startVariant === "echo") c = { ...c, leyShards: 2, hearth: { ...c.hearth, rooms: { ...c.hearth.rooms, leywell: 1 } } }
+  if (startVariant === "unhooded") c = addUniqueHero(c, "ilta").c
   c = rollRecruitOffers(c)
   c = spawnMissions(c, 3)
-  return { ...c, log: [`Day 1. ${CHARACTERS[c.commanderId]?.name || "The Commander"} lights the Hearth. The Rot is already moving.`] }
+  const opening = [`Day 1. ${CHARACTERS[c.commanderId]?.name || "The Commander"} lights the Hearth. The Rot is already moving.`]
+  if (startVariant) opening.push(START_VARIANTS[startVariant].log)
+  return { ...c, log: opening }
 }
 
 // ---------------------------------------------------------------------------
@@ -244,13 +273,20 @@ export const doomMax = (c) => difficultyOf(c).doomMax
 export const regionState = (c, id) => {
   const r = arr(c.regions).find((x) => x.id === id)
   if (!r) return "safe"
+  if (regionSunk(c, id)) return "sunk"
   if (r.fallen) return "fallen"
   return r.threat >= THREAT_THREATENED ? "threatened" : "safe"
 }
 export const fallenCount = (c) => arr(c.regions).filter((r) => r.fallen).length
 // A region is open once the story reaches it (offset < chapter). Until
 // then it sleeps: no threat growth, no missions ("the Rot hasn't got there").
-export const regionOpen = (c, id) => (regionDef(id)?.offset || 0) < (c?.chapter || 1)
+// A story choice can open one early (storyOpened); a sunk region is gone
+// for good (open, but nothing ever happens there again - regionLive).
+export const regionOpen = (c, id) => (regionDef(id)?.offset || 0) < (c?.chapter || 1) || storyOpened(c, id)
+export const regionLive = (c, id) => regionOpen(c, id) && !regionSunk(c, id)
+
+// Wins this chapter needs before its story mission (Maura Unhooded start: one fewer in Chapter 1).
+export const storyWinsNeeded = (c) => Math.max(1, STORY_AFTER_WINS - (storyOf(c).variant === "unhooded" && c.chapter === 1 ? 1 : 0))
 
 // The extra DifficultyEngine score every campaign fight gets: the chosen
 // difficulty, each fallen region, and how full the doom clock is.
@@ -314,7 +350,16 @@ function rewardFor(type, act, region, rng, c) {
   }
   if (type === "ley") {
     r.essence = 80 + 20 * act
-    r.leyShards = 1 + Math.floor(act / 3) + (region?.ley ? 1 : 0)
+    r.leyShards = 1 + Math.floor(act / 3) + (region?.ley ? 1 : 0) + (storyFlags(c).ley === "ward" ? LEY_WARD_SHARD_BONUS : 0)
+  }
+  if (type === "hunt") {
+    r.essence = 180 + 40 * act
+    r.leyShards = 1
+    r.item = pick(itemPool().filter((i) => i.rarity === "rare" || i.rarity === "epic"), rng)?.id || null
+  }
+  if (type === "allied") {
+    r.essence = 140 + 30 * act
+    r.leyShards = 1
   }
   if (type === "story") {
     r.essence = 300 + 50 * act
@@ -328,14 +373,17 @@ function rewardFor(type, act, region, rng, c) {
   return r
 }
 
-function makeMission(c, type, regionId, rng) {
+function makeMission(c, type, regionId, rng, extra = {}) {
   const t = MISSION_TYPES[type]
   const region = regionDef(regionId)
   const act = type === "story" ? clamp(c.chapter, 1, 7) : missionAct(c, regionId)
   const nodeIndex = missionNodeIndex(act, t.node, rng)
   const [lo, hi] = t.expiry || [0, 0]
   const id = c.nextMissionId
-  const story = type === "story" ? STORY_CHAPTERS[c.chapter - 1] : null
+  // The chapter's story mission - its variant comes from your story choices.
+  const story = type === "story" ? { ...STORY_CHAPTERS[c.chapter - 1], ...storyBeat(c) } : null
+  const nemesis = type === "hunt" ? NEMESES[extra.nemesisId] : null
+  const faction = type === "allied" ? alliedFaction(c) : null
   const mission = {
     id,
     type,
@@ -346,10 +394,11 @@ function makeMission(c, type, regionId, rng) {
     seed: (Math.floor(rng() * 0x7fffffff) ^ (c.seed + id * 2654435761)) >>> 0,
     spawnedDay: c.day,
     expiresDay: t.expiry ? c.day + lo + Math.floor(rng() * (hi - lo + 1)) : null,
-    title: story ? story.title : `${t.name} - ${region?.short || regionId}`,
-    line: story ? story.line : t.blurb,
+    title: story ? story.title : nemesis ? `${nemesis.name} - ${region?.short || regionId}` : faction ? `Call to Arms - ${faction.short}` : `${t.name} - ${region?.short || regionId}`,
+    line: story ? story.line : nemesis ? `${nemesis.blurb} ${t.blurb}` : faction ? `${faction.name} call for help. ${t.blurb}` : t.blurb,
     chapter: story ? c.chapter : null,
     reward: rewardFor(type, act, region, rng, c),
+    ...(nemesis ? { nemesisId: nemesis.id } : {}),
   }
   return { c: { ...c, nextMissionId: id + 1, missions: [...arr(c.missions), mission] }, mission }
 }
@@ -363,14 +412,17 @@ export function missionCap(c) {
 export function spawnMissions(c0, count = 1) {
   let c = c0
   const rng = rngFor(c, `spawn:${c.day}:${c.nextMissionId}`)
-  if (c.chapterWins >= STORY_AFTER_WINS && c.chapter <= MAX_CHAPTER && !arr(c.missions).some((m) => m.type === "story")) {
-    const front = [...CAMPAIGN_REGIONS].reverse().find((r) => !r.home && regionOpen(c, r.id) && !arr(c.regions).find((x) => x.id === r.id)?.fallen)
-    c = makeMission(c, "story", front?.id || "crownless", rng).c
+  if (c.chapterWins >= storyWinsNeeded(c) && c.chapter <= MAX_CHAPTER && !arr(c.missions).some((m) => m.type === "story")) {
+    // The chapter variant names a region; if it's fallen or gone, the front line.
+    const usable = (id) => regionLive(c, id) && !arr(c.regions).find((x) => x.id === id)?.fallen
+    const want = storyBeat(c).region
+    const front = [...CAMPAIGN_REGIONS].reverse().find((r) => !r.home && usable(r.id))
+    c = makeMission(c, "story", want && usable(want) ? want : front?.id || "crownless", rng).c
   }
   const regular = () => arr(c.missions).filter((m) => m.type !== "story").length
   for (let n = 0; n < count && regular() < missionCap(c); n++) {
-    const open = arr(c.regions).filter((r) => !r.fallen && regionOpen(c, r.id))
-    const fallen = arr(c.regions).filter((r) => r.fallen && !arr(c.missions).some((m) => m.regionId === r.id))
+    const open = arr(c.regions).filter((r) => !r.fallen && regionLive(c, r.id))
+    const fallen = arr(c.regions).filter((r) => r.fallen && !regionSunk(c, r.id) && !arr(c.missions).some((m) => m.regionId === r.id))
     if (fallen.length && rng() < 0.25) {
       c = makeMission(c, "retake", pick(fallen, rng).id, rng).c
       continue
@@ -390,7 +442,10 @@ export function spawnMissions(c0, count = 1) {
     const def = regionDef(region.id)
     const t = rng()
     let type = "fight"
-    if (def?.ley && t < 0.4) type = "ley"
+    const faction = alliedFaction(c)
+    // A drained ley region has no Ley Sites left; an allied region calls for help.
+    if (def?.ley && regionMod(c, region.id) !== "drained" && t < 0.4) type = "ley"
+    else if (faction?.region === region.id && t < 0.3 && !arr(c.missions).some((m) => m.type === "allied")) type = "allied"
     else if (region.threat >= THREAT_THREATENED && t < 0.6) type = "elite"
     else if (t < 0.72) type = "fight"
     else if (t < 0.86) type = "supply"
@@ -553,7 +608,10 @@ export function advanceDay(c0, { fought = [] } = {}) {
     c = { ...c, missions: c.missions.filter((m) => !expired.includes(m)) }
     for (const m of expired) {
       if (m.type !== "retake") c = bumpThreat(c, m.regionId, IGNORED_THREAT)
-      lines.push(`⌛ ${m.title} went unanswered. ${regionDef(m.regionId)?.short} grows darker.`)
+      if (m.type === "hunt") {
+        c = { ...c, doom: c.doom + HUNT_IGNORED_DOOM }
+        lines.push(`${NEMESES[m.nemesisId]?.icon || "🐺"} ${NEMESES[m.nemesisId]?.name || "Your nemesis"} struck ${regionDef(m.regionId)?.short} while you were away. Doom +${HUNT_IGNORED_DOOM}.`)
+      } else lines.push(`⌛ ${m.title} went unanswered. ${regionDef(m.regionId)?.short} grows darker.`)
     }
   }
 
@@ -561,9 +619,10 @@ export function advanceDay(c0, { fought = [] } = {}) {
   const doomPush = 1 + 0.5 * (c.doom / doomMax(c))
   for (const r of CAMPAIGN_REGIONS) {
     const st = c.regions.find((x) => x.id === r.id)
-    if (!st || st.fallen || !regionOpen(c, r.id)) continue
+    if (!st || st.fallen || !regionLive(c, r.id)) continue
     const fallenNear = CAMPAIGN_ROADS.filter(([a, bb]) => (a === r.id || bb === r.id) && c.regions.find((x) => x.id === (a === r.id ? bb : a))?.fallen).length
-    c = bumpThreat(c, r.id, diff.threatRate * r.threatMult * doomPush + FALLEN_NEIGHBOUR_THREAT * fallenNear, true)
+    // Story marks: Allied / Warded regions creep up half as fast, Drained ones faster.
+    c = bumpThreat(c, r.id, diff.threatRate * r.threatMult * storyThreatMult(c, r.id) * doomPush + FALLEN_NEIGHBOUR_THREAT * fallenNear, true)
   }
 
   // Regions that crossed 100 fall.
@@ -585,6 +644,17 @@ export function advanceDay(c0, { fought = [] } = {}) {
   const before = c.missions.length
   c = spawnMissions(c, c.missions.length < 2 ? 2 : 1)
   if (c.missions.length > before) lines.push(`🗺 ${c.missions.length - before} new mission${c.missions.length - before > 1 ? "s" : ""} on the map.`)
+  // A nemesis on your trail: a Hunter mission every few days.
+  if (huntDue(c) && !c.missions.some((m) => m.type === "hunt")) {
+    const nem = huntNemesisFor(c)
+    const live = c.regions.filter((r) => !r.fallen && regionLive(c, r.id) && !regionDef(r.id)?.home)
+    const hrng = rngFor(c, `hunt:${day}`)
+    const region = pick(live, hrng)
+    if (nem && region) {
+      c = scheduleNextHunt(makeMission(c, "hunt", region.id, hrng, { nemesisId: nem.id }).c)
+      lines.push(`${NEMESES[nem.id].icon} ${NEMESES[nem.id].name} has picked up your trail near ${regionDef(region.id).short}.`)
+    }
+  }
 
   c = checkGameOver(c)
   if (!lines.length) lines.push("A quiet day. The Rot creeps on all the same.")
@@ -655,7 +725,11 @@ export function missionRunState(c, missionId, squadKeys) {
   const base = startRun(c.commanderId, null, { forcedSeed: m.seed })
   const bench = squadKeys.map((k) => c.roster.find((h) => h.key === k)).filter(Boolean).map((h) => ({ ...h, manaBonus: heroManaBonus(c, h) }))
   const node = RUN_PATH[m.nodeIndex]
-  const overcharge = (m.type === "ley" ? LEY_MISSION_OVERCHARGE : 0) + (region?.ley ? LEY_REGION_OVERCHARGE : 0) + (LEY_WELL_OVERCHARGE[roomLevel(c, "leywell")] || 0)
+  const overcharge =
+    (m.type === "ley" ? LEY_MISSION_OVERCHARGE : 0) +
+    (region?.ley && regionMod(c, m.regionId) !== "drained" ? LEY_REGION_OVERCHARGE : 0) +
+    (LEY_WELL_OVERCHARGE[roomLevel(c, "leywell")] || 0) +
+    storyOvercharge(c)
   return {
     ...base,
     nodeIndex: m.nodeIndex,
@@ -677,8 +751,11 @@ export function missionRunState(c, missionId, squadKeys) {
     campOvercharge: overcharge,
     lastSeenAct: m.act,
     // Read by tacticsRealMatchup.difficultyForRunNode (DifficultyEngine score).
-    campaignThreat: campaignThreatBonus(c),
+    campaignThreat: campaignThreatBonus(c) + storyThreatBonus(m),
     campaignMissionId: m.id,
+    // The story's faction ally / hunting nemesis, as fight fates
+    // (tacticsBetweenFights.withFateArrivals puts them on the board).
+    fates: storyFates(c, m),
   }
 }
 
@@ -802,13 +879,20 @@ export function resolveMission(c0, { retreat = false } = {}) {
     } else {
       c = bumpThreat(c, m.regionId, -MISSION_TYPES[m.type].threatDrop)
     }
+    if (m.type === "hunt") {
+      const beat = beatNemesis(c, m.nemesisId)
+      c = beat.c
+      lines.push(...beat.lines)
+    }
     if (m.type === "story") {
       const next = c.chapter + 1
+      // The chapter's choice scene comes up after the aftermath.
+      c = queueChapterScene(c, c.chapter)
       c = { ...c, doom: Math.max(0, c.doom - DOOM_STORY_RELIEF), chapter: Math.min(MAX_CHAPTER, next), chapterWins: 0 }
       if (next > MAX_CHAPTER) c = { ...c, status: "won" }
       else lines.push(`📜 Chapter ${next} begins. The road goes deeper - and the fights get harder.`)
       c = earnUnlocks(c, next)
-    } else {
+    } else if (m.type !== "hunt") {
       c = { ...c, chapterWins: (c.chapterWins || 0) + 1 }
     }
   } else if (m) {
@@ -842,6 +926,42 @@ export function resolveMission(c0, { retreat = false } = {}) {
   c = advanceDay(checkGameOver(c), { fought: am.squadKeys })
   return { ...checkGameOver(c), lastAftermath: aftermath }
 }
+
+// ---------------------------------------------------------------------------
+// The story: choices, unique heroes
+// ---------------------------------------------------------------------------
+
+// A story hero (UNIQUE_HEROES): joins with their own name, even past the Barracks cap.
+export function addUniqueHero(c0, uniqueId) {
+  const def = UNIQUE_HEROES[uniqueId]
+  if (!def || !UNITS[def.defId] || arr(c0.roster).some((h) => h.uniqueId === uniqueId)) return { c: c0, hero: null }
+  const made = makeHero(c0, def.defId, `unique:${uniqueId}`, { name: def.name, uniqueId, title: def.title })
+  return {
+    c: { ...made.c, roster: [...made.c.roster, made.hero], stats: { ...made.c.stats, recruited: (made.c.stats?.recruited || 0) + 1 } },
+    hero: made.hero,
+  }
+}
+
+// Picks an option of the pending story scene. Returns the campaign
+// unchanged when nothing is pending or the option is locked.
+export function chooseStory(c0, optionId) {
+  const core = applyStoryChoiceCore(c0, optionId)
+  if (!core) return c0
+  let c = core.c
+  const joined = []
+  for (const id of core.heroes) {
+    const made = addUniqueHero(c, id)
+    c = made.c
+    if (made.hero) joined.push(`${made.hero.name}, ${UNIQUE_HEROES[id].title}, joins the Hearth.`)
+  }
+  const s = storyOf(c)
+  const scene = STORY_SCENES[s.lastResult?.sceneId]
+  const opt = scene?.options.find((o) => o.id === s.lastResult?.optionId)
+  const lines = [`📜 ${scene?.title || "The story"}: ${opt?.label || "a choice was made"}.`, ...joined]
+  return checkGameOver(pushLog(c, lines))
+}
+
+export const clearStoryResult = (c) => ({ ...c, story: { ...storyOf(c), lastResult: null } })
 
 function earnUnlocks(c, chapterReached) {
   const got = CAMPAIGN_UNLOCKS.filter((u) => chapterReached >= u.chapter && !arr(c.unlocks).includes(u.id)).map((u) => u.id)
@@ -909,6 +1029,7 @@ export function deserializeCampaign(saved) {
     recruitOffers: arr(c.recruitOffers).filter((o) => o && UNITS[o.defId]),
     log: arr(c.log),
     activeMission: c.activeMission?.run?.battle ? c.activeMission : null,
+    story: normalizeStory(c.story),
   }
 }
 
@@ -938,3 +1059,4 @@ export function clearCampaign() {
 }
 
 export { CAMPAIGN_REGIONS, CAMPAIGN_ROADS, MISSION_TYPES, CAMPAIGN_DIFFICULTIES, CAMPAIGN_ROOMS, THREAT_FALLEN, THREAT_THREATENED, SQUAD_MAX }
+export { activeNemeses, storyBeat, regionMod }

@@ -12,6 +12,8 @@ import {
   healPerDay, trainingXpPerDay, leyWellMana, campaignRunView,
 } from "../../../services/heartwood/campaignEngine"
 import { CampaignTopBar } from "./CampaignMap"
+import { Stakes } from "./CampaignStoryScene"
+import { chronicleEntries, storyStanding, endingsInReach, ENDINGS, UNIQUE_HEROES } from "../../../services/heartwood/campaignStoryEngine"
 
 // The Hearth in the campaign: rooms that take days to build, recruits,
 // the roster (with Ley attunement), a small armoury and the Memorial.
@@ -28,6 +30,7 @@ export default function CampaignHearth({ campaign, onBack, onBuild, onRecruit, o
     ["roster", `Roster (${campaign.roster.length})`],
     ["armoury", `Armoury (${bag.length})`],
     ["memorial", `Memorial (${campaign.memorial.length})`],
+    ["chronicle", `Chronicle (${campaign.story?.chronicle?.length || 0})`],
   ]
   return (
     <div className="hwc-root hwc-hearth" data-screen="campaign-hearth">
@@ -131,6 +134,7 @@ export default function CampaignHearth({ campaign, onBack, onBuild, onRecruit, o
               <div key={h.key} className="hwc-hero" data-blocked={why ? true : undefined}>
                 <div className="hwc-hero-name">
                   <strong>{h.name}</strong>
+                  {h.uniqueId && UNIQUE_HEROES[h.uniqueId] && <span className="hwc-unique-title">{UNIQUE_HEROES[h.uniqueId].title}</span>}
                   <span className="hwc-muted">
                     Lv {levelForXp(h.xp || 0)} · joined day {h.joinedDay} · {h.missions || 0} missions
                   </span>
@@ -193,6 +197,8 @@ export default function CampaignHearth({ campaign, onBack, onBuild, onRecruit, o
         </div>
       )}
 
+      {tab === "chronicle" && <Chronicle campaign={campaign} />}
+
       {tab === "memorial" && (
         <div className="hwc-memorial-wall" data-campaign-memorial>
           {campaign.memorial.length === 0 && <p className="hwc-muted">No names here yet. Keep it that way as long as you can.</p>}
@@ -212,6 +218,59 @@ export default function CampaignHearth({ campaign, onBack, onBuild, onRecruit, o
             </div>
           ))}
         </div>
+      )}
+    </div>
+  )
+}
+
+// The Chronicle: every story choice so far, what it did, and where the
+// story stands now (allies, nemeses, the ley, which endings are in reach).
+function Chronicle({ campaign }) {
+  const entries = chronicleEntries(campaign)
+  const standing = storyStanding(campaign)
+  const reach = endingsInReach(campaign.story?.flags || {})
+  return (
+    <div className="hwc-chronicle" data-campaign-chronicle>
+      {entries.length === 0 && <p className="hwc-muted">Nothing written yet. Every chapter's story mission ends in a choice - this is where they're kept.</p>}
+      <ol className="hwc-chronicle-list">
+        {entries.map((e) => (
+          <li key={`${e.chapter}-${e.sceneId}`} className="hwc-chronicle-entry" data-campaign-chronicle-entry={e.sceneId}>
+            <div className="hwc-chronicle-head">
+              <span className="hwc-chronicle-chapter">Chapter {e.chapter}</span>
+              <span className="hwc-muted">Day {e.day}</span>
+            </div>
+            <strong>
+              {e.icon} {e.title} - {e.label}
+            </strong>
+            {e.result && <p className="hwc-chronicle-result">{e.result}</p>}
+            <Stakes stakes={e.stakes} />
+          </li>
+        ))}
+      </ol>
+      {standing.length > 0 && (
+        <>
+          <div className="hwc-section-label">Where the story stands</div>
+          <div className="hwc-standing">
+            {standing.map((x) => (
+              <div key={x.text} className="hwc-standing-row" data-bad={x.bad || undefined}>
+                <span aria-hidden="true">{x.icon}</span> {x.text}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      {entries.length > 0 && (
+        <>
+          <div className="hwc-section-label">Endings still within reach</div>
+          <div className="hwc-chips" data-campaign-reach={reach.length}>
+            {reach.map((id) => (
+              <span key={id} className="hwc-chip" style={{ borderColor: ENDINGS[id].color, color: ENDINGS[id].color }}>
+                {ENDINGS[id].title}
+              </span>
+            ))}
+          </div>
+          <p className="hwc-muted">Your choices open some endings and close others. A second campaign can take a very different road.</p>
+        </>
       )}
     </div>
   )

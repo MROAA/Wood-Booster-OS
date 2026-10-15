@@ -7,6 +7,8 @@
 // - Missions appear on the map and expire. You can't do them all.
 // - Heroes who fall in a mission are dead for good (the Memorial).
 // - The Hearth: rooms take days to build.
+// - Part 2 (campaignStory.js): every chapter ends in a story choice that
+//   changes the chapters, allies, nemeses, the map and the ending.
 
 export const CAMPAIGN_VERSION = 1
 export const CAMPAIGN_SAVE_KEY = "heartwood-campaign-save-v1"
@@ -101,9 +103,14 @@ export const MISSION_TYPES = {
   ley: { id: "ley", name: "Ley Site", icon: "✦", node: "battle", threatDrop: 20, expiry: [3, 5], blurb: "A mana spring. Your heroes start overcharged. Pays Ley Shards." },
   story: { id: "story", name: "Story", icon: "📜", node: "story", threatDrop: 40, expiry: null, blurb: "The road onward. Win to open the next chapter." },
   retake: { id: "retake", name: "Retake", icon: "⚑", node: "elite", threatDrop: 0, expiry: [4, 6], blurb: "Take a fallen region back." },
+  // Story (part 2, campaignStory.js): a nemesis hunting you, and your allies calling.
+  hunt: { id: "hunt", name: "Hunted", icon: "🐺", node: "elite", threatDrop: 15, expiry: [2, 4], blurb: "Your nemesis has found you. Meet them - or they strike while you're away (Doom +1)." },
+  allied: { id: "allied", name: "Call to Arms", icon: "🔔", node: "battle", threatDrop: 25, expiry: [3, 5], blurb: "Your allies call for help. Their warriors fight beside you." },
 }
 
-// Hand-written story mission titles, one per chapter (1-7).
+// Hand-written story mission titles, one per chapter (1-7). The story
+// (campaignStory.js STORY_BEATS) swaps in a chapter VARIANT by your choices;
+// these are the defaults.
 export const STORY_CHAPTERS = [
   { chapter: 1, title: "The Rootkeeper's Gate", line: "Something old guards the first gate. It does not want you through." },
   { chapter: 2, title: "Heart of the Deepening", line: "The forest's heart is hiding. Find what it hides from." },
@@ -225,6 +232,13 @@ export const CAMPAIGN_UNLOCKS = [
   { id: "commander:kaski", chapter: 3, name: "Kaski joins the commanders", commanderId: "kaski" },
   { id: "commander:louhi", chapter: 5, name: "Louhi joins the commanders", commanderId: "louhi" },
   { id: "start:seasoned", chapter: 8, name: "Seasoned start: new campaigns begin with Level 2 heroes" },
+  // Endings (campaignStory.js ENDINGS) - each unlocks one of these.
+  { id: "commander:lehva", ending: "rooted", name: "Lehva joins the commanders", commanderId: "lehva" },
+  { id: "relic:emberbrand", ending: "ember", name: "New campaigns start with the Emberbrand relic", relicId: "emberbrand" },
+  { id: "variant:hollow-road", ending: "hollow", name: "Story start: The Hollow Road", variant: "hollow-road" },
+  { id: "variant:echo", ending: "echo", name: "Story start: Spacemonkey's Echo", variant: "echo" },
+  { id: "variant:unhooded", ending: "peace", name: "Story start: Maura Unhooded", variant: "unhooded" },
+  { id: "relic:weathered-standard", ending: "watch", name: "New campaigns start with the Weathered Standard relic", relicId: "weathered-standard" },
 ]
 
 export function campaignRoomDef(id) {
