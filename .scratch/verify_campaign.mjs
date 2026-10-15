@@ -341,21 +341,27 @@ if (await begin.count()) await begin.click()
 await page.waitForTimeout(300)
 await page.screenshot({ path: `${SHOTS}/campaign_mission_fight.png` })
 let phase = "player"
+// Every hero acts each turn (one hero alone can't clear a 4-6 enemy mission
+// in 20 turns - the old single-token bot made U19 flaky).
 for (let turns = 0; phase !== "won" && phase !== "lost" && turns < 20; turns++) {
-  await page.locator('.hwt-token[data-side="player"]').first().click({ force: true }).catch(() => {})
-  await page.waitForTimeout(100)
-  let targets = page.locator('.hwt-cell[data-targetable="true"]')
-  if ((await targets.count()) === 0) {
-    const reach = page.locator('.hwt-cell[data-reachable="true"]')
-    if ((await reach.count()) > 0) {
-      await reach.first().click()
+  const heroCount = await page.locator('.hwt-token[data-side="player"]').count()
+  for (let h = 0; h < heroCount; h++) {
+    await page.locator('.hwt-token[data-side="player"]').nth(h).click({ force: true }).catch(() => {})
+    await page.waitForTimeout(80)
+    let targets = page.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) === 0) {
+      const reach = page.locator('.hwt-cell[data-reachable="true"]')
+      if ((await reach.count()) > 0) {
+        await reach.first().click().catch(() => {})
+        await page.waitForTimeout(80)
+      }
+    }
+    targets = page.locator('.hwt-cell[data-targetable="true"]')
+    if ((await targets.count()) > 0) {
+      await targets.first().click().catch(() => {})
       await page.waitForTimeout(100)
     }
-  }
-  targets = page.locator('.hwt-cell[data-targetable="true"]')
-  if ((await targets.count()) > 0) {
-    await targets.first().click()
-    await page.waitForTimeout(120)
+    if ((await page.locator(".hwt-turn-label").getAttribute("data-phase").catch(() => null)) === "won") break
   }
   await page.locator(".hwt-end-turn").click().catch(() => {})
   await page.waitForTimeout(350)
