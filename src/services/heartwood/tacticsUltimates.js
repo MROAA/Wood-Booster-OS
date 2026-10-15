@@ -28,6 +28,7 @@ import { emit, getUnit, setUnit, applyDamageWithBlock, checkTacticsBattleEnd, ab
 import { hasMana, profileOf, manaRole, gainExternal, burnMana, scaleAmount, resourceLabel } from "./tacticsMana"
 import { roleOf } from "./tacticsRoles"
 import { enemySkillsFor } from "./tacticsEnemyAbilities"
+import { applyElement } from "./tacticsElements"
 
 export const ULT_MAX = 100
 // A hit this big (share of max HP) staggers a channeling enemy.
@@ -269,14 +270,39 @@ export const HERO_ULTS = {
   support: { id: "mana-surge", name: "Mana Surge", icon: "✦", target: "self", radius: 3, gift: 30, text: "Every other hero within 3 tiles gains +30 of its resource (small pools less) - set up their big skills." },
   control: { id: "mana-storm", name: "Mana Storm", icon: "⚡", target: "enemy", reach: 4, damage: 4, burn: 30, text: "Strikes an enemy within 4 tiles and everything next to it: 4 damage, burns 30 mana, breaks ultimates, Slows." },
 }
+// CLASS ULTIMATES (Dota-style: a hero's own signature ultimate). A class
+// listed here replaces the shared role ultimate above; every other class
+// keeps its role ultimate until it gets its own. Batch 1 = the 8 classes
+// most heroes use.
+export const CLASS_ULTS = {
+  guardian: { id: "aegis-of-ages", name: "Aegis of Ages", icon: "🛡", target: "self", radius: 2, block: 8, allyBlock: 5, ward: 1, text: "+8 Block, and every hero within 2 tiles gains +5 Block and a Ward that stops the next hit." },
+  warden: { id: "grove-sanctum", name: "Grove Sanctum", icon: "❦", target: "self", radius: 2, allyBlock: 4, text: "Roots every enemy within 2 tiles and gives every hero within 2 tiles (itself too) +4 Block." },
+  juggernaut: { id: "unstoppable", name: "Unstoppable", icon: "⛰", target: "self", attack: 3, block: 6, text: "Shakes off every ailment, gains +6 Block and +3 attack for the rest of the fight." },
+  bruiser: { id: "earthshatter", name: "Earthshatter", icon: "✹", target: "self", radius: 1, mult: 1.5, stun: 1, text: "Slams the ground: every adjacent enemy takes 1.5x attack and is Stunned for a turn." },
+  striker: { id: "flurry", name: "Flurry", icon: "⚔", target: "enemy", reach: 1, hits: 3, mult: 1, text: "Three lightning strikes on an adjacent enemy, 1x attack each - ignores cover, +40% to hit." },
+  executioner: { id: "culling-blade", name: "Culling Blade", icon: "⚰", target: "enemy", reachPlus: 0, execute: 0.35, mult: 1.5, text: "Strikes an enemy in reach: below 35% HP it dies outright; otherwise 1.5x attack. A kill refunds 1 AP." },
+  artillery: { id: "meteor-barrage", name: "Meteor Barrage", icon: "☄", target: "enemy", reachPlus: 1, mult: 1.2, burn: 2, text: "Shells the target and every enemy next to it (range +1): 1.2x attack each and 2 Burn." },
+  healer: { id: "wellspring", name: "Wellspring", icon: "✚", target: "self", radius: 3, heal: 8, text: "Heals every hero within 3 tiles for 8 and cures ALL their ailments (poison, burn, root, slow, curse...)." },
+}
+const ULT_CURED = ["poison", "burn", "chill", "frozen", "root", "slow", "weak", "vulnerable", "entangle", "suppressed", "disarmed", "cursed", "stun", "silenced"]
 const ULT_SHOT = { ignoreCover: true, aim: 40, label: "Ultimate", coverLabel: "Ultimate - ignores cover" }
 
 export function heroUltInfo(unit) {
   if (!unit || unit.side !== "player" || unit.id === "player-commander" || unit.npc || unit.structure || !hasMana(unit)) return null
   const prof = profileOf(unit)
   if (prof.special === "inverted" || prof.special === "tokens" || !(unit.manaMax > 0)) return null
-  return HERO_ULTS[manaRole(unit)] || HERO_ULTS.melee
+  return CLASS_ULTS[unit.classId] || HERO_ULTS[manaRole(unit)] || HERO_ULTS.melee
 }
+
+const cure = (state, id) => {
+  const u = getUnit(state, id)
+  const patch = {}
+  for (const key of ULT_CURED) if (u[key] > 0) patch[key] = 0
+  return Object.keys(patch).length ? setUnit(state, id, patch) : state
+}
+const heroesNear = (state, pos, radius) => state.units.filter((x) => x.side === "player" && x.hp > 0 && !x.structure && cheb(x.pos, pos) <= radius)
+const foesNear = (state, pos, radius) => state.units.filter((x) => x.side === "enemy" && x.hp > 0 && cheb(x.pos, pos) <= radius).map((x) => x.id)
+const over = (s) => s.phase === "won" || s.phase === "lost"
 
 export function heroUltReady(state, unit) {
   const info = heroUltInfo(unit)
@@ -336,6 +362,77 @@ export function castHeroUltimate(state, unitId, targetId = null) {
       next = r.next
       if (getUnit(next, e)?.hp > 0) next = setUnit(next, e, { slow: Math.max(getUnit(next, e).slow || 0, 2) })
       next = checkTacticsBattleEnd(next)
+    }
+  } else if (info.id === "aegis-of-ages") {
+    next = setUnit(next, unitId, { block: (u.block || 0) + info.block })
+    tiles.push(u.pos)
+    for (const a of heroesNear(next, u.pos, info.radius).filter((x) => x.id !== unitId)) {
+      next = setUnit(next, a.id, { block: (a.block || 0) + info.allyBlock, ward: (a.ward || 0) + info.ward })
+      next = emit(next, { kind: "ward", targetId: a.id })
+      tiles.push(a.pos)
+    }
+  } else if (info.id === "grove-sanctum") {
+    for (const a of heroesNear(next, u.pos, info.radius)) {
+      next = setUnit(next, a.id, { block: (a.block || 0) + info.allyBlock })
+      tiles.push(a.pos)
+    }
+    for (const e of foesNear(next, u.pos, info.radius)) {
+      next = emit(setUnit(next, e, { root: Math.max(getUnit(next, e).root || 0, 2) }), { kind: "reaction", unitId: e, label: "Rooted!" })
+      tiles.push(getUnit(next, e).pos)
+    }
+  } else if (info.id === "unstoppable") {
+    next = cure(next, unitId)
+    const me = getUnit(next, unitId)
+    next = setUnit(next, unitId, { block: (me.block || 0) + info.block, attack: me.attack + info.attack })
+    tiles.push(u.pos)
+  } else if (info.id === "earthshatter") {
+    const dmg = Math.round((u.attack || 1) * info.mult)
+    for (const e of foesNear(next, u.pos, info.radius)) {
+      if (over(next)) break
+      const live = getUnit(next, e)
+      if (!live || live.hp <= 0) continue
+      tiles.push(live.pos)
+      next = applyDamageWithBlock(next, e, dmg).next
+      const after = getUnit(next, e)
+      if (after?.hp > 0) next = emit(setUnit(next, e, { stun: Math.max(after.stun || 0, info.stun) }), { kind: "reaction", unitId: e, label: "Stunned!" })
+      next = checkTacticsBattleEnd(next)
+    }
+  } else if (info.id === "flurry") {
+    for (let i = 0; i < info.hits; i++) {
+      const t = getUnit(next, targetId)
+      if (!t || t.hp <= 0 || over(next)) break
+      tiles.push(t.pos)
+      next = abilityHit(next, unitId, targetId, Math.round((u.attack || 1) * info.mult), { name: info.name, shot: ULT_SHOT }).next
+    }
+  } else if (info.id === "culling-blade") {
+    const t = getUnit(next, targetId)
+    tiles.push(t.pos)
+    if (t.hp <= Math.ceil(t.maxHp * info.execute)) {
+      next = emit(next, { kind: "reaction", unitId: targetId, label: "CULLED!" })
+      next = applyDamageWithBlock(next, targetId, t.hp + (t.block || 0) + (t.ward || 0) * 99).next
+    } else {
+      next = abilityHit(next, unitId, targetId, Math.round((u.attack || 1) * info.mult), { name: info.name, shot: ULT_SHOT }).next
+    }
+    const dead = !(getUnit(next, targetId)?.hp > 0)
+    if (dead && getUnit(next, unitId)?.hp > 0) next = setUnit(next, unitId, { ap: getUnit(next, unitId).ap + 1 })
+  } else if (info.id === "meteor-barrage") {
+    const center = getUnit(next, targetId).pos
+    const dmg = Math.round((u.attack || 1) * info.mult)
+    for (const e of foesNear(next, center, 1)) {
+      if (over(next)) break
+      const live = getUnit(next, e)
+      if (!live || live.hp <= 0) continue
+      tiles.push(live.pos)
+      next = applyDamageWithBlock(next, e, dmg).next
+      if (getUnit(next, e)?.hp > 0) next = applyElement(next, e, "fire", info.burn)
+      next = checkTacticsBattleEnd(next)
+    }
+  } else if (info.id === "wellspring") {
+    for (const a of heroesNear(next, u.pos, info.radius)) {
+      const heal = Math.min(a.maxHp - a.hp, info.heal)
+      next = cure(setUnit(next, a.id, { hp: a.hp + heal }), a.id)
+      tiles.push(a.pos)
+      if (heal > 0) next = emit(next, { kind: "heal", actorId: unitId, targetId: a.id, amount: heal })
     }
   }
   const live = getUnit(next, unitId)

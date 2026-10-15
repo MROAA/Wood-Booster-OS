@@ -66,6 +66,10 @@ const engine = await page.evaluate(async () => {
   const ult = () => ({ id: "cataclysm", name: "Cataclysm", icon: "☄", shape: "blast", radius: 1, range: 6, burn: 0, amount: 10, gain: 25 })
   const arm = (s, id) => ({ ...s, units: s.units.map((u) => (u.id === id ? { ...u, ult: ult(), ultCharge: 100, ultArmed: { center: { row: 4, col: 9 }, tiles: [{ row: 4, col: 9 }], turn: 0 } } : u)) })
 
+  // Sections 1-2 test the shared ROLE ultimates: per-class ultimates
+  // (verify_class_ults.mjs) are switched off here and restored after.
+  const savedClassUlts = { ...X.CLASS_ULTS }
+  for (const k of Object.keys(X.CLASS_ULTS)) delete X.CLASS_ULTS[k]
   // 1 Every hero role has an ultimate (the Commander keeps its own Power) -------------------
   {
     const s = board(["the-chariot", "strength", "the-hermit", "the-fool"], { "the-chariot": { row: 1, col: 9 }, strength: { row: 3, col: 9 }, "the-hermit": { row: 5, col: 9 }, "the-fool": { row: 7, col: 9 } })
@@ -124,6 +128,8 @@ const engine = await page.evaluate(async () => {
     ok(U(a, E0).hp === 36 && U(a, E0).slow > 0 && U(a, E1).hp === 36 && U(a, E2).hp === 40, "Mana Storm: 4 damage + Slow in a 3x3", r.storm)
     ok(!U(a, E1).ultArmed && (a.events || []).some((e) => e.combo === "ult-break"), "Mana Storm breaks a channeled enemy ultimate", r.storm)
   }
+
+  Object.assign(X.CLASS_ULTS, savedClassUlts)
 
   // 3 Mana Link ---------------------------------------------------------------------------------
   {
@@ -222,8 +228,8 @@ for (const f of engine.fails) out.errors.push(f)
   const pops = await page.locator(".hw-floating-number").allInnerTexts()
   const after = await page.locator('.hwt-universal-btn[data-action="hero-ult"]').count() ? await page.locator('.hwt-universal-btn[data-action="hero-ult"]').isDisabled() : null
   out.ui = { ready, label, pops, after, title }
-  if (!(ready === "true" && /Renewal/.test(label) && /ULTIMATE ready/.test(label) && /WHOLE/.test(title))) out.errors.push("UI: hero ultimate button glows when the bar is full")
-  if (!(pops.some((t) => /RENEWAL/.test(t)) && after === true)) out.errors.push("UI: ultimate fires with a big callout, then needs a refill")
+  if (!(ready === "true" && /Wellspring/.test(label) && /ULTIMATE ready/.test(label) && /WHOLE/.test(title))) out.errors.push("UI: hero ultimate button glows when the bar is full")
+  if (!(pops.some((t) => /WELLSPRING/.test(t)) && after === true)) out.errors.push("UI: ultimate fires with a big callout, then needs a refill")
   await page.screenshot({ path: `${SHOT_DIR}/mana_2_hero_ult_fired.png` })
   // Targeted ultimate: the Controller's Mana Storm arms targeting (red targets).
   await page.locator('.hwt-token[data-unit-id="player-the-magician-3"]').click()
