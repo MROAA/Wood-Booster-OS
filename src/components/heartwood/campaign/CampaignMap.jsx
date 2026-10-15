@@ -1,15 +1,17 @@
 import { useMemo, useState } from "react"
 import { CHARACTERS } from "../../../data/heartwood/characters"
-import { STORY_CHAPTERS, STORY_AFTER_WINS, regionDef } from "../../../data/heartwood/campaign"
+import { regionDef } from "../../../data/heartwood/campaign"
+import { CAMPAIGN_HELP } from "../../../data/heartwood/help"
 import { ITEMS } from "../../../data/heartwood/items"
 import { RELICS } from "../../../data/heartwood/relics"
 import {
   CAMPAIGN_REGIONS, CAMPAIGN_ROADS, MISSION_TYPES, THREAT_FALLEN, regionState, doomMax, rosterCap, missionRunState,
-  difficultyOf, availableHeroes, campaignThreatBonus, regionOpen,
+  difficultyOf, availableHeroes, campaignThreatBonus, regionOpen, storyWinsNeeded, storyBeat, regionMod,
 } from "../../../services/heartwood/campaignEngine"
+import { FACTIONS, REGION_MODS, storyStanding } from "../../../services/heartwood/campaignStoryEngine"
 import { difficultyForRunNode } from "../../../services/heartwood/tacticsRealMatchup"
 
-const STATE_LABEL = { safe: "Safe", threatened: "Threatened", fallen: "Fallen" }
+const STATE_LABEL = { safe: "Safe", threatened: "Threatened", fallen: "Fallen", sunk: "Sunk" }
 
 // Danger of a mission = the DifficultyEngine tier its fight will get.
 function dangerOf(campaign, m) {
@@ -55,7 +57,7 @@ export function DoomDial({ doom, max }) {
 }
 
 export function CampaignTopBar({ campaign, children }) {
-  const ch = STORY_CHAPTERS[campaign.chapter - 1]
+  const ch = storyBeat(campaign)
   return (
     <div className="hwc-topbar">
       <div className="hwc-topbar-day">
@@ -78,6 +80,9 @@ export function CampaignTopBar({ campaign, children }) {
 
 export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onPickMission }) {
   const [focus, setFocus] = useState(null) // mission id
+  const [help, setHelp] = useState(false)
+  const standing = storyStanding(campaign)
+  const winsLeft = Math.max(0, storyWinsNeeded(campaign) - (campaign.chapterWins || 0))
   const max = doomMax(campaign)
   const dangers = useMemo(() => Object.fromEntries(campaign.missions.map((m) => [m.id, dangerOf(campaign, m)])), [campaign])
   const missions = [...campaign.missions].sort((a, b) => (a.expiresDay ?? 9999) - (b.expiresDay ?? 9999))
@@ -97,6 +102,9 @@ export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onP
           <button className="hwc-btn hwc-btn-quiet" onClick={onExit}>
             ← Menu
           </button>
+          <button className="hwc-btn hwc-btn-quiet" data-campaign-help onClick={() => setHelp((h) => !h)} title="How the campaign works">
+            ?
+          </button>
           <button className="hwc-btn" data-campaign-hearth onClick={onHearth}>
             🔥 The Hearth
           </button>
@@ -105,6 +113,23 @@ export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onP
           </button>
         </div>
       </CampaignTopBar>
+
+      {help && (
+        <div className="hwc-help" data-campaign-help-panel>
+          <div className="hwc-section-label">How the campaign works</div>
+          <dl className="hwc-help-list">
+            {CAMPAIGN_HELP.map((e) => (
+              <div key={e.term} className="hwc-help-row">
+                <dt>{e.term}</dt>
+                <dd>{e.blurb}</dd>
+              </div>
+            ))}
+          </dl>
+          <button className="hwc-btn hwc-btn-quiet" onClick={() => setHelp(false)}>
+            Close
+          </button>
+        </div>
+      )}
 
       <div className="hwc-map-layout">
         <div className="hwc-map-panel">
@@ -124,24 +149,41 @@ export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onP
             {CAMPAIGN_REGIONS.map((def) => {
               const st = campaign.regions.find((r) => r.id === def.id)
               const state = regionOpen(campaign, def.id) ? regionState(campaign, def.id) : "dormant"
+              // Story marks (campaignStory.js REGION_MODS): allied / warded / drained / sunk.
+              const mod = regionMod(campaign, def.id)
+              const faction = mod === "allied" ? Object.values(FACTIONS).find((f) => f.region === def.id) : null
               const pct = Math.min(1, (st?.threat || 0) / THREAT_FALLEN)
               const R = def.home ? 7 : 6
               const ring = 2 * Math.PI * (R + 1.6)
               return (
-                <g key={def.id} className="hwc-region" data-state={state} data-region={def.id} data-ley={def.ley || undefined} data-home={def.home || undefined}>
-                  <title>{state === "dormant" ? `${def.name} - quiet for now. The road reaches it in Chapter ${def.offset + 1}.` : `${def.name} - ${STATE_LABEL[state]} (threat ${Math.round(st?.threat || 0)}/100). ${def.blurb}`}</title>
-                  {def.ley && <circle cx={def.x} cy={def.y} r={R + 4} className="hwc-region-ley" />}
+                <g key={def.id} className="hwc-region" data-state={state} data-mod={mod || undefined} data-region={def.id} data-ley={def.ley || undefined} data-home={def.home || undefined}>
+                  <title>
+                    {state === "dormant"
+                      ? `${def.name} - quiet for now. The road reaches it in Chapter ${def.offset + 1}.`
+                      : `${def.name} - ${STATE_LABEL[state]} (threat ${Math.round(st?.threat || 0)}/100). ${mod ? `${REGION_MODS[mod].label}: ${REGION_MODS[mod].text}` : def.blurb}`}
+                  </title>
+                  {def.ley && mod !== "drained" && mod !== "sunk" && <circle cx={def.x} cy={def.y} r={R + 4} className="hwc-region-ley" />}
+                  {mod === "warded" && <circle cx={def.x} cy={def.y} r={R + 5.6} className="hwc-region-ward" />}
+                  {mod === "sunk" && <circle cx={def.x} cy={def.y} r={R + 4.5} className="hwc-region-flood" />}
                   <circle cx={def.x} cy={def.y} r={R + 1.6} className="hwc-region-ring-track" />
                   <circle cx={def.x} cy={def.y} r={R + 1.6} className="hwc-region-ring" strokeDasharray={`${ring * pct} ${ring}`} transform={`rotate(-90 ${def.x} ${def.y})`} />
                   <circle cx={def.x} cy={def.y} r={R} className="hwc-region-core" />
                   <text x={def.x} y={def.y + 1.3} className="hwc-region-icon">
-                    {def.home ? "🔥" : state === "fallen" ? "☠" : def.ley ? "✦" : "🌲"}
+                    {def.home ? "🔥" : state === "sunk" ? "◐" : state === "fallen" ? "☠" : mod === "drained" ? "🥀" : def.ley ? "✦" : "🌲"}
                   </text>
+                  {faction && (
+                    <g className="hwc-region-banner" data-campaign-banner={faction.id}>
+                      <circle cx={def.x + R * 0.85} cy={def.y - R * 0.85} r="2.6" />
+                      <text x={def.x + R * 0.85} y={def.y - R * 0.85 + 1}>
+                        {faction.icon}
+                      </text>
+                    </g>
+                  )}
                   <text x={def.x} y={def.y + R + 5.2} className="hwc-region-name">
                     {def.short}
                   </text>
                   <text x={def.x} y={def.y + R + 8.6} className="hwc-region-threat">
-                    {state === "fallen" ? "FALLEN" : state === "dormant" ? `Chapter ${def.offset + 1}` : `${Math.round(st?.threat || 0)}%`}
+                    {state === "sunk" ? "SUNK" : state === "fallen" ? "FALLEN" : state === "dormant" ? `Chapter ${def.offset + 1}` : `${Math.round(st?.threat || 0)}%${mod && mod !== "sunk" ? ` · ${REGION_MODS[mod].label}` : ""}`}
                   </text>
                 </g>
               )
@@ -182,6 +224,12 @@ export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onP
             <span className="hwc-legend-dot is-fallen" /> Fallen
             <span className="hwc-legend-dot is-ley" /> Ley region (mana-rich fights)
             <span className="hwc-legend-dot is-dormant" /> Not reached yet
+            {standing.length > 0 && (
+              <>
+                <span className="hwc-legend-dot is-allied" /> Allied / Warded
+                <span className="hwc-legend-dot is-sunk" /> Drained / Sunk
+              </>
+            )}
           </div>
         </div>
 
@@ -197,11 +245,21 @@ export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onP
                 {bonus} threat (difficulty, fallen regions, doom)
               </div>
               <div className="hwc-muted">
-                Story mission after {Math.max(0, STORY_AFTER_WINS - (campaign.chapterWins || 0))} more win{STORY_AFTER_WINS - (campaign.chapterWins || 0) === 1 ? "" : "s"}
+                {winsLeft > 0 ? `Story mission after ${winsLeft} more win${winsLeft === 1 ? "" : "s"}` : "The story mission is on the map"}
               </div>
               <div className="hwc-muted">Commander: {CHARACTERS[campaign.commanderId]?.name} · {Math.round((campaign.commander?.hpPct ?? 1) * 100)}% HP</div>
             </div>
           </div>
+
+          {standing.length > 0 && (
+            <div className="hwc-standing" data-campaign-standing>
+              {standing.map((x) => (
+                <div key={x.text} className="hwc-standing-row" data-bad={x.bad || undefined}>
+                  <span aria-hidden="true">{x.icon}</span> {x.text}
+                </div>
+              ))}
+            </div>
+          )}
 
           {focused && (
             <div className="hwc-mission-card" data-type={focused.type} data-campaign-mission-detail={focused.id}>

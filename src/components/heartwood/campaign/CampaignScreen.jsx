@@ -5,8 +5,9 @@ import { formatSeed, parseSeed } from "../../../data/heartwood/seed"
 import {
   createCampaign, loadCampaign, saveCampaign, clearCampaign, loadCampaignUnlocks, saveCampaignUnlocks, campaignCommanderIds,
   advanceDay, launchMission, updateMissionBattle, resolveMission, recruitHero, startBuild, attuneHero, campaignRunView,
-  campaignChooseLevelPerk, campaignChoosePromotion, campaignEquip, campaignUnequip, difficultyOf,
+  campaignChooseLevelPerk, campaignChoosePromotion, campaignEquip, campaignUnequip, difficultyOf, chooseStory, clearStoryResult,
 } from "../../../services/heartwood/campaignEngine"
+import { sceneDef, START_VARIANTS, ENDINGS, ENDING_ORDER, chronicleEntries } from "../../../services/heartwood/campaignStoryEngine"
 import { startTacticsFormationBattle } from "../../../services/heartwood/runEngine"
 import { buildRunTacticsBattle } from "../../../services/heartwood/tacticsRealMatchup"
 import { withHitRolls } from "../../../services/heartwood/tacticsCover"
@@ -20,6 +21,7 @@ import CampaignMap from "./CampaignMap"
 import CampaignSquad from "./CampaignSquad"
 import CampaignHearth from "./CampaignHearth"
 import CampaignAftermath from "./CampaignAftermath"
+import CampaignStoryScene, { CampaignStoryResult, CampaignEpilogue } from "./CampaignStoryScene"
 import "./campaign.css"
 
 // The Long Campaign (campaignEngine.js) - the screen host. Owns the
@@ -109,8 +111,22 @@ export default function CampaignScreen({ onExit, metaUnlocked = [] }) {
     )
   }
 
+  // ---- aftermath ---------------------------------------------------------
+  if (campaign.lastAftermath) {
+    return <CampaignAftermath campaign={campaign} aftermath={campaign.lastAftermath} onContinue={() => update((c) => ({ ...c, lastAftermath: null }))} />
+  }
+
+  // ---- the story: a chapter's choice scene, then what it did ---------------
+  if (campaign.story?.pendingScene) {
+    return <CampaignStoryScene campaign={campaign} onChoose={(id) => update((c) => chooseStory(c, id))} />
+  }
+  const result = campaign.story?.lastResult
+  if (result && !sceneDef(result.sceneId)?.final) {
+    return <CampaignStoryResult campaign={campaign} onContinue={() => update((c) => clearStoryResult(c))} />
+  }
+
   // ---- campaign over ------------------------------------------------------
-  if (campaign.status !== "active" && !campaign.lastAftermath) {
+  if (campaign.status !== "active") {
     return (
       <CampaignEnd
         campaign={campaign}
@@ -122,11 +138,6 @@ export default function CampaignScreen({ onExit, metaUnlocked = [] }) {
         onExit={onExit}
       />
     )
-  }
-
-  // ---- aftermath ---------------------------------------------------------
-  if (campaign.lastAftermath) {
-    return <CampaignAftermath campaign={campaign} aftermath={campaign.lastAftermath} onContinue={() => update((c) => ({ ...c, lastAftermath: null }))} />
   }
 
   // ---- level-ups / promotions (between missions) ----------------------------
@@ -200,6 +211,9 @@ function CampaignStart({ onBegin, onExit, metaUnlocked }) {
   const [commanderId, setCommanderId] = useState(ids[0] || "tommy")
   const [difficulty, setDifficulty] = useState(DEFAULT_DIFFICULTY)
   const [seedText, setSeedText] = useState("")
+  const variants = Object.values(START_VARIANTS).filter((v) => unlocks.includes(`variant:${v.id}`))
+  const [variant, setVariant] = useState(null)
+  const endingsFound = ENDING_ORDER.filter((id) => unlocks.includes(ENDINGS[id].unlock))
   const [defaultSeed] = useState(() => (Math.random() * 0x7fffffff) >>> 0)
   const parsed = seedText.trim() ? parseSeed(seedText.trim()) : null
   const seedBad = seedText.trim() && parsed == null
@@ -247,12 +261,32 @@ function CampaignStart({ onBegin, onExit, metaUnlocked }) {
         </div>
       </section>
 
+      {variants.length > 0 && (
+        <section className="hwc-section" data-campaign-variants>
+          <div className="hwc-section-label">Story start</div>
+          <div className="hwc-difficulties">
+            <button className="hwc-difficulty" data-picked={!variant || undefined} data-campaign-variant="none" onClick={() => setVariant(null)}>
+              <span className="hwc-difficulty-icon">🔥</span>
+              <strong>The Hearth</strong>
+              <span className="hwc-muted">The story from the start, as it was first told.</span>
+            </button>
+            {variants.map((v) => (
+              <button key={v.id} className="hwc-difficulty" data-picked={variant === v.id || undefined} data-campaign-variant={v.id} onClick={() => setVariant(v.id)}>
+                <span className="hwc-difficulty-icon">{v.icon}</span>
+                <strong>{v.name}</strong>
+                <span className="hwc-muted">{v.blurb}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="hwc-section hwc-start-row">
         <label className="hwc-seed">
           <span className="hwc-muted">Seed (optional)</span>
           <input value={seedText} onChange={(e) => setSeedText(e.target.value)} placeholder={formatSeed(defaultSeed)} maxLength={13} spellCheck={false} data-invalid={seedBad || undefined} />
         </label>
-        <button className="hwc-btn hwc-btn-gold hwc-begin" data-campaign-begin disabled={!!seedBad} onClick={() => onBegin({ commanderId, difficulty, seed, unlocks })}>
+        <button className="hwc-btn hwc-btn-gold hwc-begin" data-campaign-begin disabled={!!seedBad} onClick={() => onBegin({ commanderId, difficulty, seed, unlocks, variant })}>
           Light the Hearth
         </button>
       </section>
@@ -261,6 +295,11 @@ function CampaignStart({ onBegin, onExit, metaUnlocked }) {
           Unlocked so far: {CAMPAIGN_UNLOCKS.filter((u) => unlocks.includes(u.id)).map((u) => u.name).join(" · ")}
         </p>
       )}
+      <p className="hwc-muted" data-campaign-endings-found={endingsFound.length}>
+        Endings found: {endingsFound.length}/{ENDING_ORDER.length}
+        {endingsFound.length > 0 && ` - ${endingsFound.map((id) => ENDINGS[id].title).join(" · ")}`}. Every choice you make on the road changes which
+        ones are within reach.
+      </p>
     </div>
   )
 }
@@ -269,11 +308,36 @@ function CampaignStart({ onBegin, onExit, metaUnlocked }) {
 function CampaignEnd({ campaign, onNew, onExit }) {
   const won = campaign.status === "won"
   const s = campaign.stats || {}
+  const ending = won ? ENDINGS[campaign.story?.ending] : null
+  const unlock = ending ? CAMPAIGN_UNLOCKS.find((u) => u.id === ending.unlock) : null
+  const chronicle = chronicleEntries(campaign)
   return (
     <div className="hwc-root hwc-end" data-screen="campaign-end" data-outcome={campaign.status}>
       <div className="hwc-eyebrow">Day {campaign.day}</div>
-      <h1 className="hwc-title">{won ? "The Hearthwood lives." : "The Hearth has gone dark."}</h1>
-      <p className="hwc-flavor">{won ? "The last root holds. Those who made it home will tell this story for a long time." : campaign.lostReason}</p>
+      {ending ? (
+        <CampaignEpilogue campaign={campaign} />
+      ) : (
+        <>
+          <h1 className="hwc-title">{won ? "The Hearthwood lives." : "The Hearth has gone dark."}</h1>
+          <p className="hwc-flavor">{won ? "The last root holds. Those who made it home will tell this story for a long time." : campaign.lostReason}</p>
+        </>
+      )}
+      {unlock && (
+        <div className="hwc-unlock" data-campaign-ending-unlock={unlock.id}>
+          <span className="hwc-joined-badge">Unlocked for your next campaign</span>
+          <strong>{unlock.name}</strong>
+        </div>
+      )}
+      {chronicle.length > 0 && (
+        <div className="hwc-end-chronicle">
+          <div className="hwc-section-label">The road you took</div>
+          {chronicle.map((e) => (
+            <div key={`${e.chapter}-${e.sceneId}`} className="hwc-end-chronicle-row">
+              <span className="hwc-muted">Ch {e.chapter}</span> {e.icon} {e.title}: <strong>{e.label}</strong>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="hwc-end-stats">
         <span>⚔ {s.missionsWon || 0} missions won</span>
         <span>✗ {s.missionsLost || 0} lost</span>

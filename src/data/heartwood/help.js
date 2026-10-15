@@ -3,6 +3,19 @@
 // from the ? button (HelpOverlay.jsx). Hand-authored, kept short - this
 // is a "remind me how X works" panel, not a manual.
 
+// The Long Campaign (components/heartwood/campaign/) - also shown on the
+// campaign's own world map behind its "?" button.
+export const CAMPAIGN_HELP = [
+  { term: "The world map", blurb: "Seven regions. Every day you leave one alone, its threat climbs; at 100 it FALLS. Missions appear on the map and expire - you can't answer them all. Regions further along the road stay quiet until the story reaches them." },
+  { term: "Doom", blurb: "The dial on the map. Fallen regions, wiped squads, ignored hunters and plain time all raise it, and it makes every fight harder. If it fills up - or the Hearthstead falls - the campaign is lost. Story wins and retaking regions bring it down." },
+  { term: "Roster & fatigue", blurb: "Pick 4-6 heroes for each mission. Heroes who fought are Tired for 2 days; badly hurt ones are Wounded until they heal. Keep a deep roster so someone is always ready." },
+  { term: "Permadeath", blurb: "A hero who falls in a campaign mission is gone for good. Their name goes on the Memorial at the Hearth. Retreat (not on Ironman) saves the living but loses the mission." },
+  { term: "Hearth rooms", blurb: "Build rooms with Essence (the Ley Well also needs Ley Shards). Each takes days, one at a time: Infirmary heals faster, Barracks holds more heroes, Training Hall teaches resting heroes, Ley Well deepens mana, Recruitment Post brings more recruits." },
+  { term: "Story choices", blurb: "Every chapter's story mission ends in a choice. Choices change the next chapter, which faction joins you (a unique hero + warriors in their region), who hunts you, the map itself, and which endings you can reach. The Chronicle at the Hearth keeps them all." },
+  { term: "Allies & nemeses", blurb: "An allied faction's warriors fight beside you in their home region, every story mission and their Call to Arms missions. A nemesis sends Hunted missions every few days - beat it twice to drive it off; ignore one and Doom rises." },
+  { term: "Endings", blurb: "Six endings, each opened by different choices. Every ending unlocks something for your next campaign: a commander, a starting relic, or a new story start." },
+]
+
 export const HELP_SECTIONS = [
   {
     heading: "The run",
@@ -85,6 +98,10 @@ export const HELP_SECTIONS = [
       { term: "Arena hazards", blurb: "Some battlefields carry a modifier - a Blood Moon, a Sacred Grove, Frostfall. It's fixed for that spot, so you can plan around it." },
       { term: "Elites, minibosses, bosses", blurb: "Marked with their own banner. Each has a signature mechanic and escalates once hurt. They pay more Essence." },
     ],
+  },
+  {
+    heading: "The Long Campaign",
+    entries: CAMPAIGN_HELP,
   },
 ]
 
