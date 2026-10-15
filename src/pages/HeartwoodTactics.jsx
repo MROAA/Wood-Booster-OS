@@ -31,6 +31,7 @@ import { withObjectShowcase } from "../services/heartwood/tacticsObjects"
 import { withHitRolls } from "../services/heartwood/tacticsCover"
 import { enableMana } from "../services/heartwood/tacticsMana"
 import { enableCombatDepth } from "../services/heartwood/tacticsDepth"
+import { enableHeroIdentity, withDemoIdentity } from "../services/heartwood/heroIdentity"
 import { applyDifficulty, difficultySpec } from "../services/heartwood/tacticsDifficulty"
 import { CLASSES } from "../data/heartwood/classes"
 import { UNITS } from "../data/heartwood/units"
@@ -57,7 +58,12 @@ function maybeDebugLowHp(base, showcase = false) {
   // Mana step 1: on by default; `?mana=0` turns it off (QA).
   const manaOn0 = params.get("mana") === "0" ? rolled0 : enableMana(rolled0)
   // Combat depth sprint: on by default; `?depth=0` turns it off (QA).
-  const manaOn = params.get("depth") === "0" ? manaOn0 : enableCombatDepth(manaOn0)
+  const manaOn1 = params.get("depth") === "0" ? manaOn0 : enableCombatDepth(manaOn0)
+  // Hero identity sprint: class signature mechanics on by default
+  // (`?identity=0` off); `?identity=demo` also gives the test squad some
+  // quirks, a friendship, a rivalry and scars to look at.
+  const ident = params.get("identity")
+  const manaOn = ident === "0" ? manaOn1 : ident === "demo" ? withDemoIdentity(manaOn1) : enableHeroIdentity(manaOn1)
   // QA-only: `?manaStart=N` starts every hero at N mana (test the greyed skills).
   const manaStart = params.get("manaStart")
   const rolled =

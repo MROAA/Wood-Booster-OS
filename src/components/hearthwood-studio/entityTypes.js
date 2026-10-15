@@ -24,6 +24,10 @@ export const ALL_TYPES = [
   // Promotions/Traits sprint (also the "🍀 Traits" / "⚜ Promotions" views).
   { type: "traits", label: "Hero Traits", category: "Content" },
   { type: "promotions", label: "Class Promotions", category: "Content" },
+  // Hero identity sprint (also the "✨ Hero Identity" view).
+  { type: "signatures", label: "Class Signatures & Legendaries", category: "Content" },
+  { type: "quirks", label: "Hero Quirks", category: "Content" },
+  { type: "scars", label: "Scars & Honours", category: "Content" },
   { type: "cards", label: "Cards", category: "Content" },
   { type: "relics", label: "Relics", category: "Content" },
   { type: "items", label: "Items", category: "Content" },

@@ -113,9 +113,12 @@ export default function GearScreen({ runState, ownerKey, onClose, onEquip, onUne
               const blocker = equipBlocker(runState, it.key, ownerKey)
               const hint = recipeHintText(d.id)
               return (
-                <div key={it.key} className="hw-gear-bag-item" data-gear-bag={it.defId} style={{ "--hw-rarity": RARITY_INFO[d.rarity]?.color }}>
+                <div key={it.key} className="hw-gear-bag-item" data-gear-bag={it.defId} data-signature={d.kind === "signature" || undefined} style={{ "--hw-rarity": RARITY_INFO[d.rarity]?.color }}>
                   <CardGlyph name={d.icon} className="hw-intent-glyph" />
-                  <span title={`${d.description}${hint ? `\nCombines: ${hint}` : ""}`}>{d.name}</span>
+                  <span title={`${d.description}${hint ? `\nCombines: ${hint}` : ""}`}>
+                    {d.kind === "signature" ? "★ " : ""}
+                    {d.name}
+                  </span>
                   <button
                     className="hw-move-btn"
                     data-gear-equip={it.key}

@@ -28,6 +28,7 @@ import { RECIPES, RECIPE_CRAFT_ACORNS } from "../../data/heartwood/recipes"
 import { TRAITS, MAX_TRAITS } from "../../data/heartwood/traits"
 import { PROMOTIONS } from "../../data/heartwood/promotions"
 import { rollTraits, inheritTraits } from "./traits"
+import { remapIdentityUids } from "./heroIdentity"
 
 export const HEARTH_KEY = "hearthwood-hearth-v1"
 const WOUNDED_HP = 0.25
@@ -296,6 +297,8 @@ export function hearthStartFor(h, vetIds = []) {
       ...(Object.keys(u.inheritedUpgrades || {}).length ? { inheritedUpgrades: { ...u.inheritedUpgrades } } : {}),
       ...(Array.isArray(u.heroTraits) ? { heroTraits: [...u.heroTraits] } : {}),
       ...(u.promoPicks?.length ? { promoPicks: [...u.promoPicks] } : {}),
+      // Hero identity: quirks, bonds, scars + history ride along.
+      ...(u.identity ? { identity: JSON.parse(JSON.stringify(u.identity)) } : {}),
       age: u.age || 0,
       ...(declineSteps(u.age) ? { agePenalty: declineSteps(u.age) } : {}),
     }
@@ -336,6 +339,7 @@ export function harvestRun(h, runState, won, runId) {
   const memorial = [...arr(h.memorial)]
   const updated = new Map() // hid -> unit
   const fresh = []
+  const uidMap = {} // hero identity: fresh recruits' bond ids -> their new Hearth id
 
   for (const e of runState.bench) {
     if (!UNITS[e.defId]) continue
@@ -346,6 +350,8 @@ export function harvestRun(h, runState, won, runId) {
       memorial.unshift({
         name: unitName(e), defId: e.defId, level, age: (prev?.age || 0) + 1, run: h.runs + 1,
         commander, veteran: !!prev,
+        // Hero identity: the fallen are remembered by their story.
+        ...(Array.isArray(e.identity?.history) && e.identity.history.length ? { history: e.identity.history.slice(-4) } : {}),
       })
       report.fallen.push(unitName(e))
       if (prev) updated.set(prev.hid, null)
@@ -364,10 +370,13 @@ export function harvestRun(h, runState, won, runId) {
       // Traits gained / lost on the road + promotions earned come home too.
       ...(Array.isArray(e.heroTraits) ? { heroTraits: e.heroTraits } : {}),
       ...(Array.isArray(e.promoPicks) ? { promoPicks: e.promoPicks } : {}),
+      // Hero identity: quirks, bonds, scars + history come home.
+      ...(e.identity ? { identity: e.identity } : {}),
       age: (prev?.age || 0) + 1,
       runs: (prev?.runs || 0) + 1,
       wounded: heal ? false : !!(e.wounded || fell.has(e.key)),
     })
+    if (!prev) uidMap[`r${e.key}`] = `h${unit.hid}`
     if (declineSteps(unit.age) > declineSteps(unit.age - 1)) report.aged.push(unitName(unit))
     if (prev) updated.set(prev.hid, unit)
     else fresh.push(unit)
@@ -385,11 +394,11 @@ export function harvestRun(h, runState, won, runId) {
     }
   }
 
-  const roster = h.roster.map((u) => (updated.has(u.hid) ? updated.get(u.hid) : u)).filter(Boolean)
+  const roster = remapIdentityUids(h.roster.map((u) => (updated.has(u.hid) ? updated.get(u.hid) : u)).filter(Boolean), uidMap)
   report.home = roster.filter((u) => updated.get(u.hid)).map(unitName)
   // New arrivals fill the Barracks, best first; the rest stay behind.
   const cap = rosterCapacity(h)
-  const sorted = [...fresh].sort((a, b) => (b.xp || 0) - (a.xp || 0))
+  const sorted = remapIdentityUids([...fresh], uidMap).sort((a, b) => (b.xp || 0) - (a.xp || 0))
   for (const u of sorted) {
     if (roster.length < cap) {
       roster.push(u)

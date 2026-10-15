@@ -3,6 +3,8 @@ import { useState } from "react"
 import { TRAITS, TRAIT_KINDS } from "../../data/heartwood/traits"
 import { PROMOTIONS } from "../../data/heartwood/promotions"
 import { CLASSES } from "../../data/heartwood/classes"
+import { SIGNATURES } from "../../data/heartwood/signatures"
+import { QUIRKS, QUIRK_KINDS, SCARS } from "../../data/heartwood/quirks"
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
 
@@ -208,5 +210,149 @@ export function PromotionEditor(props) {
         ...Object.keys(p.master?.patch || {}).filter((k) => typeof p.master.patch[k] === "number").map((k) => [`master.patch.${k}`, `Mastery: ${SKILL_NUMBER_LABEL[k] || k}`, "number"]),
       ]}
     />
+  )
+}
+
+// Hero identity sprint - the ✨ HERO IDENTITY editors: each class's
+// signature mechanic + its legendary item, personality quirks, and the
+// scars & honours heroes earn. Same plain-English-first shape.
+const SIG_NUMBER_LABEL = {
+  max: "Most stacks", radius: "Reach (tiles)", guard: "Takes less per hit", holy: "Holy Power per soaked hit", perHit: "Stacks per hit taken", perStack: "+Damage per stack",
+  rage: "Rage per stack spent", staggerAt: "Staggers at", aim: "+% to hit", focus: "Focus gained", perfectMult: "Perfect Shot damage x", hpPer: "HP lost per stack", heal: "Heal", mult: "Damage x",
+  turns: "Turns", combo: "Combo per hit", dmg: "Damage", splash: "Splash damage", below: "HP share (0-1)", fury: "Fury per kill", block: "Block", burst: "Bloom heal", blood: "Blood per stack",
+  ap: "AP given", leash: "Leash (tiles)", nature: "Nature per root", at: "Triggers at", cd: "Skill delay (turns)", uses: "Uses per enemy turn", spirit: "Spirit gained", slow: "Slows (1 = yes)",
+  tokens: "Reagents per hit", burn: "Overheat damage", cost: "Cost", hp: "HP", attack: "Attack", amount: "Amount", cool: "Corruption cooled", soak: "Damage soaked", mana: "Mana gained", minHit: "Smallest hit it soaks",
+  count: "Debuffs washed", insp: "Inspiration per wash",
+}
+
+export function SignatureEditor(props) {
+  return (
+    <SimpleDataEditor
+      {...props}
+      type="signatures"
+      items={SIGNATURES}
+      title="Class signatures"
+      testId="signature-editor"
+      listSub={(s) => `${CLASSES[s.id]?.name || s.id} · ${s.legendary?.name || ""}`}
+      header={(s) => (
+        <div>
+          <div className="text-lg font-bold text-[var(--wood-text)]" data-testid="signature-title">
+            {s.icon} {s.name} <span className="text-xs text-[var(--wood-muted)]">({CLASSES[s.id]?.name})</span>
+          </div>
+          <p className="mt-1 text-xs text-[var(--wood-muted)]">{s.text}</p>
+          <p className="mt-1 text-[11px] text-[#f0b23c]">
+            ★ Legendary: {s.legendary?.name} - {s.legendary?.text}
+          </p>
+        </div>
+      )}
+      friendly={() => [
+        ["name", "Mechanic name", "text"],
+        ["text", "What the player reads", "text", true],
+        ["combo", "How it plays with stances / combos", "text", true],
+        ["legendary.name", "Legendary item - name", "text"],
+        ["legendary.text", "Legendary item - what it does", "text", true],
+      ]}
+      advanced={(s) => [
+        ["icon", "Icon", "text"],
+        ["max", "Most stacks", "number"],
+        ...Object.keys(s.n || {}).map((k) => [`n.${k}`, SIG_NUMBER_LABEL[k] || k, "number"]),
+        ...Object.keys(s.legendary?.n || {}).map((k) => [`legendary.n.${k}`, `Legendary: ${SIG_NUMBER_LABEL[k] || k}`, "number"]),
+        ...Object.keys(s.legendary?.skill?.patch || {}).map((k) => [`legendary.skill.patch.${k}`, `Legendary: ${s.legendary.skill.id} ${k}`, "number"]),
+        ...Object.keys(s.legendary?.fx || {}).map((k) => [`legendary.fx.${k}`, `Legendary stat: ${TRAIT_NUMBER_LABEL[k] || k}`, "number"]),
+      ]}
+    />
+  )
+}
+
+export function QuirkEditor(props) {
+  return (
+    <SimpleDataEditor
+      {...props}
+      type="quirks"
+      items={QUIRKS}
+      title="Hero quirks"
+      testId="quirk-editor"
+      listSub={(q) => QUIRK_KINDS[q.kind]?.name || q.kind}
+      header={(q) => (
+        <div>
+          <div className="text-lg font-bold text-[var(--wood-text)]" data-testid="quirk-title">
+            {q.icon} {q.name}
+          </div>
+          <p className="mt-1 text-xs text-[var(--wood-muted)]">{q.text}</p>
+          <p className="mt-1 text-[11px]" style={{ color: QUIRK_KINDS[q.kind]?.color }}>
+            {QUIRK_KINDS[q.kind]?.name} · {q.weight ? "heroes can roll it" : "never rolled"}
+          </p>
+        </div>
+      )}
+      friendly={() => [
+        ["name", "Name", "text"],
+        ["text", "What the player reads", "text", true],
+        ["weight", "How often heroes roll it (0 = never)", "number"],
+      ]}
+      advanced={(q) => [
+        ["icon", "Icon", "text"],
+        ...["dmg", "aim", "bondRate"].filter((k) => typeof q[k] === "number").map((k) => [k, { dmg: q.kind === "fear" ? "Damage lost" : "+Damage", aim: q.kind === "fear" ? "% to hit lost" : "+% to hit", bondRate: "Friendship speed (x)" }[k], "number"]),
+        ...(q.when ? [["when", "When (high / green / early / crowd / alone / wounded)", "text"]] : []),
+        ...(q.family ? [["family", "Feared (undead / beast / crawler / rot / fire / cult / wild / giant)", "text"]] : []),
+      ]}
+    />
+  )
+}
+
+export function ScarEditor(props) {
+  return (
+    <SimpleDataEditor
+      {...props}
+      type="scars"
+      items={SCARS}
+      title="Scars & honours"
+      testId="scar-editor"
+      listSub={(s) => (s.kind === "scar" ? "Scar" : "Honour")}
+      header={(s) => (
+        <div>
+          <div className="text-lg font-bold text-[var(--wood-text)]" data-testid="scar-title">
+            {s.icon} {s.name}
+          </div>
+          <p className="mt-1 text-xs text-[var(--wood-muted)]">{s.text}</p>
+        </div>
+      )}
+      friendly={() => [
+        ["name", "Name", "text"],
+        ["text", "What the player reads", "text", true],
+      ]}
+      advanced={(s) => [["icon", "Icon", "text"], ...["dmg", "aim", "guard", "block", "hp", "resPct"].filter((k) => typeof s[k] === "number").map((k) => [k, { dmg: "+Damage", aim: "+% to hit", guard: "Takes less per hit", block: "+Block", hp: "+Max HP", resPct: "Starts with +% resource" }[k], "number"])]}
+    />
+  )
+}
+
+// One tab, three sub-editors (no thousand sub-lists - Marc).
+export function HeroIdentityEditor(props) {
+  const [which, setWhich] = useState("signatures")
+  const tabs = [
+    ["signatures", "Class signatures & legendaries"],
+    ["quirks", "Quirks"],
+    ["scars", "Scars & honours"],
+  ]
+  return (
+    <div className="flex h-full flex-col" data-testid="hero-identity-editor">
+      <div className="flex gap-2 border-b border-[var(--wood-border)] p-2">
+        {tabs.map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            data-identity-tab={id}
+            onClick={() => setWhich(id)}
+            className={`rounded-full px-3 py-1 text-xs ${which === id ? "bg-[var(--wood-accent)] text-[#17120c]" : "text-[var(--wood-muted)] hover:text-[var(--wood-text)]"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className="min-h-0 flex-1">
+        {which === "signatures" && <SignatureEditor {...props} />}
+        {which === "quirks" && <QuirkEditor {...props} />}
+        {which === "scars" && <ScarEditor {...props} />}
+      </div>
+    </div>
   )
 }
