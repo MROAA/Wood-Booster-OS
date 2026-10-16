@@ -71,7 +71,7 @@ const r = await page.evaluate(async () => {
     e0Hp: U(bA, e0).hp,
   }
   const endUnits = bA.units.map((u) => (u.id === "player-hexbreaker-1" ? { ...u, hp: 0 } : u.side === "enemy" ? { ...u, hp: 0 } : u))
-  const afterA = rt.resolveBattleOutcome({ ...stA, battle: { phase: "won", round: 3, units: endUnits } })
+  let afterA = rt.resolveBattleOutcome({ ...stA, battle: { phase: "won", round: 3, units: endUnits } })
   res.A.bench = afterA.bench.map((e) => [e.key, e.xp, e.perks])
   res.A.cmdXp = afterA.commanderXp
   res.A.levelUps = afterA.lastLevelUps
@@ -99,6 +99,9 @@ const r = await page.evaluate(async () => {
   res.B.supportXp = U(healed, "player-the-fool-0").xpGained - U(hurt, "player-the-fool-0").xpGained
 
   // --- C: perk offers deterministic; a pick is validated; perks apply.
+  // Dota depth 2: Lv2 is the talent row now - the perk pick is checked at Lv3.
+  const afterA2 = afterA
+  afterA = { ...afterA, bench: afterA.bench.map((e) => (e.key === "b0" ? { ...e, xp: 15, talents: { 1: "L" } } : e)) }
   const subj = lv.levelSubject(afterA, "b0")
   const o1 = lv.perkOffers(afterA, subj)
   const o2 = lv.perkOffers(JSON.parse(JSON.stringify(afterA)), lv.levelSubject(afterA, "b0"))
@@ -160,9 +163,10 @@ const r = await page.evaluate(async () => {
   const cSubj = lv.levelSubject(afterD, "commander")
   const benchDone = afterD.bench.reduce((rs, e) => {
     const s = lv.levelSubject(rs, e.key)
-    return lv.pendingPerkCount(s) ? rt.chooseLevelPerk(rs, e.key, lv.perkOffers(rs, s)[0]) : rs
+    return lv.pendingPerkCount(s) ? rt.chooseLevelPerk(rs, e.key, lv.levelOffers(rs, s)[0]) : rs
   }, afterD)
-  const cOffer = lv.perkOffers(benchDone, cSubj)
+  // Dota depth 2: the Commander's Lv2 is its talent row.
+  const cOffer = lv.levelOffers(benchDone, cSubj)
   const cPicked = rt.chooseLevelPerk(benchDone, "commander", cOffer[0])
   const nextD = { ...cPicked, nodeIndex: idx, path: rt.RUN_PATH.slice(0, idx + 1), phase: "formation" }
   const cmdNext = U(start(nextD).battle, "player-commander")
@@ -171,10 +175,10 @@ const r = await page.evaluate(async () => {
     cmdXp: afterD.commanderXp,
     pendingIsCmd: lv.nextPendingLevelUp(benchDone)?.key,
     cOffer,
-    cmdPerks: cPicked.commanderPerks,
+    cmdPerks: Object.keys(cPicked.commanderTalents || {}),
     noQuick: !cOffer.includes("quick"),
     nextLevel: cmdNext.level,
-    nextPerks: cmdNext.perks,
+    nextPerks: cmdNext.talents || [],
     none: lv.nextPendingLevelUp(cPicked),
   }
 
@@ -194,7 +198,7 @@ const r = await page.evaluate(async () => {
   // Stage a shop save with a pending level-up for the UI check (F).
   const shopIdx = rt.RUN_PATH.findIndex((n, i) => i > idx && n.type === "shop")
   const shopRs = {
-    ...afterA, phase: "shop", nodeIndex: shopIdx, path: rt.RUN_PATH.slice(0, shopIdx + 1), essence: 500,
+    ...afterA2, phase: "shop", nodeIndex: shopIdx, path: rt.RUN_PATH.slice(0, shopIdx + 1), essence: 500,
     lastSeenAct: rt.actIndexForNode(shopIdx, rt.RUN_PATH.length), commanderXp: 7, commanderPerks: ["bark"],
   }
   localStorage.setItem("heartwood-run-save-v1", JSON.stringify(rt.serializeRun(shopRs)))
@@ -246,7 +250,7 @@ const r = await page.evaluate(async () => {
   out.D = r.D
   const ok =
     r.D.gained === 4 && r.D.cmdXp === 6 && r.D.pendingIsCmd === "commander" && r.D.noQuick &&
-    r.D.cmdPerks.length === 1 && r.D.nextLevel === 2 && r.D.nextPerks[0] === r.D.cmdPerks[0] && r.D.none === null
+    r.D.cmdPerks.length === 1 && r.D.nextLevel === 2 && r.D.nextPerks.length === 1 && r.D.none === null
   if (!ok) out.errors.push("checkD the Commander did not earn XP / level / keep its perk into the next fight")
 }
 // E. save/load + old save default
@@ -292,8 +296,8 @@ const r = await page.evaluate(async () => {
   out.F = { screen, title, cardPerks, savedPerks: saved.bench.find((e) => e.key === "b0").perks, screenAfter, shopBadges, xpBars, perkIcons, cmdLevel, formBadges, tokenBadges }
   const ok =
     screen === 1 && /Level 2/.test(title || "") && JSON.stringify(cardPerks) === JSON.stringify(r.uiOffers) &&
-    !!r.uiPerk && JSON.stringify(out.F.savedPerks) === JSON.stringify([r.uiPerk]) && screenAfter === 0 &&
-    shopBadges.includes("Lv2") && xpBars >= 2 && perkIcons >= 1 && /Lv2/.test(cmdLevel || "") &&
+    !!r.uiPerk && (r.uiPerk.startsWith("talent:") ? saved.bench.find((e) => e.key === "b0").talents?.[1] === r.uiPerk.split(":")[2] : JSON.stringify(out.F.savedPerks) === JSON.stringify([r.uiPerk])) && screenAfter === 0 &&
+    shopBadges.includes("Lv2") && xpBars >= 2 && (r.uiPerk.startsWith("talent:") || perkIcons >= 1) && /Lv2/.test(cmdLevel || "") &&
     formBadges.includes("Lv2") && tokenBadges.includes("Lv2") && tokenBadges.length >= 3
   if (!ok) out.errors.push("checkF the perk choice screen / level badges / XP bars / token badge did not show in the real game")
 }
