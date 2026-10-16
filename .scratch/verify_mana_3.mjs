@@ -375,5 +375,121 @@ if (!process.env.ENGINE_ONLY) {
 } else process.exitCode = fails.length ? 1 : 0
 
 async function uiChecks() {
-  return ["UI checks not written yet"]
+  const { chromium } = await import("playwright")
+  const PORT = process.env.PORT || 5451
+  const SHOTS = `${ROOT}.scratch/shots`
+  await mkdir(SHOTS, { recursive: true })
+  const out = []
+  const ui = {}
+  const check = (cond, msg, data) => cond || out.push(data === undefined ? msg : `${msg} ${JSON.stringify(data).slice(0, 300)}`)
+  const browser = await chromium.launch()
+  try {
+    const page = await (await browser.newContext({ viewport: { width: 1500, height: 950 } })).newPage()
+    const errs = []
+    page.on("pageerror", (e) => errs.push(String(e)))
+    const step = async (name, fn) => {
+      try {
+        await fn()
+      } catch (e) {
+        out.push(`${name}: ${String(e).split("\n")[0]}`)
+        await page.screenshot({ path: `${SHOTS}/mana3-fail-${name}.png` }).catch(() => {})
+      }
+    }
+    const SQ = "squad=hexbreaker,the-fool,bulwark-of-ages"
+    // UI-1: colour pips on skill buttons + the tracker, then a combo callout.
+    await step("ui1", async () => {
+      await page.goto(`http://localhost:${PORT}/heartwood-tactics?rolls=0&manaStart=100&${SQ}`, { waitUntil: "domcontentloaded" })
+      await page.waitForSelector(".hwt-board", { timeout: 30000 })
+      await page.locator('.hwt-token[data-unit-id="player-bulwark-of-ages-2"]').click()
+      await page.locator(".hwt-colour-tracker").waitFor({ timeout: 5000 })
+      ui.pips = await page.evaluate(() => [...document.querySelectorAll(".hwt-skill-btn")].map((b) => `${b.getAttribute("data-skill-id")}:${b.querySelector(".hwt-skill-colour")?.getAttribute("data-colour")}`))
+      ui.affinityBar = await page.locator('.hwt-token[data-unit-id="player-bulwark-of-ages-2"] [data-affinity]').getAttribute("data-affinity").catch(() => null)
+      check(ui.pips.includes("shield-wall:root") && ui.pips.includes("provoke:ember") && ui.affinityBar === "root", "U1 skill buttons carry colour pips; the bar shows the affinity", { pips: ui.pips, bar: ui.affinityBar })
+      await page.locator('.hwt-skill-btn[data-skill-id="shield-wall"]').click()
+      await page.waitForTimeout(300)
+      ui.tracker = await page.locator(".hwt-colour-tracker").getAttribute("data-colours")
+      check(ui.tracker === "root", "U2 the tracker shows the colour just cast", ui.tracker)
+      await page.locator('.hwt-token[data-unit-id="player-the-fool-1"]').click()
+      ui.hint = await page.locator('.hwt-skill-btn[data-skill-id="group-renewal"] .hwt-skill-combo-hint').getAttribute("data-combo").catch(() => null)
+      check(ui.hint === "lifespring", "U3 the next skill shows '→ combo' (Tide finishes Lifespring)", ui.hint)
+      await page.locator('.hwt-skill-btn[data-skill-id="group-renewal"]').click()
+      await page.waitForSelector(".hw-floating-number", { timeout: 3000 }).catch(() => {})
+      await page.waitForTimeout(500)
+      ui.pops = await page.locator(".hw-floating-number").allInnerTexts()
+      ui.chip = await page.locator(".hwt-colour-combo-chip").allInnerTexts()
+      await page.screenshot({ path: `${SHOTS}/mana3_colour_combo.png` })
+      check(ui.pops.some((t) => /LIFESPRING/.test(t)) && ui.chip.some((t) => /Lifespring/.test(t)), "U4 two colours in one turn: LIFESPRING callout + tracker chip", { pops: ui.pops, chip: ui.chip })
+    })
+    // UI-2: Overchannel toggle -> red cost preview -> cast -> Backlash meter.
+    await step("ui2", async () => {
+      await page.goto(`http://localhost:${PORT}/heartwood-tactics?rolls=0&manaStart=0&${SQ}`, { waitUntil: "domcontentloaded" })
+      await page.waitForSelector(".hwt-board", { timeout: 30000 })
+      await page.locator('.hwt-token[data-unit-id="player-the-fool-1"]').click()
+      const btn = page.locator('.hwt-skill-btn[data-skill-id="group-renewal"]')
+      ui.disabledBefore = await btn.isDisabled()
+      await page.locator(".hwt-overchannel-btn").click()
+      await page.waitForTimeout(200)
+      ui.armed = await page.locator(".hwt-overchannel-btn").getAttribute("data-armed")
+      ui.cost = await page.locator('.hwt-skill-btn[data-skill-id="group-renewal"] .hwt-overchannel-cost').innerText().catch(() => "")
+      ui.enabledAfter = !(await btn.isDisabled())
+      await page.screenshot({ path: `${SHOTS}/mana3_overchannel_preview.png` })
+      check(ui.disabledBefore && ui.armed === "true" && /-\d+ HP/.test(ui.cost) && ui.enabledAfter, "U5 Overchannel: the toggle arms, the button shows the red HP + Backlash price and unlocks", ui)
+      const hpBefore = await page.evaluate(() => document.querySelector('.hwt-token[data-unit-id="player-the-fool-1"]')?.getAttribute("title"))
+      await btn.click()
+      await page.waitForTimeout(600)
+      ui.meter = await page.locator('.hwt-token[data-unit-id="player-the-fool-1"] .hwt-backlash-meter').getAttribute("title").catch(() => null)
+      ui.pops2 = await page.locator(".hw-floating-number").allInnerTexts()
+      await page.screenshot({ path: `${SHOTS}/mana3_backlash_meter.png` })
+      check(/Backlash \d+\/100/.test(ui.meter || "") && ui.pops2.some((t) => /Overchannel/.test(t)), "U6 after the cast: Backlash meter on the token + callout", { meter: ui.meter, pops: ui.pops2, hpBefore })
+    })
+    // UI-3: the Gorging Maw - Hunger meter on the token + the Feeds on mana panel.
+    await step("ui3", async () => {
+      await page.goto(`http://localhost:${PORT}/heartwood-tactics?rolls=0&boss=the-gorging-maw`, { waitUntil: "domcontentloaded" })
+      await page.waitForSelector(".hwt-board", { timeout: 30000 })
+      ui.feed = await page.evaluate(() => ({
+        meter: document.querySelector(".hwt-feed-meter")?.getAttribute("title") || "",
+        pips: document.querySelectorAll(".hwt-feed-meter .hwt-feed-pip").length,
+        panel: document.querySelector("[data-feed-panel]")?.innerText || "",
+      }))
+      await page.screenshot({ path: `${SHOTS}/mana3_feed_meter.png` })
+      check(/Feeds on mana/.test(ui.feed.meter) && ui.feed.pips === 6 && /Bring:/.test(ui.feed.panel), "U7 a mana-fed boss: Hunger pips on the token + the Feeds on mana panel", ui.feed)
+      await page.locator("[data-colour-help]").click()
+      ui.legend = await page.locator("[data-colour-combo]").count()
+      check(ui.legend === 6, "U8 the Mana colours & risks legend lists 6 combos", ui.legend)
+    })
+    // UI-4: ley lines + the network panel on the campaign map.
+    await step("ui4", async () => {
+      await page.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+      await page.waitForTimeout(800)
+      await page.evaluate(async () => {
+        localStorage.setItem("heartwood-autobattler-intro-seen", "1")
+        localStorage.setItem("heartwood-story-intro-seen", "1")
+        localStorage.setItem("heartwood-coach-enabled-v1", "false")
+        const CE = await import("/src/services/heartwood/campaignEngine.js")
+        let c = CE.createCampaign({ seed: 7 })
+        c = { ...c, chapter: 3, regions: c.regions.map((r) => ({ ...r, threat: 10 })), ley: { cut: ["hearth-ember"], drainDay: null, nextBreachDay: null } }
+        localStorage.setItem("heartwood-campaign-save-v1", JSON.stringify(CE.serializeCampaign(c)))
+        localStorage.setItem("heartwood-play-mode", "campaign")
+      })
+      await page.reload({ waitUntil: "domcontentloaded" })
+      await page.waitForSelector("[data-campaign-world-map]", { timeout: 15000 })
+      ui.ley = await page.evaluate(() => ({
+        lines: [...document.querySelectorAll("[data-ley-line]")].map((g) => `${g.getAttribute("data-ley-line")}:${g.getAttribute("data-state")}`),
+        panel: document.querySelector("[data-campaign-ley-panel]")?.innerText || "",
+      }))
+      await page.locator("[data-campaign-world-map]").screenshot({ path: `${SHOTS}/mana3_ley_lines.png` })
+      await page.screenshot({ path: `${SHOTS}/mana3_ley_panel.png` })
+      check(ui.ley.lines.length === 8 && ui.ley.lines.includes("hearth-ember:cut") && ui.ley.lines.filter((x) => x.endsWith(":connected")).length >= 4, "U9 the map draws 8 ley lines (connected glow, cut broken)", ui.ley.lines)
+      check(/Ley network/.test(ui.ley.panel) && /start mana/.test(ui.ley.panel) && /Cut:/.test(ui.ley.panel), "U10 the ley network panel: size, bonus, cut lines", ui.ley.panel)
+      await page.evaluate(() => {
+        localStorage.removeItem("heartwood-campaign-save-v1")
+        localStorage.removeItem("heartwood-play-mode")
+      })
+    })
+    check(errs.length === 0, "U11 no page errors", errs.slice(0, 3))
+  } finally {
+    await browser.close()
+  }
+  console.log(JSON.stringify(ui, null, 1).slice(0, 2500))
+  return out
 }
