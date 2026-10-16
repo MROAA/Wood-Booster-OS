@@ -2,7 +2,7 @@
 //
 // Purpose: coloured ley LINES join the world-map regions
 // (data/heartwood/campaign.js LEY_LINES). A line is LIVE when both of its
-// regions are held (open, not fallen, not Threatened, not sunk) and it is
+// regions are held (open, not fallen, not sunk) and it is
 // not cut. The live lines that link back to the Hearthstead are your
 // NETWORK; its STRENGTH (lines, Warded ones count double, a Drain surge
 // adds 3) gives every mission fight:
@@ -23,7 +23,7 @@
 // Public API: leyNetwork, leyFightBonus, leyDayTick, leyMissionResult,
 // leyOnStoryChoice, leyLineState. Pure + deterministic.
 // Tests: .scratch/verify_mana_3.mjs (ENGINE_ONLY=1).
-import { LEY_LINES, LEY, THREAT_THREATENED, regionDef } from "../../data/heartwood/campaign"
+import { LEY_LINES, LEY, regionDef } from "../../data/heartwood/campaign"
 import { MANA_COLOURS } from "../../data/heartwood/manaColours"
 import { streamRng } from "../../data/heartwood/seed"
 import { regionMod, storyFlags } from "./campaignStoryEngine"
@@ -32,14 +32,15 @@ const arr = (v) => (Array.isArray(v) ? v : [])
 
 export const leyOf = (c) => ({ cut: arr(c?.ley?.cut), drainDay: c?.ley?.drainDay ?? null, nextBreachDay: c?.ley?.nextBreachDay ?? null })
 
-// A region is "held" for the ley: open, not fallen / sunk, not Threatened.
+// A region is "held" for the ley: open, not fallen / sunk. Threatened regions
+// still hold their lines (regions turn Threatened within days in Chapter 1, so
+// the network sat at 0 almost all game) - Ley Breach missions are the pressure.
 // `open` is injected (campaignEngine.regionLive) so this file never imports it.
 function heldFn(c, open) {
   return (id) => {
     const r = arr(c.regions).find((x) => x.id === id)
     if (!r || r.fallen || !open(c, id)) return false
-    if (regionMod(c, id) === "sunk") return false
-    return (r.threat || 0) < THREAT_THREATENED
+    return regionMod(c, id) !== "sunk"
   }
 }
 

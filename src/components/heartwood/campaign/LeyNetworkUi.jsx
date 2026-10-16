@@ -24,7 +24,7 @@ export function LeyLines({ campaign }) {
           <g key={l.id} className="hwc-ley-line" data-ley-line={l.id} data-state={state} data-colour={l.colour} data-warded={l.warded || undefined} style={{ "--ley": MANA_COLOURS[l.colour]?.color }}>
             <title>
               {`${lineName(l)} ley line (${MANA_COLOURS[l.colour]?.name}) - ${
-                l.cut ? "CUT. A Ley Site win next to it can mend it." : l.connected ? `in your network${l.warded ? " (Warded: counts double, can't be breached)" : ""}.` : l.live ? "held, but not linked to the Hearthstead." : "an end isn't held (threatened, fallen or not reached)."
+                l.cut ? "CUT. A Ley Site win next to it can mend it." : l.connected ? `in your network${l.warded ? " (Warded: counts double, can't be breached)" : ""}.` : l.live ? "held, but not linked to the Hearthstead." : "an end isn't held (fallen, sunk or not reached)."
               }`}
             </title>
             {l.cut ? (
@@ -59,7 +59,7 @@ export function LeyNetworkPanel({ campaign }) {
         </span>
       </div>
       {net.size > 0 ? (
-        <div className="hwc-ley-bonus" title={`Hold the regions at both ends of a line (safe, not threatened) and keep it linked to the Hearthstead. +${LEY.startPerStrength} start mana per strength (max ${LEY.startMax}), +1 regen per ${LEY.regenEvery} strength (max ${LEY.regenMax}).`}>
+        <div className="hwc-ley-bonus" title={`Hold the regions at both ends of a line (not fallen) and keep it linked to the Hearthstead. +${LEY.startPerStrength} start mana per strength (max ${LEY.startMax}), +1 regen per ${LEY.regenEvery} strength (max ${LEY.regenMax}).`}>
           Every fight: <b>+{net.startMana}</b> start mana · <b>+{net.regen}</b> regen a turn
           {net.colours.length > 0 && (
             <span className="hwc-ley-colours">
@@ -74,7 +74,7 @@ export function LeyNetworkPanel({ campaign }) {
           )}
         </div>
       ) : (
-        <div className="hwc-muted">No lines linked to the Hearthstead - your fights get no ley bonus. Bring threatened regions back down.</div>
+        <div className="hwc-muted">No lines linked to the Hearthstead - your fights get no ley bonus. Retake fallen regions or mend cut lines.</div>
       )}
       {surge && <div className="hwc-ley-note" data-ley-surge>🥀 Drained ley SURGES (+{LEY.drainSurge} strength) - then the drained lines wither.</div>}
       {cut.length > 0 && (

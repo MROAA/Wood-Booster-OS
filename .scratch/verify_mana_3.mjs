@@ -288,10 +288,12 @@ const set = (s, id, patch) => ({ ...s, units: s.units.map((u) => (u.id === id ? 
   c = safe({ ...c, chapter: 2 })
   const net2 = L.leyNetwork(c, open)
   ok(net2.size === 4 && net2.colours.join() === "ember,root,tide" && net2.startMana === 16 && net2.regen === 2, "F2 a bigger network = more start mana + regen", net2)
-  // A threatened region drops its lines (and whatever hangs off them).
+  // A Threatened region keeps its lines; a fallen one drops them (and whatever hangs off them).
   const thr = { ...c, regions: c.regions.map((r) => (r.id === "outer-grove" ? { ...r, threat: 55 } : r)) }
-  const net3 = L.leyNetwork(thr, open)
-  ok(net3.size === 2 && !net3.lines.find((l) => l.id === "grove-mist").connected, "F3 a Threatened region breaks its lines", net3.lines.filter((l) => l.connected).map((l) => l.id))
+  ok(L.leyNetwork(thr, open).size === 4, "F3a a Threatened region still holds its lines")
+  const fell = { ...c, regions: c.regions.map((r) => (r.id === "outer-grove" ? { ...r, threat: 100, fallen: true } : r)) }
+  const net3 = L.leyNetwork(fell, open)
+  ok(net3.size === 2 && !net3.lines.find((l) => l.id === "grove-mist").connected, "F3 a fallen region breaks its lines", net3.lines.filter((l) => l.connected).map((l) => l.id))
   // Fight bonus flows into the mission fight.
   const m = c.missions[0]
   const keys = c.roster.slice(0, 4).map((h) => h.key)
