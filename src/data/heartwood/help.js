@@ -82,6 +82,19 @@ export const HELP_SECTIONS = [
     ],
   },
   {
+    // Dota depth sprint: the Build guide (item tiers, build paths, actives, counters).
+    heading: "Build guide",
+    entries: [
+      { term: "Item tiers", blurb: "Components are sold in the shop. Two or three of them plus a recipe cost forge a Crafted item (from Act II); Crafted items forge into Masterworks (from Act III). A card says what it is made from and what it builds into." },
+      { term: "Forging", blurb: "Open a hero's Gear screen in the Market: its Build path shows every step, which parts you have, and a Forge button. A camp's Craft action can forge too. The parts are used up - worn or in the bag." },
+      { term: "Build paths", blurb: "Each hero picks one of 2-3 paths for its class (Unbending Oak, Reaper, Mistpiercer, Spellbreaker, Gale-walker, Wellspring, Witherward). The shop then marks the components that path still needs with a gold glow." },
+      { term: "Active items", blurb: "Some items add a button to the hero's action bar: Foxfire Step (blink), Gale Push (shove anyone), Sap Burn (drain mana), Cyclone Lift (a foe skips its turn and can't be hit), Heartoak Bark (no control for 2 turns), Unbind (dispel), and consumables with uses - Salve, Moonwell Sip, Glowdust. They cost AP and/or mana and recharge." },
+      { term: "Enemy tricks", blurb: "Some enemy families bring a trick that needs an answer: Ironbark armour (armour shred), Mist Veil dodges (true strike, area, or skills), Mossbloom healing (Wither), Seedcallers (area damage), Runeshells (mana burn or dispel) and Shadowmoss hiding (Glowdust or an Owl Lantern). Act I only meets Ironbark; the rest arrive in Acts II and III." },
+      { term: "Bring: ...", blurb: "The threat panel before a fight and the Scout report both list the tricks ahead and what to bring - forge or buy the answer before you go in." },
+      { term: "Worldseed Scepter", blurb: "A Masterwork that upgrades its wearer's class: the signature skill hits 50% harder and recharges sooner, the first class skill recharges sooner, every skill costs less mana." },
+    ],
+  },
+  {
     heading: "Growing heroes",
     entries: [
       { term: "Evolution", blurb: "Deploy a common fill hero enough times, with its tribe fielded alongside it, and it becomes a stronger authored form. Free and permanent - a ▲ marks it." },

@@ -41,6 +41,7 @@ import glowmossLanternImg from "../../assets/heartwood/items/glowmoss-lantern.jp
 import { COLLARS } from "./collars"
 import { SIGNATURES } from "./signatures"
 import { CLASSES } from "./classes"
+import { LEGACY_BUILD_TIER } from "./itemBuilds"
 
 // Heartwood - Items: per-UNIT gear, distinct from Relics (relics.js,
 // squad-wide) and Upgrade (units.js, a flat level-based stat scale
@@ -1202,6 +1203,137 @@ export const ITEMS = {
     effects: [], fx: { aim: 10 },
     adj: { match: { kind: "charm" }, boost: 50, text: "the charm next to it works 50% stronger" },
   },
+  // --- DOTA DEPTH SPRINT: item tiers, build paths, actives, counters ---
+  // buildTier 1 = Component (shop), 2 = Crafted (recipe only, Act II+),
+  // 3 = Masterwork (recipe only, Act III+). Recipes: itemBuilds.js
+  // BUILD_RECIPES. `active` = an id in itemBuilds.js ITEM_ACTIVES (a button
+  // on the hero's action bar in a fight). `counters` = which enemy kit it
+  // answers (itemBuilds.js COUNTER_TAGS). New fx keys (gear.js):
+  // trueStrike, shred, wither, manaBurn, cleave, reveal, scepter.
+  // `unlockAct` = the first Act the shop stocks it.
+  // Components (shop).
+  "wind-seed": {
+    id: "wind-seed", name: "Wind Seed", icon: "gale", cost: 100, kind: "charm", tags: ["seed"], buildTier: 1,
+    description: "A seed that never quite lands. +1 movement. Builds into Foxfire Charm and Gale Bough.",
+    effects: [], fx: { move: 1 },
+  },
+  "bark-wedge": {
+    id: "bark-wedge", name: "Bark Wedge", icon: "stone", cost: 100, kind: "weapon", tags: ["blade"], buildTier: 1, counters: ["shred"],
+    description: "Splits hard bark. +1 attack, and every basic hit strips 1 armour off the target.",
+    effects: [], fx: { attack: 1, shred: 1 },
+  },
+  "owl-feather": {
+    id: "owl-feather", name: "Owl Feather", icon: "gale", cost: 100, kind: "charm", tags: ["feather"], buildTier: 1, unlockAct: 2, counters: ["true-strike"],
+    description: "Sees through mist. This hero's basic attacks can't be dodged by a Mist Veil.",
+    effects: [], fx: { trueStrike: 1 },
+  },
+  "wither-thorn": {
+    id: "wither-thorn", name: "Wither Thorn", icon: "leaf", cost: 100, kind: "weapon", tags: ["blade", "thorn"], buildTier: 1, unlockAct: 2, counters: ["heal-cut"],
+    description: "Every basic hit Withers the target for 2 turns - it can't be healed.",
+    effects: [], fx: { wither: 2 },
+  },
+  "reaping-sickle": {
+    id: "reaping-sickle", name: "Reaping Sickle", icon: "sword", cost: 150, kind: "weapon", tags: ["blade"], buildTier: 1, unlockAct: 2, counters: ["area"],
+    description: "Wide, curved, hungry. Basic attacks also cut every foe next to the target for half damage.",
+    effects: [], fx: { cleave: 1 },
+  },
+  "spellbreak-thorn": {
+    id: "spellbreak-thorn", name: "Spellbreak Thorn", icon: "rune", cost: 150, kind: "weapon", tags: ["thorn"], buildTier: 1, unlockAct: 2, counters: ["mana-burn"],
+    description: "Every basic hit burns 8 of the target's mana and cracks a Runeshell wide open.",
+    effects: [], fx: { manaBurn: 8 },
+  },
+  "unbinding-charm": {
+    id: "unbinding-charm", name: "Unbinding Charm", icon: "moonGlyph", cost: 100, kind: "charm", tags: ["charm"], buildTier: 1, active: "unbind", counters: ["dispel"],
+    description: "Active - Unbind (1 AP): strip a foe's magic (Runeshell, Ward, Regen) or free an ally from roots, slows and stuns.",
+    effects: [], fx: {},
+  },
+  "glowdust-pouch": {
+    id: "glowdust-pouch", name: "Glowdust Pouch", icon: "spark", cost: 100, kind: "offhand", tags: ["pouch"], buildTier: 1, active: "glowdust", counters: ["reveal"], consumable: true,
+    description: "Active - Glowdust (free, 2 uses): reveals hidden Shadowmoss foes within 4 tiles for 2 turns. Uses don't come back.",
+    effects: [], fx: {},
+  },
+  "sapling-salve": {
+    id: "sapling-salve", name: "Sapling Salve", icon: "heart", cost: 100, kind: "offhand", tags: ["herb", "flask"], buildTier: 1, active: "salve", consumable: true,
+    description: "Active - Salve (1 AP, 3 uses): heal this hero or an ally next to it for 8. Uses don't come back.",
+    effects: [], fx: {},
+  },
+  "moonwell-flask": {
+    id: "moonwell-flask", name: "Moonwell Flask", icon: "tide", cost: 100, kind: "offhand", tags: ["flask"], buildTier: 1, active: "moonwell", consumable: true,
+    description: "Active - Sip (free, once a turn, 2 uses): +30 mana. Uses don't come back.",
+    effects: [], fx: {},
+  },
+  // Crafted (recipe only, Act II+).
+  "foxfire-charm": {
+    id: "foxfire-charm", name: "Foxfire Charm", icon: "flame", cost: 250, rarity: "epic", kind: "charm", tags: ["charm"], buildTier: 2, noShop: true, active: "foxfire-step",
+    description: "+1 movement, +5% to hit. Active - Foxfire Step: vanish and reappear up to 4 tiles away.",
+    effects: [], fx: { move: 1, aim: 5 },
+  },
+  "gale-bough": {
+    id: "gale-bough", name: "Gale Bough", icon: "gale", cost: 250, rarity: "epic", kind: "weapon", tags: ["staff"], buildTier: 2, noShop: true, active: "gale-push",
+    description: "+5 max mana, +1 mana a turn. Active - Gale Push: throw any unit within 3 tiles 2 tiles away from you.",
+    effects: [], fx: { manaMax: 5, manaRegen: 1, move: 1 },
+  },
+  sapdrinker: {
+    id: "sapdrinker", name: "Sapdrinker", icon: "rune", cost: 300, rarity: "epic", kind: "weapon", tags: ["blade", "thorn"], buildTier: 2, noShop: true, active: "mana-burn", counters: ["mana-burn"],
+    description: "+1 attack, hits burn 12 mana and crack Runeshells. Active - Sap Burn: drain a foe's mana and ultimate, hurting it for half.",
+    effects: [], fx: { attack: 1, manaBurn: 12 },
+  },
+  "owlsight-charm": {
+    id: "owlsight-charm", name: "Owlsight Charm", icon: "cosmic", cost: 250, rarity: "epic", kind: "charm", tags: ["charm", "feather"], buildTier: 2, noShop: true, counters: ["true-strike"],
+    description: "+10% to hit; basic attacks can't be dodged by a Mist Veil.",
+    effects: [], fx: { aim: 10, trueStrike: 1 },
+  },
+  blightbrand: {
+    id: "blightbrand", name: "Blightbrand", icon: "leaf", cost: 250, rarity: "epic", kind: "weapon", tags: ["blade", "thorn"], buildTier: 2, noShop: true, counters: ["heal-cut"],
+    description: "+2 attack. Every basic hit Withers the target for 3 turns - no healing at all.",
+    effects: [], fx: { attack: 2, wither: 3 },
+  },
+  barksplitter: {
+    id: "barksplitter", name: "Barksplitter", icon: "stone", cost: 250, rarity: "epic", kind: "weapon", tags: ["blade"], buildTier: 2, noShop: true, counters: ["shred"],
+    description: "+3 attack. Every basic hit strips 2 armour off the target.",
+    effects: [], fx: { attack: 3, shred: 2 },
+  },
+  "reaping-scythe": {
+    id: "reaping-scythe", name: "Reaping Scythe", icon: "sword", cost: 300, rarity: "epic", kind: "weapon", tags: ["blade"], buildTier: 2, noShop: true, counters: ["area"],
+    description: "+2 attack. Basic attacks cut every foe next to the target for half damage.",
+    effects: [], fx: { attack: 2, cleave: 1 },
+  },
+  "unbinding-bell": {
+    id: "unbinding-bell", name: "Unbinding Bell", icon: "moonGlyph", cost: 250, rarity: "epic", kind: "offhand", tags: ["bell"], buildTier: 2, noShop: true, active: "unbind-peal", counters: ["dispel"],
+    description: "+1 Block a turn. Active - Unbinding Peal (1 AP, range 4): Unbind with a short recharge.",
+    effects: [], fx: { block: 1 },
+  },
+  "owl-lantern": {
+    id: "owl-lantern", name: "Owl Lantern", icon: "cosmic", cost: 250, rarity: "epic", kind: "offhand", tags: ["lantern"], buildTier: 2, noShop: true, counters: ["reveal"],
+    description: "At the start of every turn, Shadowmoss foes within 3 tiles of this hero are revealed.",
+    effects: [], fx: { reveal: 3, aim: 5 },
+  },
+  // Masterworks (recipe only, Act III+).
+  "heartoak-aegis": {
+    id: "heartoak-aegis", name: "Heartoak Aegis", icon: "shield", cost: 550, rarity: "legendary", kind: "armor", tags: ["bark", "shield"], buildTier: 3, noShop: true, active: "heartoak-bark",
+    description: "+10 max HP, +2 Block a turn. Active - Heartoak Bark (free): for 2 turns nothing can root, slow, stun, chill, hex or shove this hero.",
+    effects: [], fx: { hp: 10, block: 2 },
+  },
+  "whirlwind-seedstaff": {
+    id: "whirlwind-seedstaff", name: "Whirlwind Seedstaff", icon: "gale", cost: 550, rarity: "legendary", kind: "weapon", tags: ["staff"], buildTier: 3, noShop: true, active: "cyclone-lift",
+    description: "+15 max mana, +4 mana a turn. Active - Cyclone Lift: a foe within 4 tiles is lifted - it can't be hit and loses its next turn.",
+    effects: [], fx: { manaMax: 15, manaRegen: 4, move: 1 },
+  },
+  "worldseed-scepter": {
+    id: "worldseed-scepter", name: "Worldseed Scepter", icon: "root", cost: 600, rarity: "legendary", kind: "charm", tags: ["crown"], buildTier: 3, noShop: true,
+    description: "Upgrades this hero's class: its signature skill hits 50% harder and recharges a turn sooner, its first class skill recharges a turn sooner, and every skill costs 20% less mana.",
+    effects: [], fx: { scepter: 1, manaMax: 10 },
+  },
+  "mistrender-bow": {
+    id: "mistrender-bow", name: "Mistrender", icon: "sword", cost: 550, rarity: "legendary", kind: "weapon", tags: ["blade"], buildTier: 3, noShop: true, counters: ["true-strike"],
+    description: "+5 attack, +15% to hit. Basic attacks can't be dodged and strip 1 armour.",
+    effects: [], fx: { attack: 5, aim: 15, trueStrike: 1, shred: 1 },
+  },
+  rootcleaver: {
+    id: "rootcleaver", name: "Rootcleaver", icon: "sword", cost: 600, rarity: "legendary", kind: "weapon", tags: ["blade"], buildTier: 3, noShop: true, counters: ["area"],
+    description: "+5 attack, +5% to hit. Basic attacks cut every foe next to the target for half damage.",
+    effects: [], fx: { attack: 5, aim: 5, cleave: 1 },
+  },
 }
 
 // Class Collars (collars.js COLLARS) join the item table as kind "collar".
@@ -1275,6 +1407,8 @@ for (const item of Object.values(ITEMS)) {
   if (!item.kind) item.kind = guessKind(item)
   if (!item.tags) item.tags = item.kind === "weapon" && /Edge|Blade|Dagger/.test(item.name) ? ["blade"] : []
 }
+// Dota depth sprint: the older gear-sprint items' place in the build tree.
+for (const [tier, ids] of Object.entries(LEGACY_BUILD_TIER)) for (const id of ids) if (ITEMS[id] && !ITEMS[id].buildTier) ITEMS[id].buildTier = Number(tier)
 
 // What the shop / events / the Gamble can hand out: no recipe-only
 // results, no Class Collars (those drop from elites, events, and rarely

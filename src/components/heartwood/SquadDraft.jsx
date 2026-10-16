@@ -45,7 +45,10 @@ import {
   gearPurseLeft,
   itemRerollCost,
   itemSellPrice,
+  forgeItem,
+  chooseHeroBuild,
 } from "../../services/heartwood/runEngine"
+import { wantedComponents } from "../../services/heartwood/itemForge"
 import GearRow from "./GearRow"
 import GearScreen from "./GearScreen"
 import { collarClassFor } from "../../services/heartwood/gear"
@@ -135,6 +138,8 @@ export default function SquadDraft({
   onUseCommanderActive,
   onBuyInvestment,
   onReclaimBuyback,
+  // Dota depth sprint: a generic run update (forge an item, choose a build).
+  onRunAction,
   showIntro,
   onDismissIntro,
   // 3-zone shop layout (Marc's sketch: "UI ei vielä hyödynnä kaikkea
@@ -151,6 +156,8 @@ export default function SquadDraft({
   // fresh selection every visit, guaranteed to include a Bending item
   // when one exists, instead of always showing the whole catalog.
   const itemOffers = (runState.itemOffers || []).map((id) => ITEMS[id]).filter(Boolean)
+  // Dota depth sprint: components a hero's chosen build path still needs.
+  const wanted = wantedComponents(runState)
   const commander = CHARACTERS[runState.characterId]
   const commanderRank = runState.commanderRank || 0
   const rankCost = commanderRankCost(commanderRank)
@@ -1418,6 +1425,8 @@ export default function SquadDraft({
           onUnequip={onUnequipItem}
           onMove={(owner, from, to) => onMoveGear?.(owner, from, to)}
           onSell={onSellItem}
+          onForge={onRunAction ? (recipeId, owner) => onRunAction((rs) => forgeItem(rs, recipeId, owner)) : undefined}
+          onChooseBuild={onRunAction ? (owner, pathId) => onRunAction((rs) => chooseHeroBuild(rs, owner, pathId)) : undefined}
         />
       )}
       {forged && ITEMS[forged.result] && (
@@ -2137,6 +2146,7 @@ export default function SquadDraft({
                       locked={!!(runState.itemLocks || [])[i]}
                       onToggleLock={onToggleItemLock ? () => onToggleItemLock(i) : undefined}
                       setCounts={setCountMap(runState)}
+                      wantedBy={wanted.get(itemOffers[i].id) || null}
                     />
                   ) : null
                 )

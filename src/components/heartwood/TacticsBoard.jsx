@@ -167,6 +167,9 @@ import { OBJECTS, objectHpAt, objectMaxHp, isAttackableTile, describeObjectTile,
 import { describeFaction, blightPreviewKeys, isBlighted, factionInfo, BLIGHT_ATTACK_BONUS } from "../../services/heartwood/tacticsFactions"
 import { terrainArtStyle, ObjectArt, TerrainIcon, BlightIcon, BLIGHT_ART_URL, SmokeArt } from "./TerrainArt"
 import { archetypeOf, beamTiles, blastTiles, AIM_BONUS, SUPPRESS_PENALTY } from "../../services/heartwood/tacticsRanged"
+// Dota depth sprint: active items on the action bar + enemy counter kits.
+import { ItemActions, KitBadges, CounterPanel } from "./TacticsItemsUi"
+import { activeDef, itemActiveTargets, castItemActive } from "../../services/heartwood/tacticsItems"
 
 // Ranged rework: tile skills that hit a 3x3 area (blast preview on hover).
 const AREA_TILE_SKILLS = { "piercing-beam": "grenade", "smoke-screen": "smoke", "explosive-charge": "grenade" }
@@ -478,15 +481,24 @@ export default function TacticsBoard({
   // Class system: abilityMode is "heal"/"burst" for the signature ability,
   // "ally@<skillId>"/"enemy@<skillId>" for an armed class skill.
   const armedSkillId = abilityMode && abilityMode.includes("@") ? abilityMode.slice(abilityMode.indexOf("@") + 1) : null
-  const armedSide =
-    abilityMode === "heal" || abilityMode === "link" || abilityMode?.startsWith("ally@")
+  // Dota depth: "item@<activeId>" arms an active item's targeting.
+  const armedItem = abilityMode?.startsWith("item@") ? activeDef(abilityMode.slice(5)) : null
+  const armedSide = armedItem
+    ? armedItem.target === "tile"
+      ? "tile"
+      : armedItem.target === "ally"
+        ? "ally"
+        : armedItem.target === "enemy"
+          ? "enemy"
+          : "any"
+    : abilityMode === "heal" || abilityMode === "link" || abilityMode?.startsWith("ally@")
       ? "ally"
       : abilityMode === "burst" || abilityMode === "ult" || abilityMode?.startsWith("enemy@")
         ? "enemy"
         : abilityMode?.startsWith("tile@")
           ? "tile"
           : null
-  const armedSkill = armedSkillId ? [...(selected?.classSkills || []), ...(selected?.rangedKit || [])].find((sk) => sk.id === armedSkillId) || null : null
+  const armedSkill = armedSkillId && !armedItem ? [...(selected?.classSkills || []), ...(selected?.rangedKit || [])].find((sk) => sk.id === armedSkillId) || null : null
   // Deployment phase: the enemy's plan and zones are shown as if it were
   // player turn 1 (a scratch copy - the real battle stays in "deploy").
   const deploying = battle.phase === "deploy"
@@ -574,11 +586,11 @@ export default function TacticsBoard({
   const rolling = rollsOn(battle)
   const [hoverTargetId, setHoverTargetId] = useState(null)
   const hitPreview = useMemo(() => {
-    if (!hoverTargetId || !selected || selected.side !== "player" || battle.phase !== "player") return null
+    if (!hoverTargetId || !selected || selected.side !== "player" || battle.phase !== "player" || armedItem) return null
     const t = battle.units.find((u) => u.id === hoverTargetId)
     if (!t || t.hp <= 0 || t.side === selected.side) return null
     return { ...attackPreview(battle, selected.id, hoverTargetId, { skill: armedSkill }), targetName: t.name, skill: !!abilityMode }
-  }, [hoverTargetId, selected, battle, abilityMode, armedSkill])
+  }, [hoverTargetId, selected, battle, abilityMode, armedSkill, armedItem])
   // Ranged rework: preview tiles while targeting - a beam's line, a
   // grenade / smoke blast (tile skills), an arcing area spell's splash.
   const [hoverSkillTile, setHoverSkillTile] = useState(null)
@@ -628,27 +640,36 @@ export default function TacticsBoard({
     }
     return keys
   }, [battle, selected])
+  // Dota depth: an armed active item's valid targets (units, or tiles).
+  const itemTargetList = useMemo(
+    () => (selected && armedItem && battle.phase === "player" ? itemActiveTargets(battle, selected.id, armedItem.id) : []),
+    [battle, selected, armedItem],
+  )
   const targets = useMemo(
     () =>
-      selected && selected.ap > 0 && battle.phase === "player" && armedSide !== "ally" && armedSide !== "tile"
+      armedItem
+        ? armedItem.target === "tile"
+          ? []
+          : itemTargetList.filter((u) => u.side !== selected?.side)
+        : selected && selected.ap > 0 && battle.phase === "player" && armedSide !== "ally" && armedSide !== "tile"
         ? abilityMode === "ult"
           ? heroUltTargets(battle, selected.id)
           : armedSide === "enemy"
           ? abilityTargets(battle, selected.id, armedSkillId || undefined)
           : attackableTargets(battle, selected.id)
         : [],
-    [battle, selected, armedSide, armedSkillId, abilityMode],
+    [battle, selected, armedSide, armedSkillId, abilityMode, armedItem, itemTargetList],
   )
   // Ability-only highlight: the allies an armed ally-targeting ability
   // (heal / shield-ally) can pick - "heal" mode, "burst" mode = enemies.
   const healable = useMemo(
-    () => (selected && armedSide === "ally" && battle.phase === "player" ? (abilityMode === "link" ? manaLinkTargets(battle, selected.id) : abilityTargets(battle, selected.id, armedSkillId || undefined)) : []),
-    [battle, selected, armedSide, armedSkillId, abilityMode],
+    () => (armedItem ? (armedItem.target === "tile" ? [] : itemTargetList.filter((u) => u.side === selected?.side)) : selected && armedSide === "ally" && battle.phase === "player" ? (abilityMode === "link" ? manaLinkTargets(battle, selected.id) : abilityTargets(battle, selected.id, armedSkillId || undefined)) : []),
+    [battle, selected, armedSide, armedSkillId, abilityMode, armedItem, itemTargetList],
   )
   // Class skills that target a board tile (traps, walls, turrets...).
   const skillTiles = useMemo(
-    () => (selected && armedSide === "tile" && armedSkill && battle.phase === "player" ? classSkillTiles(battle, selected.id, armedSkill) : []),
-    [battle, selected, armedSide, armedSkill],
+    () => (armedItem ? (armedItem.target === "tile" ? itemTargetList : []) : selected && armedSide === "tile" && armedSkill && battle.phase === "player" ? classSkillTiles(battle, selected.id, armedSkill) : []),
+    [battle, selected, armedSide, armedSkill, armedItem, itemTargetList],
   )
   // What every living enemy currently plans to do this coming enemy phase -
   // recomputed fresh from the live board each render, so it's always exactly
@@ -830,6 +851,16 @@ export default function TacticsBoard({
       return
     }
     if (battle.phase !== "player") return
+
+    // Dota depth: an armed active item takes the click.
+    if (selected && armedItem) {
+      const unitHere = armedItem.target !== "tile" ? itemTargetList.find((u) => u.pos.row === row && u.pos.col === col) : null
+      const tileHere = armedItem.target === "tile" && itemTargetList.some((p) => p.row === row && p.col === col)
+      if (unitHere) onBattleChange(castItemActive(battle, selected.id, armedItem.id, unitHere.id))
+      else if (tileHere) onBattleChange(castItemActive(battle, selected.id, armedItem.id, `${row}-${col}`))
+      onAbilityModeChange(null)
+      return
+    }
 
     if (selected && armedSide === "ally") {
       const healTarget = healableHere(row, col)
@@ -1182,6 +1213,8 @@ export default function TacticsBoard({
               data-hunkered={unit.hunkered > 0 || undefined}
               data-mutated={unit.mutations?.length > 0 || undefined}
               data-aura-wearer={unit.gearAuras?.length ? unit.gearAuras.map((a) => a.type).join(" ") : undefined}
+              data-shrouded={unit.shroud && !(unit.revealed > 0) ? "true" : undefined}
+              data-lifted={unit.lifted > 0 || undefined}
               title={roleTitle(unit)}
             >
               <TokenArt unit={unit} />
@@ -1442,6 +1475,7 @@ export default function TacticsBoard({
                   </span>
                 )}
                 <ElementBadges unit={unit} />
+                <KitBadges unit={unit} />
                 {unit.side === "enemy" && factionInfo(unit.faction) && (
                   <span className="hwt-faction-badge" data-faction={unit.faction} title={`${factionInfo(unit.faction).tag}${unit.skirmisher ? " - strikes, then fades up to 2 tiles back" : ""}${unit.echo ? " - an echo of your own hero" : ""}`}>
                     {factionInfo(unit.faction).icon}
@@ -1578,6 +1612,7 @@ export default function TacticsBoard({
             </div>
           </div>
           <ThreatPanel battle={battle} />
+          <CounterPanel battle={battle} />
           {factionView && (
             <div className="hwt-faction-banner" data-faction={factionView.id}>
               <div className="hwt-faction-title">
@@ -1763,6 +1798,7 @@ export default function TacticsBoard({
                 </button>
               )}
               <DepthActions battle={battle} selected={selected} onBattleChange={onBattleChange} onClearMode={() => onAbilityModeChange(null)} />
+              <ItemActions battle={battle} selected={selected} abilityMode={abilityMode} onAbilityModeChange={onAbilityModeChange} onBattleChange={onBattleChange} />
               {abilityMode === "ult" && <p className="hwt-skill-hint">Choose an enemy for {heroUltInfo(selected)?.name}.</p>}
               {abilityMode === "link" && <p className="hwt-skill-hint">Choose an ally to receive the Mana Link.</p>}
             </div>

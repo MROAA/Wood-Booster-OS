@@ -30,7 +30,8 @@ import { evaluateBuild } from "./buildScore"
 import { ENEMIES } from "./enemies"
 import { resolveFormation } from "./formations"
 import { THREAT_RATINGS, relativeThreatLabel } from "./threatPreview"
-import { difficultyFactorForNode, RUN_PATH } from "../../services/heartwood/runEngine"
+import { difficultyFactorForNode, RUN_PATH, actIndexForNode } from "../../services/heartwood/runEngine"
+import { counterReadFor, bringText } from "../../services/heartwood/itemForge"
 
 export const POWER_COMPONENTS = [
   { id: "unit", label: "Units", icon: "sword" },
@@ -224,8 +225,12 @@ export function scoutReport(runState, targetNodeIndex) {
   const rating = Math.max(1, Math.min(5, Math.round(1 + hpScore + sizeScore + atkScore + nodeBump)))
 
   const power = evaluatePlayerPower(runState)
+  // Dota depth sprint: the scout also reads the enemy tricks ("Bring: ...").
+  const counters = counterReadFor(pieces.map((p) => p.defId), actIndexForNode(targetNodeIndex, RUN_PATH.length))
   return {
     kind: node.type,
+    counters,
+    bring: bringText(counters.bring),
     rating,
     ratingLabel: THREAT_RATINGS[rating - 1],
     relative: relativeThreatLabel(power.ratio, rating - 1),

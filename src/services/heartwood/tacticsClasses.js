@@ -256,7 +256,8 @@ export function classDamageMod(attacker, defender, amount, facing) {
 // Guardian's Stalwart / Juggernaut's Last Stand.
 export function immovable(u) {
   // Traits: a Stubborn hero can't be moved either.
-  return has(u, "stalwart") || (has(u, "last-stand") && hpFrac(u) < 0.5) || u?.form === "root" || !!u?.stubborn
+  // Dota depth: Heartoak Bark - nothing shoves it either.
+  return has(u, "stalwart") || (has(u, "last-stand") && hpFrac(u) < 0.5) || u?.form === "root" || !!u?.stubborn || u?.ctrlImmune > 0
 }
 export function keepsBlockOnSideHit(u) {
   return has(u, "stalwart")
@@ -293,7 +294,18 @@ export function classGuardFor(state, target) {
 
 // Melee rework: Vanish - a ranged attacker more than 2 tiles away can't see it.
 export const STEALTH_RANGE = 2
+// Dota depth: a lifted foe (Cyclone Lift) can't be targeted; a Shadowmoss
+// foe only from the next tile, unless revealed (tacticsItems.shroudedFrom).
+export function itemHidden(target, attacker, atkPos = attacker?.pos) {
+  if (!target || !attacker || target.side === attacker.side) return false
+  if (target.lifted > 0) return true
+  if (!target.shroud || target.revealed > 0 || !atkPos) return false
+  const d = dist(atkPos, target.pos)
+  return d > 1 && !(attacker.gearReveal >= d)
+}
+
 export function hiddenFrom(target, attacker, atkPos = attacker?.pos) {
+  if (itemHidden(target, attacker, atkPos)) return true
   return !!target && !!attacker && target.stealth > 0 && (attacker.range || 1) > 1 && dist(atkPos, target.pos) > STEALTH_RANGE
 }
 
@@ -890,7 +902,7 @@ export function classSkillTargets(state, actorId, skill) {
       (u) => !(skill.noSelf && u.id === actorId) && !u.structure && dist(u.pos, actor.pos) <= skill.range && skillAllows(state, actor, u, skill),
     )
   }
-  const foes = livingUnits(state, actor.side === "player" ? "enemy" : "player").filter((u) => !u.structure || skill.range === "reach")
+  const foes = livingUnits(state, actor.side === "player" ? "enemy" : "player").filter((u) => (!u.structure || skill.range === "reach") && !itemHidden(u, actor))
   const taunters = foes.filter((u) => isTaunting(state, u))
   return (taunters.length ? taunters : foes).filter((u) => inRange(state, actor, u, skill) && skillAllows(state, actor, u, skill))
 }

@@ -3,6 +3,8 @@ import { useState } from "react"
 import { ITEMS, RARITY_INFO } from "../../data/heartwood/items"
 import { RECIPES } from "../../data/heartwood/recipes"
 import { COLLARS } from "../../data/heartwood/collars"
+// Dota depth sprint: tiered build recipes + active items (itemBuilds.js).
+import { BUILD_RECIPES, ITEM_ACTIVES } from "../../data/heartwood/itemBuilds"
 import { GEAR_FX_TEXT } from "../../services/heartwood/gear"
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
@@ -20,6 +22,8 @@ const KINDS = {
   items: { label: "Items", type: "items" },
   recipes: { label: "Recipes", type: "recipes" },
   collars: { label: "Collars", type: "collars" },
+  buildRecipes: { label: "Build recipes", type: "buildRecipes" },
+  itemActives: { label: "Actives", type: "itemActives" },
 }
 
 const FRIENDLY = {
@@ -32,7 +36,22 @@ const FRIENDLY = {
     ["name", "Name"],
     ["description", "What the player reads"],
   ],
+  buildRecipes: [["text", "Hint the player reads"]],
+  itemActives: [
+    ["name", "Name"],
+    ["text", "What the player reads"],
+  ],
 }
+
+const ACTIVE_NUMBERS = [
+  ["ap", "AP it costs"],
+  ["mana", "Mana it costs"],
+  ["cooldown", "Recharge (turns)"],
+  ["charges", "Uses (gone when spent)"],
+  ["range", "Range (tiles)"],
+  ["amount", "Strength (heal / mana / push / drain)"],
+  ["turns", "Lasts (turns)"],
+]
 
 const FX_LABEL = {
   hp: "Max HP +/-",
@@ -62,17 +81,22 @@ const FX_LABEL = {
 
 function listFor(kind) {
   if (kind === "recipes") return Object.keys(RECIPES)
+  if (kind === "buildRecipes") return Object.keys(BUILD_RECIPES)
+  if (kind === "itemActives") return Object.keys(ITEM_ACTIVES)
   if (kind === "collars") return Object.keys(COLLARS)
   return Object.keys(ITEMS).filter((id) => ITEMS[id].kind !== "collar")
 }
 function entityFor(kind, id) {
   if (kind === "recipes") return RECIPES[id]
+  if (kind === "buildRecipes") return BUILD_RECIPES[id]
+  if (kind === "itemActives") return ITEM_ACTIVES[id]
   if (kind === "collars") return COLLARS[id]
   return ITEMS[id]
 }
 function titleFor(kind, e) {
   if (!e) return ""
   if (kind === "recipes") return `${ITEMS[e.a]?.name || e.a} + ${ITEMS[e.b]?.name || e.b} → ${ITEMS[e.result]?.name || e.result}`
+  if (kind === "buildRecipes") return `${(e.parts || []).map((p) => ITEMS[p]?.name || p).join(" + ")} → ${ITEMS[e.result]?.name || e.result}`
   return e.name
 }
 // The numbers behind "Show the numbers": [draftKey, label, path].
@@ -85,6 +109,13 @@ function numberFields(kind, e) {
       ["result", "Makes (item id)", ["result"]],
     ]
   if (kind === "collars") return [["collarClass", "Class it gives (class id)", ["collarClass"]]]
+  if (kind === "buildRecipes")
+    return [
+      ...(e.parts || []).map((_, i) => [`parts.${i}`, `Part ${i + 1} (item id)`, ["parts", i]]),
+      ["cost", "Recipe cost (Essence)", ["cost"]],
+      ["result", "Makes (item id)", ["result"]],
+    ]
+  if (kind === "itemActives") return ACTIVE_NUMBERS.filter(([k]) => typeof e[k] === "number").map(([k, label]) => [k, label, [k]])
   const out = [["cost", "Price (Essence)", ["cost"]]]
   for (const k of Object.keys(e.fx || {})) out.push([`fx.${k}`, FX_LABEL[k] || k, ["fx", k]])
   for (const k of Object.keys(e.adj?.bonus || {})) out.push([`adj.bonus.${k}`, `Next-to bonus: ${FX_LABEL[k] || k}`, ["adj", "bonus", k]])
@@ -118,7 +149,7 @@ function Field({ label, value, changed, onChange, testId, number }) {
 function GearEditor({ onApplied, onPreviewUrlChange }) {
   const [kind, setKind] = useState("items")
   const ids = listFor(kind)
-  const [selected, setSelected] = useState({ items: "whetstone", recipes: ids[0], collars: Object.keys(COLLARS)[0] })
+  const [selected, setSelected] = useState({ items: "whetstone", recipes: ids[0], collars: Object.keys(COLLARS)[0], buildRecipes: Object.keys(BUILD_RECIPES)[0], itemActives: Object.keys(ITEM_ACTIVES)[0] })
   const [draft, setDraft] = useState({})
   const [showNumbers, setShowNumbers] = useState(false)
   const { result, applyMode, setApplyMode, previewing, applying, errorMessage, preview, discard, apply } = usePatchPreview({

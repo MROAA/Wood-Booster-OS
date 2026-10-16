@@ -5,6 +5,10 @@ import { SIGNATURES } from "../../data/heartwood/signatures"
 import { recipeHintText } from "../../services/heartwood/gear"
 import { setOfItem } from "../../data/heartwood/buildSets"
 import SetBadge from "./SetBadge"
+// Dota depth sprint: build tiers, recipes, actives, counter answers.
+import { BUILD_TIERS, ITEM_ACTIVES, COUNTER_TAGS } from "../../data/heartwood/itemBuilds"
+import { buildsInto, madeFrom, recipePartsText } from "../../services/heartwood/itemForge"
+import { ITEMS } from "../../data/heartwood/items"
 
 // A small purchasable-or-owned item card - mirrors UnitCard.jsx's
 // icon+name+cost shape, but items have none of a unit's fields
@@ -18,7 +22,9 @@ import SetBadge from "./SetBadge"
 // `locked` / `onToggleLock`: the shop's per-offer lock.
 // `setCounts` (optional, buildSets.setCountMap): shows the piece's build-set
 // family + how many you own. `ownedPiece`: this card IS one you own.
-export default function ItemCard({ def, selected, disabled, onClick, locked, onToggleLock, setCounts = null, ownedPiece = false }) {
+// `wantedBy` (optional, itemForge.wantedComponents): [{ name, pathName }] -
+// the shop marks a component a hero's chosen build path still needs.
+export default function ItemCard({ def, selected, disabled, onClick, locked, onToggleLock, setCounts = null, ownedPiece = false, wantedBy = null }) {
   const rarity = RARITY_INFO[def.rarity] || RARITY_INFO.common
   const kind = GEAR_KINDS[def.kind]
   const combines = recipeHintText(def.id)
@@ -26,6 +32,10 @@ export default function ItemCard({ def, selected, disabled, onClick, locked, onT
   // Hero identity sprint: a class SIGNATURE legendary - gold frame + crest.
   const sigClass = def.kind === "signature" ? CLASSES[def.signatureClass] : null
   const sig = sigClass ? SIGNATURES[def.signatureClass] : null
+  const tier = BUILD_TIERS[def.buildTier]
+  const into = buildsInto(def.id).filter((r) => !r.legacy)
+  const from = madeFrom(def.id)
+  const active = def.active ? ITEM_ACTIVES[def.active] : null
   return (
     <div
       className="hw-card hw-card--skill hw-item-card"
@@ -36,6 +46,8 @@ export default function ItemCard({ def, selected, disabled, onClick, locked, onT
       data-signature={sigClass ? def.signatureClass : undefined}
       data-item-id={def.id}
       data-locked={locked || undefined}
+      data-build-tier={def.buildTier || undefined}
+      data-wanted={wantedBy?.length ? "true" : undefined}
       style={{ "--hw-rarity": rarity.color }}
       onClick={!disabled ? onClick : undefined}
       title={def.description}
@@ -84,6 +96,16 @@ export default function ItemCard({ def, selected, disabled, onClick, locked, onT
       {kind && (
         <div className="hw-item-kind" data-kind={def.kind}>
           {kind.name}
+          {tier && (
+            <span className="hw-item-tier" data-build-tier={tier.id} title={tier.text}>
+              {" "}· {tier.name}
+            </span>
+          )}
+        </div>
+      )}
+      {wantedBy?.length > 0 && (
+        <div className="hw-item-wanted" title="A hero's chosen build path still needs this part">
+          ★ For {wantedBy.map((w) => `${w.name} (${w.pathName})`).join(", ")}
         </div>
       )}
       {sigClass && (
@@ -106,6 +128,26 @@ export default function ItemCard({ def, selected, disabled, onClick, locked, onT
       {def.aura && (
         <div className="hw-item-line hw-item-line--aura" data-item-aura={def.aura.type}>
           ◌ Aura: {def.aura.text}
+        </div>
+      )}
+      {active && (
+        <div className="hw-item-line hw-item-line--active" data-item-active-line={active.id} title={active.text}>
+          {active.icon} Active: {active.name}
+        </div>
+      )}
+      {def.counters?.length > 0 && (
+        <div className="hw-item-line hw-item-line--counter" data-item-counters={def.counters.join(" ")}>
+          ⚔ Answers: {def.counters.map((c) => COUNTER_TAGS[c]?.label || c).join(", ")}
+        </div>
+      )}
+      {from && !from.legacy && (
+        <div className="hw-item-line hw-item-line--from" data-made-from={from.id}>
+          ⚒ Made from: {recipePartsText(from)}
+        </div>
+      )}
+      {into.length > 0 && (
+        <div className="hw-item-line hw-item-line--into" data-builds-into={into.map((r) => r.result).join(" ")}>
+          ⇧ Builds into: {into.map((r) => ITEMS[r.result]?.name || r.result).join(", ")}
         </div>
       )}
       {combines && (

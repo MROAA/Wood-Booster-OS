@@ -17,6 +17,10 @@ import { branchAvailable, branchById, ECONOMY_WIN_BONUS } from "../../data/heart
 import { RELICS, relicPool, RELIC_REROLL_COST } from "../../data/heartwood/relics"
 import { ITEMS, ITEM_SLOTS, itemPool, collarPool, RARITIES } from "../../data/heartwood/items"
 import { combineRow, combineDuplicate, equipBlocker, applyGearToBattle, gearRow } from "./gear"
+// Dota depth sprint: item tiers / build paths / forging + actives & enemy kits.
+import { itemUnlocked, forgeRecipe, chooseBuild } from "./itemForge"
+import { prepareItemsForBattle, chargesUsedIn } from "./tacticsItems"
+import { ITEM_ACTIVES } from "../../data/heartwood/itemBuilds"
 import { CHARACTERS, commanderRankCost } from "../../data/heartwood/characters"
 import { tribesOf } from "../../data/heartwood/synergies"
 import { resolveTrial } from "../../data/heartwood/trials"
@@ -869,7 +873,8 @@ function pickRarity(weights, rng) {
   return "common"
 }
 function rollItemShop(rng = Math.random, act = 1, marketLevel = 1, keep = []) {
-  const all = itemPool()
+  // Dota depth sprint: layered unlocks - later components open by Act.
+  const all = itemPool().filter((it) => itemUnlocked(it.id, act))
   const weights = itemRarityWeights(act, marketLevel)
   const offers = Array.from({ length: ITEM_SHOP_SIZE }, (_, i) => (keep[i] && ITEMS[keep[i]] ? keep[i] : null))
   const open = offers.map((id, i) => (id ? -1 : i)).filter((i) => i >= 0)
@@ -1533,6 +1538,19 @@ export function buyItem(runState, itemDefId) {
   }
   // A second copy of a same-item recipe ingredient fuses right away.
   return combineDuplicate(bought, key, effectiveItemSlots(bought))
+}
+
+// --- Dota depth sprint: forging + build paths ---
+// Forge a tiered recipe (every part used up, recipe cost paid) - at the
+// Market (any time between fights). The result goes to `ownerKey`'s row.
+export function forgeItem(runState, recipeId, ownerKey = null) {
+  return forgeRecipe(runState, recipeId, actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length), ownerKey)
+}
+export function chooseHeroBuild(runState, ownerKey, pathId) {
+  return chooseBuild(runState, ownerKey, pathId)
+}
+export function runActNow(runState) {
+  return actIndexForNode(runState?.nodeIndex || 0, RUN_PATH.length)
 }
 
 // --- Gear sprint: shop tension (purse, item reroll, locks, selling) ---
@@ -2791,9 +2809,26 @@ export function recordFightAftermath(runState, battle) {
     }
     if (drunk.length) lines.push(`${drunk.length} potion${drunk.length > 1 ? "s were" : " was"} used up.`)
   }
+  // Dota depth sprint: spent uses of active consumables (Salve, Glowdust...).
+  const spent = tactics ? chargesUsedIn(battle) : {}
+  let items = drunk.length ? runState.items.filter((it) => !drunk.includes(it.key)) : runState.items
+  if (Object.keys(spent).length) {
+    let gone = 0
+    items = items
+      .map((it) => {
+        const n = spent[it.key]
+        const a = n ? ITEM_ACTIVES[ITEMS[it.defId]?.active] : null
+        if (!a?.charges) return it
+        const left = (typeof it.charges === "number" ? it.charges : a.charges) - n
+        if (left <= 0) gone++
+        return { ...it, charges: Math.max(0, left) }
+      })
+      .filter((it) => it.charges !== 0)
+    if (gone) lines.push(`${gone} item${gone > 1 ? "s were" : " was"} used up.`)
+  }
   return {
     ...runState,
-    ...(drunk.length ? { items: runState.items.filter((it) => !drunk.includes(it.key)) } : {}),
+    ...(items !== runState.items ? { items } : {}),
     ...(bonusEssence ? { essence: (runState.essence || 0) + bonusEssence } : {}),
     bench,
     commanderHpPct: cmd ? cmd.hpPct : runState.commanderHpPct,
@@ -2911,7 +2946,8 @@ export function startTacticsFormationBattle(runState0, buildTacticsBattle) {
     // auras, resource gear - folded on last.
     // Hero identity (heroIdentity.js): quirks, bonds, scars + class signature
     // mechanics (a worn signature legendary is read off the gear above).
-    battle: { ...applyIdentityToBattle(applyGearToBattle(applyLevelsToTactics(tactics, runState), runState, effectiveItemSlots(runState)), runState), engine: "tactics" },
+    // Dota depth sprint: enemy counter kits for this Act + the Scepter's class upgrade.
+    battle: { ...prepareItemsForBattle(applyIdentityToBattle(applyGearToBattle(applyLevelsToTactics(tactics, runState), runState, effectiveItemSlots(runState)), runState), actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length)), engine: "tactics" },
     pendingActiveEffects: [],
     // Camp Commune "overcharge" is a one-fight charge (read by the tactics build).
     campOvercharge: 0,
@@ -3028,7 +3064,7 @@ export function campTrain(runState, key) {
   return campTrainState(runState, key)
 }
 export function campCraft(runState, recipeId) {
-  return campCraftState(runState, recipeId)
+  return campCraftState(runState, recipeId, actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length))
 }
 export function campCommune(runState, mode, key) {
   return campCommuneState(runState, mode, key)

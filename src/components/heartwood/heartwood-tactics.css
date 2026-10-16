@@ -3675,3 +3675,53 @@ button.hwt-tl-chip:hover { border-color: var(--hwt-gold); }
   background: #c0503f;
   color: #fff3e6;
 }
+
+/* ---- Dota depth sprint: active items, enemy counter kits ---------------- */
+.hwt-item-actives { display: contents; }
+.hwt-item-active-btn { border-color: color-mix(in srgb, var(--hwt-gold) 45%, var(--hw-border)); }
+.hwt-item-active-btn[data-active="true"] {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hwt-gold) 60%, transparent);
+}
+.hwt-item-active-btn[data-cd] { opacity: 0.75; }
+.hwt-item-scepter { font-size: var(--hw-fs-sm); color: var(--hwt-gold); margin: 2px 0 0; }
+.hwt-kit-badge {
+  font-weight: 700;
+  font-size: 0.7rem;
+  padding: 0 3px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--hw-card) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 35%, var(--hw-border));
+  color: color-mix(in srgb, var(--hw-text) 80%, var(--hwt-gold));
+}
+.hwt-kit-badge[data-kit-badge="runeshell"] { color: var(--hw-rune); }
+.hwt-kit-badge[data-kit-badge="bloom"],
+.hwt-kit-badge[data-kit-badge="seed"] { color: var(--hw-moss); }
+.hwt-kit-badge[data-kit-badge="mist"] { color: var(--hw-gale); }
+.hwt-kit-badge[data-status="withered"] { color: var(--hw-curse); }
+.hwt-token[data-shrouded="true"] { opacity: 0.55; filter: saturate(0.4) brightness(0.8); border-style: dashed; }
+.hwt-token[data-lifted="true"] { transform: translateY(-6px); filter: drop-shadow(0 6px 4px rgba(0, 0, 0, 0.45)); animation: hwt-lift 1.6s ease-in-out infinite; }
+@keyframes hwt-lift { 0%, 100% { transform: translateY(-4px); } 50% { transform: translateY(-9px); } }
+.hw-reduce-motion .hwt-token[data-lifted="true"] { animation: none; }
+.hwt-counter-panel {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 35%, var(--hw-border));
+  background: var(--hw-card);
+}
+.hwt-counter-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+.hwt-counter-row { display: flex; gap: 6px; align-items: baseline; font-size: var(--hw-fs-sm); line-height: 1.5; }
+.hwt-counter-name { font-weight: 600; }
+.hwt-counter-answer { color: var(--hw-muted); margin-left: auto; text-align: right; }
+.hwt-counter-row[data-answered="true"] .hwt-counter-answer { color: var(--hwt-gold); }
+/* The enemy trick sits on its own corner chip - readable at a glance. */
+.hwt-token-status > .hwt-kit-badge[data-kit-badge] {
+  position: absolute;
+  left: 2px;
+  top: 38%;
+  height: 15px;
+  padding: 0 3px;
+  font-size: 10px;
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 60%, transparent);
+  background: rgba(20, 14, 8, 0.85);
+}
+.hwt-token-status > .hwt-kit-badge[data-kit-badge="shroud"][data-revealed="true"] { border-style: dashed; }
