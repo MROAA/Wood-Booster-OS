@@ -4,6 +4,9 @@
 // Nature = bar + state icon, Reagents = coloured tokens, Spirit = bar with
 // a reserved part, Fury = tiered bar. Data: data/heartwood/resources.js.
 import { NATURE_STATES, REAGENT_KINDS } from "../../data/heartwood/resources"
+// Mana sprint 3: a hero's colour affinity pip on its bar.
+import { affinityOf } from "../../services/heartwood/tacticsManaColours"
+import { MANA_COLOURS } from "../../data/heartwood/manaColours"
 import { hasMana, profileOf, manaSummary, reservedFor, reachedBreakpoints, tokensOf, furyTier, bonusText, resourcePct } from "../../services/heartwood/tacticsMana"
 
 const TOKEN_ORDER = ["fire", "frost", "poison", "arcane"]
@@ -30,7 +33,8 @@ export function ResourceGauge({ unit, battle = null, className = "hwt-mana-track
     "data-full": unit.mana >= max || undefined,
     "data-over": over > 0 || undefined,
     "data-berserk": unit.berserk > 0 || undefined,
-    style: { "--res-color": prof.color },
+    "data-affinity": unit.side === "player" ? affinityOf(unit) : undefined,
+    style: { "--res-color": prof.color, ...(unit.side === "player" ? { "--aff-color": MANA_COLOURS[affinityOf(unit)]?.color } : {}) },
     title: `${manaSummary(unit, battle)}${bonusText(unit) ? ` · Now: ${bonusText(unit)}` : ""}`,
   }
   if (style === "pips") {

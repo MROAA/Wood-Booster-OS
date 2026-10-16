@@ -13,6 +13,7 @@ export const CAMPAIGN_HELP = [
   { term: "Hearth rooms", blurb: "Build rooms with Essence (the Ley Well also needs Ley Shards). Each takes days, one at a time: Infirmary heals faster, Barracks holds more heroes, Training Hall teaches resting heroes, Ley Well deepens mana, Recruitment Post brings more recruits." },
   { term: "Story choices", blurb: "Every chapter's story mission ends in a choice. Choices change the next chapter, which faction joins you (a unique hero + warriors in their region), who hunts you, the map itself, and which endings you can reach. The Chronicle at the Hearth keeps them all." },
   { term: "Allies & nemeses", blurb: "An allied faction's warriors fight beside you in their home region, every story mission and their Call to Arms missions. A nemesis sends Hunted missions every few days - beat it twice to drive it off; ignore one and Doom rises." },
+  { term: "Ley network", blurb: "Coloured ley lines join the regions. A line counts while you hold BOTH its regions (safe - not threatened or fallen) and it links back to the Hearthstead. The bigger your network, the more start mana and regen every fight gets, and each line colour makes skills of that colour 15% cheaper. Ley Breach missions (⚡) try to cut a line - ignore or lose one and the line is cut; winning a Ley Site next to a cut line mends it. Warded ley lines count double and can't be breached; Drained ley surges for a few days, then its lines wither." },
   { term: "Endings", blurb: "Six endings, each opened by different choices. Every ending unlocks something for your next campaign: a commander, a starting relic, or a new story start." },
 ]
 
@@ -106,6 +107,16 @@ export const HELP_SECTIONS = [
     ],
   },
   {
+    heading: "Mana colours & risks",
+    entries: [
+      { term: "Four colours", blurb: "Mana comes in four colours: 🔥 Ember (fire, fury), 🌊 Tide (water, frost, healing), 🌿 Root (earth, growth, guarding) and 🌑 Void (shadow, curses, drain). Every hero has an affinity from its class, and every skill a colour - the small pip on its button. Most heroes hold two colours." },
+      { term: "Colour combos", blurb: "Cast two DIFFERENT colours in the same turn - one hero or two - and they combine into a free combo spell: Ember+Tide Steam Burst, Ember+Root Wildfire Bloom, Ember+Void Hellflare, Tide+Root Lifespring, Tide+Void Undertow, Root+Void Blight Bloom. The 'This turn' tracker above the skills shows what is waiting for a partner; a → icon on a button means casting it finishes a combo. A hero starting its turn on a coloured Mana Well has that colour primed for free." },
+      { term: "Affinity bonus", blurb: "The hero who FINISHES a combo adds its affinity: Ember hits 2 harder, Tide heals itself 3, Root gains 3 Block, Void gets 5 of its resource back (and builds Backlash 40% slower)." },
+      { term: "Overchannel", blurb: "Arm ⚡ Overchannel, then cast a skill you can't afford: the missing mana is paid in HP (1 HP per 4% of the bar you're short), shown in red on the button before you click. Each overchannel fills the red Backlash meter on the hero (20 + the % short). At 100 the hero is STUNNED and takes 4 damage at the start of its next turn; otherwise the meter drains 15 a turn. No luck - the numbers are always the same. Void heroes and mages build Backlash slower; the Stormglass Phial relic makes it safer." },
+      { term: "Mana-fed enemies", blurb: "Ley Leeches, Manamoths, Silence-eaters and the Gorging Maw FEED on mana spent near them: each hero skill cast in their reach adds a Hunger pip (+1 attack each; big casts and overchannels add 2). A full one is Gorged - the Maw then bursts in a Mana Nova on every hero within 2. Answer: cast away from them, attack or use items instead, burn their mana (it strips Hunger), or kill them first. They walk toward whoever casts the most." },
+    ],
+  },
+  {
     heading: "Growing heroes",
     entries: [
       { term: "Evolution", blurb: "Deploy a common fill hero enough times, with its tribe fielded alongside it, and it becomes a stronger authored form. Free and permanent - a ▲ marks it." },
@@ -146,6 +157,9 @@ export const TACTICS_HELP = [
   { icon: "☄", tone: "rune", term: "Enemy ultimates", blurb: "Elites, bosses and some casters fill a violet ULTIMATE bar. When it's full they channel (⚠ + marked tiles) and fire on their next turn. Break it by burning or stealing ANY of their mana, stunning or freezing them, or one big hit (20%+ of their HP) - or get out of the tiles." },
   { icon: "✦", tone: "gold", term: "Hero ultimates", blurb: "A hero with a FULL resource bar can spend all of it (1 AP) for its role's ultimate: tanks Unbreakable, melee Onslaught, ranged Deadeye, healers Renewal, support Mana Surge, control Mana Storm (breaks enemy ultimates)." },
   { icon: "⇄", tone: "rune", term: "Mana Link & Mana Wells", blurb: "Support, healer and control heroes (and the Commander) can Mana Link: pay some of their bar to give an ally +20 of its own resource - free, once a turn. Glowing blue Mana Wells give +12 to whoever starts a turn on one, and charge enemy ultimates faster - fight over them." },
+  { icon: "🌈", tone: "rune", term: "Mana colours & combos", blurb: "Every skill has a colour (Ember, Tide, Root, Void - the pip on its button). Two DIFFERENT colours cast in one turn set off a combo spell (Steam Burst, Wildfire Bloom, Hellflare, Lifespring, Undertow, Blight Bloom). See 'Mana colours & risks' in the battle panel." },
+  { icon: "⚡", tone: "ember", term: "Overchannel & Backlash", blurb: "Arm Overchannel to cast past an empty bar: pay the shortfall in HP and fill the Backlash meter. A full meter stuns the hero (and hurts it) at the start of its next turn. The button shows the exact price first." },
+  { icon: "🍽", tone: "ember", term: "Mana-fed enemies", blurb: "Purple Hunger pips: this enemy grows stronger from every skill cast near it. Cast away from it, attack instead, burn its mana, or kill it first." },
   { icon: "⚔", tone: "ember", term: "Enemy intents", blurb: "Badges above enemies show their next move: ⚔ strike, ➤ advance, ✦ stunned. What you see is exactly what happens when you end the turn." },
   { icon: "✹", tone: "ember", term: "Telegraphed skills", blurb: "Big enemy skills wind up first. Red tiles get hit when you end your turn - step out of them." },
   { icon: "⛰", tone: "moss", term: "Terrain", blurb: "High ground: +1 range for archers, +25% damage downhill. Barricades block paths and can be broken. Bridges cross rivers. Tall grass hides you from range. Lava burns if you end a turn on it. Ice slides you one tile further. Fire spreads through tall grass; frost freezes deep water into walkable ice." },

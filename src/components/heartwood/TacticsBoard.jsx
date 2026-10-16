@@ -60,6 +60,9 @@ import {
 import { BATTLE_ROLES, roleOf, healReach } from "../../services/heartwood/tacticsRoles"
 import { canAfford, hasMana, manaBlockReason, manaSummary, potionOf, drinkPotion, POTION_AP, ultimateReady, surgeFor, skillCostText, resourceLabel, profileOf, canSacrifice, sacrifice, sacrificeCost, scaleAmount } from "../../services/heartwood/tacticsMana"
 import { ResourceGauge, ResourceInfo } from "./TacticsResourceUi"
+// Mana sprint 3: colours, Overchannel / Backlash, mana-fed enemies.
+import { ManaColourPanel, SkillColourPip, ManaTokenMarks, ManaFeedPanel, ManaColoursHelp } from "./TacticsManaColoursUi"
+import { wellColourAt } from "../../services/heartwood/tacticsManaColours"
 // Hero identity sprint: signature mechanic chips, enemy marks, bonds, quirks.
 import { SigChip, SigMarks, SignatureInfo, IdentityInfo } from "./TacticsIdentityUi"
 import { bondLinks } from "../../services/heartwood/tacticsBonds"
@@ -1061,6 +1064,7 @@ export default function TacticsBoard({
           data-skill-zone={skillZone.get(`${row}-${col}`) || undefined}
           data-ult-zone={ultZone.get(`${row}-${col}`) || undefined}
           data-terrain={terrain}
+          data-well-colour={terrain === "manawell" ? wellColourAt(battle, { row, col }) : undefined}
           data-art={terrainArtStyle(terrain) ? terrain : undefined}
           style={terrainArtStyle(terrain)}
           data-zoc={zoc}
@@ -1224,6 +1228,7 @@ export default function TacticsBoard({
             >
               <TokenArt unit={unit} />
               <DepthTokenChips unit={unit} battle={battle} />
+              <ManaTokenMarks unit={unit} />
               {/* Hero identity: the class signature chip + signature marks. */}
               {unit.side === "player" && <SigChip battle={battle} unit={unit} />}
               <SigMarks battle={battle} unit={unit} />
@@ -1618,6 +1623,7 @@ export default function TacticsBoard({
           </div>
           <ThreatPanel battle={battle} />
           <CounterPanel battle={battle} />
+          <ManaFeedPanel battle={battle} />
           {factionView && (
             <div className="hwt-faction-banner" data-faction={factionView.id}>
               <div className="hwt-faction-title">
@@ -1879,6 +1885,7 @@ export default function TacticsBoard({
                   🔇 Hushed by {hushedNow(battle, selected).name}: no skills within 2 tiles of it. Attacks and item actives still work - or step away.
                 </p>
               )}
+              <ManaColourPanel battle={battle} selected={selected} onBattleChange={onBattleChange} />
               <div className="hwt-skill-row">
                 {(selected.classSkills || []).map((sk, i) => {
                   const ready = classSkillUsable(battle, selected, sk)
@@ -1911,6 +1918,7 @@ export default function TacticsBoard({
                         </span>
                       )}
                       <span className="hwt-skill-cost">{classSkillStatus(selected, sk)}</span>
+                      <SkillColourPip battle={battle} unit={selected} skill={sk} />
                       {hasMana(selected) && (
                         <span className="hwt-skill-mana" data-res={profileOf(selected).id} data-mode={sk.spend || undefined} data-short={!!manaBlockReason(selected, sk) || undefined} title={skillCostText(selected, sk)}>
                           {skillCostText(selected, sk)}
@@ -1947,6 +1955,7 @@ export default function TacticsBoard({
                     ? `${selected.ability.name} · ${manaBlockReason(selected, selected.ability).replace(/ \(has \d+\)$/, "")}`
                     : `${selected.ability.name} · ${selected.ability.cost} AP${hasMana(selected) ? ` · ${skillCostText(selected, selected.ability)}` : ""}`}
                 {selected.ability.upgrade && <span className="hwt-skill-upgrade"> {selected.ability.upgrade.name}</span>}
+                <SkillColourPip battle={battle} unit={selected} skill={selected.ability} />
                 {hitPreview && hitPreview.rolls && abilityTargetSide(selected.ability) === "enemy" && <span className="hwt-skill-hit"> {hitPreview.chance}%</span>}
               </button>
               <p className="hwt-ability-hint">{abilityMode === "heal" || abilityMode === "burst" ? abilityHint(selected.ability) : describeAbility(selected.ability)}</p>
@@ -1954,6 +1963,7 @@ export default function TacticsBoard({
             </div>
           )}
           <ElementHelp />
+          <ManaColoursHelp />
           <DepthHelp battle={battle} />
           <div className="hwt-log-heading">Battle log</div>
           <div className="hwt-log">

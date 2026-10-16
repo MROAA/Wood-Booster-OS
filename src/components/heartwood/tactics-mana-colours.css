@@ -202,3 +202,19 @@
 @media (prefers-reduced-motion: reduce) {
   .hwt-colour-cast, .hwt-skill-combo-hint, .hwt-overchannel-btn[data-armed], .hwt-backlash-meter[data-full] .hwt-backlash-fill, .hwt-feed-meter[data-gorged] { animation: none; }
 }
+
+/* Affinity pip on a hero's resource bar (TacticsResourceUi) */
+.hwt-mana-track[data-affinity]::before,
+.hwt-selected-mana[data-affinity]::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -2.5px;
+  border-radius: 50%;
+  background: var(--aff-color, #c9a35c);
+  box-shadow: 0 0 0 1px rgba(20, 10, 4, 0.8), 0 0 4px var(--aff-color, #c9a35c);
+}
+.hwt-selected-mana[data-affinity] { position: relative; margin-left: 8px; width: calc(100% - 8px); }

@@ -10,6 +10,8 @@ import {
 } from "../../../services/heartwood/campaignEngine"
 import { FACTIONS, REGION_MODS, storyStanding } from "../../../services/heartwood/campaignStoryEngine"
 import { difficultyForRunNode } from "../../../services/heartwood/tacticsRealMatchup"
+// Mana sprint 3: ley lines + the network panel.
+import { LeyLines, LeyNetworkPanel } from "./LeyNetworkUi"
 
 const STATE_LABEL = { safe: "Safe", threatened: "Threatened", fallen: "Fallen", sunk: "Sunk" }
 
@@ -146,6 +148,7 @@ export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onP
               const rb = regionDef(b)
               return <line key={`${a}-${b}`} x1={ra.x} y1={ra.y} x2={rb.x} y2={rb.y} className="hwc-road" />
             })}
+            <LeyLines campaign={campaign} />
             {CAMPAIGN_REGIONS.map((def) => {
               const st = campaign.regions.find((r) => r.id === def.id)
               const state = regionOpen(campaign, def.id) ? regionState(campaign, def.id) : "dormant"
@@ -224,6 +227,7 @@ export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onP
             <span className="hwc-legend-dot is-fallen" /> Fallen
             <span className="hwc-legend-dot is-ley" /> Ley region (mana-rich fights)
             <span className="hwc-legend-dot is-dormant" /> Not reached yet
+            <span className="hwc-legend-ley-line" /> Ley line (bright = in your network)
             {standing.length > 0 && (
               <>
                 <span className="hwc-legend-dot is-allied" /> Allied / Warded
@@ -260,6 +264,8 @@ export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onP
               ))}
             </div>
           )}
+
+          <LeyNetworkPanel campaign={campaign} />
 
           {focused && (
             <div className="hwc-mission-card" data-type={focused.type} data-campaign-mission-detail={focused.id}>

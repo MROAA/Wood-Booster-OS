@@ -953,6 +953,11 @@ export default function HeartwoodBattle() {
         const bench = runState.bench || []
         const woundedDeployed = (runState.deployed || []).some((k) => k && bench.find((b) => b.key === k)?.wounded)
         if (battle.itemKits) ids.push("t-enemy-trick")
+        // Mana sprint 3: mana-fed enemies, Backlash, Overchannel, colours.
+        if (battle.units.some((u) => u.side === "enemy" && u.hp > 0 && u.manaFeed)) ids.push("t-feed")
+        if (battle.units.some((u) => u.side === "player" && u.hp > 0 && u.backlash > 0)) ids.push("t-backlash")
+        if (battle.manaRules && battle.turn >= 2) ids.push("t-overchannel")
+        if (battle.manaRules) ids.push("t-mana-colours")
         // Dota depth 2: talents / neutrals / enemy talents in the fight.
         if (battle.enemyTalentsOn) ids.push("t-enemy-talent")
         if (battle.units.some((u) => u.side === "player" && u.hp > 0 && u.talents?.length)) ids.push("t-talent")
