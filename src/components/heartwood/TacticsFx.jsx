@@ -63,6 +63,30 @@ function lunge(actorId, targetId, ranged) {
   }
 }
 
+// Graphics pass: a small burst of embers/sparks off a hit token.
+// "heal" bursts soft green motes upward instead.
+function sparks(unitId, kind = "hit", count = 7) {
+  const t = tokenEl(unitId)
+  if (!t || reduceMotion()) return
+  const r = t.getBoundingClientRect()
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement("div")
+    s.className = "hwt-spark"
+    s.dataset.kind = kind
+    s.style.left = `${r.left + r.width / 2}px`
+    s.style.top = `${r.top + r.height / 2}px`
+    document.body.appendChild(s)
+    const ang = kind === "heal" ? -Math.PI / 2 + (i / count - 0.5) * 1.6 : (i / count) * Math.PI * 2 + i
+    const dist = (kind === "heal" ? 26 : 22) + ((i * 7) % 18)
+    const dx = Math.cos(ang) * dist
+    const dy = Math.sin(ang) * dist + (kind === "heal" ? -10 : 8)
+    s.animate(
+      [{ translate: "0 0", scale: 1, opacity: 1 }, { translate: `${dx}px ${dy}px`, scale: 0.3, opacity: 0 }],
+      { duration: 420 + ((i * 53) % 220), easing: "cubic-bezier(.2,.7,.3,1)" },
+    ).finished.finally(() => s.remove())
+  }
+}
+
 function shakeBoard() {
   if (reduceMotion()) return
   restartClass(document.querySelector(".hwt-board"), "hw-stage-shake", 260)
@@ -154,6 +178,8 @@ export default function TacticsFx({ battle }) {
   const [chain, setChain] = useState(null)
   // Combat depth sprint: a big "COMBO! Finisher" banner when heroes combo.
   const [comboBanner, setComboBanner] = useState(null)
+  // Graphics pass: a sweeping "Your Turn" / "Enemy Turn" banner.
+  const [turnBanner, setTurnBanner] = useState(null)
   const flashSeqRef = useRef(battle.bossFlash?.seq ?? null)
   const counterRef = useRef(0)
   const lastSeqRef = useRef(null)
@@ -198,7 +224,10 @@ export default function TacticsFx({ battle }) {
             setTimeout(() => {
               const big = ev.amount >= BIG_HIT
               restartClass(tokenEl(ev.targetId), "hw-hit-flash", 400)
-              if (ev.amount > 0) pop(ev.targetId, `-${ev.amount}`, "damage", { big })
+              if (ev.amount > 0) {
+                pop(ev.targetId, `-${ev.amount}`, "damage", { big })
+                sparks(ev.targetId, ev.fell ? "fell" : "hit", big || ev.fell ? 12 : 7)
+              }
               else if (ev.absorbed > 0) pop(ev.targetId, "Blocked", "block")
               if (big) shakeBoard()
               if (ev.fell) play("ko")
@@ -269,7 +298,7 @@ export default function TacticsFx({ battle }) {
           const kind = ev.label === "breakpoint" ? "mana-bp" : ev.amount < 0 ? "mana-drain" : "mana"
           timers.push(setTimeout(() => pop(ev.unitId, text, kind, { offset: 0.6 }), at + IMPACT_DELAY_MS))
         } else if (ev.kind === "heal") {
-          timers.push(setTimeout(() => { pop(ev.targetId, `+${ev.amount}`, "heal"); play("heal") }, at))
+          timers.push(setTimeout(() => { pop(ev.targetId, `+${ev.amount}`, "heal"); sparks(ev.targetId, "heal", 6); play("heal") }, at))
         }
       }
     })
@@ -301,6 +330,11 @@ export default function TacticsFx({ battle }) {
   useEffect(() => {
     if (battle.phase === phaseRef.current) return
     phaseRef.current = battle.phase
+    if (battle.phase === "player" || battle.phase === "enemy") {
+      const key = `${battle.phase}-${battle.turn}`
+      setTurnBanner({ key, phase: battle.phase, turn: battle.turn })
+      timersRef.current.push(setTimeout(() => setTurnBanner((b) => (b && b.key === key ? null : b)), 1300))
+    }
     if (battle.phase === "won") play("victory")
     else if (battle.phase === "lost") play("defeat")
   }, [battle.phase])
@@ -311,6 +345,12 @@ export default function TacticsFx({ battle }) {
         <div className="hwt-boss-phase-banner" key={banner.key} data-phase-index={banner.index}>
           <span className="hwt-boss-phase-banner-num">Phase {banner.index + 1}</span>
           <span className="hwt-boss-phase-banner-name">{banner.name}</span>
+        </div>
+      )}
+      {turnBanner && (
+        <div className="hwt-turn-banner" key={turnBanner.key} data-phase={turnBanner.phase} aria-hidden="true">
+          <span className="hwt-turn-banner-text">{turnBanner.phase === "player" ? "Your Turn" : "Enemy Turn"}</span>
+          {turnBanner.phase === "player" && <span className="hwt-turn-banner-sub">Round {turnBanner.turn}</span>}
         </div>
       )}
       {comboBanner && (

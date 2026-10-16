@@ -8,6 +8,7 @@ import TacticsBoard from "./TacticsBoard"
 import TutorialSpotlight from "./TutorialSpotlight"
 import { TRAINING_STEPS, buildTrainingBattle, armTrainingSlam } from "../../services/heartwood/tacticsTutorial"
 import "./heartwood-tactics.css"
+import "./heartwood-graphics.css"
 
 export default function TacticsTutorial({ onExit }) {
   const [battle, setBattle] = useState(() => buildTrainingBattle())

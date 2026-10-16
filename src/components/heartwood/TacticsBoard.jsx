@@ -248,6 +248,47 @@ function TokenArt({ unit }) {
   )
 }
 
+// Graphics pass: which sides of each move tile sit on its band's outer
+// edge. Blue's edge is where blue ends; yellow's is where moving ends.
+// Returns Map key -> CSS border-width string ("top right bottom left").
+function bandEdges(moveOptions) {
+  const out = new Map()
+  for (const [key, opt] of moveOptions) {
+    const [r, c] = key.split("-").map(Number)
+    const open = (dr, dc) => {
+      const n = moveOptions.get(`${r + dr}-${c + dc}`)
+      return opt.band === "blue" ? n?.band !== "blue" : !n
+    }
+    const sides = [open(-1, 0), open(0, 1), open(1, 0), open(0, -1)]
+    if (sides.some(Boolean)) out.set(key, sides.map((s) => (s ? "2px" : "0")).join(" "))
+  }
+  return out
+}
+
+// Graphics pass: board atmosphere - a soft canopy light, edge vignette
+// and a few drifting fireflies. Pure decoration (pointer-events: none);
+// the CSS stills the fireflies under reduced motion.
+const FIREFLIES = Array.from({ length: 14 }, (_, i) => ({
+  left: (i * 37 + 11) % 97,
+  top: (i * 53 + 23) % 93,
+  delay: -((i * 1.7) % 9),
+  dur: 7 + ((i * 3) % 6),
+}))
+function BoardAmbience() {
+  return (
+    <div className="hwt-ambience" aria-hidden="true">
+      <div className="hwt-ambience-light" />
+      {FIREFLIES.map((f, i) => (
+        <span key={i} className="hwt-firefly" style={{ left: `${f.left}%`, top: `${f.top}%`, animationDelay: `${f.delay}s`, animationDuration: `${f.dur}s` }} />
+      ))}
+    </div>
+  )
+}
+
+// Graphics pass: a stable per-tile ground variant (0-3) so the forest
+// floor reads as one painted surface, not a repeated stamp.
+const groundVariant = (row, col) => (row * 7 + col * 13 + ((row * col) % 5)) % 4
+
 function getUnitName(battle, id) {
   return battle.units.find((u) => u.id === id)?.name || "?"
 }
@@ -577,6 +618,9 @@ export default function TacticsBoard({
     () => (selected && selected.side === "player" && selected.ap > 0 && !abilityMode && battle.phase === "player" ? moveOptionsFor(battle, selected.id) : new Map()),
     [battle, selected, abilityMode],
   )
+  // Graphics pass: the move range is drawn XCOM-style - one glowing line
+  // around each band's outer edge instead of a ring on every tile.
+  const moveEdges = useMemo(() => bandEdges(moveOptions), [moveOptions])
   const [hoverKey, setHoverKey] = useState(null)
   const hoverPath = useMemo(() => {
     if (!hoverKey || !selected || !moveOptions.has(hoverKey)) return null
@@ -1034,6 +1078,7 @@ export default function TacticsBoard({
           data-move-cost={moveOpt ? moveOpt.apCost : undefined}
           data-dash={moveOpt?.dash || undefined}
           data-heal-ring={healRing.has(`${row}-${col}`) || undefined}
+          data-ground={groundVariant(row, col)}
           data-path={onPath || undefined}
           onMouseEnter={moveOpt ? () => setHoverKey(`${row}-${col}`) : target && unit ? () => setHoverTargetId(unit.id) : skillTileHere ? () => setHoverSkillTile(`${row}-${col}`) : undefined}
           onMouseLeave={
@@ -1088,6 +1133,9 @@ export default function TacticsBoard({
           data-deploy-target={deployZone && !!selected && (!unit || (unit.side === "player" && unit.id !== selected.id))}
           onClick={() => handleCellClick(row, col)}
         >
+          {moveEdges.has(`${row}-${col}`) && (
+            <span className="hwt-band-edge" data-band={moveOpt.band} style={{ borderWidth: moveEdges.get(`${row}-${col}`) }} aria-hidden="true" />
+          )}
           {hoverCover && hoverKey === `${row}-${col}` &&
             Object.entries(hoverCover)
               .filter(([, v]) => v > 0)
@@ -1591,6 +1639,7 @@ export default function TacticsBoard({
             {cells}
             <BoardOverlay battle={battle} pairs={aggro} hoverPath={hoverPath} selected={selected} healReachTiles={healRing.size ? healReach(selected) : 0} />
             <BondOverlay battle={battle} />
+            <BoardAmbience />
           </div>
         </div>
 

@@ -131,6 +131,7 @@ import { buildRunTacticsBattle } from "../services/heartwood/tacticsRealMatchup"
 import { withHitRolls } from "../services/heartwood/tacticsCover"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
+import "../components/heartwood/heartwood-graphics.css"
 
 const LEVEL_UP_PHASES = new Set(["shop", "relic", "event", "choice", "formation", "camp"])
 
