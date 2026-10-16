@@ -3,6 +3,8 @@ import { PERKS, levelForXp, parseOffer, spentLevels, pendingPromotionRank } from
 import { PROMOTIONS, promotionsFor } from "../../data/heartwood/promotions"
 import { CLASSES } from "../../data/heartwood/classes"
 import { RESOURCES, CLASS_RESOURCE_DEFAULT } from "../../data/heartwood/resources"
+// Dota depth 2: the talent rows (Lv2 / Lv4 level-ups are the talent pick).
+import { TalentTree, TalentOfferCard } from "./TalentNeutralUi"
 
 // Class promotions: the CEREMONY (Lv3 = pick 1 of 2 advanced classes,
 // Lv5 = master the path or cross-train). Shown right after the level-up
@@ -108,18 +110,24 @@ export default function LevelUpChoice({ subject, offers, onChoose }) {
   const ups = subject.skillUpgrades || {}
   const offered = new Set(offers.map(parseOffer).filter((o) => o.kind === "upgrade").map((o) => `${o.skillId}:${o.branch}`))
   const hasUpgrade = offered.size > 0
+  const talentTier = offers.map(parseOffer).find((o) => o.kind === "talent")?.tier || null
   return (
-    <div className="hw-intro hw-levelup" data-screen="level-up">
+    <div className="hw-intro hw-levelup" data-screen="level-up" data-talent-pick={talentTier || undefined}>
       <h2 className="hw-levelup-title">
         {subject.name} reached Level {level}!
       </h2>
       <p className="hw-levelup-sub">
-        {hasUpgrade ? "Upgrade a skill (pick A or B - it's permanent) or take a perk." : "Pick one perk. It works in every fight from now on."}
+        {talentTier
+          ? "Talent! Pick the left or the right talent of this row - it's for good, and it changes how the hero plays."
+          : hasUpgrade
+            ? "Upgrade a skill (pick A or B - it's permanent) or take a perk."
+            : "Pick one perk. It works in every fight from now on."}
         {reached > level ? ` (${reached - level + 1} level-ups waiting)` : ""}
       </p>
       <div className="hw-levelup-grid">
         {offers.map((id) => {
           const o = parseOffer(id)
+          if (o.kind === "talent") return <TalentOfferCard key={id} offer={o} subject={subject} onChoose={onChoose} />
           if (o.kind === "upgrade") {
             const sk = (subject.skills || []).find((s) => s.id === o.skillId)
             const up = sk?.upgrades?.[o.branch]
@@ -150,7 +158,8 @@ export default function LevelUpChoice({ subject, offers, onChoose }) {
           )
         })}
       </div>
-      {(subject.skills || []).length > 0 && (
+      <TalentTree subject={subject} offeredTier={talentTier} />
+      {(subject.skills || []).length > 0 && !talentTier && (
         <div className="hw-skilltree" data-skilltree={subject.key}>
           <div className="hw-skilltree-title">Skill tree</div>
           {subject.skills.map((sk) => (

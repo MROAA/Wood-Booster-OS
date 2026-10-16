@@ -104,6 +104,8 @@ import sellPlaque from "../../assets/heartwood/buttons/sell-plaque.png"
 import yourSquadPlaque from "../../assets/heartwood/buttons/your-squad-plaque.png"
 import shopConfirmPlaque from "../../assets/heartwood/buttons/shop-confirm-plaque.png"
 import { PERKS, levelForXp } from "../../services/heartwood/unitLevels"
+// Dota depth 2: a hero's neutral slot (Gear screen).
+import { equipNeutral, unequipNeutral } from "../../services/heartwood/neutrals"
 
 // The shop node: recruit whoever you can afford, reroll the rest,
 // leave when ready. No forced pick-one - unlike the old card-reward
@@ -1427,6 +1429,8 @@ export default function SquadDraft({
           onSell={onSellItem}
           onForge={onRunAction ? (recipeId, owner) => onRunAction((rs) => forgeItem(rs, recipeId, owner)) : undefined}
           onChooseBuild={onRunAction ? (owner, pathId) => onRunAction((rs) => chooseHeroBuild(rs, owner, pathId)) : undefined}
+          onEquipNeutral={onRunAction ? (owner, id) => onRunAction((rs) => equipNeutral(rs, owner, id)) : undefined}
+          onUnequipNeutral={onRunAction ? (owner) => onRunAction((rs) => unequipNeutral(rs, owner)) : undefined}
         />
       )}
       {forged && ITEMS[forged.result] && (

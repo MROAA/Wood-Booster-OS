@@ -343,3 +343,9 @@
 .hwc-help-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px 18px; margin: 0 0 8px; }
 .hwc-help-row dt { color: var(--hwc-gold); font-weight: 600; }
 .hwc-help-row dd { margin: 2px 0 0; color: var(--hw-muted); font-size: var(--hw-fs-sm); line-height: 1.45; }
+
+/* Dota depth 2: neutral slot line + neutral stash. */
+.hwc-neutral-line { font-size: 12px; color: var(--hw-muted); display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.hwc-neutral-line b { color: var(--hw-text); }
+.hwc-neutral-stash { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.hwc-neutral-stash .hwc-gear-name strong { color: var(--hw-neutral, var(--hw-text)); }

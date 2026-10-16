@@ -1,6 +1,8 @@
 import { ITEMS } from "../../data/heartwood/items"
 import { COUNTER_KITS, COUNTER_TAGS } from "../../data/heartwood/itemBuilds"
 import { itemActivesOf, itemActiveBlocker, activeCostText, castItemActive } from "../../services/heartwood/tacticsItems"
+// Dota depth 2: talent / neutral / enemy-talent / burrow marks.
+import { TalentBadges } from "./TalentNeutralUi"
 
 // Dota depth sprint - the fight UI for item actives and enemy kits.
 //  - ItemActions: one button per active item on the selected hero's action
@@ -63,8 +65,9 @@ export function KitBadges({ unit }) {
   const out = []
   if (kit) {
     const n = kit.id === "ironbark" ? unit.armor : kit.id === "mist" ? unit.blurCharges : kit.id === "runeshell" ? unit.shell : null
+    const quiet = (kit.id === "reflect" && (unit.reflectBroken > 0 || unit.reflectUsed)) || (kit.id === "hush" && unit.hushBroken > 0)
     out.push(
-      <span key="kit" className="hwt-kit-badge" data-kit-badge={kit.id} data-revealed={kit.id === "shroud" && unit.revealed > 0 ? "true" : undefined} title={`${kit.name}: ${kit.text} Answer: ${kit.answers.map((a) => COUNTER_TAGS[a]?.label).join(" / ")}.${kit.id === "shroud" && unit.revealed > 0 ? ` Revealed (${unit.revealed}).` : ""}`}>
+      <span key="kit" className="hwt-kit-badge" data-kit-badge={kit.id} data-quiet={quiet || undefined} data-revealed={kit.id === "shroud" && unit.revealed > 0 ? "true" : undefined} title={`${kit.name}: ${kit.text} Answer: ${kit.answers.map((a) => COUNTER_TAGS[a]?.label).join(" / ")}.${kit.id === "shroud" && unit.revealed > 0 ? ` Revealed (${unit.revealed}).` : ""}`}>
         {kit.icon}
         {n != null ? n : ""}
       </span>,
@@ -88,12 +91,13 @@ export function KitBadges({ unit }) {
         🛡{unit.ctrlImmune}
       </span>,
     )
-  return out.length ? <>{out}</> : null
+  out.push(<TalentBadges key="talents" unit={unit} />)
+  return <>{out}</>
 }
 
 // Answers the squad carries into this fight (gear riders + actives).
 function squadAnswers(battle) {
-  const have = new Set(["skills"])
+  const have = new Set(["skills", "physical"])
   for (const u of battle.units) {
     if (u.side !== "player" || u.hp <= 0) continue
     for (const id of u.gearIds || []) for (const t of ITEMS[id]?.counters || []) have.add(t)
@@ -103,6 +107,7 @@ function squadAnswers(battle) {
     if (u.gearWither) have.add("heal-cut")
     if (u.gearShred) have.add("shred")
     if (u.gearReveal) have.add("reveal")
+    if (u.itemActives?.length) have.add("items")
     for (const a of u.itemActives || []) {
       if (a.id === "unbind" || a.id === "unbind-peal") have.add("dispel")
       if (a.id === "mana-burn") have.add("mana-burn")

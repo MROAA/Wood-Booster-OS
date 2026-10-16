@@ -315,6 +315,37 @@ export const COACH_TIPS = [
     text: "The marks on these enemies are tricks (armour, mist, shells, healing, summons, hiding). 'Enemy tricks' lists each one and the answer.",
     anchor: ".hwt-counter-panel",
   },
+  // Dota depth 2: talents, neutral items, enemy talents.
+  {
+    id: "talents",
+    title: "Talents",
+    text: "At Level 2 and Level 4 a hero picks one of two TALENTS instead of a perk - a second charge, a faster recharge, a skill that hits an area, mana back. Open its Gear screen to see the whole talent tree.",
+    anchor: ".hw-gear-open",
+  },
+  {
+    id: "neutral",
+    title: "Neutral items",
+    text: "Won fights (elites and bosses most of all) sometimes drop a NEUTRAL item. Every hero has one neutral slot of its own, apart from the gear row - open a Gear screen to put it on. Spare ones wait in the stash.",
+    anchor: ".hw-neutral-drop, .hw-gear-open",
+  },
+  {
+    id: "t-talent",
+    title: "Talents in a fight",
+    text: "The ✦ mark on a hero counts its talents (hover it). A skill a talent changed shows ✦ on its button - ×2 means it has 2 charges: cast it twice before it recharges.",
+    anchor: ".hwt-talent-badge",
+  },
+  {
+    id: "t-neutral",
+    title: "Neutral item",
+    text: "This mark is the hero's neutral item - a small quirky bonus, often more mana. Hover it to read it.",
+    anchor: ".hwt-neutral-badge",
+  },
+  {
+    id: "t-enemy-talent",
+    title: "Enemy talents",
+    text: "At higher threat the elites and bosses have TALENTS of their own (thick hide, a second wind, mana siphon...). The Threat panel lists them; ✧ marks the enemy.",
+    anchor: ".hwt-threat-etalents",
+  },
   {
     id: "t-level",
     title: "Hero levels",

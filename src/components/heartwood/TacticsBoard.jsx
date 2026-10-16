@@ -107,6 +107,7 @@ function ThreatPanel({ battle }) {
           ))}
         </div>
       )}
+      <EnemyTalentsLine battle={battle} />
       {d.traits.length > 0 && (
         <div className="hwt-threat-traits">
           {d.traits.map((t) => (
@@ -169,6 +170,9 @@ import { terrainArtStyle, ObjectArt, TerrainIcon, BlightIcon, BLIGHT_ART_URL, Sm
 import { archetypeOf, beamTiles, blastTiles, AIM_BONUS, SUPPRESS_PENALTY } from "../../services/heartwood/tacticsRanged"
 // Dota depth sprint: active items on the action bar + enemy counter kits.
 import { ItemActions, KitBadges, CounterPanel } from "./TacticsItemsUi"
+// Dota depth 2: enemy talents on the Threat panel, talent marks + Hushcap on the skill bar.
+import { EnemyTalentsLine } from "./TalentNeutralUi"
+import { hushedNow, talentSkillNote } from "../../services/heartwood/tacticsTalents"
 import { activeDef, itemActiveTargets, castItemActive } from "../../services/heartwood/tacticsItems"
 
 // Ranged rework: tile skills that hit a 3x3 area (blast preview on hover).
@@ -1215,6 +1219,7 @@ export default function TacticsBoard({
               data-aura-wearer={unit.gearAuras?.length ? unit.gearAuras.map((a) => a.type).join(" ") : undefined}
               data-shrouded={unit.shroud && !(unit.revealed > 0) ? "true" : undefined}
               data-lifted={unit.lifted > 0 || undefined}
+              data-burrowed={(unit.burrowed > 0 && !(unit.revealed > 0)) || undefined}
               title={roleTitle(unit)}
             >
               <TokenArt unit={unit} />
@@ -1869,6 +1874,11 @@ export default function TacticsBoard({
                   Passive: {classInfoFor(selected).passive.name}
                 </span>
               </div>
+              {hushedNow(battle, selected) && (
+                <p className="hwt-hush-hint" data-hushed>
+                  🔇 Hushed by {hushedNow(battle, selected).name}: no skills within 2 tiles of it. Attacks and item actives still work - or step away.
+                </p>
+              )}
               <div className="hwt-skill-row">
                 {(selected.classSkills || []).map((sk, i) => {
                   const ready = classSkillUsable(battle, selected, sk)
@@ -1881,16 +1891,23 @@ export default function TacticsBoard({
                       data-active={armedSkillId === sk.id}
                       data-upgraded={sk.upgrade ? sk.upgrade.branch : undefined}
                       data-promo={sk.promo ? sk.promoId : undefined}
+                      data-talent={sk.talentMarks?.length ? sk.talentMarks.length : undefined}
+                      data-charges={sk.charges > 1 ? sk.charges - ((selected.chargesUsed || {})[sk.id] || 0) : undefined}
                       data-no-mana={!!manaBlockReason(selected, sk) || undefined}
                       disabled={!ready}
                       onClick={() => handleSkillClick(sk)}
-                      title={`${sk.name} (${sk.cost} AP${hasMana(selected) ? `, ${skillCostText(selected, sk)}` : ""}, recharge ${sk.cooldown}) - ${sk.text}${manaBlockReason(selected, sk) ? `\nNot enough ${resourceLabel(selected)}: ${manaBlockReason(selected, sk)}.` : ""}${sk.upgrade ? `\n★ ${sk.upgrade.name} (${sk.upgrade.branch}): ${sk.upgrade.text}` : ""}${key <= 4 ? ` [key ${key}]` : ""}`}
+                      title={`${sk.name} (${sk.cost} AP${hasMana(selected) ? `, ${skillCostText(selected, sk)}` : ""}, recharge ${sk.cooldown}) - ${sk.text}${manaBlockReason(selected, sk) ? `\nNot enough ${resourceLabel(selected)}: ${manaBlockReason(selected, sk)}.` : ""}${sk.upgrade ? `\n★ ${sk.upgrade.name} (${sk.upgrade.branch}): ${sk.upgrade.text}` : ""}${sk.talentMarks?.length ? `\n✦ Talent: ${talentSkillNote(sk)}${sk.charges > 1 ? ` (${sk.charges} charges)` : ""}` : ""}${key <= 4 ? ` [key ${key}]` : ""}`}
                     >
                       <span className="hwt-skill-icon">{sk.icon}</span>
                       <span className="hwt-skill-name">{sk.name}</span>
                       {sk.upgrade && (
                         <span className="hwt-skill-upgrade">
                           ★ {sk.upgrade.name}
+                        </span>
+                      )}
+                      {sk.talentMarks?.length > 0 && (
+                        <span className="hwt-skill-talent" title={talentSkillNote(sk)}>
+                          ✦ {sk.charges > 1 ? `×${sk.charges - ((selected.chargesUsed || {})[sk.id] || 0)}` : talentSkillNote(sk)}
                         </span>
                       )}
                       <span className="hwt-skill-cost">{classSkillStatus(selected, sk)}</span>

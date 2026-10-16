@@ -95,6 +95,17 @@ export const HELP_SECTIONS = [
     ],
   },
   {
+    // Dota depth 2: talents, neutral items, more enemy tricks + enemy talents.
+    heading: "Talents & neutral items",
+    entries: [
+      { term: "Talent tree", blurb: "Every class has a talent tree with two rows. At Level 2 and Level 4 the level-up IS the talent pick: choose the left or the right talent of that row, for good. Talents change how a hero plays - a 2nd charge (cast a skill twice before it recharges), a faster recharge, a skill that suddenly hits an area, cheaper casts, or mana that comes back per cast, hit or kill. Levels 3 and 5 stay the skill-branch-or-perk pick plus the promotion ceremony. See the tree on a hero's Gear screen (★ = chosen, faded = passed over, grey = not reached yet)." },
+      { term: "Mana talents", blurb: "Many talents feed the class resource: Mana Shield (part of each hit is paid from the bar), Wellspring Echo (mana back per cast), Sap Thief (per basic hit), Soul Tithe (per kill), Deep Well (bigger bar), Ley Spring (more each turn), Opening Gambit (the first skill each fight is free)." },
+      { term: "Neutral items", blurb: "Won fights sometimes drop a neutral item - elites often, minibosses and bosses always. Tiers open as the story goes on (Tier I in Act I up to Tier V in Act VII). Each hero has ONE neutral slot apart from its gear row; open its Gear screen to put one on. Spare neutrals wait in the stash (the campaign keeps one too)." },
+      { term: "More enemy tricks", blurb: "Later Acts bring five more: Bloodfang (lifesteal - answer: Wither / healing cut), Splitting Spores (splits in two when it falls - answer: area damage), Burrower (underground every other turn - answer: reveal), Thornmirror (the first skill each turn bounces half back - answer: basic attacks or a dispel), Hushcap (no skills within 2 tiles - answer: item actives, attacks, a dispel)." },
+      { term: "Enemy talents", blurb: "At Threat T2 and up the elites, minibosses and bosses get talents too (T2-T3 one, T4 two, T5 three; at T4+ the second-strongest foe gets one as well): Thick Hide, Sharpened, Fleet, Mana Siphon, Second Wind, Bloodrage, Spellguard. The Threat panel lists them; ✧ marks the enemy on the board." },
+    ],
+  },
+  {
     heading: "Growing heroes",
     entries: [
       { term: "Evolution", blurb: "Deploy a common fill hero enough times, with its tribe fielded alongside it, and it becomes a stronger authored form. Free and permanent - a ▲ marks it." },

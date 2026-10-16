@@ -3725,3 +3725,31 @@ button.hwt-tl-chip:hover { border-color: var(--hwt-gold); }
   background: rgba(20, 14, 8, 0.85);
 }
 .hwt-token-status > .hwt-kit-badge[data-kit-badge="shroud"][data-revealed="true"] { border-style: dashed; }
+
+/* ===== Dota depth 2: talents, neutrals, new enemy tricks, enemy talents ===== */
+.hwt-talent-badge,
+.hwt-etalent-badge,
+.hwt-neutral-badge {
+  font-weight: 700;
+  font-size: 0.68rem;
+  padding: 0 3px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--hw-card) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 45%, var(--hw-border));
+  color: var(--hwt-gold);
+}
+.hwt-talent-badge[data-dormant="true"] { opacity: 0.55; }
+.hwt-neutral-badge { border-color: color-mix(in srgb, var(--hw-neutral, var(--hwt-gold)) 70%, var(--hw-border)); box-shadow: 0 0 6px color-mix(in srgb, var(--hw-neutral, var(--hwt-gold)) 40%, transparent); }
+.hwt-etalent-badge { color: #e7a35a; border-color: color-mix(in srgb, #e7a35a 55%, var(--hw-border)); }
+.hwt-kit-badge[data-kit-badge="bloodfang"] { color: #d06a5a; }
+.hwt-kit-badge[data-kit-badge="reflect"],
+.hwt-kit-badge[data-kit-badge="hush"] { color: var(--hw-rune); }
+.hwt-kit-badge[data-quiet="true"] { opacity: 0.45; text-decoration: line-through; }
+.hwt-kit-badge[data-status="burrowed"] { color: #b08d5a; }
+.hwt-token[data-burrowed="true"] { opacity: 0.5; filter: sepia(0.5) brightness(0.75); transform: translateY(4px) scale(0.92); border-style: dotted; }
+.hwt-threat-etalents { margin-top: 5px; font-size: 0.72rem; color: var(--hw-muted); display: flex; flex-wrap: wrap; gap: 4px; align-items: baseline; }
+.hwt-threat-etalent-unit { color: var(--hw-text); }
+.hwt-threat-etalent { padding: 1px 6px; border-radius: 8px; background: color-mix(in srgb, #e7a35a 16%, transparent); border: 1px solid color-mix(in srgb, #e7a35a 40%, transparent); color: var(--hw-text); margin-left: 2px; }
+.hwt-skill-talent { font-size: 10px; color: var(--hwt-gold); line-height: 1.1; }
+.hwt-skill-btn[data-talent] { border-color: color-mix(in srgb, var(--hwt-gold) 55%, var(--hw-border)); }
+.hwt-hush-hint { font-size: var(--hw-fs-sm); color: var(--hw-rune); margin: 2px 0 4px; }
