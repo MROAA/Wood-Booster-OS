@@ -33,6 +33,8 @@ import { rollBoulder, placeTimedTile, igniteGrass, igniteTree, explode, freezeWa
 import { knockback, pushDir } from "./tacticsChaos"
 import { canAfford, hasMana, manaBlockReason, resourceMods, profileOf, gainResource, tokensOf, reagentCombos, VENOM_DAMAGE } from "./tacticsMana"
 import * as ranged from "./tacticsRanged"
+// Dota depth 2: Hushcap silence aura (circular, call-time only).
+import { hushedNow } from "./tacticsTalents"
 
 const SLOW = 2
 const ROOT = 2
@@ -299,6 +301,8 @@ export const STEALTH_RANGE = 2
 export function itemHidden(target, attacker, atkPos = attacker?.pos) {
   if (!target || !attacker || target.side === attacker.side) return false
   if (target.lifted > 0) return true
+  // Dota depth 2: a Burrower underground (until revealed or it surfaces).
+  if (target.burrowed > 0 && !(target.revealed > 0)) return true
   if (!target.shroud || target.revealed > 0 || !atkPos) return false
   const d = dist(atkPos, target.pos)
   return d > 1 && !(attacker.gearReveal >= d)
@@ -888,6 +892,8 @@ export function classSkillTiles(state, actorId, skill) {
 // Ready AND has something to act on (UI button state).
 export function classSkillUsable(state, unit, skill) {
   if (!classSkillReady(unit, skill)) return false
+  // Dota depth 2: a Hushcap's silence aura.
+  if (hushedNow(state, unit)) return false
   if (skill.target === "self") return selfAllows(state, unit, skill)
   if (skill.target === "tile") return classSkillTiles(state, unit.id, skill).length > 0
   return true

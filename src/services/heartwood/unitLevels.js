@@ -26,6 +26,9 @@ import { RESOURCES, CLASS_RESOURCE_DEFAULT } from "../../data/heartwood/resource
 import { promotionsFor, PROMOTIONS, PROMOTION_LEVELS } from "../../data/heartwood/promotions"
 import { applyPromotionToTactics } from "./promotions"
 import { traitFx, applyTraitsToTactics } from "./traits"
+// Dota depth 2: the talent tree (Lv2 / Lv4 level-ups) + the neutral slot.
+import { TALENT_LEVELS, talentTreeFor } from "../../data/heartwood/talents"
+import { applyTalentsToUnit, applyNeutralToUnit } from "./tacticsTalents"
 
 export const MAX_LEVEL = 5
 // Total XP needed to REACH each level (index = level - 1).
@@ -82,6 +85,7 @@ export function levelSubject(runState, key) {
       skillUpgrades: runState.commanderSkillUpgrades || {}, skills: skillTreeFor(ch, { commander: true }),
       ranged: !!ch?.attackPattern && ch.attackPattern !== "single", hasAbility: false,
       promoPicks: runState.commanderPromo || [], naturalClass: "commander",
+      talents: runState.commanderTalents || {}, neutral: runState.commanderNeutral || null,
     }
   }
   const e = runState.bench.find((b) => b.key === key)
@@ -93,6 +97,7 @@ export function levelSubject(runState, key) {
     inheritedPerks: e.inheritedPerks || [],
     ranged: !!def?.attackPattern && def.attackPattern !== "single", hasAbility: true,
     promoPicks: e.promoPicks || [], naturalClass: heroClassId(e), heroTraits: e.heroTraits || [],
+    talents: e.talents || {}, neutral: e.neutral || null,
   }
 }
 
@@ -131,10 +136,44 @@ export function promotionOffers(subject) {
   return []
 }
 
-// Levels already spent (a perk or a skill branch each).
+// Levels already spent (a perk, a skill branch or a talent each).
 export function spentLevels(subject) {
-  return subject.perks.length + Object.keys(subject.skillUpgrades || {}).length
+  return subject.perks.length + Object.keys(subject.skillUpgrades || {}).length + Object.keys(subject.talents || {}).length
 }
+
+// --- Dota depth 2: the TALENT TREE ---------------------------------------------
+// The level-ups at TALENT_LEVELS (Lv2, Lv4) ARE the talent pick: the card
+// screen shows the row's two talents instead of perks / skill branches, so
+// a level never stacks extra choice screens (Lv3 / Lv5 keep the branch or
+// perk + the promotion ceremony). An older save that spent such a level
+// on a perk gets the missed row at its next level-up.
+// Stored on the bench entry as `talents: { [tier]: "L" | "R" }` (the
+// Commander: runState.commanderTalents). Offer ids "talent:<tier>:<L|R>".
+
+// The subject's talent tree: [{ tier, level, L, R, chosen: "L"|"R"|null }].
+export function talentTreeOf(subject) {
+  if (!subject?.naturalClass) return []
+  return talentTreeFor(subject.naturalClass).map((row) => ({ ...row, chosen: subject.talents?.[row.tier] || null }))
+}
+
+// The row this level-up opens (or a missed earlier row), else null.
+export function pendingTalentTier(subject, level = spentLevels(subject) + 2) {
+  const tree = talentTreeOf(subject)
+  return tree.find((row) => row.level <= level && !row.chosen)?.tier || null
+}
+
+export function talentOfferId(tier, side) {
+  return `talent:${tier}:${side}`
+}
+
+// Chosen talent ids ("class:tierSide") of a bench entry / Commander store.
+export function talentIdsOf(classId, talents) {
+  if (!classId || !talents) return []
+  return Object.entries(talents)
+    .filter(([, side]) => side === "L" || side === "R")
+    .map(([tier, side]) => `${classId}:${tier}${side}`)
+}
+export { TALENT_LEVELS }
 
 // Levels earned but not yet spent on a perk / branch.
 export function pendingPerkCount(subject) {
@@ -173,6 +212,8 @@ export function upgradeOfferId(skillId, branch) {
   return `up:${skillId}:${branch}`
 }
 export function parseOffer(id) {
+  const t = /^talent:(\d):([LR])$/.exec(id || "")
+  if (t) return { kind: "talent", tier: Number(t[1]), side: t[2] }
   const m = /^up:(.+):([AB])$/.exec(id || "")
   return m ? { kind: "upgrade", skillId: m[1], branch: m[2] } : { kind: "perk", perkId: id }
 }
@@ -181,6 +222,9 @@ export function parseOffer(id) {
 // skill (seeded by run seed + key + level) + the first stat perk offer.
 // No skill left to upgrade = 3 stat perks, as before.
 export function levelOffers(runState, subject) {
+  // Dota depth 2: a talent level offers its row's two talents.
+  const tier = pendingTalentTier(subject)
+  if (tier) return [talentOfferId(tier, "L"), talentOfferId(tier, "R")]
   const perks = perkOffers(runState, subject)
   const open = (subject.skills || []).filter((sk) => !subject.skillUpgrades?.[sk.id])
   if (!open.length) return perks
@@ -242,9 +286,14 @@ export function applyLevelsToTactics(battle, runState) {
       traits: e.heroTraits || [],
       promo: e.promoPicks || [],
       natural: heroClassId(e),
+      talents: talentIdsOf(heroClassId(e), e.talents),
+      neutral: e.neutral || null,
     }
   })
-  byId["player-commander"] = { xp: runState.commanderXp || 0, perks: runState.commanderPerks || [], ups: runState.commanderSkillUpgrades || {}, promo: runState.commanderPromo || [], natural: "commander" }
+  byId["player-commander"] = {
+    xp: runState.commanderXp || 0, perks: runState.commanderPerks || [], ups: runState.commanderSkillUpgrades || {}, promo: runState.commanderPromo || [], natural: "commander",
+    talents: talentIdsOf("commander", runState.commanderTalents), neutral: runState.commanderNeutral || null,
+  }
   return {
     ...battle,
     units: battle.units.map((u) => {
@@ -256,7 +305,10 @@ export function applyLevelsToTactics(battle, runState) {
       // Traits (traits.js): conditional bonuses + run-level extras.
       const traited = b.traits?.length ? applyTraitsToTactics(mutated, b.traits) : mutated
       // Promotions (promotions.js): stats, title, + skill/passive/twist on the natural class.
-      return b.promo?.length ? applyPromotionToTactics(traited, b.promo, b.natural) : traited
+      const promoted = b.promo?.length ? applyPromotionToTactics(traited, b.promo, b.natural) : traited
+      // Dota depth 2: talents (after promotions - they reshape class skills) + the neutral slot.
+      const talented = b.talents?.length ? applyTalentsToUnit(promoted, b.talents, b.natural) : promoted
+      return b.neutral ? applyNeutralToUnit(talented, b.neutral) : talented
     }),
   }
 }

@@ -23,6 +23,8 @@ import { TERRAIN, terrainAt } from "./tacticsTerrain"
 import { knockback } from "./tacticsChaos"
 import { manaOn, hasMana, scaleAmount, gainExternal, resourceLabel } from "./tacticsMana"
 import { counterKitFor } from "./itemForge"
+// Dota depth 2: talents, neutrals, five more kits, enemy talents.
+import { talentPreDamage, talentEnemyPhaseStart, talentPlayerTurnStart, dispelKit, kitStartFields, assignEnemyTalents, talentQa } from "./tacticsTalents"
 
 const dist = (a, b) => Math.max(Math.abs(a.row - b.row), Math.abs(a.col - b.col))
 const log = (state, line) => ({ ...state, log: [...state.log, line] })
@@ -208,7 +210,7 @@ export function castItemActive(state, unitId, activeId, target = null) {
     case "glowdust": {
       let n = 0
       for (const u of livingUnits(next, "enemy")) {
-        if (!u.shroud || dist(u.pos, actor.pos) > def.range) continue
+        if (!(u.shroud || u.burrowed > 0) || dist(u.pos, actor.pos) > def.range) continue
         next = callout(setUnit(next, u.id, { revealed: Math.max(u.revealed || 0, def.turns || 2) }), u.id, "Revealed!")
         n++
       }
@@ -223,6 +225,8 @@ export function castItemActive(state, unitId, activeId, target = null) {
       } else {
         const t = getUnit(next, tgt.id)
         next = setUnit(next, tgt.id, { shell: 0, shellBroken: t.shellMax > 0 ? Math.max(t.shellBroken || 0, def.turns || 2) : t.shellBroken || 0, ward: 0, regen: 0, blurCharges: 0 })
+        // Dota depth 2: a Thornmirror / Hushcap goes quiet, a Burrower is dragged up.
+        next = dispelKit(next, tgt.id, def.turns || 2)
         next = callout(next, tgt.id, "Dispelled!")
         next = log(next, `${name} unbinds ${tgt.name} - its magic is stripped${t.shellMax > 0 ? ` and its Runeshell can't regrow for ${def.turns || 2} turns` : ""}.`)
       }
@@ -238,6 +242,7 @@ export function castItemActive(state, unitId, activeId, target = null) {
 // Lifted (untouchable), Ironbark armour, Runeshell soak. Called first thing
 // in applyDamageWithBlock.
 export function itemPreDamage(state, targetId, amount) {
+  ;({ state, amount } = talentPreDamage(state, targetId, amount))
   const t = getUnit(state, targetId)
   if (!t || !(amount > 0)) return { state, amount }
   if (t.lifted > 0) return { state: log(state, `${t.name} is lifted out of reach.`), amount: 0 }
@@ -343,7 +348,7 @@ export function itemEnemyPhaseStart(state) {
       }
     }
   }
-  return next
+  return talentEnemyPhaseStart(next)
 }
 
 // After every enemy action (real turn and preview): a hero under Heartoak
@@ -360,7 +365,8 @@ export function scrubControl(state) {
 
 // The player's turn comes back: recharges tick, lifts end, reveals /
 // Withers / broken shells count down, Mist Veils refill, lanterns shine.
-export function itemPlayerTurnStart(state) {
+export function itemPlayerTurnStart(state0) {
+  const state = talentPlayerTurnStart(state0)
   if (!state.units.some((u) => u.itemActives || u.kit || u.lifted || u.ctrlImmune || u.withered || u.revealed)) return state
   let next = {
     ...state,
@@ -389,7 +395,7 @@ function revealAura(state) {
   for (const h of livingUnits(state, "player")) {
     if (!(h.gearReveal > 0)) continue
     for (const e of livingUnits(next, "enemy")) {
-      if (!e.shroud || e.revealed > 0 || dist(e.pos, h.pos) > h.gearReveal) continue
+      if (!(e.shroud || e.burrowed > 0) || e.revealed > 0 || dist(e.pos, h.pos) > h.gearReveal) continue
       next = callout(setUnit(next, e.id, { revealed: 1 }), e.id, "Revealed!")
     }
   }
@@ -412,12 +418,13 @@ export function prepareItemsForBattle(battle, act = 1) {
       if (kit.id === "mist") k.blurCharges = kit.dodges
       if (kit.id === "runeshell") Object.assign(k, { shell: kit.shell, shellMax: kit.shell })
       if (kit.id === "shroud") k.shroud = true
-      return { ...u, ...k }
+      return { ...u, ...k, ...kitStartFields(kit) }
     }
     if (u.side === "player" && u.scepter) return scepterUpgrade(u)
     return u
   })
-  return revealAura({ ...battle, units, itemKits: units.some((u) => u.kit) || undefined })
+  // Dota depth 2: elites / bosses at higher threat get enemy talents.
+  return revealAura(assignEnemyTalents({ ...battle, units, itemKits: units.some((u) => u.kit) || undefined }))
 }
 
 const up = (n, f = 1.5) => (typeof n === "number" ? Math.round(n * f * 100) / 100 : n)
@@ -439,7 +446,7 @@ export function scepterUpgrade(u) {
 
 // QA hook (withLowEnemyHp): every enemy kit off.
 export function itemQa(state) {
-  return { ...state, units: state.units.map((u) => (u.side === "enemy" && u.kit ? { ...u, kit: null, armor: 0, shell: 0, shellMax: 0, blurCharges: 0, shroud: false } : u)) }
+  return { ...state, units: state.units.map((u) => (u.side !== "enemy" ? u : ((q) => (q.kit ? { ...q, kit: null, armor: 0, shell: 0, shellMax: 0, blurCharges: 0, shroud: false } : q))(talentQa(u)))) }
 }
 
 // The fight's spent uses: { itemKey: n } per unit, folded back onto the run

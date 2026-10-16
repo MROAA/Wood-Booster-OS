@@ -12,6 +12,9 @@ import { effectiveItemSlots, itemSellPrice, runActNow } from "../../services/hea
 // Dota depth sprint: build paths + forging.
 import { buildPathsFor, chosenBuildId, pathProgress, forgeBlocker, recipePartsText } from "../../services/heartwood/itemForge"
 import { BUILD_TIERS } from "../../data/heartwood/itemBuilds"
+// Dota depth 2: the hero's talent tree + its ONE neutral slot (+ the stash).
+import { levelSubject } from "../../services/heartwood/unitLevels"
+import { TalentTree, NeutralSlot } from "./TalentNeutralUi"
 
 // Dota depth sprint - the BUILD PATH view: pick one of the hero's 2-3
 // paths, see each step (what it needs, what you have) and forge it.
@@ -84,7 +87,7 @@ function BuildPathView({ runState, ownerKey, onChooseBuild, onForge }) {
 // the row adds up to (adjacency links, board auras, resource gear), and
 // the bag below equips into the first free slot. A Class Collar shows
 // "Natural class: X · Wearing: Y collar".
-export default function GearScreen({ runState, ownerKey, onClose, onEquip, onUnequip, onMove, onSell, onForge, onChooseBuild }) {
+export default function GearScreen({ runState, ownerKey, onClose, onEquip, onUnequip, onMove, onSell, onForge, onChooseBuild, onEquipNeutral, onUnequipNeutral }) {
   const slots = effectiveItemSlots(runState)
   const isCommander = ownerKey === COMMANDER_KEY
   const entry = isCommander ? null : runState.bench.find((e) => e.key === ownerKey)
@@ -171,6 +174,10 @@ export default function GearScreen({ runState, ownerKey, onClose, onEquip, onUne
             </div>
           )}
         </div>
+
+        <NeutralSlot ownerKey={ownerKey} worn={isCommander ? runState.commanderNeutral : entry?.neutral} stash={runState.neutralStash || []} onEquip={onEquipNeutral} onUnequip={onUnequipNeutral} />
+
+        {levelSubject(runState, ownerKey) && <TalentTree subject={levelSubject(runState, ownerKey)} />}
 
         <BuildPathView runState={runState} ownerKey={ownerKey} onChooseBuild={onChooseBuild} onForge={onForge} />
 

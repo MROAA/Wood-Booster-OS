@@ -21,6 +21,8 @@ import { combineRow, combineDuplicate, equipBlocker, applyGearToBattle, gearRow 
 import { itemUnlocked, forgeRecipe, chooseBuild } from "./itemForge"
 import { prepareItemsForBattle, chargesUsedIn } from "./tacticsItems"
 import { ITEM_ACTIVES } from "../../data/heartwood/itemBuilds"
+// Dota depth 2: neutral item drops after won fights.
+import { neutralDrop } from "./neutrals"
 import { CHARACTERS, commanderRankCost } from "../../data/heartwood/characters"
 import { tribesOf } from "../../data/heartwood/synergies"
 import { resolveTrial } from "../../data/heartwood/trials"
@@ -2858,6 +2860,13 @@ export function chooseLevelPerk(runState, key, perkId) {
   if (!subject || pendingPerkCount(subject) <= 0) return runState
   if (!levelOffers(runState, subject).includes(perkId)) return runState
   const pick = parseOffer(perkId)
+  // Dota depth 2: a talent row pick (permanent, one side per row).
+  if (pick.kind === "talent") {
+    if (subject.talents?.[pick.tier]) return runState
+    const talents = { ...(subject.talents || {}), [pick.tier]: pick.side }
+    if (key === "commander") return { ...runState, commanderTalents: talents }
+    return { ...runState, bench: runState.bench.map((e) => (e.key === key ? { ...e, talents } : e)) }
+  }
   if (pick.kind === "upgrade") {
     if (subject.skillUpgrades[pick.skillId]) return runState
     const ups = { ...subject.skillUpgrades, [pick.skillId]: pick.branch }
@@ -3444,7 +3453,7 @@ export function campaignFightAftermath(runState, battle) {
   const base = recordHeroHistory(recordFightAftermath(runState, battle), battle)
   if (battle?.phase !== "won") return base
   const mut = rollFightMutations(base, battle, node)
-  return signatureDrop(collarDrop({ ...mut.runState, lastMutations: mut.lines }, node), node)
+  return neutralDrop(signatureDrop(collarDrop({ ...mut.runState, lastMutations: mut.lines }, node), node), node, actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length))
 }
 
 export function resolveBattleOutcome(runState) {
@@ -3485,7 +3494,8 @@ export function resolveBattleOutcome(runState) {
     const { runState: evoRs, evolved } = applyEvolutions(withWins)
     // Gear sprint: elites (half the time) and minibosses drop a Class Collar.
     // Hero identity: minibosses (always) / elites (sometimes) drop a signature legendary.
-    const rs0 = signatureDrop(collarDrop(evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs, node), node)
+    // Dota depth 2: a neutral item drop (elites / minibosses most of all).
+    const rs0 = neutralDrop(signatureDrop(collarDrop(evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs, node), node), node, actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length))
     // Between-fights: a Hunted / Cursed path pays its promised loot; Fates
     // tick (allies leave, rivals pay their bounty, curses wear off).
     // Interest + the win payout below still read the pre-fate balance.

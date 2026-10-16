@@ -70,6 +70,9 @@ export const COUNTER_TAGS = {
   shred: { id: "shred", label: "armour shred", icon: "⚒", text: "hits that strip armour" },
   reveal: { id: "reveal", label: "reveal", icon: "✦", text: "dust or a lantern that shows hidden foes" },
   skills: { id: "skills", label: "skills", icon: "✧", text: "class skills (they never miss to a Mist Veil)" },
+  // Dota depth 2.
+  physical: { id: "physical", label: "basic attacks", icon: "⚔", text: "plain weapon hits (nothing to reflect)" },
+  items: { id: "items", label: "item actives", icon: "◈", text: "active items still work under a silence" },
 }
 
 // Enemy kits. `enemies` = the families that bring it; `act` = the first Act
@@ -112,6 +115,37 @@ export const COUNTER_KITS = {
     answers: ["reveal"],
     enemies: ["bloomrot-stalker", "fen-stalker", "throat-taker", "duskgnaw", "echo-stalker", "hollowspite", "needlefen", "duskwither"],
   },
+  // --- Dota depth 2: five more families (later Acts) ---------------------------
+  bloodfang: {
+    id: "bloodfang", name: "Bloodfang", icon: "🩸", act: 3, steal: 50,
+    text: "Lifesteal: its hits heal it for half the damage they deal.",
+    answers: ["heal-cut"],
+    enemies: ["ashenmaw", "hollowfang", "witherfang", "gravemaw", "blightfang", "thornmaw"],
+  },
+  splitter: {
+    id: "splitter", name: "Splitting Spores", icon: "❖", act: 3, count: 2, hpFactor: 0.35,
+    text: "When it falls it splits into 2 small Sporelings next to where it stood.",
+    answers: ["area"],
+    enemies: ["gravequill", "briarmaw", "rotbore-grub", "rotgut-crawler", "spore-lurcher", "emberwrack"],
+  },
+  burrow: {
+    id: "burrow", name: "Burrower", icon: "⛰", act: 4,
+    text: "Every other turn it digs in: underground it can't be targeted or hurt until it surfaces on its own turn - unless revealed.",
+    answers: ["reveal"],
+    enemies: ["thornfen", "grimspite", "hollowfen", "duskhollow", "mire-gnat"],
+  },
+  reflect: {
+    id: "reflect", name: "Thornmirror", icon: "⟲", act: 4, pct: 50,
+    text: "The first skill that hurts it each turn bounces back: the caster takes half that damage. Basic attacks aren't reflected.",
+    answers: ["physical", "dispel"],
+    enemies: ["bramblespite", "bonewarden", "thornspite", "echo-warden", "deepwarden"],
+  },
+  hush: {
+    id: "hush", name: "Hushcap", icon: "🔇", act: 5, radius: 2,
+    text: "Silence aura: heroes within 2 tiles of it can't cast skills. Basic attacks and item actives still work.",
+    answers: ["items", "physical", "dispel"],
+    enemies: ["stormroot", "emberthorn-shade", "tithe-warden", "sworn-cultist", "bog-devotee", "echo-archer", "drift-archer"],
+  },
 }
 
 // Build paths: a name, the items it builds toward (the last one is the
@@ -141,4 +175,20 @@ export const GROUP_BUILD_PATHS = {
 export const LEGACY_BUILD_TIER = {
   1: ["iron-blade", "bone-dagger", "oak-staff", "whetstone", "mana-gem", "herb-pouch", "empty-flask", "buckler", "padded-vest", "lucky-charm", "rune-stone"],
   2: ["twin-fangs", "keen-blade", "healing-draught", "mana-heart", "wellspring-staff", "grove-censer", "ironbark-guard", "fortune-rune"],
+}
+
+// --- Dota depth 2: ENEMY TALENTS -------------------------------------------------
+// At higher threat tiers the elites, minibosses and bosses of a fight get
+// small visible upgrades (the board's Threat panel lists them). How many:
+// ENEMY_TALENT_COUNT[tier] per leader; T4+ also gives the 2nd-strongest foe one.
+// Fields read by services/heartwood/tacticsTalents.js.
+export const ENEMY_TALENT_COUNT = { 0: 0, 1: 0, 2: 1, 3: 1, 4: 2, 5: 3 }
+export const ENEMY_TALENTS = {
+  "thick-hide": { id: "thick-hide", name: "Thick Hide", icon: "⛨", text: "Armour +1: every hit on it is 1 smaller.", armor: 1 },
+  sharpened: { id: "sharpened", name: "Sharpened", icon: "🗡", text: "+2 attack.", attack: 2 },
+  fleet: { id: "fleet", name: "Fleet", icon: "👣", text: "+1 movement.", move: 1 },
+  "mana-siphon": { id: "mana-siphon", name: "Mana Siphon", icon: "✺", text: "Its hits drain 15 resource from the hero they land on.", siphon: 15 },
+  "second-wind": { id: "second-wind", name: "Second Wind", icon: "❤", text: "Once, at the start of its turn below half HP, it heals 30% of its max HP.", secondWind: 0.3 },
+  bloodrage: { id: "bloodrage", name: "Bloodrage", icon: "♨", text: "Once below half HP (at the start of its turn): +3 attack for the rest of the fight.", bloodrage: 3 },
+  spellguard: { id: "spellguard", name: "Spellguard", icon: "⬡", text: "Starts with a 6-point magic shell (it doesn't regrow). Mana burn or a dispel breaks it.", shell: 6 },
 }

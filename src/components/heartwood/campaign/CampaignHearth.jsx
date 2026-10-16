@@ -4,7 +4,10 @@ import { UNITS } from "../../../data/heartwood/units"
 import { ITEMS } from "../../../data/heartwood/items"
 import { CLASSES } from "../../../data/heartwood/classes"
 import { CAMPAIGN_ROOMS, ATTUNE_MAX, ATTUNE_MANA, ATTUNE_COST } from "../../../data/heartwood/campaign"
-import { levelForXp } from "../../../services/heartwood/unitLevels"
+import { levelForXp, levelSubject } from "../../../services/heartwood/unitLevels"
+// Dota depth 2: talent tree + neutral slot on each roster hero, the neutral stash.
+import { TalentTree } from "../TalentNeutralUi"
+import { NEUTRAL_ITEMS, NEUTRAL_TIERS } from "../../../data/heartwood/neutrals"
 import { effectiveItemSlots } from "../../../services/heartwood/runEngine"
 import { gearRow } from "../../../services/heartwood/gear"
 import {
@@ -17,7 +20,7 @@ import { chronicleEntries, storyStanding, endingsInReach, ENDINGS, UNIQUE_HEROES
 
 // The Hearth in the campaign: rooms that take days to build, recruits,
 // the roster (with Ley attunement), a small armoury and the Memorial.
-export default function CampaignHearth({ campaign, onBack, onBuild, onRecruit, onAttune, onEquip, onUnequip, onPassDay }) {
+export default function CampaignHearth({ campaign, onBack, onBuild, onRecruit, onAttune, onEquip, onUnequip, onEquipNeutral, onUnequipNeutral, onPassDay }) {
   const [tab, setTab] = useState("rooms")
   const building = campaign.hearth?.building
   const view = campaignRunView(campaign)
@@ -28,7 +31,7 @@ export default function CampaignHearth({ campaign, onBack, onBuild, onRecruit, o
     ["rooms", "Rooms"],
     ["recruit", `Recruits (${campaign.recruitOffers.length})`],
     ["roster", `Roster (${campaign.roster.length})`],
-    ["armoury", `Armoury (${bag.length})`],
+    ["armoury", `Armoury (${bag.length + (campaign.neutralStash || []).length})`],
     ["memorial", `Memorial (${campaign.memorial.length})`],
     ["chronicle", `Chronicle (${campaign.story?.chronicle?.length || 0})`],
   ]
@@ -140,6 +143,22 @@ export default function CampaignHearth({ campaign, onBack, onBuild, onRecruit, o
                   </span>
                 </div>
                 <UnitCard def={UNITS[h.defId]} entry={h} />
+                {levelSubject(view, h.key) && <TalentTree subject={levelSubject(view, h.key)} compact />}
+                <div className="hwc-neutral-line" data-campaign-neutral={h.key}>
+                  ◈ Neutral:{" "}
+                  {h.neutral && NEUTRAL_ITEMS[h.neutral] ? (
+                    <>
+                      <b title={NEUTRAL_ITEMS[h.neutral].text}>
+                        {NEUTRAL_ITEMS[h.neutral].icon} {NEUTRAL_ITEMS[h.neutral].name}
+                      </b>{" "}
+                      <button className="hwc-btn hwc-btn-quiet" onClick={() => onUnequipNeutral?.(h.key)}>
+                        Take off
+                      </button>
+                    </>
+                  ) : (
+                    <span className="hwc-muted">empty</span>
+                  )}
+                </div>
                 <span className="hwc-status-chip" data-ok={!why || undefined}>
                   {why || "Ready"}
                 </span>
@@ -154,6 +173,44 @@ export default function CampaignHearth({ campaign, onBack, onBuild, onRecruit, o
 
       {tab === "armoury" && (
         <div className="hwc-armoury" data-campaign-armoury>
+          {(campaign.neutralStash || []).length > 0 && (
+            <div className="hwc-neutral-stash" data-campaign-neutral-stash={campaign.neutralStash.length}>
+              <div className="hwc-eyebrow">Neutral stash</div>
+              {campaign.neutralStash.map((id, i) => {
+                const n = NEUTRAL_ITEMS[id]
+                if (!n) return null
+                return (
+                  <div key={`${id}-${i}`} className="hwc-gear-row">
+                    <span className="hwc-gear-name" style={{ "--hw-neutral": NEUTRAL_TIERS[n.tier]?.color }}>
+                      <strong>
+                        {n.icon} {n.name}
+                      </strong>{" "}
+                      <span className="hwc-muted">
+                        {NEUTRAL_TIERS[n.tier]?.name} · {n.text}
+                      </span>
+                    </span>
+                    <select
+                      className="hwc-select"
+                      value=""
+                      data-campaign-neutral-give={id}
+                      onChange={(e) => {
+                        const raw = e.target.value
+                        if (raw) onEquipNeutral?.(raw === "commander" ? "commander" : Number(raw), id)
+                      }}
+                    >
+                      <option value="">Neutral slot of...</option>
+                      <option value="commander">Commander</option>
+                      {campaign.roster.map((h) => (
+                        <option key={h.key} value={h.key}>
+                          {h.name} ({UNITS[h.defId]?.name}){h.neutral ? " - swap" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )
+              })}
+            </div>
+          )}
           {campaign.items.length === 0 && <p className="hwc-muted">No gear yet. Elite hunts and supply caches bring some home.</p>}
           {campaign.items.map((it) => {
             const def = ITEMS[it.defId]

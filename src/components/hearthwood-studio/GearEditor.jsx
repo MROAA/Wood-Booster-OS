@@ -4,7 +4,11 @@ import { ITEMS, RARITY_INFO } from "../../data/heartwood/items"
 import { RECIPES } from "../../data/heartwood/recipes"
 import { COLLARS } from "../../data/heartwood/collars"
 // Dota depth sprint: tiered build recipes + active items (itemBuilds.js).
-import { BUILD_RECIPES, ITEM_ACTIVES } from "../../data/heartwood/itemBuilds"
+import { BUILD_RECIPES, ITEM_ACTIVES, ENEMY_TALENTS } from "../../data/heartwood/itemBuilds"
+// Dota depth 2: neutral items, enemy talents, each class's own talent twist.
+import { NEUTRAL_ITEMS } from "../../data/heartwood/neutrals"
+import { CLASS_TWISTS } from "../../data/heartwood/talents"
+import { CLASSES } from "../../data/heartwood/classes"
 import { GEAR_FX_TEXT } from "../../services/heartwood/gear"
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
@@ -24,6 +28,9 @@ const KINDS = {
   collars: { label: "Collars", type: "collars" },
   buildRecipes: { label: "Build recipes", type: "buildRecipes" },
   itemActives: { label: "Actives", type: "itemActives" },
+  neutrals: { label: "Neutrals", type: "neutrals" },
+  talentTwists: { label: "Talents", type: "talentTwists" },
+  enemyTalents: { label: "Enemy talents", type: "enemyTalents" },
 }
 
 const FRIENDLY = {
@@ -41,6 +48,48 @@ const FRIENDLY = {
     ["name", "Name"],
     ["text", "What the player reads"],
   ],
+  neutrals: [
+    ["name", "Name"],
+    ["text", "What the player reads"],
+  ],
+  enemyTalents: [
+    ["name", "Name"],
+    ["text", "What the player reads"],
+  ],
+  // A class twist is [row, side, talent] - its fields sit under index 2.
+  talentTwists: [
+    ["twist.name", "Talent name", [2, "name"]],
+    ["twist.text", "What the player reads", [2, "text"]],
+  ],
+}
+
+// Dota depth 2: talent / neutral / enemy-talent numbers in plain words.
+const TALENT_FX_LABEL = {
+  hp: "Max HP +/-",
+  attack: "Attack +/-",
+  move: "Movement +/-",
+  ward: "Wards at the start",
+  headAp: "AP on the first turn",
+  manaPool: "Bigger bar (100-bar amount)",
+  regen: "Resource each turn (100-bar)",
+  cheaper: "Skills % cheaper",
+  castMana: "Resource back per cast (100-bar)",
+  hitMana: "Resource per basic hit (100-bar)",
+  killMana: "Resource per kill (100-bar)",
+  killHeal: "HP per kill",
+  manaShield: "Mana Shield %",
+  sk: "Which class skill (0 = first)",
+  cd: "Recharge change (turns)",
+  manaCut: "Skill % cheaper",
+  range: "Skill range +",
+  radius: "Skill radius +",
+  charges: "Skill charges",
+  ap: "Skill AP change",
+  armor: "Armour +",
+  siphon: "Drain per hit (100-bar)",
+  secondWind: "Heal share (0.3 = 30%)",
+  bloodrage: "Attack when enraged",
+  shell: "Shell points",
 }
 
 const ACTIVE_NUMBERS = [
@@ -83,6 +132,9 @@ function listFor(kind) {
   if (kind === "recipes") return Object.keys(RECIPES)
   if (kind === "buildRecipes") return Object.keys(BUILD_RECIPES)
   if (kind === "itemActives") return Object.keys(ITEM_ACTIVES)
+  if (kind === "neutrals") return Object.keys(NEUTRAL_ITEMS)
+  if (kind === "enemyTalents") return Object.keys(ENEMY_TALENTS)
+  if (kind === "talentTwists") return Object.keys(CLASS_TWISTS)
   if (kind === "collars") return Object.keys(COLLARS)
   return Object.keys(ITEMS).filter((id) => ITEMS[id].kind !== "collar")
 }
@@ -90,6 +142,9 @@ function entityFor(kind, id) {
   if (kind === "recipes") return RECIPES[id]
   if (kind === "buildRecipes") return BUILD_RECIPES[id]
   if (kind === "itemActives") return ITEM_ACTIVES[id]
+  if (kind === "neutrals") return NEUTRAL_ITEMS[id]
+  if (kind === "enemyTalents") return ENEMY_TALENTS[id]
+  if (kind === "talentTwists") return CLASS_TWISTS[id]
   if (kind === "collars") return COLLARS[id]
   return ITEMS[id]
 }
@@ -97,6 +152,7 @@ function titleFor(kind, e) {
   if (!e) return ""
   if (kind === "recipes") return `${ITEMS[e.a]?.name || e.a} + ${ITEMS[e.b]?.name || e.b} → ${ITEMS[e.result]?.name || e.result}`
   if (kind === "buildRecipes") return `${(e.parts || []).map((p) => ITEMS[p]?.name || p).join(" + ")} → ${ITEMS[e.result]?.name || e.result}`
+  if (kind === "talentTwists") return `${e[2]?.name} (${CLASSES[Object.keys(CLASS_TWISTS).find((k) => CLASS_TWISTS[k] === e)]?.name || "class"}, Lv${e[0] === 1 ? 2 : 4})`
   return e.name
 }
 // The numbers behind "Show the numbers": [draftKey, label, path].
@@ -116,6 +172,9 @@ function numberFields(kind, e) {
       ["result", "Makes (item id)", ["result"]],
     ]
   if (kind === "itemActives") return ACTIVE_NUMBERS.filter(([k]) => typeof e[k] === "number").map(([k, label]) => [k, label, [k]])
+  if (kind === "neutrals") return [["tier", "Tier (1-5)", ["tier"]], ...Object.keys(e.fx || {}).filter((k) => typeof e.fx[k] === "number").map((k) => [`fx.${k}`, TALENT_FX_LABEL[k] || k, ["fx", k]])]
+  if (kind === "enemyTalents") return Object.keys(e).filter((k) => typeof e[k] === "number").map((k) => [k, TALENT_FX_LABEL[k] || k, [k]])
+  if (kind === "talentTwists") return Object.keys(e[2]?.fx || {}).filter((k) => typeof e[2].fx[k] === "number").map((k) => [`fx.${k}`, TALENT_FX_LABEL[k] || k, [2, "fx", k]])
   const out = [["cost", "Price (Essence)", ["cost"]]]
   for (const k of Object.keys(e.fx || {})) out.push([`fx.${k}`, FX_LABEL[k] || k, ["fx", k]])
   for (const k of Object.keys(e.adj?.bonus || {})) out.push([`adj.bonus.${k}`, `Next-to bonus: ${FX_LABEL[k] || k}`, ["adj", "bonus", k]])
@@ -149,7 +208,7 @@ function Field({ label, value, changed, onChange, testId, number }) {
 function GearEditor({ onApplied, onPreviewUrlChange }) {
   const [kind, setKind] = useState("items")
   const ids = listFor(kind)
-  const [selected, setSelected] = useState({ items: "whetstone", recipes: ids[0], collars: Object.keys(COLLARS)[0], buildRecipes: Object.keys(BUILD_RECIPES)[0], itemActives: Object.keys(ITEM_ACTIVES)[0] })
+  const [selected, setSelected] = useState({ items: "whetstone", recipes: ids[0], collars: Object.keys(COLLARS)[0], buildRecipes: Object.keys(BUILD_RECIPES)[0], itemActives: Object.keys(ITEM_ACTIVES)[0], neutrals: Object.keys(NEUTRAL_ITEMS)[0], enemyTalents: Object.keys(ENEMY_TALENTS)[0], talentTwists: Object.keys(CLASS_TWISTS)[0] })
   const [draft, setDraft] = useState({})
   const [showNumbers, setShowNumbers] = useState(false)
   const { result, applyMode, setApplyMode, previewing, applying, errorMessage, preview, discard, apply } = usePatchPreview({
@@ -161,7 +220,7 @@ function GearEditor({ onApplied, onPreviewUrlChange }) {
   })
   const id = ids.includes(selected[kind]) ? selected[kind] : ids[0]
   const e = entityFor(kind, id)
-  const fields = [...FRIENDLY[kind].map(([key, label]) => [key, label, [key]]), ...numberFields(kind, e)]
+  const fields = [...FRIENDLY[kind].map(([key, label, path]) => [key, label, path || [key]]), ...numberFields(kind, e)]
   const pathOf = (key) => fields.find((f) => f[0] === key)?.[2] || [key]
   const current = (key) => valueAt(e, pathOf(key))
   const valueOf = (key) => (draft[key] !== undefined ? draft[key] : String(current(key) ?? ""))
@@ -227,7 +286,7 @@ function GearEditor({ onApplied, onPreviewUrlChange }) {
           <div className="text-lg font-bold text-[var(--wood-text)]" data-testid="gear-title">
             {titleFor(kind, e)}
           </div>
-          <p className="mt-1 text-xs text-[var(--wood-muted)]">{e?.description || e?.text}</p>
+          <p className="mt-1 text-xs text-[var(--wood-muted)]">{e?.description || e?.text || (kind === "talentTwists" ? e?.[2]?.text : "")}</p>
           {kind === "items" && e?.fx && Object.keys(e.fx).length > 0 && (
             <p className="mt-1 text-[11px] text-[var(--wood-accent)]" data-testid="gear-fx-text">
               In a fight:{" "}
