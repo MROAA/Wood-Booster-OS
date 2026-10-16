@@ -269,9 +269,10 @@ export function buildRunTacticsBattle(runState, start) {
   const threatened = fated ? applyDifficulty(fated, difficultyForRunNode(runState, runState.nodeIndex, start.difficultyFactor)) : fated
   // Combat depth sprint: stances, combos, reactions, Delay/Stagger on.
   // Between-fights mana: build-set tiers, camp Commune, mana-tide fates.
+  // Mana sprint 3: campaign ley line colours (15% cheaper skills of that colour).
   return threatened
     ? enableCombatDepth(
-        withStartCharge(withCommunePools(enableMana(withBredClasses(threatened, runState), runState.relics || [], betweenFightsMana(runState)), runState), runState),
+        withLeyColours(withStartCharge(withCommunePools(enableMana(withBredClasses(threatened, runState), runState.relics || [], betweenFightsMana(runState)), runState), runState), runState),
       )
     : threatened
 }
@@ -320,4 +321,16 @@ export function objectiveForRunNode(runState, nodeIndex = runState?.nodeIndex) {
   const node = runState.path?.[nodeIndex]
   if (!node) return null
   return objectiveForNode(runState.seed, nodeIndex, node.type, actIndexForNode(nodeIndex, RUN_PATH.length))
+}
+
+// Mana sprint 3: the campaign's ley network colours ride on every hero.
+function withLeyColours(battle, runState) {
+  const net = runState?.leyNet
+  if (!battle?.units || !net) return battle
+  const colours = Array.isArray(net.colours) ? net.colours : []
+  return {
+    ...battle,
+    leyNet: { strength: net.strength || 0, size: net.size || 0, regen: net.regen || 0, startMana: net.startMana || 0, colours },
+    units: colours.length ? battle.units.map((u) => (u.side === "player" && !u.structure && !u.npc ? { ...u, leyColours: colours } : u)) : battle.units,
+  }
 }
