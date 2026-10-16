@@ -32,6 +32,8 @@ import { FATES } from "../../data/heartwood/fates"
 import { setCampBonus, setOfItem, startedSetIds } from "../../data/heartwood/buildSets"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { LEVEL_XP, MAX_LEVEL, levelForXp } from "./unitLevels"
+// Dota depth sprint: tiered build recipes (components + a recipe cost).
+import { forgeOptions, forgeRecipe } from "./itemForge"
 
 const pickFrom = (list, rng) => (list.length ? list[Math.floor(rng() * list.length)] : null)
 
@@ -396,17 +398,22 @@ export function campTrain(runState, key) {
 }
 
 // Recipes the run carries both parts of (anywhere - bag or worn).
-export function campCraftOptions(runState) {
+// Dota depth sprint: plus the tiered BUILD recipes open at this Act that
+// the run has every part of and can pay the recipe cost for. Legacy
+// two-part recipes keep their `a`/`b` shape.
+export function campCraftOptions(runState, act = 1) {
   const items = runState.items || []
-  return Object.values(RECIPES).filter((r) => {
+  const legacy = Object.values(RECIPES).filter((r) => {
     if (!ITEMS[r.result]) return false
     const a = items.find((it) => it.defId === r.a)
     const b = items.find((it) => it.defId === r.b && it.key !== a?.key)
     return !!(a && b)
   })
+  const built = forgeOptions(runState, act).filter((r) => !r.legacy)
+  return [...legacy, ...built]
 }
 
-export function campCraft(runState, recipeId) {
+export function campCraft(runState, recipeId, act = 1) {
   if (!canUseCamp(runState, "craft")) return runState
   const items = runState.items || []
   if (recipeId === "whittle") {
@@ -423,8 +430,13 @@ export function campCraft(runState, recipeId) {
       `You whittle a ${ITEMS[id].name} by the fire.`,
     )
   }
-  const r = campCraftOptions(runState).find((x) => x.id === recipeId)
+  const r = campCraftOptions(runState, act).find((x) => x.id === recipeId)
   if (!r) return runState
+  if (r.parts && !RECIPES[r.id]) {
+    const forged = forgeRecipe(runState, r.id, act)
+    if (forged === runState) return runState
+    return spendCamp(forged, "craft", `You forge a ${ITEMS[r.result].name}${r.cost ? ` (-${r.cost} Essence)` : ""}.`)
+  }
   const a = items.find((it) => it.defId === r.a)
   const b = items.find((it) => it.defId === r.b && it.key !== a.key)
   const key = runState.itemKeyCounter

@@ -57,6 +57,8 @@ import { difficultyQa } from "./tacticsDifficulty"
 import * as depth from "./tacticsDepth"
 // Hero identity sprint: per-class signature mechanics + hero personality.
 import * as sigFx from "./tacticsSignatures"
+// Dota depth sprint: active items, on-hit riders, enemy counter kits.
+import * as itemFx from "./tacticsItems"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -1956,6 +1958,8 @@ function applyDamageWithBlock(state, targetId, amount) {
   // Boss fights: a weak point still standing shields the boss.
   const immune = bossImmuneHit(state, targetId)
   if (immune) return immune
+  // Dota depth: Cyclone Lift, Ironbark armour, a Runeshell soak first.
+  ;({ state, amount } = itemFx.itemPreDamage(state, targetId, amount))
   const before = getUnit(state, targetId)
   // Gear board aura (Warding Bell): allies next to the bearer take less per hit.
   const bell = amount > 1 && before ? gearAuraOn(state, before, "guard") : 0
@@ -2324,6 +2328,9 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   }
   let next = opts.isReaction ? state : setUnit(state, actorId, { ap: actor.ap - 1 })
   next = emit(next, { kind: "strike", actorId, targetId, ranged: actor.range > 1, reaction: !!opts.isReaction })
+  // Dota depth: a Mist Veil swallows the blow (true strike cuts through).
+  const misted = itemFx.blurDodge(next, actorId, targetId)
+  if (misted) return misted
   // Spirit Shift round: resolved FIRST, before Sidestep/facing/damage -
   // the swap changes WHO is hit, so every later step (facing, Guardian,
   // Retreat Step, poison) then runs against the spirit naturally.
@@ -2454,9 +2461,11 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   next = checkOnDealDamageTriggers(next, actorId, targetId, remaining)
   if (fell) next = trySpawnBrood(next, targetId)
   if (!graze) next = relicFx.relicAfterHit(next, actorId, targetId, remaining, fell, extraVictims)
+  // Dota depth: on-hit riders (armour shred, Wither, mana burn).
+  if (!graze && actor.side === "player") next = itemFx.itemAfterHit(next, actorId, targetId)
   // Unit levels: the Cleave perk - a normal basic attack also hits enemies
   // next to the target for half damage.
-  if (actor.perks?.includes("cleave") && !opts.isReaction && !opts.isHasteFollowUp) {
+  if ((actor.perks?.includes("cleave") || actor.gearCleave) && !opts.isReaction && !opts.isHasteFollowUp) {
     const hitPos = getUnit(next, targetId)?.pos || target.pos
     const splash = livingUnits(next, target.side).filter((u) => u.id !== targetId && kingAdjacent(u.pos, hitPos)).map((u) => u.id)
     for (const id of splash) {
@@ -3100,7 +3109,9 @@ function enemyPhaseStart(state) {
   // enemyPhaseStart so previewEnemyIntents sees the same pulsed state.
   // Boss fights: arena hazards resolve / get telegraphed here too.
   // Factions: Blight spreads / poisons / feeds here (preview sees it too).
-  return bossEnemyPhaseStart(objectiveEnemyPhaseStart(factionEnemyPhaseStart(next)))
+  // Dota depth: Runeshells regrow, Mossbloom heals, Seedcallers call.
+  const bossed = bossEnemyPhaseStart(objectiveEnemyPhaseStart(factionEnemyPhaseStart(next)))
+  return bossed.phase === "enemy" ? itemFx.itemEnemyPhaseStart(bossed) : bossed
 }
 
 export function endPlayerTurn(state) {
@@ -3944,7 +3955,13 @@ function applyFade(state, enemyId) {
   return { ...next, log: [...next.log, `${unit.name} strikes and fades back into the trees.`] }
 }
 
+// Dota depth: a hero under Heartoak Bark sheds control after every enemy
+// action (shared by the real turn and the preview).
 function applyEnemyIntent(state, enemyId, intent) {
+  return itemFx.scrubControl(applyEnemyIntentRaw(state, enemyId, intent))
+}
+
+function applyEnemyIntentRaw(state, enemyId, intent) {
   // Combat depth: a hero holding Interrupt cancels a skill / ultimate.
   const interrupted = depth.tryInterrupt(state, enemyId, intent)
   if (interrupted) return interrupted
@@ -4115,6 +4132,8 @@ function applyRegenTick(state) {
   for (const unit of livingUnits(state, "enemy")) {
     const live = getUnit(next, unit.id)
     if (!live || live.hp <= 0 || !(live.regen > 0)) continue
+    // Dota depth: a Withered foe can't regenerate.
+    if (live.withered > 0) continue
     const stacks = live.regen
     const healedHp = Math.min(live.maxHp, live.hp + stacks)
     next = setUnit(next, unit.id, { hp: healedHp, regen: stacks - 1 })
@@ -4202,7 +4221,8 @@ export function runEnemyTurn(state) {
   if (relicTicked.phase !== "player") return relicTicked
   // Combat depth: setups tick, reactions lapse, Delayed heroes get +1 AP.
   // Hero identity: Doom falls, Strangleroots, Triage, Borrowed Time, fears...
-  return sigFx.sigPlayerTurnStart(depth.playerTurnStart(applyTurnStartTriggers(elements.elementTurnStart(mutFx.mutationTurnStart(relicTicked), "player"), "player")))
+  // Dota depth: item recharges, lifts end, Mist refills, lanterns reveal.
+  return itemFx.itemPlayerTurnStart(sigFx.sigPlayerTurnStart(depth.playerTurnStart(applyTurnStartTriggers(elements.elementTurnStart(mutFx.mutationTurnStart(relicTicked), "player"), "player"))))
 }
 
 // A QA-only hook (see HeartwoodTactics.jsx's ?debugLowHp=1) - never a real
@@ -4220,7 +4240,7 @@ export function withLowEnemyHp(state) {
   // Combat depth: enemy stances / parries off too (a bracing 1-HP enemy).
   // Hero identity: fears + rival penalties off too (a random fear quirk made
   // the naive QA bot miss a 1-HP boss).
-  return difficultyQa(bossQa({ ...state, depthQa: true, identityQa: true, terrain: {}, wallHp: {}, objHp: {}, objFire: {}, objChill: {}, tileTimers: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [], ult: null, ultCharge: 0, ultArmed: null } : u)) }))
+  return itemFx.itemQa(difficultyQa(bossQa({ ...state, depthQa: true, identityQa: true, terrain: {}, wallHp: {}, objHp: {}, objFire: {}, objChill: {}, tileTimers: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [], ult: null, ultCharge: 0, ultArmed: null } : u)) })))
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).

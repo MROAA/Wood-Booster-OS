@@ -9371,3 +9371,59 @@ img.hw-intent-glyph {
     animation: none;
   }
 }
+
+/* ---- Dota depth sprint: item tiers, build paths, forge ------------------ */
+.hw-item-tier { color: var(--hw-muted); font-weight: 400; }
+.hw-item-tier[data-build-tier="2"] { color: var(--hw-rune); }
+.hw-item-tier[data-build-tier="3"] { color: var(--hw-ember); }
+.hw-item-line--active { color: var(--hw-ember); font-weight: 600; }
+.hw-item-line--counter { color: var(--hw-moss); }
+.hw-item-line--from, .hw-item-line--into { color: var(--hw-muted); }
+.hw-item-wanted {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--hw-ember);
+  margin-top: 2px;
+}
+.hw-item-card[data-wanted="true"] {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hw-ember) 70%, transparent), 0 0 14px color-mix(in srgb, var(--hw-ember) 35%, transparent);
+}
+.hw-build-view {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--hw-ember) 35%, var(--hw-border));
+  background: color-mix(in srgb, var(--hw-card) 92%, var(--hw-ember));
+}
+.hw-build-paths { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 8px; }
+.hw-build-path-btn {
+  border: 1px solid var(--hw-border);
+  background: var(--hw-card);
+  color: var(--hw-text);
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.hw-build-path-btn[data-chosen="true"] { border-color: var(--hw-ember); color: var(--hw-ember); font-weight: 700; }
+.hw-build-path-text { font-size: 12px; color: var(--hw-muted); margin: 0 0 8px; }
+.hw-build-steps { display: flex; gap: 8px; flex-wrap: wrap; align-items: stretch; }
+.hw-build-step {
+  flex: 1 1 180px;
+  border: 1px solid var(--hw-border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  background: var(--hw-card);
+}
+.hw-build-step[data-have="true"] { border-color: var(--hw-moss); }
+.hw-build-step-name { font-weight: 700; }
+.hw-build-step-tier { color: var(--hw-muted); font-size: 10px; }
+.hw-build-part { display: block; color: var(--hw-muted); }
+.hw-build-part[data-have="true"] { color: var(--hw-moss); }
+.hw-build-forge { margin-top: 4px; }
+.hw-build-why { display: block; font-size: 10px; color: var(--hw-muted); margin-top: 2px; }
+.hw-counter-read { font-size: 12px; margin: 4px 0 0; color: var(--hw-ember); font-weight: 600; }
+.hw-counter-read-kits { color: var(--hw-muted); font-weight: 400; }
+.hw-counter-read-have { color: var(--hw-moss); font-weight: 400; }
+.hw-build-forge .hw-move-btn:disabled { opacity: 0.45; cursor: not-allowed; }
