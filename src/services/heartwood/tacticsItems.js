@@ -403,6 +403,8 @@ export function prepareItemsForBattle(battle, act = 1) {
   if (!battle?.units) return battle
   const units = battle.units.map((u) => {
     if (u.side === "enemy") {
+      // QA (withLowEnemyHp ran inside the battle builder): no kits.
+      if (battle.depthQa) return u
       const kit = counterKitFor(u.defId, act)
       if (!kit) return u
       const k = { kit: kit.id }

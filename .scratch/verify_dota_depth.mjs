@@ -395,6 +395,8 @@ async function logic(base) {
       const qa = te.withLowEnemyHp(patch(b, foes(b)[0].id, { kit: "runeshell", shell: 8, shellMax: 8, armor: 2, blurCharges: 2, shroud: true }))
       const q0 = U(qa, foes(b)[0].id)
       ok(!q0.kit && !q0.shell && !q0.armor && !q0.blurCharges && !q0.shroud, "F24 QA hook (withLowEnemyHp) switches every kit off")
+      const qaFirst = rt.startTacticsFormationBattle(rs, (st) => te.withLowEnemyHp(buildRunTacticsBattle(rs, st))).battle
+      ok(!foes(qaFirst).some((u) => u.kit), "F25 QA applied inside the builder (the ?debugLowHp path) stays kit-free")
       res.notes.act3Kits = kits
     }
   }
