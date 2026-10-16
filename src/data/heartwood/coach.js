@@ -284,6 +284,37 @@ export const COACH_TIPS = [
     text: "Damage carries between fights. A hero that fell last time starts Wounded at 25% HP - Mend it in the shop or rest to bring it back.",
     anchor: ".hwt-token[data-side=\"player\"] .hwt-hp-gem[data-hurt=\"true\"]",
   },
+  // Dota depth sprint: build paths, forging, counters, active items.
+  {
+    id: "build-path",
+    title: "Build paths",
+    text: "Items are a tree: components build into Crafted items, and those into Masterworks. Open a hero's Gear screen and pick a Build path - the shop then marks the parts it needs.",
+    anchor: ".hw-gear-open",
+  },
+  {
+    id: "forge",
+    title: "Ready to forge",
+    text: "You carry every part of a recipe. Open the hero's Gear screen and press Forge - the parts are used up and the bigger item takes their slot.",
+    anchor: ".hw-gear-open",
+  },
+  {
+    id: "counter-tags",
+    title: "Enemy tricks",
+    text: "These enemies bring a trick. 'Bring:' says which kind of item answers it - forge or buy it before the fight.",
+    anchor: ".hw-counter-read",
+  },
+  {
+    id: "t-item-active",
+    title: "Active items",
+    text: "This hero's gear has an active: a button on its action bar. It costs AP and/or mana and recharges - some have a few uses only.",
+    anchor: ".hwt-item-active-btn",
+  },
+  {
+    id: "t-enemy-trick",
+    title: "Enemy tricks",
+    text: "The marks on these enemies are tricks (armour, mist, shells, healing, summons, hiding). 'Enemy tricks' lists each one and the answer.",
+    anchor: ".hwt-counter-panel",
+  },
   {
     id: "t-level",
     title: "Hero levels",

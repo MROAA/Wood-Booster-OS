@@ -170,11 +170,11 @@ async function logic(base) {
     {
       const tiles = I.itemActiveTargets(b, h.id, "foxfire-step")
       ok(tiles.length > 10 && tiles.every((p) => Math.max(Math.abs(p.row - 4), Math.abs(p.col - 6)) <= 4), "E1 Foxfire Step: free tiles within 4", tiles.length)
-      const s = I.useItemActive(b, h.id, "foxfire-step", "0-6")
+      const s = I.castItemActive(b, h.id, "foxfire-step", "0-6")
       const u = U(s, h.id)
       ok(u.pos.row === 0 && u.pos.col === 6 && u.ap === 1 && u.mana === U(b, h.id).mana - I.activeManaCost(b, U(b, h.id), B.ITEM_ACTIVES["foxfire-step"]) && u.itemActives[0].cd === 3, "E2 blink moves 4 tiles, costs 1 AP + mana, recharge 3", { pos: u.pos, ap: u.ap, mana: u.mana, cd: u.itemActives[0].cd })
-      ok(/Recharging/.test(I.itemActiveBlocker(s, u, "foxfire-step")) && I.useItemActive(s, h.id, "foxfire-step", "1-6") === s, "E3 recharging -> refused")
-      ok(I.useItemActive(patch(b, h.id, { root: 1 }), h.id, "foxfire-step", "0-6").units.find((x) => x.id === h.id).pos.row === 4, "E4 rooted -> can't blink")
+      ok(/Recharging/.test(I.itemActiveBlocker(s, u, "foxfire-step")) && I.castItemActive(s, h.id, "foxfire-step", "1-6") === s, "E3 recharging -> refused")
+      ok(I.castItemActive(patch(b, h.id, { root: 1 }), h.id, "foxfire-step", "0-6").units.find((x) => x.id === h.id).pos.row === 4, "E4 rooted -> can't blink")
       ok(/AP/.test(I.itemActiveBlocker(b, { ...U(b, h.id), ap: 0 }, "foxfire-step")), "E5 no AP -> refused")
       ok(/Needs \d+/.test(I.itemActiveBlocker(b, { ...U(b, h.id), mana: 0 }, "foxfire-step")), "E6 no mana -> refused")
       // Cooldown ticks on the player's turn coming back.
@@ -184,22 +184,22 @@ async function logic(base) {
     }
     // Gale Push (force)
     {
-      const s = I.useItemActive(b, h.id, "gale-push", e1.id)
+      const s = I.castItemActive(b, h.id, "gale-push", e1.id)
       const pos = U(s, e1.id).pos
       ok(pos.row === 4 && pos.col === 2 && U(s, h.id).itemActives[1].cd === 3, "E8 Gale Push throws a foe 2 tiles straight away", pos)
-      const ally = I.useItemActive(b, h.id, "gale-push", f.id)
+      const ally = I.castItemActive(b, h.id, "gale-push", f.id)
       ok(U(ally, f.id).pos.col === 9, "E9 ...or an ally out of danger", U(ally, f.id).pos)
     }
     // Sap Burn (mana burn)
     {
       const t0 = patch(b, e1.id, { mana: 30, ultCharge: 40, shell: 8, shellMax: 8, kit: "runeshell" })
-      const s = I.useItemActive(t0, h.id, "mana-burn", e1.id)
+      const s = I.castItemActive(t0, h.id, "mana-burn", e1.id)
       const e = U(s, e1.id)
       ok(e.mana < 30 && e.ultCharge === 15 && e.shell === 0 && e.shellBroken >= 1 && e.hp < U(t0, e1.id).hp, "E10 Sap Burn drains mana + ultimate, breaks the shell, hurts", { mana: e.mana, ult: e.ultCharge, shell: e.shell, hp: [U(t0, e1.id).hp, e.hp] })
     }
     // Cyclone Lift (lift)
     {
-      const s = I.useItemActive(b, h.id, "cyclone-lift", e1.id)
+      const s = I.castItemActive(b, h.id, "cyclone-lift", e1.id)
       const e = U(s, e1.id)
       ok(e.lifted === 1 && e.stun >= 1, "E11 Cyclone Lift: lifted + loses its next turn")
       ok(!te.attackableTargets(place(s, f.id, 4, 5), f.id).some((u) => u.id === e1.id), "E12 a lifted foe can't be targeted")
@@ -214,7 +214,7 @@ async function logic(base) {
     // Heartoak Bark (control immunity)
     {
       const rooted = patch(b, h.id, { root: 2, slow: 1, stun: 1 })
-      const s = I.useItemActive(rooted, h.id, "heartoak-bark")
+      const s = I.castItemActive(rooted, h.id, "heartoak-bark")
       const u = U(s, h.id)
       ok(u.root === 0 && u.slow === 0 && u.stun === 0 && u.ctrlImmune === 2 && u.ap === 2, "E17 Heartoak Bark (free) clears control, 2 turns immune", { root: u.root, imm: u.ctrlImmune, ap: u.ap })
       const hexed = I.scrubControl(patch(s, h.id, { root: 2, chill: 1 }))
@@ -225,31 +225,31 @@ async function logic(base) {
     }
     // Salve (charges)
     {
-      let s = I.useItemActive(b, f.id, "salve", f.id)
+      let s = I.castItemActive(b, f.id, "salve", f.id)
       ok(U(s, f.id).hp === 18 && U(s, f.id).ap === 1 && U(s, f.id).itemActives[0].charges === 2, "E21 Salve heals 8, 1 AP, 3 -> 2 uses")
       s = patch(s, f.id, { ap: 5 })
-      s = I.useItemActive(s, f.id, "salve", f.id)
-      s = I.useItemActive(s, f.id, "salve", h.id)
+      s = I.castItemActive(s, f.id, "salve", f.id)
+      s = I.castItemActive(s, f.id, "salve", h.id)
       ok(U(s, f.id).itemActives[0].charges === 0 && /Used up/.test(I.itemActiveBlocker(s, U(s, f.id), "salve")), "E22 out of uses -> refused")
       ok(I.chargesUsedIn(s)[6] === 3, "E23 spent uses are tracked for the run", I.chargesUsedIn(s))
       actives.salveState = s
     }
     // Moonwell Sip (free, once a turn)
     {
-      const s = I.useItemActive(b, f.id, "moonwell")
+      const s = I.castItemActive(b, f.id, "moonwell")
       ok(U(s, f.id).mana > 0 && U(s, f.id).ap === 2, "E24 Moonwell Sip: free +mana", U(s, f.id).mana)
-      ok(I.useItemActive(s, f.id, "moonwell") === s, "E25 once a turn")
+      ok(I.castItemActive(s, f.id, "moonwell") === s, "E25 once a turn")
     }
     // Glowdust (reveal) + Unbind (dispel)
     {
       const hid = patch(b, e1.id, { shroud: true, kit: "shroud" })
-      const s = I.useItemActive(hid, f.id, "glowdust")
+      const s = I.castItemActive(hid, f.id, "glowdust")
       ok(U(s, e1.id).revealed === 2 && U(s, f.id).itemActives[2].charges === 1, "E26 Glowdust reveals a hidden foe for 2 turns")
       b = patch(b, f.id, { mana: 50 })
       const shelled = patch(b, e1.id, { shell: 8, shellMax: 8, kit: "runeshell", ward: 1, regen: 3 })
-      const d = I.useItemActive(shelled, f.id, "unbind", e1.id)
+      const d = I.castItemActive(shelled, f.id, "unbind", e1.id)
       ok(U(d, e1.id).shell === 0 && U(d, e1.id).shellBroken === 2 && U(d, e1.id).ward === 0 && U(d, e1.id).regen === 0, "E27 Unbind strips shell / Ward / Regen", U(d, e1.id))
-      const ally = I.useItemActive(patch(b, h.id, { root: 2, weak: 2 }), f.id, "unbind", h.id)
+      const ally = I.castItemActive(patch(b, h.id, { root: 2, weak: 2 }), f.id, "unbind", h.id)
       ok(U(ally, h.id).root === 0 && U(ally, h.id).weak === 0, "E28 Unbind frees an ally")
     }
     // Uses carry back to the run after the fight.
@@ -257,7 +257,7 @@ async function logic(base) {
       const won = { ...actives.salveState, phase: "won" }
       const after = rt.recordFightAftermath({ ...rs, phase: "battle" }, won)
       ok(!after.items.some((x) => x.key === 6), "E29 a Salve with no uses left is gone after the fight")
-      const once = I.useItemActive(b, f.id, "glowdust")
+      const once = I.castItemActive(b, f.id, "glowdust")
       const after2 = rt.recordFightAftermath({ ...rs, phase: "battle" }, { ...once, phase: "won" })
       ok(after2.items.find((x) => x.key === 8)?.charges === 1, "E30 a half-used Glowdust keeps 1 use")
       const rb = start({ ...rs, items: after2.items })
@@ -376,7 +376,7 @@ async function logic(base) {
       b = place(b, e.id, 4, 3, { kit: "shroud", shroud: true })
       ok(!te.attackableTargets(b, h.id).some((u) => u.id === e.id), "F19 Shadowmoss: hidden from 3 tiles")
       ok(te.attackableTargets(place(place(b, e.id, 4, 5), h.id, 4, 6), h.id).some((u) => u.id === e.id) || h.range < 1, "F20 ...but not from the next tile")
-      const lit = I.useItemActive(b, h.id, "glowdust")
+      const lit = I.castItemActive(b, h.id, "glowdust")
       ok(te.attackableTargets(lit, h.id).some((u) => u.id === e.id), "F21 Glowdust reveals it - now a target")
       const lanternRs = mk([hero("b0", "hexbreaker")], [it(1, "owl-lantern", "b0", 0)], 3)
       let lb = clean(start(lanternRs))
@@ -414,10 +414,10 @@ async function logic(base) {
           if (I.itemActiveBlocker(s, U(s, h.id), id)) continue
           const t = I.itemActiveTargets(s, h.id, id)
           const pick = id === "foxfire-step" ? `${t[0].row}-${t[0].col}` : t.find((u) => u.side === "enemy")?.id
-          if (pick) s = I.useItemActive(s, h.id, id, pick)
+          if (pick) s = I.castItemActive(s, h.id, id, pick)
         }
       }
-      if (w && w.hp > 0 && !I.itemActiveBlocker(s, U(s, w.id), "heartoak-bark")) s = I.useItemActive(s, w.id, "heartoak-bark")
+      if (w && w.hp > 0 && !I.itemActiveBlocker(s, U(s, w.id), "heartoak-bark")) s = I.castItemActive(s, w.id, "heartoak-bark")
       if (s.phase !== "player") break
       const pv = te.previewEnemyIntents(s)
       const pv2 = te.previewEnemyIntents(s)
@@ -469,110 +469,95 @@ out.fails.push(...res.fails)
 // ---------------------------------------------------------------------------
 // UI - a saved run in the shop / a tactics fight, real clicks.
 // ---------------------------------------------------------------------------
-const seedSave = async (mutate) => {
-  await page.evaluate(async (src) => {
-    const rt = await import("/src/services/heartwood/runEngine.js")
-    const fn = new Function("rt", `return (${src})(rt)`)
-    const state = await fn(rt)
-    const key = Object.keys(localStorage).find((k) => /heartwood.*run/i.test(k)) || "heartwood-run-v1"
-    localStorage.setItem("hw-test-run-key", key)
-    localStorage.setItem(key, JSON.stringify(state))
-  }, mutate.toString())
-}
-// Find the run save key + coach off (so tips don't cover the board).
-const saveKey = await page.evaluate(async () => {
-  const m = await import("/src/services/heartwood/runEngine.js")
-  return m.RUN_SAVE_KEY || null
-})
-await page.evaluate(() => {
+const flags = () => {
+  localStorage.setItem("heartwood-autobattler-intro-seen", "1")
+  localStorage.setItem("heartwood-story-intro-seen", "1")
+  localStorage.setItem("heartwood-tactics-tutorial-v1", "skipped")
   localStorage.setItem("heartwood-coach-enabled-v1", "false")
-})
+}
+const readRun = () => page.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run)
+const seed = (spec) =>
+  page.evaluate(
+    async ({ flagsSrc, spec }) => {
+      localStorage.clear()
+      new Function(flagsSrc)()
+      const rt = await import("/src/services/heartwood/runEngine.js")
+      const idx = rt.RUN_PATH.findIndex((n, i) => (spec.type === "shop" ? n.type === "shop" : n.type === "battle" && n.formationId) && i > 0 && rt.actIndexForNode(i, rt.RUN_PATH.length) === spec.act)
+      const rs = {
+        ...rt.startRun("tommy", null, { forcedSeed: 424243 }),
+        nodeIndex: idx,
+        path: rt.RUN_PATH.slice(0, idx + 1),
+        lastSeenAct: spec.act,
+        ...spec.patch,
+      }
+      localStorage.setItem("heartwood-run-save-v1", JSON.stringify(rt.serializeRun(rs)))
+      return idx
+    },
+    { flagsSrc: `(${flags.toString()})()`, spec },
+  )
 
-const shopIdx = await page.evaluate(async () => {
-  const rt = await import("/src/services/heartwood/runEngine.js")
-  return rt.RUN_PATH.findIndex((n, i) => n.type === "shop" && rt.actIndexForNode(i, rt.RUN_PATH.length) === 2)
-})
-await page.evaluate(
-  async ({ shopIdx, saveKey }) => {
-    const rt = await import("/src/services/heartwood/runEngine.js")
-    let rs = rt.startRun("tommy", null, { forcedSeed: 4242 })
-    rs = {
-      ...rs,
-      nodeIndex: shopIdx,
-      path: rt.RUN_PATH.slice(0, shopIdx + 1),
+// UI-1: shop highlight + build path view + forge
+{
+  await seed({
+    type: "shop",
+    act: 2,
+    patch: {
       phase: "shop",
       essence: 900,
-      bench: [{ key: "b0", defId: "hexbreaker", upgradeLevel: 0, upgrades: [] }],
-      deployed: ["b0", null, null, null],
+      bench: [{ key: 10, defId: "hexbreaker", upgradeLevel: 0, upgrades: [] }],
+      benchKeyCounter: 11,
+      deployed: [10, null, null, null],
       items: [
-        { key: 1, defId: "wind-seed", equippedTo: "b0", slotIndex: 0 },
+        { key: 1, defId: "wind-seed", equippedTo: 10, slotIndex: 0 },
         { key: 2, defId: "lucky-charm", equippedTo: null, slotIndex: null },
       ],
       itemKeyCounter: 10,
-      heroBuilds: { b0: "spellbreaker" },
-      itemOffers: ["spellbreak-thorn", "iron-blade", "padded-vest"],
-      itemLocks: [false, false, false],
-      lastSeenAct: 2,
-      tutorialSeen: true,
-    }
-    rs = { ...rs, heroBuilds: { b0: rt.chooseHeroBuild({ ...rs, heroBuilds: {} }, "b0", "spellbreaker").heroBuilds?.b0 || "galewalker" } }
-    localStorage.setItem(saveKey || "heartwood-run-v1", JSON.stringify(rs))
-  },
-  { shopIdx, saveKey },
-)
-await page.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
-await page.waitForTimeout(2000)
-// Continue a saved run if there's a start screen.
-const cont = page.locator("button", { hasText: /^Continue( run)?$/i }).first()
-if (await cont.count()) {
-  await cont.click().catch(() => {})
-  await page.waitForTimeout(1200)
+      heroBuilds: { 10: "spellbreaker" },
+      itemOffers: ["spellbreak-thorn", "padded-vest", "iron-blade"],
+      itemLocks: [],
+    },
+  })
+  await page.reload({ waitUntil: "domcontentloaded" })
+  await page.locator(".hw-market-items-grid").waitFor({ timeout: 15000 })
+  await page.waitForTimeout(400)
+  const shop = await page.evaluate(() => ({
+    wanted: [...document.querySelectorAll(".hw-market-items-grid .hw-item-card[data-wanted]")].map((e) => e.getAttribute("data-item-id")),
+    into: document.querySelector('.hw-market-items-grid [data-item-id="spellbreak-thorn"] [data-builds-into]')?.textContent || "",
+    tier: document.querySelector('.hw-market-items-grid [data-item-id="spellbreak-thorn"] .hw-item-tier')?.textContent || "",
+  }))
+  check(shop.wanted.includes("spellbreak-thorn") && shop.wanted.includes("iron-blade") && !shop.wanted.includes("padded-vest"), "U1 the shop highlights the chosen build's components", shop)
+  check(/Sapdrinker/.test(shop.into) && /Component/.test(shop.tier), "U2 item card: tier + builds into", shop)
+  await page.locator('.hw-market-items-grid [data-item-id="spellbreak-thorn"]').screenshot({ path: `${SHOTS}/dota-shop-highlight.png` }).catch(() => {})
+  await page.screenshot({ path: `${SHOTS}/dota-shop.png` })
+  await page.locator(".hw-squad-tab-btn").click()
+  await page.locator('[data-gear-open="10"]').click()
+  await page.locator("[data-build-path-view]").waitFor({ timeout: 5000 })
+  const build = await page.evaluate(() => ({
+    paths: [...document.querySelectorAll("[data-build-path]")].map((b) => b.getAttribute("data-build-path")),
+    chosen: document.querySelector("[data-build-path-view]")?.getAttribute("data-chosen"),
+    steps: [...document.querySelectorAll("[data-build-step]")].map((b) => b.getAttribute("data-build-step")),
+    forge: [...document.querySelectorAll("[data-forge]")].map((b) => ({ id: b.getAttribute("data-forge"), disabled: b.disabled })),
+  }))
+  check(build.paths.length === 3 && build.chosen === "spellbreaker" && build.steps.join() === "sapdrinker,foxfire-charm,unbinding-bell", "U3 gear screen: build path view (3 paths, steps)", build)
+  check(build.forge.some((f) => f.id === "foxfire-charm" && !f.disabled) && build.forge.some((f) => f.id === "sapdrinker" && f.disabled), "U4 forge ready only where every part is owned", build.forge)
+  await page.locator(".hw-gear-screen").screenshot({ path: `${SHOTS}/dota-build-path.png` }).catch(() => page.screenshot({ path: `${SHOTS}/dota-build-path.png` }))
+  await page.locator('[data-forge="foxfire-charm"]').click()
+  await page.waitForTimeout(300)
+  const run = await readRun()
+  const made = run.items.find((x) => x.defId === "foxfire-charm")
+  check(made && made.equippedTo === 10 && made.slotIndex === 0 && run.essence === 850 && !run.items.some((x) => x.defId === "wind-seed"), "U5 Forge click: Foxfire Charm into the hero's row, -50", { items: run.items, essence: run.essence })
+  // Choosing another path updates the highlight.
+  await page.locator('[data-build-path="marksman"]').click()
+  await page.waitForTimeout(200)
+  check((await readRun()).heroBuilds?.[10] === "marksman", "U6 choosing a build path is saved")
 }
-const shop = await page.evaluate(() => ({
-  wanted: [...document.querySelectorAll(".hw-item-card[data-wanted]")].map((e) => e.getAttribute("data-item-id")),
-  buildsInto: document.querySelectorAll("[data-builds-into]").length,
-}))
-check(shop.wanted.length >= 1, "U1 the shop highlights a component the chosen build needs", shop)
-await page.screenshot({ path: `${SHOTS}/dota-shop-highlight.png` })
-// Open the hero's gear screen -> build path view.
-const gearBtn = page.locator("[data-gear-open], .hw-gear-open, button:has-text('Gear')").first()
-if (await gearBtn.count()) await gearBtn.click().catch(() => {})
-await page.waitForTimeout(600)
-const build = await page.evaluate(() => ({
-  view: !!document.querySelector("[data-build-path-view]"),
-  paths: document.querySelectorAll("[data-build-path]").length,
-  forge: [...document.querySelectorAll("[data-forge]")].map((b) => ({ id: b.getAttribute("data-forge"), disabled: b.disabled })),
-}))
-check(build.view && build.paths >= 2, "U2 the gear screen shows the build path view", build)
-await page.screenshot({ path: `${SHOTS}/dota-build-path.png` })
-const forgeBtn = page.locator('[data-forge="foxfire-charm"]').first()
-if ((await forgeBtn.count()) && !(await forgeBtn.isDisabled())) {
-  await forgeBtn.click()
-  await page.waitForTimeout(500)
-}
-const forged = await page.evaluate((k) => {
-  const raw = localStorage.getItem(k || "heartwood-run-v1")
-  try {
-    return (JSON.parse(raw).items || []).map((i) => i.defId)
-  } catch {
-    return []
-  }
-}, saveKey)
-check(forged.includes("foxfire-charm"), "U3 Forge button forges Foxfire Charm", forged)
 
-// Tactics fight with active items + kits: render the board directly.
-const fightIdx = await page.evaluate(async () => {
-  const rt = await import("/src/services/heartwood/runEngine.js")
-  return rt.RUN_PATH.findIndex((n, i) => n.type === "battle" && n.formationId && rt.actIndexForNode(i, rt.RUN_PATH.length) === 3)
-})
-await page.evaluate(
-  async ({ fightIdx, saveKey }) => {
-    const rt = await import("/src/services/heartwood/runEngine.js")
-    let rs = rt.startRun("tommy", null, { forcedSeed: 4242 })
-    rs = {
-      ...rs,
-      nodeIndex: fightIdx,
-      path: rt.RUN_PATH.slice(0, fightIdx + 1),
+// UI-2: pre-fight threat panel ("Bring:") + a fight with item actives and kits
+{
+  await seed({
+    type: "battle",
+    act: 3,
+    patch: {
       phase: "formation",
       essence: 300,
       bench: [{ key: "b0", defId: "hexbreaker", upgradeLevel: 0, upgrades: [] }],
@@ -583,53 +568,48 @@ await page.evaluate(
         { key: 3, defId: "glowdust-pouch", equippedTo: "b0", slotIndex: 2 },
       ],
       itemKeyCounter: 10,
-      lastSeenAct: 3,
-      tutorialSeen: true,
-    }
-    localStorage.setItem(saveKey || "heartwood-run-v1", JSON.stringify(rs))
-  },
-  { fightIdx, saveKey },
-)
-await page.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
-await page.waitForTimeout(2000)
-if (await cont.count()) {
-  await cont.click().catch(() => {})
-  await page.waitForTimeout(1200)
-}
-const formation = await page.evaluate(() => ({ counter: document.querySelector("[data-counter-read]")?.textContent || "" }))
-check(/Bring:/.test(formation.counter), "U4 the pre-fight threat panel says what to bring", formation)
-await page.screenshot({ path: `${SHOTS}/dota-counter-tags.png` })
-const fightBtn = page.locator("button", { hasText: /^(Fight|Start battle|To battle|Begin)/i }).first()
-if (await fightBtn.count()) await fightBtn.click().catch(() => {})
-await page.waitForTimeout(1500)
-const begin = page.locator(".hwt-begin-battle")
-if (await begin.count()) {
-  await begin.click()
-  await page.waitForTimeout(800)
-}
-const heroTok = page.locator('.hwt-token[data-side="player"][data-selectable="true"]').first()
-if (await heroTok.count()) await heroTok.click().catch(() => {})
-await page.waitForTimeout(500)
-const bar = await page.evaluate(() => ({
-  actives: [...document.querySelectorAll("[data-item-active]")].map((b) => b.getAttribute("data-item-active")),
-  kits: document.querySelectorAll("[data-kit-badge]").length,
-  panel: document.querySelector("[data-counter-panel]")?.textContent || "",
-}))
-check(bar.actives.includes("gale-push") && bar.actives.includes("salve"), "U5 active items on the hero's action bar", bar)
-check(/Bring|answer/i.test(bar.panel) || bar.kits >= 0, "U6 battle sidebar shows the enemy tricks panel", bar)
-await page.screenshot({ path: `${SHOTS}/dota-active-bar.png` })
-const salve = page.locator('[data-item-active="salve"]').first()
-if (await salve.count()) {
-  await salve.click()
-  await page.waitForTimeout(300)
-  const self = page.locator('.hwt-token[data-side="player"]').first()
-  await self.click().catch(() => {})
+    },
+  })
+  await page.reload({ waitUntil: "domcontentloaded" })
+  await page.locator(".hw-tactics-start").waitFor({ timeout: 15000 })
+  await page.waitForTimeout(400)
+  const counter = await page.evaluate(() => {
+    const el = document.querySelector("[data-counter-read]")
+    return { text: el?.textContent || "", tags: el?.getAttribute("data-counter-read") || "" }
+  })
+  check(/Bring:/.test(counter.text) && counter.tags.length > 0, "U7 the pre-fight threat panel shows the enemy tricks + what to bring", counter)
+  const tp = page.locator(".hw-threat-preview")
+  if (await tp.count()) await tp.screenshot({ path: `${SHOTS}/dota-counter-tags.png` })
+  else await page.screenshot({ path: `${SHOTS}/dota-counter-tags.png` })
+  await page.locator(".hw-tactics-start").click()
+  const begin = page.locator(".hwt-begin-battle")
+  await begin.waitFor({ timeout: 5000 }).catch(() => {})
+  if (await begin.count()) await begin.click()
   await page.waitForTimeout(500)
+  await page.locator('.hwt-token[data-side="player"][data-unit-id^="player-hexbreaker"]').click()
+  await page.waitForTimeout(300)
+  const bar = await page.evaluate(() => ({
+    actives: [...document.querySelectorAll("[data-item-active]")].map((b) => b.getAttribute("data-item-active")),
+    kits: [...document.querySelectorAll("[data-kit-badge]")].map((b) => b.getAttribute("data-kit-badge")),
+    panel: document.querySelector("[data-counter-panel]")?.textContent || "",
+  }))
+  check(bar.actives.join() === "gale-push,salve,glowdust", "U8 active items on the hero's action bar", bar)
+  check(bar.kits.length > 0 && /Enemy tricks/.test(bar.panel), "U9 enemy kit badges + the Enemy tricks panel", bar)
+  await page.screenshot({ path: `${SHOTS}/dota-active-bar.png` })
+  // Salve: arm, click the hero itself -> a use is spent.
+  await page.locator('[data-item-active="salve"]').click()
+  await page.locator('.hwt-token[data-side="player"][data-unit-id^="player-hexbreaker"]').click()
+  await page.waitForTimeout(300)
+  const uses = await page.locator('[data-item-active="salve"]').getAttribute("data-uses").catch(() => null)
+  check(uses === "2", "U10 Salve via clicks: 3 -> 2 uses", uses)
+  // Glowdust (free, self) fires straight away.
+  await page.locator('[data-item-active="glowdust"]').click()
+  await page.waitForTimeout(300)
+  const dust = await page.locator('[data-item-active="glowdust"]').getAttribute("data-uses").catch(() => null)
+  check(dust === "1", "U11 Glowdust (self) fires on click", dust)
 }
-const afterSalve = await page.evaluate(() => document.querySelector('[data-item-active="salve"]')?.getAttribute("data-uses") || "")
-check(afterSalve === "2", "U7 clicking Salve then the hero spends a use", afterSalve)
 
-check(errs.length === 0, "U8 no page errors", errs.slice(0, 3))
+check(errs.length === 0, "U12 no page errors", errs.slice(0, 3))
 await browser.close()
 console.log(JSON.stringify({ checks: out.checks, fails: out.fails, notes: res.notes }, null, 1))
 process.exit(out.fails.length ? 1 : 0)

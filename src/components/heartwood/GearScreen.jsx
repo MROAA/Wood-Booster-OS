@@ -8,14 +8,83 @@ import { CLASSES } from "../../data/heartwood/classes"
 import { RESOURCES } from "../../data/heartwood/resources"
 import { gearRow, rowEffects, fxText, collarIn, equipBlocker, recipeHintText, AURA_LABEL, COMMANDER_KEY } from "../../services/heartwood/gear"
 import { heroClassId, heroResourceId } from "../../services/heartwood/unitLevels"
-import { effectiveItemSlots, itemSellPrice } from "../../services/heartwood/runEngine"
+import { effectiveItemSlots, itemSellPrice, runActNow } from "../../services/heartwood/runEngine"
+// Dota depth sprint: build paths + forging.
+import { buildPathsFor, chosenBuildId, pathProgress, forgeBlocker, recipePartsText } from "../../services/heartwood/itemForge"
+import { BUILD_TIERS } from "../../data/heartwood/itemBuilds"
+
+// Dota depth sprint - the BUILD PATH view: pick one of the hero's 2-3
+// paths, see each step (what it needs, what you have) and forge it.
+function BuildPathView({ runState, ownerKey, onChooseBuild, onForge }) {
+  const paths = buildPathsFor(runState, ownerKey)
+  if (!paths.length) return null
+  const act = runActNow(runState)
+  const chosen = chosenBuildId(runState, ownerKey)
+  const path = paths.find((p) => p.id === chosen) || paths[0]
+  return (
+    <div className="hw-build-view" data-build-path-view={ownerKey} data-chosen={chosen || undefined}>
+      <div className="hw-hearth-section-label">Build path</div>
+      <div className="hw-build-paths">
+        {paths.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            className="hw-build-path-btn"
+            data-build-path={p.id}
+            data-chosen={p.id === chosen || undefined}
+            disabled={!onChooseBuild}
+            onClick={() => onChooseBuild?.(ownerKey, p.id)}
+            title={`${p.text}${p.id === chosen ? " (chosen - click again to clear)" : " Choose it: the shop marks the parts it still needs."}`}
+          >
+            {p.icon} {p.name}
+          </button>
+        ))}
+      </div>
+      <p className="hw-build-path-text">
+        {path.text}
+        {!chosen && " Pick a path and the shop will mark its parts."}
+      </p>
+      <div className="hw-build-steps">
+        {pathProgress(runState, path).map((step) => {
+          const d = ITEMS[step.itemId]
+          const why = step.recipe ? forgeBlocker(runState, step.recipe.id, act) : null
+          return (
+            <div key={step.itemId} className="hw-build-step" data-build-step={step.itemId} data-have={step.have || undefined}>
+              <div className="hw-build-step-name">
+                {step.have ? "✓ " : ""}
+                {d?.name}
+              </div>
+              <div className="hw-build-step-tier">
+                {BUILD_TIERS[d?.buildTier]?.name || ""}
+                {step.recipe ? ` · ${recipePartsText(step.recipe)}` : ""}
+              </div>
+              {step.parts.map((part, i) => (
+                <span key={i} className="hw-build-part" data-have={part.have || undefined}>
+                  {part.have ? "✓" : "○"} {ITEMS[part.itemId]?.name}
+                </span>
+              ))}
+              {step.recipe && !step.have && onForge && (
+                <div className="hw-build-forge">
+                  <button className="hw-move-btn" data-forge={step.recipe.id} disabled={!!why} onClick={() => onForge(step.recipe.id, ownerKey)} title={why || `Forge ${d?.name}: uses the parts${step.recipe.cost ? ` and ${step.recipe.cost} Essence` : ""}.`}>
+                    ⚒ Forge{step.recipe.cost ? ` (-${step.recipe.cost})` : ""}
+                  </button>
+                  {why && <span className="hw-build-why">{why}</span>}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 // Gear sprint - the GEAR SCREEN: one hero's gear row, big. Arrows (or a
 // drag) move items along the row, the summary says in plain words what
 // the row adds up to (adjacency links, board auras, resource gear), and
 // the bag below equips into the first free slot. A Class Collar shows
 // "Natural class: X · Wearing: Y collar".
-export default function GearScreen({ runState, ownerKey, onClose, onEquip, onUnequip, onMove, onSell }) {
+export default function GearScreen({ runState, ownerKey, onClose, onEquip, onUnequip, onMove, onSell, onForge, onChooseBuild }) {
   const slots = effectiveItemSlots(runState)
   const isCommander = ownerKey === COMMANDER_KEY
   const entry = isCommander ? null : runState.bench.find((e) => e.key === ownerKey)
@@ -102,6 +171,8 @@ export default function GearScreen({ runState, ownerKey, onClose, onEquip, onUne
             </div>
           )}
         </div>
+
+        <BuildPathView runState={runState} ownerKey={ownerKey} onChooseBuild={onChooseBuild} onForge={onForge} />
 
         <div className="hw-hearth-section-label">Bag</div>
         {bag.length === 0 ? (

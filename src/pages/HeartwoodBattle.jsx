@@ -72,7 +72,11 @@ import {
   leaveCamp,
   ackSetTiers,
   newSetTierKeys,
+  runActNow,
 } from "../services/heartwood/runEngine"
+// Dota depth sprint: coach tips for build paths / forging / enemy tricks.
+import { forgeOptions, counterReadFor } from "../services/heartwood/itemForge"
+import { ITEMS } from "../data/heartwood/items"
 import { nextPendingLevelUp, levelOffers, nextPendingPromotion, promotionOffers } from "../services/heartwood/unitLevels"
 import LevelUpChoice, { PromotionCeremony } from "../components/heartwood/LevelUpChoice"
 import { crossroadsForAct } from "../data/heartwood/crossroads"
@@ -903,6 +907,9 @@ export default function HeartwoodBattle() {
       if ((runState.essence || 0) >= antidoteCost(runState)) ids.push("antidote")
       if ((runState.essence || 0) >= GAMBLE_COST) ids.push("gamble")
       ids.push("seed")
+      // Dota depth sprint: build paths / forging.
+      if ((runState.items || []).some((it) => ITEMS[it.defId]?.buildTier) || (runState.itemOffers || []).some((id) => ITEMS[id]?.buildTier)) ids.push("build-path")
+      if (forgeOptions(runState, runActNow(runState)).some((r) => !r.legacy)) ids.push("forge")
     }
     if (phase === "relic") ids.push("relic")
     if (phase === "formation") {
@@ -913,6 +920,7 @@ export default function HeartwoodBattle() {
       ids.push("targeting")
       ids.push("threat-preview")
       ids.push("counterplay")
+      if (counterReadFor((resolveFormation(node.formationId || node.enemyId)?.pieces || []).map((p) => p.defId), runActNow(runState)).kits.length) ids.push("counter-tags")
       if ((resolveFormation(node.formationId || node.enemyId)?.pieces?.length || 0) >= 4) ids.push("swarm")
       if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "The wall holds firm") ids.push("fortress")
       if (resolveFormation(node.formationId || node.enemyId)?.synergy?.label === "They hunt the weak one") ids.push("hunters")
@@ -928,6 +936,8 @@ export default function HeartwoodBattle() {
       if (battle.phase === "player" || battle.phase === "deploy") {
         const bench = runState.bench || []
         const woundedDeployed = (runState.deployed || []).some((k) => k && bench.find((b) => b.key === k)?.wounded)
+        if (battle.itemKits) ids.push("t-enemy-trick")
+        if (battle.units.some((u) => u.side === "player" && u.hp > 0 && u.itemActives?.length)) ids.push("t-item-active")
         if (battle.boss) ids.push("t-boss")
         if (describeFaction(battle)) ids.push("t-faction")
         if (battle.objective && (battle.objective.type !== "kill" || battle.objective.reinforcements)) ids.push("t-objective")
@@ -1329,6 +1339,7 @@ export default function HeartwoodBattle() {
           onMend={handleMend}
           onBuyInvestment={handleBuyInvestment}
           onReclaimBuyback={handleReclaimBuyback}
+          onRunAction={(fn) => setRunState((current) => fn(current))}
           onContinue={() => setShowMapAfterShop(true)}
           showIntro={showIntro}
           onDismissIntro={dismissIntro}

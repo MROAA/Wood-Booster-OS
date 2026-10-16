@@ -134,9 +134,11 @@ export function forgeRecipe(runState, recipeId, act = 1, ownerKey = null) {
 // The class a run hero fights as (collar > natural), or null for the Commander.
 export function ownerClassId(runState, ownerKey) {
   if (ownerKey === COMMANDER_KEY) return null
-  const e = (runState?.bench || []).find((b) => b.key === ownerKey)
+  // Bench keys are numbers in a live run but come back as strings from
+  // heroBuilds' object keys - compare loosely.
+  const e = (runState?.bench || []).find((b) => String(b.key) === String(ownerKey))
   if (!e) return null
-  return collarClassFor(runState, ownerKey) || heroClassId(e)
+  return collarClassFor(runState, e.key) || heroClassId(e)
 }
 
 // The 2-3 build paths this hero can pick (its class group's).
@@ -186,7 +188,7 @@ export function wantedComponents(runState) {
   for (const [ownerKey, pathId] of Object.entries(runState?.heroBuilds || {})) {
     const path = BUILD_PATHS[pathId]
     if (!path || chosenBuildId(runState, ownerKey) !== pathId) continue
-    const e = (runState.bench || []).find((b) => b.key === ownerKey)
+    const e = (runState.bench || []).find((b) => String(b.key) === String(ownerKey))
     const name = ownerKey === COMMANDER_KEY ? "Commander" : e?.name || UNITS[e?.defId]?.name || "Hero"
     for (const goal of path.items) {
       if (owned.includes(goal)) continue

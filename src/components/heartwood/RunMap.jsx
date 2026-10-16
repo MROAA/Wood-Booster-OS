@@ -188,6 +188,12 @@ function RunRail({ runState, onScout }) {
             <p className="hw-scout-report" data-tone={report.relative?.tone || "even"}>
               Next fight: <strong>{report.ratingLabel}</strong>
               {report.relative ? ` — ${report.relative.label}` : ""}
+              {report.bring && (
+                <span className="hw-scout-bring" data-scout-bring>
+                  <br />
+                  {report.counters.kits.map((k) => k.kit.icon).join(" ")} {report.bring}
+                </span>
+              )}
             </p>
           )}
         </div>

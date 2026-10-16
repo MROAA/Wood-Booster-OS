@@ -136,7 +136,7 @@ function hurt(state, targetId, amount) {
 }
 
 // Use an active. `target` = a unit id, or "row-col" / {row,col} for a tile.
-export function useItemActive(state, unitId, activeId, target = null) {
+export function castItemActive(state, unitId, activeId, target = null) {
   const actor = getUnit(state, unitId)
   const def = ITEM_ACTIVES[activeId]
   if (itemActiveBlocker(state, actor, activeId)) return state

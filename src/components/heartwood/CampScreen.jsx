@@ -10,7 +10,7 @@ import {
   campCraftOptions,
   COMMUNE_POOL_CAP,
 } from "../../services/heartwood/betweenFights"
-import { unitHpPct, commanderHpPct } from "../../services/heartwood/runEngine"
+import { unitHpPct, commanderHpPct, runActNow } from "../../services/heartwood/runEngine"
 import { CardGlyph } from "./cardArt"
 import RunBuildPanel from "./RunBuildPanel"
 
@@ -45,7 +45,7 @@ export default function CampScreen({ runState, onRest, onTrain, onCraft, onScout
     deployedHeroes.filter((e) => e.wounded || unitHpPct(e) < 1).length + (runState.commanderWounded || commanderHpPct(runState) < 1 ? 1 : 0)
   const wounded = deployedHeroes.filter((e) => e.wounded).length + (runState.commanderWounded ? 1 : 0)
   const train = campTrainOptions(runState).map((o) => ({ key: o.key, name: o.name, sub: `Lv ${o.level} → ${o.level + 1}` }))
-  const crafts = campCraftOptions(runState)
+  const crafts = campCraftOptions(runState, runActNow(runState))
   const deepen = deployedHeroes
     .filter((e) => (e.manaBonus || 0) < COMMUNE_POOL_CAP)
     .map((e) => ({ key: e.key, name: UNITS[e.defId].name, sub: e.manaBonus ? `+${e.manaBonus} now` : null }))
@@ -126,7 +126,7 @@ export default function CampScreen({ runState, onRest, onTrain, onCraft, onScout
                 <HeroPick
                   label="Craft what"
                   options={[
-                    ...crafts.map((r) => ({ key: r.id, name: ITEMS[r.result]?.name || r.result, sub: `${ITEMS[r.a]?.name} + ${ITEMS[r.b]?.name}`, title: r.text })),
+                    ...crafts.map((r) => ({ key: r.id, name: ITEMS[r.result]?.name || r.result, sub: r.parts && !r.a ? `${r.parts.map((p) => ITEMS[p]?.name).join(" + ")}${r.cost ? ` + ${r.cost} Essence` : ""}` : `${ITEMS[r.a]?.name} + ${ITEMS[r.b]?.name}`, title: r.text })),
                     { key: "whittle", name: "Whittle", sub: "a simple piece of gear" },
                   ]}
                   onPick={(k) => act(() => onCraft(k))}

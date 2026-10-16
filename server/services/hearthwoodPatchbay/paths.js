@@ -223,6 +223,9 @@ export const ENTITY_TYPES = {
     // Gear sprint: item recipes + Class Collars (items themselves: `items`).
     recipes: { file: "recipes.js", exportName: "RECIPES" },
     collars: { file: "collars.js", exportName: "COLLARS" },
+    // Dota depth sprint: tiered build recipes + active items.
+    buildRecipes: { file: "itemBuilds.js", exportName: "BUILD_RECIPES" },
+    itemActives: { file: "itemBuilds.js", exportName: "ITEM_ACTIVES" },
     upgradeBranches: { file: "upgrades.js", exportName: "UPGRADE_BRANCHES" },
     help: { file: "help.js", exportName: "HELP_SECTIONS" },
     coachTips: { file: "coach.js", exportName: "COACH_TIPS" },

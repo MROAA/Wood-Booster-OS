@@ -3,6 +3,10 @@ import { evaluateThreat } from "../../data/heartwood/threatPreview"
 import { evaluatePlayerPower } from "../../data/heartwood/playerPower"
 import { THREATS } from "../../data/heartwood/counterplay"
 import { CardGlyph } from "./cardArt"
+// Dota depth sprint: the enemy counter kits + "Bring: ..." line.
+import { counterReadFor, bringText, runAnswers } from "../../services/heartwood/itemForge"
+import { runActNow } from "../../services/heartwood/runEngine"
+import { COUNTER_TAGS } from "../../data/heartwood/itemBuilds"
 
 // The enemy threat preview (threatPreview.js, Enemy Ecosystem PRD 50-51).
 // "Here is the problem" - a danger rating, the threat that dominates,
@@ -19,6 +23,8 @@ export default function ThreatPreview({ runState, node, previewEnemies }) {
     () => evaluateThreat(previewEnemies, runState, node, playerPower),
     [previewEnemies, runState, node, playerPower],
   )
+  const counters = useMemo(() => counterReadFor((previewEnemies || []).map((e) => e.defId || e.id), runActNow(runState)), [previewEnemies, runState])
+  const have = useMemo(() => runAnswers(runState), [runState])
   if (!previewEnemies || previewEnemies.length === 0) return null
 
   return (
@@ -53,6 +59,14 @@ export default function ThreatPreview({ runState, node, previewEnemies }) {
       {t.mechanics.length > 0 && (
         <p className="hw-threat-mechanics">
           <span className="hw-threat-expect">Expect:</span> {t.mechanics.join(" · ")}
+        </p>
+      )}
+
+      {counters.kits.length > 0 && (
+        <p className="hw-counter-read" data-counter-read={counters.bring.join(" ")} title="These enemies bring a trick - the right item answers it. Forge or buy it before the fight.">
+          {bringText(counters.bring)}
+          <span className="hw-counter-read-kits"> · {counters.kits.map((k) => `${k.kit.icon} ${k.kit.name}${k.count > 1 ? ` x${k.count}` : ""}`).join(" · ")}</span>
+          {counters.bring.some((b) => have.has(b)) && <span className="hw-counter-read-have"> · you carry: {counters.bring.filter((b) => have.has(b)).map((b) => COUNTER_TAGS[b]?.label).join(", ")}</span>}
         </p>
       )}
 
