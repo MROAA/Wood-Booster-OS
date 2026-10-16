@@ -37,6 +37,7 @@ import { CLASSES } from "../data/heartwood/classes"
 import { UNITS } from "../data/heartwood/units"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
+import "../components/heartwood/heartwood-graphics.css"
 
 // The debugLowHp QA-only hook, never a real feature: `?debugLowHp=1` seeds
 // every enemy at 1 HP so a verification pass (or a quick manual check) can

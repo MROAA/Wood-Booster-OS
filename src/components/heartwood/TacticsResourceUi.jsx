@@ -114,7 +114,12 @@ export function ResourceInfo({ unit, battle }) {
           {bonus ? `Now: ${bonus}.` : ""}
         </p>
       )}
-      <p className="hwt-res-rules">{prof.text}</p>
+      {/* Graphics pass: the full rules fold away so the card shows what
+          matters now; one click opens them. */}
+      <details className="hwt-res-rules">
+        <summary>How it works</summary>
+        {prof.text}
+      </details>
     </div>
   )
 }

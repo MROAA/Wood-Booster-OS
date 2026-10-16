@@ -18,7 +18,7 @@ import { FloatingNumber } from "./FloatingNumbers"
 import { play } from "../../services/heartwood/soundManager"
 
 const BEAT_MS = 420
-const IMPACT_DELAY_MS = 150
+const IMPACT_DELAY_MS = 200
 const BIG_HIT = 15 // match FloatingNumbers.jsx
 // How long a unit that just fell stays on the board (faded) so its own
 // killing blow is visible before it disappears.
@@ -46,11 +46,21 @@ function lunge(actorId, targetId, ranged) {
   const rt = t.getBoundingClientRect()
   const dx = rt.left - ra.left
   const dy = rt.top - ra.top
-  const k = ranged ? 0.1 : 0.38
-  a.animate([{ translate: "0 0" }, { translate: `${dx * k}px ${dy * k}px` }, { translate: "0 0" }], {
-    duration: 280,
-    easing: "cubic-bezier(.3,.7,.4,1)",
-  })
+  // Graphics pass: a Hearthstone-style strike - rock back and lift
+  // (anticipation), snap into the target (contact lands on the
+  // IMPACT_DELAY_MS beat), then settle home.
+  const k = ranged ? 0.1 : 0.42
+  const back = ranged ? 0.03 : 0.08
+  a.style.zIndex = "8"
+  a.animate(
+    [
+      { translate: "0 0", scale: 1 },
+      { translate: `${-dx * back}px ${-dy * back - 6}px`, scale: 1.1, offset: 0.35, easing: "cubic-bezier(.6,0,.9,.4)" },
+      { translate: `${dx * k}px ${dy * k}px`, scale: 1.12, offset: 0.55, easing: "cubic-bezier(.2,.7,.3,1)" },
+      { translate: "0 0", scale: 1 },
+    ],
+    { duration: 380 },
+  ).finished.finally(() => { a.style.zIndex = "" })
   if (ranged) {
     const bolt = document.createElement("div")
     bolt.className = "hwt-projectile"
@@ -61,6 +71,77 @@ function lunge(actorId, targetId, ranged) {
       .animate([{ translate: "0 0", opacity: 1 }, { translate: `${dx}px ${dy}px`, opacity: 0.9 }], { duration: IMPACT_DELAY_MS + 40, easing: "ease-in" })
       .finished.finally(() => bolt.remove())
   }
+}
+
+// Graphics pass: a small burst of embers/sparks off a hit token.
+// "heal" bursts soft green motes upward instead.
+function sparks(unitId, kind = "hit", count = 7) {
+  const t = tokenEl(unitId)
+  if (!t || reduceMotion()) return
+  const r = t.getBoundingClientRect()
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement("div")
+    s.className = "hwt-spark"
+    s.dataset.kind = kind
+    s.style.left = `${r.left + r.width / 2}px`
+    s.style.top = `${r.top + r.height / 2}px`
+    document.body.appendChild(s)
+    const ang = kind === "heal" ? -Math.PI / 2 + (i / count - 0.5) * 1.6 : (i / count) * Math.PI * 2 + i
+    const dist = (kind === "heal" ? 26 : 22) + ((i * 7) % 18)
+    const dx = Math.cos(ang) * dist
+    const dy = Math.sin(ang) * dist + (kind === "heal" ? -10 : 8)
+    s.animate(
+      [{ translate: "0 0", scale: 1, opacity: 1 }, { translate: `${dx}px ${dy}px`, scale: 0.3, opacity: 0 }],
+      { duration: 420 + ((i * 53) % 220), easing: "cubic-bezier(.2,.7,.3,1)" },
+    ).finished.finally(() => s.remove())
+  }
+}
+
+// Graphics pass: a Hearthstone-style damage splat - a jagged red burst
+// stamped on the hit token under the floating number.
+function splat(unitId, big) {
+  const t = tokenEl(unitId)
+  if (!t || reduceMotion()) return
+  const r = t.getBoundingClientRect()
+  const s = document.createElement("div")
+  s.className = "hwt-splat"
+  if (big) s.dataset.big = "true"
+  s.style.left = `${r.left + r.width / 2}px`
+  s.style.top = `${r.top + r.height / 2}px`
+  document.body.appendChild(s)
+  s.animate(
+    [
+      { scale: 0.2, rotate: "-20deg", opacity: 0 },
+      { scale: big ? 1.3 : 1.15, rotate: "0deg", opacity: 1, offset: 0.18 },
+      { scale: 1, opacity: 1, offset: 0.3 },
+      { scale: 1, opacity: 1, offset: 0.75 },
+      { scale: 0.9, opacity: 0 },
+    ],
+    { duration: big ? 900 : 750, easing: "cubic-bezier(.2,.8,.3,1)" },
+  ).finished.finally(() => s.remove())
+}
+
+// Graphics pass: the squad and the enemy drop onto the field with weight
+// when a battle begins (Hearthstone's minion "slam"), staggered left to
+// right, each landing kicking up a little dust.
+function slamIn() {
+  if (reduceMotion()) return
+  const toks = [...document.querySelectorAll(".hwt-board .hwt-token")]
+  toks
+    .map((el) => ({ el, x: el.getBoundingClientRect().left }))
+    .sort((p, q) => q.x - p.x)
+    .forEach(({ el }, i) => {
+      const delay = i * 70
+      el.animate(
+        [
+          { translate: "0 -34px", scale: 1.25, opacity: 0 },
+          { translate: "0 0", scale: 0.94, opacity: 1, offset: 0.7 },
+          { translate: "0 0", scale: 1, opacity: 1 },
+        ],
+        { duration: 420, delay, easing: "cubic-bezier(.5,0,.75,0)", fill: "backwards" },
+      )
+      setTimeout(() => sparks(el.dataset.unitId, "dust", 6), delay + 300)
+    })
 }
 
 function shakeBoard() {
@@ -154,6 +235,8 @@ export default function TacticsFx({ battle }) {
   const [chain, setChain] = useState(null)
   // Combat depth sprint: a big "COMBO! Finisher" banner when heroes combo.
   const [comboBanner, setComboBanner] = useState(null)
+  // Graphics pass: a sweeping "Your Turn" / "Enemy Turn" banner.
+  const [turnBanner, setTurnBanner] = useState(null)
   const flashSeqRef = useRef(battle.bossFlash?.seq ?? null)
   const counterRef = useRef(0)
   const lastSeqRef = useRef(null)
@@ -198,7 +281,11 @@ export default function TacticsFx({ battle }) {
             setTimeout(() => {
               const big = ev.amount >= BIG_HIT
               restartClass(tokenEl(ev.targetId), "hw-hit-flash", 400)
-              if (ev.amount > 0) pop(ev.targetId, `-${ev.amount}`, "damage", { big })
+              if (ev.amount > 0) {
+                pop(ev.targetId, `-${ev.amount}`, "damage", { big })
+                splat(ev.targetId, big)
+                sparks(ev.targetId, ev.fell ? "fell" : "hit", big || ev.fell ? 12 : 7)
+              }
               else if (ev.absorbed > 0) pop(ev.targetId, "Blocked", "block")
               if (big) shakeBoard()
               if (ev.fell) play("ko")
@@ -269,7 +356,7 @@ export default function TacticsFx({ battle }) {
           const kind = ev.label === "breakpoint" ? "mana-bp" : ev.amount < 0 ? "mana-drain" : "mana"
           timers.push(setTimeout(() => pop(ev.unitId, text, kind, { offset: 0.6 }), at + IMPACT_DELAY_MS))
         } else if (ev.kind === "heal") {
-          timers.push(setTimeout(() => { pop(ev.targetId, `+${ev.amount}`, "heal"); play("heal") }, at))
+          timers.push(setTimeout(() => { pop(ev.targetId, `+${ev.amount}`, "heal"); sparks(ev.targetId, "heal", 6); play("heal") }, at))
         }
       }
     })
@@ -301,6 +388,12 @@ export default function TacticsFx({ battle }) {
   useEffect(() => {
     if (battle.phase === phaseRef.current) return
     phaseRef.current = battle.phase
+    if (battle.phase === "player" && battle.turn === 1) slamIn()
+    if (battle.phase === "player" || battle.phase === "enemy") {
+      const key = `${battle.phase}-${battle.turn}`
+      setTurnBanner({ key, phase: battle.phase, turn: battle.turn })
+      timersRef.current.push(setTimeout(() => setTurnBanner((b) => (b && b.key === key ? null : b)), 1300))
+    }
     if (battle.phase === "won") play("victory")
     else if (battle.phase === "lost") play("defeat")
   }, [battle.phase])
@@ -311,6 +404,12 @@ export default function TacticsFx({ battle }) {
         <div className="hwt-boss-phase-banner" key={banner.key} data-phase-index={banner.index}>
           <span className="hwt-boss-phase-banner-num">Phase {banner.index + 1}</span>
           <span className="hwt-boss-phase-banner-name">{banner.name}</span>
+        </div>
+      )}
+      {turnBanner && (
+        <div className="hwt-turn-banner" key={turnBanner.key} data-phase={turnBanner.phase} aria-hidden="true">
+          <span className="hwt-turn-banner-text">{turnBanner.phase === "player" ? "Your Turn" : "Enemy Turn"}</span>
+          {turnBanner.phase === "player" && <span className="hwt-turn-banner-sub">Round {turnBanner.turn}</span>}
         </div>
       )}
       {comboBanner && (
