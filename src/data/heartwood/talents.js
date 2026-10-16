@@ -157,6 +157,15 @@ export const CLASS_TWISTS = {
   gatherer: [1, "R", { name: "Forager's Luck", icon: "❦", text: "Every kill gives 20 Nature and Scavenge recharges 1 sooner.", fx: { sk: 0, cd: -1, killMana: 20 } }],
 }
 
+// Classes whose resource isn't a plain bar (Alchemist reagents, the
+// Corruptor's inverted Corruption) swap the bar talents for sturdier ones.
+const BAR_KEYS = new Set(["pool", "regen", "castmana", "hitmana", "killmana", "shield", "firstfree", "brim"])
+const NO_BAR = new Set(["reagents", "corruption"])
+const sturdy = (cls, side) =>
+  side === "L"
+    ? { key: "sturdy", name: "Ironbark Skin", icon: "🌳", text: "+5 max HP.", fx: { hp: 5 } }
+    : { key: "sturdy", name: "Quick Hands", icon: "⚡", text: "+1 AP on the first turn of every fight.", fx: { headAp: 1 } }
+
 // The talent tree of a class: [{ tier, level, L, R }] - L/R are talents
 // with a stable id "<classId>:<tier><L|R>".
 const cache = new Map()
@@ -171,7 +180,8 @@ export function talentTreeFor(classId) {
     const row = { tier, level }
     for (const [j, side] of ["L", "R"].entries()) {
       const custom = twist && twist[0] === tier && twist[1] === side ? { key: "twist", ...twist[2], twist: true } : null
-      const t = custom || tpl[i][j](cls)
+      let t = custom || tpl[i][j](cls)
+      if (!custom && NO_BAR.has(cls.resource) && BAR_KEYS.has(t.key)) t = sturdy(cls, side)
       const fx = { ...(t.fx || {}) }
       for (const k of Object.keys(fx)) if (fx[k] == null || (Array.isArray(fx[k]) && !fx[k].length)) delete fx[k]
       row[side] = { ...t, fx, id: `${classId}:${tier}${side}`, classId, tier, side }
