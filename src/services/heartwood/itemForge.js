@@ -225,7 +225,7 @@ export function counterReadFor(defIds = [], act = 1) {
     if (kit) counts.set(kit.id, (counts.get(kit.id) || 0) + 1)
   }
   const kits = [...counts.entries()].map(([id, count]) => ({ kit: COUNTER_KITS[id], count }))
-  const bring = [...new Set(kits.flatMap((k) => k.kit.answers.filter((a) => a !== "skills")))]
+  const bring = [...new Set(kits.flatMap((k) => k.kit.answers.filter((a) => a !== "skills" && a !== "physical")))]
   return { kits, bring }
 }
 
