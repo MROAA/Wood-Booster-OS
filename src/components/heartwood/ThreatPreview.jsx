@@ -7,6 +7,8 @@ import { CardGlyph } from "./cardArt"
 import { counterReadFor, bringText, runAnswers } from "../../services/heartwood/itemForge"
 import { runActNow } from "../../services/heartwood/runEngine"
 import { COUNTER_TAGS } from "../../data/heartwood/itemBuilds"
+// Mana sprint 3: "Feeds on mana" + its Bring: line.
+import { feedReadFor } from "../../services/heartwood/tacticsManaFeed"
 
 // The enemy threat preview (threatPreview.js, Enemy Ecosystem PRD 50-51).
 // "Here is the problem" - a danger rating, the threat that dominates,
@@ -25,6 +27,7 @@ export default function ThreatPreview({ runState, node, previewEnemies }) {
   )
   const counters = useMemo(() => counterReadFor((previewEnemies || []).map((e) => e.defId || e.id), runActNow(runState)), [previewEnemies, runState])
   const have = useMemo(() => runAnswers(runState), [runState])
+  const feed = useMemo(() => feedReadFor((previewEnemies || []).map((e) => e.defId || e.id)), [previewEnemies])
   if (!previewEnemies || previewEnemies.length === 0) return null
 
   return (
@@ -69,6 +72,13 @@ export default function ThreatPreview({ runState, node, previewEnemies }) {
           {bringText(counters.bring)}
           <span className="hw-counter-read-kits"> · {counters.kits.map((k) => `${k.kit.icon} ${k.kit.name}${k.count > 1 ? ` x${k.count}` : ""}`).join(" · ")}</span>
           {counters.bring.some((b) => have.has(b)) && <span className="hw-counter-read-have"> · you carry: {counters.bring.filter((b) => have.has(b)).map((b) => COUNTER_TAGS[b]?.label).join(", ")}</span>}
+        </p>
+      )}
+
+      {feed.feeders.length > 0 && (
+        <p className="hw-counter-read hw-feed-read" data-feed-read={feed.feeders.map((f) => f.kit.id).join(" ")} title="These enemies feed on the mana your heroes spend near them - every cast in reach makes them hit harder.">
+          🍽 Feeds on mana: {feed.feeders.map((f) => `${f.kit.icon} ${f.kit.name}${f.count > 1 ? ` x${f.count}` : ""}`).join(" · ")}
+          <span className="hw-counter-read-kits"> · Bring: {feed.answer}</span>
         </p>
       )}
 

@@ -101,5 +101,6 @@ export function withStartCharge(battle, runState) {
 // Commune Overcharge + a mana-tide fate.
 export function betweenFightsMana(runState) {
   const m = setManaBonus(runState)
-  return { ...m, startOvercharge: m.startOvercharge + (runState?.campOvercharge || 0) + fateOverchargeForFight(runState) }
+  // Mana sprint 3: a campaign ley network adds regen (its start mana rides in campOvercharge).
+  return { ...m, regen: m.regen + (runState?.leyNet?.regen || 0), startOvercharge: m.startOvercharge + (runState?.campOvercharge || 0) + fateOverchargeForFight(runState) }
 }

@@ -106,6 +106,34 @@ export const MISSION_TYPES = {
   // Story (part 2, campaignStory.js): a nemesis hunting you, and your allies calling.
   hunt: { id: "hunt", name: "Hunted", icon: "🐺", node: "elite", threatDrop: 15, expiry: [2, 4], blurb: "Your nemesis has found you. Meet them - or they strike while you're away (Doom +1)." },
   allied: { id: "allied", name: "Call to Arms", icon: "🔔", node: "battle", threatDrop: 25, expiry: [3, 5], blurb: "Your allies call for help. Their warriors fight beside you." },
+  // Mana sprint 3: the Rot tries to cut a ley line of your network.
+  breach: { id: "breach", name: "Ley Breach", icon: "⚡", node: "battle", threatDrop: 15, expiry: [2, 3], blurb: "The Rot is cutting a ley line. Win before it expires - or the line is CUT and your ley network shrinks." },
+}
+
+// Mana sprint 3: LEY LINES between regions (coloured). Lines whose both
+// ends you hold (open, not fallen, not Threatened) and that link back to
+// the Hearthstead form your LEY NETWORK: a bigger network = more mana in
+// every fight (services/heartwood/campaignLey.js).
+export const LEY_LINES = [
+  { id: "hearth-grove", a: "hearthstead", b: "outer-grove", colour: "root" },
+  { id: "grove-mist", a: "outer-grove", b: "mistfen", colour: "tide" },
+  { id: "hearth-ember", a: "hearthstead", b: "emberwrack", colour: "ember" },
+  { id: "hearth-deep", a: "hearthstead", b: "deepening", colour: "root" },
+  { id: "mist-hollow", a: "mistfen", b: "hollow-ley", colour: "tide" },
+  { id: "deep-hollow", a: "deepening", b: "hollow-ley", colour: "void" },
+  { id: "ember-hollow", a: "emberwrack", b: "hollow-ley", colour: "ember" },
+  { id: "deep-crown", a: "deepening", b: "crownless", colour: "void" },
+]
+export const LEY = {
+  startPerStrength: 4, // + start mana / Overcharge per network strength
+  startMax: 32,
+  regenEvery: 2, // +1 regen per this much strength
+  regenMax: 4,
+  breachFirstDay: 4,
+  breachEvery: 3, // a Ley Breach can appear every N days
+  drainSurgeDays: 5, // Drained: the network surges this long...
+  drainSurge: 3, // ...+3 strength...
+  drainDecayEvery: 3, // ...then a line touching a drained region decays every N days
 }
 
 // Hand-written story mission titles, one per chapter (1-7). The story

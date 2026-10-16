@@ -981,6 +981,25 @@ export const RELICS = {
     effects: [],
     mana: { ultRefund: 30, linkBonus: 10 },
   },
+  // Mana sprint 3: Overchannel + colour combos.
+  "stormglass-phial": {
+    id: "stormglass-phial",
+    image: aegisWardImg,
+    name: "Stormglass Phial",
+    icon: "cosmic",
+    description: "Overchannelling is safer: Backlash builds 35% slower and every overchannel costs 1 less HP.",
+    effects: [],
+    mana: { backlashCut: 35, overchannelHp: 1 },
+  },
+  "four-winds-prism": {
+    id: "four-winds-prism",
+    image: aegisWardImg,
+    name: "Prism of Four Winds",
+    icon: "cosmic",
+    description: "Colour combos (two different mana colours cast in one turn) hit 50% harder.",
+    effects: [],
+    mana: { comboPower: 50 },
+  },
 }
 
 // Rarity (Marc: "tehdään harvinaisuus systeemi peliin ja siihen

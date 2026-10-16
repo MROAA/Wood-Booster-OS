@@ -61,6 +61,9 @@ import * as sigFx from "./tacticsSignatures"
 import * as itemFx from "./tacticsItems"
 // Dota depth 2: talents + neutrals (riders), Hushcap gate, new enemy kits.
 import * as talentFx from "./tacticsTalents"
+// Mana sprint 3: mana colours + Overchannel, mana-fed enemies.
+import * as colourFx from "./tacticsManaColours"
+import * as feedFx from "./tacticsManaFeed"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -2541,8 +2544,12 @@ const SUPPORT_KINDS = new Set(["heal", "aura-block", "shield-ally", "rally", "ta
 // cast); stored Overcharge rides on the cast as `surge`.
 // Dota depth 2: the talent wrapper (Hushcap gate, 2nd charges, talent
 // riders, resource back, Thornmirror) - tacticsTalents.castWithTalents.
+// Mana sprint 3: the colour wrapper (Overchannel cost, colour combos,
+// mana-fed enemies) - tacticsManaColours.castWithColours.
 export function castAbility(state, actorId, targetId, skillId) {
-  return talentFx.castWithTalents(state, actorId, targetId, skillId, castAbilityBase)
+  const who = getUnit(state, actorId)
+  const skill = who ? (skillId ? classFx.classSkillById(who, skillId) : null) || who.ability : null
+  return colourFx.castWithColours(state, actorId, targetId, skill, (s) => talentFx.castWithTalents(s, actorId, targetId, skillId, castAbilityBase))
 }
 
 function castAbilityBase(state, actorId, targetId, skillId) {
@@ -3121,7 +3128,9 @@ function enemyPhaseStart(state) {
   // Boss fights: arena hazards resolve / get telegraphed here too.
   // Factions: Blight spreads / poisons / feeds here (preview sees it too).
   // Dota depth: Runeshells regrow, Mossbloom heals, Seedcallers call.
-  const bossed = bossEnemyPhaseStart(objectiveEnemyPhaseStart(factionEnemyPhaseStart(next)))
+  const bossed0 = bossEnemyPhaseStart(objectiveEnemyPhaseStart(factionEnemyPhaseStart(next)))
+  // Mana sprint 3: a gorged Maw releases its Mana Nova (preview sees it too).
+  const bossed = bossed0.phase === "enemy" ? feedFx.feedEnemyPhaseStart(bossed0) : bossed0
   return bossed.phase === "enemy" ? itemFx.itemEnemyPhaseStart(bossed) : bossed
 }
 
@@ -4233,7 +4242,8 @@ export function runEnemyTurn(state) {
   // Combat depth: setups tick, reactions lapse, Delayed heroes get +1 AP.
   // Hero identity: Doom falls, Strangleroots, Triage, Borrowed Time, fears...
   // Dota depth: item recharges, lifts end, Mist refills, lanterns reveal.
-  return itemFx.itemPlayerTurnStart(sigFx.sigPlayerTurnStart(depth.playerTurnStart(applyTurnStartTriggers(elements.elementTurnStart(mutFx.mutationTurnStart(relicTicked), "player"), "player"))))
+  // Mana sprint 3: Backlash goes off / drains, coloured Mana Wells prime.
+  return colourFx.colourPlayerTurnStart(itemFx.itemPlayerTurnStart(sigFx.sigPlayerTurnStart(depth.playerTurnStart(applyTurnStartTriggers(elements.elementTurnStart(mutFx.mutationTurnStart(relicTicked), "player"), "player")))))
 }
 
 // A QA-only hook (see HeartwoodTactics.jsx's ?debugLowHp=1) - never a real
@@ -4251,7 +4261,7 @@ export function withLowEnemyHp(state) {
   // Combat depth: enemy stances / parries off too (a bracing 1-HP enemy).
   // Hero identity: fears + rival penalties off too (a random fear quirk made
   // the naive QA bot miss a 1-HP boss).
-  return itemFx.itemQa(difficultyQa(bossQa({ ...state, depthQa: true, identityQa: true, terrain: {}, wallHp: {}, objHp: {}, objFire: {}, objChill: {}, tileTimers: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...u, hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [], ult: null, ultCharge: 0, ultArmed: null } : u)) })))
+  return itemFx.itemQa(difficultyQa(bossQa({ ...state, depthQa: true, identityQa: true, terrain: {}, wallHp: {}, objHp: {}, objFire: {}, objChill: {}, tileTimers: {}, units: state.units.map((u) => (u.side === "enemy" ? { ...feedFx.feedQa(u), hp: 1, maxHp: u.maxHp, ward: 0, revive: 0, enemySkills: [], ult: null, ultCharge: 0, ultArmed: null } : u)) })))
 }
 
 // Shared with tacticsRelics.js (relic/item hooks during a fight).
