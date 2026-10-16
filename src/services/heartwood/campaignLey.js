@@ -30,7 +30,7 @@ import { regionMod, storyFlags } from "./campaignStoryEngine"
 
 const arr = (v) => (Array.isArray(v) ? v : [])
 
-export const leyOf = (c) => ({ cut: arr(c?.ley?.cut), drainDay: c?.ley?.drainDay ?? null, nextBreachDay: c?.ley?.nextBreachDay ?? null, log: arr(c?.ley?.log) })
+export const leyOf = (c) => ({ cut: arr(c?.ley?.cut), drainDay: c?.ley?.drainDay ?? null, nextBreachDay: c?.ley?.nextBreachDay ?? null })
 
 // A region is "held" for the ley: open, not fallen / sunk, not Threatened.
 // `open` is injected (campaignEngine.regionLive) so this file never imports it.
