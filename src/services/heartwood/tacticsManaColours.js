@@ -21,7 +21,7 @@
 // Tests: .scratch/verify_mana_3.mjs (ENGINE_ONLY=1 for the engine part).
 import {
   MANA_COLOURS, COLOUR_IDS, CLASS_AFFINITY, ROLE_AFFINITY, SKILL_COLOURS, KIND_COLOURS, comboForColours,
-  COMBO_POWER_MIN, COMBO_POWER_ATK, HELLFLARE_BONUS, HELLFLARE_BURN, UNDERTOW_BURN, FINISHER, OVERCHANNEL,
+  COMBO_POWER_MIN, COMBO_POWER_ATK, HELLFLARE_BONUS, HELLFLARE_BURN, UNDERTOW_BURN, FINISHER, OVERCHANNEL, FEED_BIG_CAST_PCT,
 } from "../../data/heartwood/manaColours"
 import { emit, getUnit, setUnit, applyDamageWithBlock, checkTacticsBattleEnd } from "./tacticsEngine"
 import { hasMana, profileOf, manaCostOf, manaOn, burnMana, gainResource } from "./tacticsMana"
@@ -276,7 +276,7 @@ export function castWithColours(state, actorId, targetId, skill, run) {
   if (ended(next)) return next
   next = registerColour(next, actorId, targetId, skillColourOf(skill, u))
   if (ended(next)) return next
-  const big = !!usable || (u.manaMax > 0 && (cost / u.manaMax) * 100 >= 25)
+  const big = !!usable || (u.manaMax > 0 && (cost / u.manaMax) * 100 >= FEED_BIG_CAST_PCT)
   return feedOnCast(next, actorId, { big })
 }
 

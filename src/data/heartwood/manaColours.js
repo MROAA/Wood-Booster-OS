@@ -107,7 +107,15 @@ export const SKILL_COLOURS = {
   appraise: "void",
   scavenge: "void",
   "relic-transfer": "tide",
-  "thorn-boundary": "root",
+  "thorn-boundary": "ember",
+  "mark-intruder": "void",
+  "shoulder-check": "root",
+  "exploit-opening": "void",
+  vanish: "tide",
+  leap: "void",
+  empower: "tide",
+  "frozen-ground": "root",
+  "vine-bridge": "tide",
   frenzy: "ember",
   "root-form": "root",
   "beast-form": "root",
@@ -210,8 +218,8 @@ export const FEED_FAMILIES = {
 export const FEED_BOSSES = {
   "the-gorging-maw": { id: "maw", name: "The Gorging Maw", icon: "👄", range: 4, per: 1, max: 6, nova: { radius: 2, damage: 8, keep: 1 }, text: "The Maw gorges on spent mana. Full Hunger = a MANA NOVA on every hero within 2 at the start of its turn." },
 }
-// Extra Hunger for a big cast (25%+ of the bar) or an overchannel.
-export const FEED_BIG_CAST_PCT = 25
+// Extra Hunger for a big cast (40%+ of the bar) or an overchannel.
+export const FEED_BIG_CAST_PCT = 40
 // Mana burned per Hunger stack removed (min 1 stack per burn).
 export const FEED_BURN_PER_STACK = 5
 

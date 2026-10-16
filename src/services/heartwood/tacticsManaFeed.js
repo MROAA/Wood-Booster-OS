@@ -137,7 +137,7 @@ export function feedTileBonus(state, enemy, pos) {
 // Who a feeder walks toward: the heavy caster.
 export function feedFocusBonus(enemy, target) {
   if (!isFeeder(enemy) || !(target?.castHeat > 0)) return 0
-  return 8 * Math.min(4, target.castHeat)
+  return 15 * Math.min(4, target.castHeat)
 }
 
 // QA hook (withLowEnemyHp): feeders off.
