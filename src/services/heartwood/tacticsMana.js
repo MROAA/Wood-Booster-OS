@@ -42,6 +42,9 @@ import { isMageClass } from "./tacticsRanged"
 import { enemySkillsFor } from "./tacticsEnemyAbilities"
 import { auraOn } from "./gear"
 import { burnUltimate, maybeStagger, WELL_GAIN } from "./tacticsUltimates"
+// Mana sprint 3: ley colour discount, Overchannel, mana-fed enemies.
+import { leyCostCut, armedOverchannelOk } from "./tacticsManaColours"
+import { feedKitFields, feedBurn } from "./tacticsManaFeed"
 
 // --- Numbers ------------------------------------------------------------------
 
@@ -303,6 +306,9 @@ export function manaCostOf(skill, unit = null) {
   if (skill.spend === "pct") base = Math.ceil(((unit.manaMax || 0) * (skill.pct || 0)) / 100)
   const cheaper = resourceMods(unit).cheaper
   if (cheaper && base > 0) base = Math.max(1, Math.round((base * (100 - cheaper)) / 100))
+  // Mana sprint 3: a campaign ley line of this skill's colour - 15% cheaper.
+  const ley = leyCostCut(unit, skill)
+  if (ley && base > 1) base = Math.max(1, Math.round((base * (100 - ley)) / 100))
   return base
 }
 
@@ -311,7 +317,8 @@ export function canAfford(unit, skill) {
   const cost = manaCostOf(skill, unit)
   if (special(unit, "inverted")) return cost <= 0 || unit.mana + cost <= unit.manaMax
   if (skill?.spend === "all") return unit.mana >= Math.max(cost, 1)
-  return unit.mana >= cost
+  // Mana sprint 3: an armed Overchannel pays the shortfall in HP.
+  return unit.mana >= cost || armedOverchannelOk(unit, skill)
 }
 
 // Bonus a skill would get from the stored overcharge right now.
@@ -322,7 +329,7 @@ export function surgeFor(u) {
 
 // Relic resource effects (relics.js `mana` field), summed for the squad.
 export function relicManaFor(relicIds = []) {
-  const out = { regen: 0, onHit: 0, startOvercharge: 0, pool: 0, bloodChalice: 0, soulLantern: 0, wellBonus: 0, ultBurn: 0, ultRefund: 0, linkBonus: 0 }
+  const out = { regen: 0, onHit: 0, startOvercharge: 0, pool: 0, bloodChalice: 0, soulLantern: 0, wellBonus: 0, ultBurn: 0, ultRefund: 0, linkBonus: 0, backlashCut: 0, overchannelHp: 0, comboPower: 0 }
   for (const id of relicIds) {
     const m = RELICS[id]?.mana
     if (!m) continue
@@ -362,8 +369,11 @@ function setTokens(state, unitId, t) {
 
 // --- Init -------------------------------------------------------------------------------
 
-function initUnit(u, relic) {
+function initUnit(u, relic, qa = false) {
   if (!u || u.structure || u.npc) return u
+  // Mana sprint 3: mana-fed enemy families + the Gorging Maw (off under the QA hook).
+  const feed = qa ? null : feedKitFields(u)
+  if (feed) u = { ...u, ...feed }
   const player = u.side === "player"
   const resource = resourceIdOf(u)
   const prof = profileById(resource)
@@ -408,14 +418,14 @@ export function enableMana(state, relicIds = [], extra = null) {
   if (!state?.units) return state
   const relic = relicManaFor(relicIds)
   if (extra) for (const k of Object.keys(relic)) relic[k] += extra[k] || 0
-  return { ...state, manaRules: true, manaRelic: relic, units: state.units.map((u) => initUnit(u, relic)) }
+  return { ...state, manaRules: true, manaRelic: relic, units: state.units.map((u) => initUnit(u, relic, !!state.depthQa)) }
 }
 
 // Units summoned mid-fight get their resource the first time it matters.
 function ensureAll(state) {
   if (!manaOn(state) || !state.units.some((u) => !hasMana(u) && !u.structure && !u.npc && u.hp > 0)) return state
   const relic = state.manaRelic || relicManaFor()
-  return { ...state, units: state.units.map((u) => (hasMana(u) ? u : initUnit(u, relic))) }
+  return { ...state, units: state.units.map((u) => (hasMana(u) ? u : initUnit(u, relic, !!state.depthQa))) }
 }
 
 // --- Gain / spend / drain ----------------------------------------------------------
@@ -500,7 +510,8 @@ function loseResource(state, unitId, amount, label = null) {
 export function burnMana(state0, unitId, amount, label = "burn") {
   // Difficulty sprint 2: burning an enemy also eats its ULTIMATE bar (and
   // breaks one it is channeling) - even a Rage enemy with no drainable mana.
-  const state = manaOn(state0) ? burnUltimate(state0, unitId, amount) : state0
+  // Mana sprint 3: a burn also strips a mana-fed enemy's Hunger.
+  const state = manaOn(state0) ? feedBurn(burnUltimate(state0, unitId, amount), unitId, amount) : state0
   const u = getUnit(state, unitId)
   if (!manaOn(state) || !hasMana(u) || u.hp <= 0 || !(amount > 0) || !profileOf(u).drainable) return { next: state, burned: 0 }
   const want = scaleAmount(u, amount)

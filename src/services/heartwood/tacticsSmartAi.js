@@ -19,6 +19,8 @@ import { enemySkillsFor } from "./tacticsEnemyAbilities"
 import { coverAgainst } from "./tacticsCover"
 import { isHigh } from "./tacticsTerrain"
 import { hasAiTrait } from "./tacticsDifficulty"
+// Mana sprint 3: mana-fed enemies hunt the heavy casters (any fight, not just difficulty ones).
+import { feedTileBonus, feedFocusBonus } from "./tacticsManaFeed"
 
 // --- Behaviour profiles ------------------------------------------------------------------
 
@@ -102,8 +104,9 @@ export function isRetreating(state, enemy) {
 
 // Who to walk toward (no hit this turn).
 export function focusBonus(state, enemy, target) {
-  if (!state?.difficulty || state.difficulty.qa) return 0
-  let b = 0
+  const feed = feedFocusBonus(enemy, target)
+  if (!state?.difficulty || state.difficulty.qa) return feed
+  let b = feed
   const hurt = 1 - target.hp / target.maxHp
   if (hasAiTrait(state, "focus")) b += 20 * hurt + (target.wounded ? 8 : 0)
   if (hasAiTrait(state, "flank") && roleOf(target) === "tank") b -= 25
@@ -158,10 +161,11 @@ export function attackBonus(state, enemy, target, { killP = 0, facing = "front" 
 
 // Where to stand.
 export function tileBonus(state, enemy, pos) {
-  if (!state?.difficulty || state.difficulty.qa) return 0
-  let b = 0
+  const feed = feedTileBonus(state, enemy, pos)
+  if (!state?.difficulty || state.difficulty.qa) return feed
+  let b = feed
   const hs = heroes(state)
-  if (!hs.length) return 0
+  if (!hs.length) return b
   const nearest = nearestHeroDist(state, pos)
   if (hasAiTrait(state, "cover")) {
     for (const h of hs) {

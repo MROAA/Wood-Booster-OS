@@ -346,6 +346,32 @@ export const COACH_TIPS = [
     text: "At higher threat the elites and bosses have TALENTS of their own (thick hide, a second wind, mana siphon...). The Threat panel lists them; ✧ marks the enemy.",
     anchor: ".hwt-threat-etalents",
   },
+  // Mana sprint 3: colours, Overchannel, mana-fed enemies.
+  {
+    id: "t-mana-colours",
+    title: "Mana colours",
+    text: "Every skill has a colour - the small pip on its button (🔥 Ember, 🌊 Tide, 🌿 Root, 🌑 Void). Cast two DIFFERENT colours this turn, with one hero or two, and they set off a free combo spell. 'This turn' shows what's waiting for a partner.",
+    anchor: ".hwt-colour-tracker",
+  },
+  {
+    id: "t-overchannel",
+    title: "Overchannel",
+    text: "Short on mana? Arm ⚡ Overchannel and the skill costs HP instead - the red price shows on the button first. Each one fills the hero's Backlash meter; full = stunned next turn.",
+    anchor: ".hwt-overchannel-btn",
+  },
+  {
+    id: "t-backlash",
+    title: "Backlash",
+    text: "The red line on this hero is its Backlash meter. At full it is stunned and hurt at the start of its next turn. It drains a little every turn - give it a rest.",
+    anchor: ".hwt-backlash-meter",
+  },
+  {
+    id: "t-feed",
+    title: "It feeds on mana",
+    text: "The purple pips are HUNGER: this enemy gets stronger from every skill cast near it. Cast away from it, attack instead, burn its mana - or kill it before it feeds.",
+    anchor: ".hwt-feed-meter",
+  },
+
   {
     id: "t-level",
     title: "Hero levels",

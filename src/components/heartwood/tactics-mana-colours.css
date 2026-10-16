@@ -1,0 +1,220 @@
+/* Hearthwood Frontier - mana sprint 3: colours, Overchannel / Backlash,
+   mana-fed enemies. Own file so the shared tactics CSS stays untouched.
+   Warm wood/gold frame; each mana colour comes in through --mc. */
+
+.hwt-colour-pip {
+  --mc: #c9a35c;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  line-height: 1;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--mc) 55%, #fff6dc), var(--mc) 70%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--hwt-gold, #d6a85a) 60%, #2a1a0c), 0 0 6px color-mix(in srgb, var(--mc) 55%, transparent);
+  vertical-align: middle;
+}
+.hwt-colour-pip[data-small] { width: 14px; height: 14px; font-size: 8px; }
+
+/* Skill buttons */
+.hwt-skill-colour { display: inline-flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+.hwt-skill-combo-hint {
+  font-size: 11px;
+  color: var(--hwt-gold, #e6c27a);
+  animation: hwt-colour-throb 1.4s ease-in-out infinite;
+}
+.hwt-overchannel-cost {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffb3a1;
+  background: color-mix(in srgb, #b3261e 55%, #2a1208);
+  border: 1px solid #e0624f;
+  border-radius: 6px;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+.hwt-overchannel-cost[data-blocked] { opacity: 0.55; text-decoration: line-through; }
+
+/* Panel above the skill row */
+.hwt-colour-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  margin: 4px 0 6px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--hwt-gold, #d6a85a) 30%, var(--hw-border, #3a2a18));
+  background: color-mix(in srgb, var(--hw-panel, #24180e) 88%, black);
+  font-size: var(--hw-fs-xs, 12px);
+}
+.hwt-colour-tracker, .hwt-colour-ley, .hwt-colour-hero { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.hwt-colour-tracker-label, .hwt-colour-ley { color: var(--hw-muted, #b8a27f); }
+.hwt-colour-tracker-empty { color: var(--hw-muted, #b8a27f); font-style: italic; opacity: 0.7; }
+.hwt-colour-cast {
+  --mc: #c9a35c;
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--mc) 50%, #fff6dc), var(--mc) 72%);
+  box-shadow: 0 0 0 1px var(--hwt-gold, #d6a85a), 0 0 8px color-mix(in srgb, var(--mc) 60%, transparent);
+  animation: hwt-colour-pop 260ms ease-out;
+}
+.hwt-colour-cast[data-used] { opacity: 0.45; box-shadow: 0 0 0 1px var(--hw-border, #4b3820); }
+.hwt-colour-cast[data-well] { outline: 1px dashed color-mix(in srgb, var(--mc) 70%, white); outline-offset: 1px; }
+.hwt-colour-combo-chip {
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 700;
+  color: #2a1a0c;
+  background: linear-gradient(180deg, #f3d58a, #c9963f);
+  box-shadow: 0 0 8px rgba(243, 213, 138, 0.45);
+}
+.hwt-colour-ley-note { color: var(--hwt-gold, #e6c27a); }
+.hwt-affinity {
+  --mc: #c9a35c;
+  padding: 1px 7px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--mc) 70%, var(--hwt-gold, #d6a85a));
+  background: color-mix(in srgb, var(--mc) 22%, transparent);
+  color: var(--hw-text, #f1e3c6);
+}
+.hwt-overchannel-btn {
+  margin-left: auto;
+  padding: 2px 9px;
+  border-radius: 7px;
+  border: 1px solid #a2412f;
+  background: linear-gradient(180deg, #5a2116, #3a140c);
+  color: #ffd2c4;
+  font-weight: 700;
+  font-size: var(--hw-fs-xs, 12px);
+  cursor: pointer;
+}
+.hwt-overchannel-btn[data-short]:not([data-armed]) { box-shadow: 0 0 6px rgba(224, 98, 79, 0.45); }
+.hwt-overchannel-btn[data-armed] {
+  background: linear-gradient(180deg, #d4553e, #8f2a1b);
+  color: #fff3ea;
+  box-shadow: 0 0 10px rgba(255, 120, 90, 0.7);
+  animation: hwt-colour-throb 1.1s ease-in-out infinite;
+}
+.hwt-overchannel-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.hwt-backlash-readout { color: #ffb3a1; font-weight: 600; }
+.hwt-backlash-readout[data-full] { color: #ff6b52; }
+
+/* Tokens: Backlash meter (heroes) */
+.hwt-backlash-meter {
+  position: absolute;
+  left: 19px;
+  right: 19px;
+  top: 1px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(30, 8, 4, 0.75);
+  box-shadow: 0 0 0 1px rgba(160, 50, 30, 0.6);
+  z-index: 3;
+  pointer-events: auto;
+}
+.hwt-backlash-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #e0743f, #ff3b26);
+  transition: width 0.4s ease-out;
+}
+.hwt-backlash-meter[data-full] .hwt-backlash-fill { animation: hwt-colour-throb 0.8s ease-in-out infinite; }
+.hwt-backlash-warn {
+  position: absolute;
+  right: -12px;
+  top: -7px;
+  font-size: 12px;
+  filter: drop-shadow(0 0 3px #ff3b26);
+}
+.hwt-backlash-meter[data-stunned] { background: transparent; box-shadow: none; }
+
+/* Tokens: Hunger meter (mana-fed enemies) */
+.hwt-feed-meter {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  background: rgba(30, 14, 40, 0.88);
+  border: 1px solid #8a5bc4;
+  z-index: 3;
+  white-space: nowrap;
+}
+.hwt-feed-icon { font-size: 9px; }
+.hwt-feed-pip {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(154, 106, 208, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(154, 106, 208, 0.7);
+}
+.hwt-feed-pip[data-on] { background: #b98cf0; box-shadow: 0 0 4px #b98cf0; }
+.hwt-feed-meter[data-gorged] { border-color: #f3d58a; box-shadow: 0 0 8px rgba(185, 140, 240, 0.8); animation: hwt-colour-throb 1s ease-in-out infinite; }
+
+/* Threat-side panel */
+.hwt-feed-panel {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #9a6ad0 45%, var(--hw-border, #3a2a18));
+  background: var(--hw-card, #2a1d12);
+  font-size: var(--hw-fs-sm, 13px);
+}
+.hwt-feed-title { font-weight: 700; margin-bottom: 4px; }
+.hwt-feed-row { display: flex; gap: 6px; align-items: baseline; line-height: 1.5; }
+.hwt-feed-name { font-weight: 600; }
+.hwt-feed-range, .hwt-feed-answer { color: var(--hw-muted, #b8a27f); }
+.hwt-feed-answer { margin-top: 3px; font-size: var(--hw-fs-xs, 12px); }
+
+/* Coloured Mana Wells (a tint layer, so the terrain mark/art stay) */
+.hwt-cell[data-well-colour="ember"] { --hwt-tint: rgba(224, 119, 58, 0.26); }
+.hwt-cell[data-well-colour="tide"] { --hwt-tint: rgba(79, 159, 214, 0.26); }
+.hwt-cell[data-well-colour="root"] { --hwt-tint: rgba(111, 174, 76, 0.26); }
+.hwt-cell[data-well-colour="void"] { --hwt-tint: rgba(154, 106, 208, 0.28); }
+
+/* Colour combo tile flashes + callouts (TacticsFx: combo "colour-<id>") */
+.hwt-cell.hwt-combo-flash[data-combo-flash="colour-steam"]::after { background: radial-gradient(circle, rgba(236, 228, 214, 0.9), rgba(224, 119, 58, 0.25) 55%, transparent 78%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="colour-wildfire"]::after { background: radial-gradient(circle, rgba(255, 170, 70, 0.9), rgba(111, 174, 76, 0.3) 60%, transparent 78%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="colour-hellflare"]::after { background: radial-gradient(circle, rgba(255, 120, 60, 0.95), rgba(90, 30, 120, 0.6) 55%, transparent 80%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="colour-lifespring"]::after { background: radial-gradient(circle, rgba(170, 230, 200, 0.85), rgba(79, 159, 214, 0.3) 60%, transparent 80%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="colour-undertow"]::after { background: radial-gradient(circle, rgba(79, 159, 214, 0.85), rgba(90, 30, 120, 0.5) 60%, transparent 80%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="colour-blight"]::after { background: radial-gradient(circle, rgba(140, 200, 80, 0.85), rgba(110, 50, 140, 0.55) 60%, transparent 80%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="colour-nova"]::after { background: radial-gradient(circle, rgba(200, 150, 255, 0.95), rgba(90, 30, 120, 0.6) 60%, transparent 80%); }
+
+@keyframes hwt-colour-throb {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.35); }
+}
+@keyframes hwt-colour-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  70% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwt-colour-cast, .hwt-skill-combo-hint, .hwt-overchannel-btn[data-armed], .hwt-backlash-meter[data-full] .hwt-backlash-fill, .hwt-feed-meter[data-gorged] { animation: none; }
+}
+
+/* Affinity pip on a hero's resource bar (TacticsResourceUi) */
+.hwt-mana-track[data-affinity]::before,
+.hwt-selected-mana[data-affinity]::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -2.5px;
+  border-radius: 50%;
+  background: var(--aff-color, #c9a35c);
+  box-shadow: 0 0 0 1px rgba(20, 10, 4, 0.8), 0 0 4px var(--aff-color, #c9a35c);
+}
+.hwt-selected-mana[data-affinity] { position: relative; margin-left: 8px; width: calc(100% - 8px); }

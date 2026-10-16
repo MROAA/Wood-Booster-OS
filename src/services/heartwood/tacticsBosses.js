@@ -16,6 +16,7 @@
 import { emit, getUnit, setUnit, livingUnits, applyDamageWithBlock, checkTacticsBattleEnd, deriveTacticsUnit } from "./tacticsEngine"
 import { TERRAIN, sidesConnected } from "./tacticsTerrain"
 import { ENEMIES } from "../../data/heartwood/enemies"
+import { feedNovaTiles } from "./tacticsManaFeed"
 
 // ---- arena helpers ----------------------------------------------------------
 // Destructibles: T tree, B powder barrel, O boulder, Y ice pillar (tacticsObjects.js).
@@ -662,6 +663,8 @@ export function bossWarningTiles(state) {
     const kind = h.kind === "terrain" ? h.to : h.kind
     for (const t of h.tiles) map.set(key(t), kind)
   }
+  // Mana sprint 3: a gorged Maw's Mana Nova lands here when you end the turn.
+  for (const t of feedNovaTiles(state)) if (!map.has(key(t))) map.set(key(t), "quake")
   return map
 }
 

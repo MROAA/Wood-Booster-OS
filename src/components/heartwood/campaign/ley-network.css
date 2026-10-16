@@ -1,0 +1,67 @@
+/* Hearthwood campaign - ley network lines + panel (mana sprint 3). */
+.hwc-ley-line { --ley: #c9a35c; }
+.hwc-ley-stroke {
+  stroke: var(--ley);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+  fill: none;
+  opacity: 0.25;
+  stroke-dasharray: 1.2 1.6;
+}
+.hwc-ley-line[data-state="live"] .hwc-ley-stroke { opacity: 0.5; stroke-dasharray: none; }
+.hwc-ley-line[data-state="connected"] .hwc-ley-stroke {
+  opacity: 0.95;
+  stroke-width: 1.3;
+  stroke-dasharray: none;
+  filter: drop-shadow(0 0 1.2px var(--ley));
+  animation: hwc-ley-glow 2.4s ease-in-out infinite;
+}
+.hwc-ley-line[data-warded][data-state="connected"] .hwc-ley-stroke { stroke-width: 1.9; }
+.hwc-ley-line[data-state="cut"] .hwc-ley-stroke { opacity: 0.4; stroke: #8a6b5a; stroke-dasharray: 0.8 1.4; }
+.hwc-ley-break { font-size: 3.2px; fill: #e0624f; text-anchor: middle; font-weight: 700; }
+
+.hwc-ley-panel {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #9a6ad0 30%, var(--hwc-border, #4b3820));
+  background: color-mix(in srgb, var(--hwc-panel, #24180e) 92%, #9a6ad0 8%);
+  font-size: 0.86rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.hwc-ley-head { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.hwc-ley-size { color: var(--hwc-gold, #e6c27a); font-weight: 600; }
+.hwc-ley-colour {
+  --ley: #c9a35c;
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 2px;
+  border-radius: 50%;
+  font-size: 9px;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--ley) 50%, #fff6dc), var(--ley) 72%);
+  box-shadow: 0 0 0 1px #c9963f;
+}
+.hwc-ley-note { color: #f0b9a9; }
+.hwc-ley-tip { font-size: 0.78rem; }
+
+@keyframes hwc-ley-glow {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwc-ley-line[data-state="connected"] .hwc-ley-stroke { animation: none; }
+}
+.hwc-legend-ley-line {
+  display: inline-block;
+  width: 16px;
+  height: 3px;
+  margin: 0 3px 2px 8px;
+  border-radius: 2px;
+  vertical-align: middle;
+  background: linear-gradient(90deg, #e0773a, #4f9fd6, #6fae4c, #9a6ad0);
+  box-shadow: 0 0 4px rgba(243, 213, 138, 0.5);
+}

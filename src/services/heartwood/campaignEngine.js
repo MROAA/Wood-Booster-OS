@@ -50,7 +50,7 @@ import {
   TIRED_DAYS, DEPLOY_MIN_HP, HEAL_PER_DAY, RECRUIT_BASE_COST, RECRUIT_COST_PER_CHAPTER, ROOKIE_OFFERS_ON_WIPE,
   ATTUNE_COST, ATTUNE_MANA, ATTUNE_MAX, LEY_MISSION_OVERCHARGE, LEY_REGION_OVERCHARGE, CAMPAIGN_ROOMS,
   ROSTER_CAP_BY_LEVEL, HEAL_BONUS_BY_LEVEL, TRAINING_XP_BY_DAY, LEY_WELL_MANA, LEY_WELL_OVERCHARGE,
-  RECRUIT_EVERY_DAYS, RECRUIT_OFFER_COUNT, HERO_NAMES, CAMPAIGN_UNLOCKS, campaignRoomDef, regionDef,
+  RECRUIT_EVERY_DAYS, RECRUIT_OFFER_COUNT, HERO_NAMES, CAMPAIGN_UNLOCKS, campaignRoomDef, regionDef, LEY_LINES,
 } from "../../data/heartwood/campaign"
 import {
   startRun, RUN_PATH, actIndexForNode, campaignFightAftermath, chooseLevelPerk, choosePromotion, equipItem, unequipItem,
@@ -67,6 +67,8 @@ import {
   storyThreatBonus, queueChapterScene, applyStoryChoiceCore, UNIQUE_HEROES, NEMESES, START_VARIANTS, STORY_SCENES,
 } from "./campaignStoryEngine"
 import { LEY_WARD_SHARD_BONUS, HUNT_IGNORED_DOOM } from "../../data/heartwood/campaignStory"
+// Mana sprint 3: the ley network (lines, Ley Breach, fight bonuses).
+import { leyOf, leyDayTick, leyMissionResult, leyOnStoryChoice, leyFightBonus, lineName } from "./campaignLey"
 
 const arr = (v) => (Array.isArray(v) ? v : [])
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n))
@@ -236,6 +238,7 @@ export function createCampaign({ commanderId = "tommy", difficulty = DEFAULT_DIF
     lastAftermath: null,
     activeMission: null,
     story: newStory(startVariant),
+    ley: { cut: [], drainDay: null, nextBreachDay: null },
   }
   // Ending unlocks: starting relics.
   const startRelics = arr(unlocks).filter((u) => u.startsWith("relic:")).map((u) => u.slice(6)).filter((id) => CAMPAIGN_UNLOCKS.some((x) => x.relicId === id))
@@ -373,6 +376,10 @@ function rewardFor(type, act, region, rng, c) {
   if (type === "retake") {
     r.essence = 150 + 30 * act
   }
+  if (type === "breach") {
+    r.essence = 90 + 20 * act
+    r.leyShards = 1
+  }
   return r
 }
 
@@ -387,6 +394,7 @@ function makeMission(c, type, regionId, rng, extra = {}) {
   const story = type === "story" ? { ...STORY_CHAPTERS[c.chapter - 1], ...storyBeat(c) } : null
   const nemesis = type === "hunt" ? NEMESES[extra.nemesisId] : null
   const faction = type === "allied" ? alliedFaction(c) : null
+  const line = type === "breach" ? LEY_LINES.find((l) => l.id === extra.lineId) : null
   const mission = {
     id,
     type,
@@ -397,11 +405,12 @@ function makeMission(c, type, regionId, rng, extra = {}) {
     seed: (Math.floor(rng() * 0x7fffffff) ^ (c.seed + id * 2654435761)) >>> 0,
     spawnedDay: c.day,
     expiresDay: t.expiry ? c.day + lo + Math.floor(rng() * (hi - lo + 1)) : null,
-    title: story ? story.title : nemesis ? `${nemesis.name} - ${region?.short || regionId}` : faction ? `Call to Arms - ${faction.short}` : `${t.name} - ${region?.short || regionId}`,
+    title: story ? story.title : nemesis ? `${nemesis.name} - ${region?.short || regionId}` : faction ? `Call to Arms - ${faction.short}` : line ? `${t.name} - ${lineName(line)} line` : `${t.name} - ${region?.short || regionId}`,
     line: story ? story.line : nemesis ? `${nemesis.blurb} ${t.blurb}` : faction ? `${faction.name} call for help. ${t.blurb}` : t.blurb,
     chapter: story ? c.chapter : null,
     reward: rewardFor(type, act, region, rng, c),
     ...(nemesis ? { nemesisId: nemesis.id } : {}),
+    ...(line ? { lineId: line.id, lineColour: line.colour } : {}),
   }
   return { c: { ...c, nextMissionId: id + 1, missions: [...arr(c.missions), mission] }, mission }
 }
@@ -659,6 +668,11 @@ export function advanceDay(c0, { fought = [] } = {}) {
     }
   }
 
+  // Mana sprint 3: the ley network - breaches cut lines, drained ley decays, new breaches.
+  const ley = leyDayTick(c, { open: regionLive, makeMission, expired })
+  c = ley.c
+  lines.push(...ley.lines)
+
   c = checkGameOver(c)
   if (!lines.length) lines.push("A quiet day. The Rot creeps on all the same.")
   return pushLog({ ...c, lastDayReport: { day, lines } }, [`Day ${day}.`, ...lines])
@@ -728,7 +742,10 @@ export function missionRunState(c, missionId, squadKeys) {
   const base = startRun(c.commanderId, null, { forcedSeed: m.seed })
   const bench = squadKeys.map((k) => c.roster.find((h) => h.key === k)).filter(Boolean).map((h) => ({ ...h, manaBonus: heroManaBonus(c, h) }))
   const node = RUN_PATH[m.nodeIndex]
+  // Mana sprint 3: the ley network's fight bonus (start mana, regen, colours).
+  const leyNet = leyFightBonus(c, regionLive)
   const overcharge =
+    leyNet.startMana +
     (m.type === "ley" ? LEY_MISSION_OVERCHARGE : 0) +
     (region?.ley && regionMod(c, m.regionId) !== "drained" ? LEY_REGION_OVERCHARGE : 0) +
     (LEY_WELL_OVERCHARGE[roomLevel(c, "leywell")] || 0) +
@@ -756,6 +773,7 @@ export function missionRunState(c, missionId, squadKeys) {
     commanderHpPct: c.commander?.hpPct ?? 1,
     commanderWounded: false,
     campOvercharge: overcharge,
+    leyNet,
     lastSeenAct: m.act,
     // Read by tacticsRealMatchup.difficultyForRunNode (DifficultyEngine score).
     campaignThreat: campaignThreatBonus(c) + storyThreatBonus(m),
@@ -890,6 +908,10 @@ export function resolveMission(c0, { retreat = false } = {}) {
     } else {
       c = bumpThreat(c, m.regionId, -MISSION_TYPES[m.type].threatDrop)
     }
+    // Mana sprint 3: a held breach / a Ley Site mending a cut line.
+    const leyWin = leyMissionResult(c, m, true)
+    c = leyWin.c
+    lines.push(...leyWin.lines)
     if (m.type === "hunt") {
       const beat = beatNemesis(c, m.nemesisId)
       c = beat.c
@@ -911,6 +933,10 @@ export function resolveMission(c0, { retreat = false } = {}) {
     c = { ...c, missions: c.missions.filter((x) => x.id !== m.id || x.type === "story") }
     if (m.type !== "retake") c = bumpThreat(c, m.regionId, FAILED_THREAT)
     lines.push(retreat ? "You pulled the squad out. The mission is lost." : "The mission failed.")
+    // Mana sprint 3: a lost Ley Breach cuts its line.
+    const leyLoss = leyMissionResult(c, m, false)
+    c = leyLoss.c
+    lines.push(...leyLoss.lines)
   }
   if (wipe) {
     c = { ...c, doom: c.doom + DOOM_PER_WIPE }
@@ -958,7 +984,8 @@ export function addUniqueHero(c0, uniqueId) {
 export function chooseStory(c0, optionId) {
   const core = applyStoryChoiceCore(c0, optionId)
   if (!core) return c0
-  let c = core.c
+  // Mana sprint 3: Ward mends the warded lines; Drain starts the surge clock.
+  let c = leyOnStoryChoice(core.c, c0)
   const joined = []
   for (const id of core.heroes) {
     const made = addUniqueHero(c, id)
@@ -1048,6 +1075,7 @@ export function deserializeCampaign(saved) {
     log: arr(c.log),
     activeMission: c.activeMission?.run?.battle ? c.activeMission : null,
     story: normalizeStory(c.story),
+    ley: leyOf(c),
   }
 }
 
