@@ -226,6 +226,10 @@ export const ENTITY_TYPES = {
     // Dota depth sprint: tiered build recipes + active items.
     buildRecipes: { file: "itemBuilds.js", exportName: "BUILD_RECIPES" },
     itemActives: { file: "itemBuilds.js", exportName: "ITEM_ACTIVES" },
+    // Dota depth 2: neutral items, enemy talents, the per-class talent twists.
+    neutrals: { file: "neutrals.js", exportName: "NEUTRAL_ITEMS" },
+    enemyTalents: { file: "itemBuilds.js", exportName: "ENEMY_TALENTS" },
+    talentTwists: { file: "talents.js", exportName: "CLASS_TWISTS" },
     upgradeBranches: { file: "upgrades.js", exportName: "UPGRADE_BRANCHES" },
     help: { file: "help.js", exportName: "HELP_SECTIONS" },
     coachTips: { file: "coach.js", exportName: "COACH_TIPS" },

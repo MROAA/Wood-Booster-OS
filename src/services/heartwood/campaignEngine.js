@@ -58,6 +58,9 @@ import {
 import { rollTraits } from "./traits"
 import { rollQuirks, identityOf } from "./heroIdentity"
 import { levelForXp } from "./unitLevels"
+// Dota depth 2: neutral items (slot + stash).
+import { equipNeutral, unequipNeutral } from "./neutrals"
+import { NEUTRAL_ITEMS } from "../../data/heartwood/neutrals"
 import {
   newStory, normalizeStory, storyOf, storyFlags, storyBeat, storyThreatMult, storyOpened, regionSunk, regionMod,
   alliedFaction, activeNemeses, huntDue, huntNemesisFor, scheduleNextHunt, beatNemesis, storyFates, storyOvercharge,
@@ -746,6 +749,10 @@ export function missionRunState(c, missionId, squadKeys) {
     commanderPerks: arr(c.commander?.perks),
     commanderSkillUpgrades: c.commander?.skillUpgrades || {},
     commanderPromo: arr(c.commander?.promo),
+    // Dota depth 2: talents + neutral slot + the neutral stash.
+    commanderTalents: c.commander?.talents || {},
+    commanderNeutral: c.commander?.neutral || null,
+    neutralStash: arr(c.neutralStash),
     commanderHpPct: c.commander?.hpPct ?? 1,
     commanderWounded: false,
     campOvercharge: overcharge,
@@ -839,6 +846,9 @@ export function resolveMission(c0, { retreat = false } = {}) {
       hpPct: Math.max(0.1, after.commanderHpPct ?? c0.commander.hpPct),
       xp: after.commanderXp ?? c0.commander.xp,
     },
+    // Dota depth 2: the fight's neutral drop joins the stash; a fallen
+    // hero's neutral comes home to it too.
+    neutralStash: [...arr(after.neutralStash ?? c0.neutralStash), ...deaths.map((d) => c0.roster.find((h) => h.key === d.key)?.neutral).filter(Boolean)],
     stats: {
       ...c0.stats,
       missionsWon: (c0.stats?.missionsWon || 0) + (won ? 1 : 0),
@@ -859,6 +869,7 @@ export function resolveMission(c0, { retreat = false } = {}) {
       c = { ...c, leyShards: (c.leyShards || 0) + r.leyShards }
       rewards.push(`+${r.leyShards} Ley Shard${r.leyShards > 1 ? "s" : ""}`)
     }
+    if (after.lastNeutralDrop?.id) rewards.push(`Neutral: ${NEUTRAL_ITEMS[after.lastNeutralDrop.id]?.name || after.lastNeutralDrop.id}`)
     if (r.item && ITEMS[r.item]) {
       c = { ...c, items: [...c.items, { key: c.itemKeyCounter, defId: r.item, equippedTo: null, slotIndex: null }], itemKeyCounter: c.itemKeyCounter + 1 }
       rewards.push(`${ITEMS[r.item].name}`)
@@ -985,6 +996,9 @@ export function campaignRunView(c) {
     commanderPerks: arr(c.commander?.perks),
     commanderSkillUpgrades: c.commander?.skillUpgrades || {},
     commanderPromo: arr(c.commander?.promo),
+    commanderTalents: c.commander?.talents || {},
+    commanderNeutral: c.commander?.neutral || null,
+    neutralStash: arr(c.neutralStash),
   }
 }
 
@@ -993,7 +1007,8 @@ function foldView(c, rs) {
     ...c,
     roster: rs.bench,
     items: rs.items,
-    commander: { ...c.commander, xp: rs.commanderXp, perks: rs.commanderPerks, skillUpgrades: rs.commanderSkillUpgrades, promo: rs.commanderPromo },
+    commander: { ...c.commander, xp: rs.commanderXp, perks: rs.commanderPerks, skillUpgrades: rs.commanderSkillUpgrades, promo: rs.commanderPromo, talents: rs.commanderTalents || {}, neutral: rs.commanderNeutral || null },
+    neutralStash: arr(rs.neutralStash),
   }
 }
 
@@ -1001,6 +1016,9 @@ export const campaignChooseLevelPerk = (c, key, perkId) => foldView(c, chooseLev
 export const campaignChoosePromotion = (c, key, offerId) => foldView(c, choosePromotion(campaignRunView(c), key, offerId))
 export const campaignEquip = (c, itemKey, ownerKey, slot) => foldView(c, equipItem(campaignRunView(c), itemKey, ownerKey, slot))
 export const campaignUnequip = (c, itemKey) => foldView(c, unequipItem(campaignRunView(c), itemKey))
+// Dota depth 2: a hero's neutral slot (from / back to the campaign stash).
+export const campaignEquipNeutral = (c, key, neutralId) => foldView(c, equipNeutral(campaignRunView(c), key, neutralId))
+export const campaignUnequipNeutral = (c, key) => foldView(c, unequipNeutral(campaignRunView(c), key))
 
 // ---------------------------------------------------------------------------
 // Save

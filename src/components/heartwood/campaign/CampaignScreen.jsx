@@ -5,7 +5,7 @@ import { formatSeed, parseSeed } from "../../../data/heartwood/seed"
 import {
   createCampaign, loadCampaign, saveCampaign, clearCampaign, loadCampaignUnlocks, saveCampaignUnlocks, campaignCommanderIds,
   advanceDay, launchMission, updateMissionBattle, resolveMission, recruitHero, startBuild, attuneHero, campaignRunView,
-  campaignChooseLevelPerk, campaignChoosePromotion, campaignEquip, campaignUnequip, difficultyOf, chooseStory, clearStoryResult,
+  campaignChooseLevelPerk, campaignChoosePromotion, campaignEquip, campaignUnequip, campaignEquipNeutral, campaignUnequipNeutral, difficultyOf, chooseStory, clearStoryResult,
 } from "../../../services/heartwood/campaignEngine"
 import { sceneDef, START_VARIANTS, ENDINGS, ENDING_ORDER, chronicleEntries } from "../../../services/heartwood/campaignStoryEngine"
 import { startTacticsFormationBattle } from "../../../services/heartwood/runEngine"
@@ -185,6 +185,8 @@ export default function CampaignScreen({ onExit, metaUnlocked = [] }) {
         onAttune={(key) => update((c) => attuneHero(c, key))}
         onEquip={(itemKey, owner, slot) => update((c) => campaignEquip(c, itemKey, owner, slot))}
         onUnequip={(itemKey) => update((c) => campaignUnequip(c, itemKey))}
+        onEquipNeutral={(key, id) => update((c) => campaignEquipNeutral(c, key, id))}
+        onUnequipNeutral={(key) => update((c) => campaignUnequipNeutral(c, key))}
         onPassDay={() => update((c) => advanceDay(c))}
       />
     )

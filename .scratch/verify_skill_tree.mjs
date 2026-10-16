@@ -328,7 +328,9 @@ const r = await page.evaluate(async () => {
     ...extra,
   })
   const rs = mk([
-    { key: "b0", defId: "bulwark-of-ages", upgradeLevel: 0, upgrades: [], xp: 45 },
+    // Dota depth 2: Lv2 / Lv4 are talent rows now - both pre-picked here, so
+    // the hero's other 2 level-ups (Lv3 / Lv5) are the skill-branch picks.
+    { key: "b0", defId: "bulwark-of-ages", upgradeLevel: 0, upgrades: [], xp: 45, talents: { 1: "L", 2: "L" } },
     { key: "b1", defId: "hexbreaker", upgradeLevel: 0, upgrades: [] },
   ])
   const subj = lv.levelSubject(rs, "b0")
@@ -344,7 +346,7 @@ const r = await page.evaluate(async () => {
   const taken = [up1.skillId]
   // Melee rework: the Guardian has 3 class skills + signature now (+Provoke):
   // its 4 level-ups fill exactly the 4-skill tree (no perk fallback left over).
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 1; i++) {
     const s = lv.levelSubject(walk, "b0")
     const offers = lv.levelOffers(walk, s)
     const up = lv.parseOffer(offers[0])
@@ -364,7 +366,7 @@ const r = await page.evaluate(async () => {
   const nu = nb.units.find((u) => u.id === "player-bulwark-of-ages-0")
   const upSkill = up1.skillId === "signature" ? nu.ability : nu.classSkills.find((s) => s.id === up1.skillId)
   // Commander tree: commander class skills, stored on runState.
-  const cmdRs = { ...rs, commanderXp: 6 }
+  const cmdRs = { ...rs, commanderXp: 15, commanderTalents: { 1: "L" } }
   const cs = lv.levelSubject(cmdRs, "commander")
   const cOffers = lv.levelOffers(cmdRs, cs)
   const cPick = rt.chooseLevelPerk(cmdRs, "commander", cOffers[1])
@@ -382,9 +384,9 @@ const r = await page.evaluate(async () => {
   ok(o1.length === 3 && /^up:/.test(o1[0]) && /^up:/.test(o1[1]) && lv.parseOffer(o1[0]).skillId === lv.parseOffer(o1[1]).skillId && lv.parseOffer(o1[0]).branch === "A" && lv.parseOffer(o1[1]).branch === "B" && lv.PERKS[o1[2]], "offers = both branches of one skill + a stat perk", o1)
   ok(JSON.stringify(o1) === JSON.stringify(o2) && seeds.size >= 2, "offers are seeded + deterministic", { o1, o2, seeds: seeds.size })
   ok(e0.skillUpgrades[up1.skillId] === "A" && (e0.perks || []).length === 0 && pickB === pickA, "a branch is stored + exclusive (B refused after A)", res.D)
-  ok(new Set(taken).size === taken.length && Object.keys(walked.skillUpgrades).length === 4 && walked.perks.length === 0 && res.D.walkPending === 0, "each level offers a new skill; a full tree falls back to stat perks", { taken, w: walked.skillUpgrades, p: walked.perks })
+  ok(new Set(taken).size === taken.length && Object.keys(walked.skillUpgrades).length === 2 && walked.perks.length === 0 && res.D.walkPending === 0, "each (non-talent) level offers a new skill", { taken, w: walked.skillUpgrades, p: walked.perks })
   ok(res.D.perkPick.length === 1 && res.D.perkPick[0] === o1[2] && !res.D.perkPickUps, "the stat perk card still works", res.D.perkPick)
-  ok(res.D.loadedSame && oldOffers.length === 3 && !res.D.oldHasUpgrade, "save/load keeps branches; an old save defaults to none", { oldOffers })
+  ok(res.D.loadedSame && oldOffers.join() === "talent:1:L,talent:1:R" && !res.D.oldHasUpgrade, "save/load keeps branches; an old save defaults to none (its Lv2 is now the talent row)", { oldOffers })
   ok(res.D.applied?.branch === "A" && res.D.nuUps?.[up1.skillId] === "A", "the branch is applied in the next real tactics fight", { applied: res.D.applied })
   ok(cs.skills.length === 3 && res.D.cUps?.[cUp.skillId] === cUp.branch && res.D.cApplied === cUp.branch, "Commander skill tree", { cs: res.D.cs, cUps: res.D.cUps })
 
@@ -393,7 +395,7 @@ const r = await page.evaluate(async () => {
   const shopRs = {
     ...rs, phase: "shop", nodeIndex: shopIdx, path: rt.RUN_PATH.slice(0, shopIdx + 1), essence: 500,
     lastSeenAct: rt.actIndexForNode(shopIdx, rt.RUN_PATH.length),
-    bench: rs.bench.map((e) => (e.key === "b0" ? { ...e, xp: 6, skillUpgrades: {} } : e)),
+    bench: rs.bench.map((e) => (e.key === "b0" ? { ...e, xp: 15, talents: { 1: "L" }, promoPicks: ["paladin"], skillUpgrades: {} } : e)),
   }
   const shopSubj = lv.levelSubject(shopRs, "b0")
   res.uiOffers = lv.levelOffers(shopRs, shopSubj)

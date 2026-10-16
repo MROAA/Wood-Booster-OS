@@ -79,6 +79,9 @@ import { forgeOptions, counterReadFor } from "../services/heartwood/itemForge"
 import { ITEMS } from "../data/heartwood/items"
 import { nextPendingLevelUp, levelOffers, nextPendingPromotion, promotionOffers } from "../services/heartwood/unitLevels"
 import LevelUpChoice, { PromotionCeremony } from "../components/heartwood/LevelUpChoice"
+// Dota depth 2: neutral drop banner.
+import { NeutralDropBanner } from "../components/heartwood/TalentNeutralUi"
+import { clearNeutralDrop } from "../services/heartwood/neutrals"
 import { crossroadsForAct } from "../data/heartwood/crossroads"
 import { crownlessIntroLine } from "../data/heartwood/crownless"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
@@ -507,9 +510,19 @@ export default function HeartwoodBattle() {
   // Build sets: a newly reached 2/4/6 tier is celebrated once, between
   // fights (never over a battle), then acknowledged on the run.
   const freshSetTiers = runState && runState.phase !== "battle" ? newSetTierKeys(runState) : []
-  const setBanner = freshSetTiers.length ? (
+  const setTierBanner = freshSetTiers.length ? (
     <SetTierBanner tierKeys={freshSetTiers} onDone={() => setRunState((current) => ackSetTiers(current))} />
   ) : null
+  // Dota depth 2: "Neutral drop!" between fights until dismissed.
+  const neutralBanner =
+    runState && runState.phase !== "battle" && runState.lastNeutralDrop ? <NeutralDropBanner drop={runState.lastNeutralDrop} onDismiss={() => setRunState((current) => clearNeutralDrop(current))} /> : null
+  const setBanner =
+    setTierBanner || neutralBanner ? (
+      <>
+        {setTierBanner}
+        {neutralBanner}
+      </>
+    ) : null
 
   function dismissIntro() {
     localStorage.setItem(AUTOBATTLER_INTRO_SEEN_KEY, "true")
@@ -910,6 +923,9 @@ export default function HeartwoodBattle() {
       // Dota depth sprint: build paths / forging.
       if ((runState.items || []).some((it) => ITEMS[it.defId]?.buildTier) || (runState.itemOffers || []).some((id) => ITEMS[id]?.buildTier)) ids.push("build-path")
       if (forgeOptions(runState, runActNow(runState)).some((r) => !r.legacy)) ids.push("forge")
+      // Dota depth 2: neutral items + the talent tree.
+      if (runState.lastNeutralDrop || (runState.neutralStash || []).length) ids.push("neutral")
+      if ((runState.bench || []).some((e) => e.talents && Object.keys(e.talents).length) || Object.keys(runState.commanderTalents || {}).length) ids.push("talents")
     }
     if (phase === "relic") ids.push("relic")
     if (phase === "formation") {
@@ -937,6 +953,10 @@ export default function HeartwoodBattle() {
         const bench = runState.bench || []
         const woundedDeployed = (runState.deployed || []).some((k) => k && bench.find((b) => b.key === k)?.wounded)
         if (battle.itemKits) ids.push("t-enemy-trick")
+        // Dota depth 2: talents / neutrals / enemy talents in the fight.
+        if (battle.enemyTalentsOn) ids.push("t-enemy-talent")
+        if (battle.units.some((u) => u.side === "player" && u.hp > 0 && u.talents?.length)) ids.push("t-talent")
+        if (battle.units.some((u) => u.side === "player" && u.hp > 0 && u.neutral)) ids.push("t-neutral")
         if (battle.units.some((u) => u.side === "player" && u.hp > 0 && u.itemActives?.length)) ids.push("t-item-active")
         if (battle.boss) ids.push("t-boss")
         if (describeFaction(battle)) ids.push("t-faction")
@@ -1269,7 +1289,7 @@ export default function HeartwoodBattle() {
   const levelUp = LEVEL_UP_PHASES.has(runState.phase) ? nextPendingLevelUp(runState) : null
   if (levelUp) {
     return (
-      <div className="hw-root hw-screen-fade" style={rootStyle} key={`level-up-${levelUp.key}-${levelUp.perks.length}`}>
+      <div className="hw-root hw-screen-fade" style={rootStyle} key={`level-up-${levelUp.key}-${levelUp.perks.length}-${Object.keys(levelUp.talents || {}).length}`}>
         <LevelUpChoice subject={levelUp} offers={levelOffers(runState, levelUp)} onChoose={handleChooseLevelPerk} />
       </div>
     )
@@ -1353,6 +1373,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="choice">
         {changeCharacterBar}
+        {neutralBanner}
         <FloorChoice
           runState={runState}
           onChoose={handleChooseFloorEncounter}
@@ -1366,6 +1387,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="camp">
         {changeCharacterBar}
+        {neutralBanner}
         <CampScreen
           runState={runState}
           onRest={() => handleCamp(campRest)}
@@ -1383,6 +1405,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="relic">
         {changeCharacterBar}
+        {neutralBanner}
         {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} />}
         <RelicChoice runState={runState} onChoose={handleChooseRelic} onReroll={handleRerollRelics} />
       </div>
@@ -1393,6 +1416,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="event">
         {changeCharacterBar}
+        {neutralBanner}
         <EventScreen event={eventForNode(runState)} onResolve={handleResolveEvent} previewLines={(i) => previewEventMutations(runState, i)} />
       </div>
     )
@@ -1402,6 +1426,7 @@ export default function HeartwoodBattle() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} key="formation">
         {changeCharacterBar}
+        {neutralBanner}
         {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} />}
         {trainingOfferOpen && (
           <div className="hwt-training-offer" role="dialog" aria-label="Training Grounds">

@@ -59,6 +59,8 @@ import * as depth from "./tacticsDepth"
 import * as sigFx from "./tacticsSignatures"
 // Dota depth sprint: active items, on-hit riders, enemy counter kits.
 import * as itemFx from "./tacticsItems"
+// Dota depth 2: talents + neutrals (riders), Hushcap gate, new enemy kits.
+import * as talentFx from "./tacticsTalents"
 export { abilityTargetSide, describeAbility, abilityHint } from "./tacticsAbilities"
 
 // Marc: "taistelukenttä saa olla isompi" - the battlefield can be bigger.
@@ -2463,6 +2465,9 @@ export function attackUnit(state, actorId, targetId, opts = {}) {
   if (!graze) next = relicFx.relicAfterHit(next, actorId, targetId, remaining, fell, extraVictims)
   // Dota depth: on-hit riders (armour shred, Wither, mana burn).
   if (!graze && actor.side === "player") next = itemFx.itemAfterHit(next, actorId, targetId)
+  // Dota depth 2: resource per basic hit / kill (talents, neutrals);
+  // Bloodfang lifesteal + Mana Siphon on an enemy's hit.
+  next = talentFx.talentAfterHit(next, actorId, targetId, { dealt: remaining, fell })
   // Unit levels: the Cleave perk - a normal basic attack also hits enemies
   // next to the target for half damage.
   if ((actor.perks?.includes("cleave") || actor.gearCleave) && !opts.isReaction && !opts.isHasteFollowUp) {
@@ -2534,7 +2539,13 @@ const SUPPORT_KINDS = new Set(["heal", "aura-block", "shield-ally", "rally", "ta
 // (or the signature's own id) = the unit's signature ability, as before.
 // Mana step 1: a skill costs mana too (gated, paid after a successful
 // cast); stored Overcharge rides on the cast as `surge`.
+// Dota depth 2: the talent wrapper (Hushcap gate, 2nd charges, talent
+// riders, resource back, Thornmirror) - tacticsTalents.castWithTalents.
 export function castAbility(state, actorId, targetId, skillId) {
+  return talentFx.castWithTalents(state, actorId, targetId, skillId, castAbilityBase)
+}
+
+function castAbilityBase(state, actorId, targetId, skillId) {
   const who = getUnit(state, actorId)
   const classSkill = skillId ? classFx.classSkillById(who, skillId) : null
   const skill = classSkill || who?.ability
