@@ -589,5 +589,147 @@ if (!process.env.ENGINE_ONLY) {
 } else process.exitCode = fails.length ? 1 : 0
 
 async function uiChecks() {
-  return ["UI part not written yet"]
+  const { chromium } = await import("playwright")
+  const PORT = process.env.PORT || 5451
+  const SHOTS = `${ROOT}.scratch/shots`
+  await mkdir(SHOTS, { recursive: true })
+  const out = []
+  const ui = {}
+  const check = (cond, msg, data) => cond || out.push(data === undefined ? msg : `${msg} ${JSON.stringify(data).slice(0, 300)}`)
+  const browser = await chromium.launch()
+  try {
+    const page = await (await browser.newContext({ viewport: { width: 1500, height: 950 } })).newPage()
+    const errs = []
+    page.on("pageerror", (e) => errs.push(String(e)))
+    await page.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+    await page.waitForTimeout(1200)
+    const flags = () => {
+      localStorage.setItem("heartwood-autobattler-intro-seen", "1")
+      localStorage.setItem("heartwood-story-intro-seen", "1")
+      localStorage.setItem("heartwood-tactics-tutorial-v1", "skipped")
+      localStorage.setItem("heartwood-coach-enabled-v1", "false")
+    }
+    const readRun = () => page.evaluate(() => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run)
+    const seed = (spec) =>
+      page.evaluate(
+        async ({ flagsSrc, spec }) => {
+          localStorage.clear()
+          new Function(flagsSrc)()
+          const rt = await import("/src/services/heartwood/runEngine.js")
+          const want = spec.type || "battle"
+          const idx = rt.RUN_PATH.findIndex((n, i) => (want === "shop" ? n.type === "shop" : n.type === want && n.formationId) && i > 0 && rt.actIndexForNode(i, rt.RUN_PATH.length) >= spec.act)
+          const rs = { ...rt.startRun("tommy", null, { forcedSeed: 424243 }), nodeIndex: idx, path: rt.RUN_PATH.slice(0, idx + 1), lastSeenAct: rt.actIndexForNode(idx, rt.RUN_PATH.length), ...spec.patch }
+          localStorage.setItem("heartwood-run-save-v1", JSON.stringify(rt.serializeRun(rs)))
+          return idx
+        },
+        { flagsSrc: `(${flags.toString()})()`, spec },
+      )
+
+    const step = async (name, fn) => {
+      try {
+        await fn()
+      } catch (e) {
+        out.push(`${name}: ${String(e).split("\n")[0]}`)
+        await page.screenshot({ path: `${SHOTS}/dota2-fail-${name}.png` }).catch(() => {})
+      }
+    }
+    // UI-1: the level-up IS the talent pick at Lv2 (cards + the tree).
+    await step("ui1", async () => {
+    await seed({ type: "shop", act: 2, patch: { phase: "shop", essence: 300, bench: [{ key: 10, defId: "bulwark-of-ages", upgradeLevel: 0, upgrades: [], xp: 6 }], benchKeyCounter: 11, deployed: [10, null, null, null], items: [], itemKeyCounter: 10 } })
+    await page.reload({ waitUntil: "domcontentloaded" })
+    await page.locator('[data-screen="level-up"]').waitFor({ timeout: 15000 })
+    await page.waitForTimeout(300)
+    ui.levelUp = await page.evaluate(() => ({
+      tier: document.querySelector('[data-screen="level-up"]')?.getAttribute("data-talent-pick"),
+      cards: [...document.querySelectorAll("[data-talent-offer]")].map((e) => e.getAttribute("data-talent-offer")),
+      offered: document.querySelectorAll('.hw-talent-cell[data-state="offered"]').length,
+      locked: document.querySelectorAll('.hw-talent-cell[data-state="locked"]').length,
+    }))
+    check(ui.levelUp.tier === "1" && ui.levelUp.cards.join() === "guardian:1L,guardian:1R" && ui.levelUp.offered === 2 && ui.levelUp.locked === 2, "U1 Lv2 level-up: 2 talent cards + the tree (row 1 offered, row 2 locked)", ui.levelUp)
+    await page.screenshot({ path: `${SHOTS}/dota2-levelup-talent.png` })
+    await page.locator('[data-talent-offer="guardian:1R"]').click()
+    await page.waitForTimeout(400)
+    ui.picked = (await readRun()).bench[0].talents
+    check(ui.picked?.[1] === "R", "U2 clicking a talent card saves it", ui.picked)
+
+    })
+    // UI-2: Gear screen - talent tree (chosen / passed / locked) + neutral slot + stash.
+    await step("ui2", async () => {
+    await seed({
+      type: "shop",
+      act: 3,
+      patch: { phase: "shop", essence: 300, bench: [{ key: 10, defId: "bulwark-of-ages", upgradeLevel: 0, upgrades: [], xp: 28, perks: ["bark"], promoPicks: ["paladin"], talents: { 1: "L", 2: "R" }, neutral: "pocket-acorn" }], benchKeyCounter: 11, deployed: [10, null, null, null], items: [], itemKeyCounter: 10, neutralStash: ["wisp-lantern", "sap-dewdrop"] },
+    })
+    await page.reload({ waitUntil: "domcontentloaded" })
+    await page.locator(".hw-squad-tab-btn").first().waitFor({ timeout: 15000 })
+    await page.locator(".hw-squad-tab-btn").first().click()
+    await page.locator('[data-gear-open="10"]').click()
+    await page.locator("[data-talent-tree]").waitFor({ timeout: 5000 })
+    ui.gear = await page.evaluate(() => ({
+      chosen: [...document.querySelectorAll('[data-talent-tree] .hw-talent-cell[data-state="chosen"]')].map((e) => e.getAttribute("data-talent-id")),
+      passed: document.querySelectorAll('[data-talent-tree] .hw-talent-cell[data-state="passed"]').length,
+      slot: document.querySelector("[data-neutral-slot]")?.getAttribute("data-neutral-slot"),
+      stash: [...document.querySelectorAll("[data-neutral-equip]")].map((e) => e.getAttribute("data-neutral-equip")),
+    }))
+    check(ui.gear.chosen.sort().join() === "guardian:1L,guardian:2R" && ui.gear.passed === 2, "U3 Gear screen: the talent tree shows chosen + passed-over talents", ui.gear)
+    check(ui.gear.slot === "pocket-acorn" && ui.gear.stash.join() === "wisp-lantern,sap-dewdrop", "U4 Gear screen: the neutral slot + the stash", ui.gear)
+    await page.locator(".hw-gear-screen").screenshot({ path: `${SHOTS}/dota2-gear-talents-neutral.png` }).catch(() => page.screenshot({ path: `${SHOTS}/dota2-gear-talents-neutral.png` }))
+    await page.locator('[data-neutral-equip="wisp-lantern"]').click()
+    await page.waitForTimeout(300)
+    const r2 = await readRun()
+    check(r2.bench[0].neutral === "wisp-lantern" && r2.neutralStash.includes("pocket-acorn") && !r2.neutralStash.includes("wisp-lantern"), "U5 Swap click: the new neutral in, the old one to the stash", { n: r2.bench[0].neutral, s: r2.neutralStash })
+
+    })
+    // UI-3: the neutral drop banner.
+    await step("ui3", async () => {
+    await seed({ type: "shop", act: 2, patch: { phase: "shop", essence: 300, bench: [{ key: 10, defId: "bulwark-of-ages", upgradeLevel: 0, upgrades: [] }], benchKeyCounter: 11, deployed: [10, null, null, null], items: [], itemKeyCounter: 10, neutralStash: ["thiefs-glove"], lastNeutralDrop: { id: "thiefs-glove", tier: 2 } } })
+    await page.reload({ waitUntil: "domcontentloaded" })
+    await page.locator("[data-neutral-drop]").waitFor({ timeout: 15000 })
+    ui.banner = await page.locator("[data-neutral-drop]").innerText()
+    check(/Mana-Thief/.test(ui.banner) && /Tier II/i.test(ui.banner), "U6 a 'Neutral drop' banner names the item + tier", ui.banner)
+    await page.waitForTimeout(700)
+    await page.screenshot({ path: `${SHOTS}/dota2-neutral-drop.png` })
+    await page.locator("[data-neutral-drop-ok]").click()
+    await page.waitForTimeout(300)
+    check(!(await page.locator("[data-neutral-drop]").count()) && !(await readRun()).lastNeutralDrop, "U7 dismissing clears it")
+
+    })
+    // UI-4: a late elite fight - enemy talents on the Threat panel, hero talent / neutral marks.
+    await step("ui4", async () => {
+    await seed({
+      type: "elite",
+      act: 4,
+      patch: { phase: "formation", essence: 300, bench: [{ key: "b0", defId: "bulwark-of-ages", upgradeLevel: 0, upgrades: [], xp: 28, perks: ["bark"], promoPicks: ["paladin"], talents: { 1: "L", 2: "L" }, neutral: "moonmoth-cloak" }], deployed: ["b0", null, null, null], items: [], itemKeyCounter: 10 },
+    })
+    await page.reload({ waitUntil: "domcontentloaded" })
+    await page.locator(".hw-tactics-start").waitFor({ timeout: 15000 })
+    await page.locator(".hw-tactics-start").click()
+    const begin = page.locator(".hwt-begin-battle")
+    await begin.waitFor({ timeout: 6000 }).catch(() => {})
+    if (await begin.count()) await begin.click()
+    await page.waitForTimeout(600)
+    ui.fight = await page.evaluate(() => ({
+      etalents: [...document.querySelectorAll("[data-enemy-talent]")].map((e) => e.getAttribute("data-enemy-talent")),
+      etBadge: document.querySelectorAll("[data-enemy-talents]").length,
+      talentBadge: document.querySelector(".hwt-talent-badge")?.getAttribute("title") || "",
+      neutralBadge: document.querySelector("[data-neutral-badge]")?.getAttribute("data-neutral-badge"),
+      tier: document.querySelector(".hwt-threat")?.getAttribute("data-tier"),
+    }))
+    check(ui.fight.etalents.length >= 1 && ui.fight.etBadge >= 1, "U8 the Threat panel lists enemy talents (+ ✧ on the enemy)", ui.fight)
+    check(/Talents/.test(ui.fight.talentBadge) && ui.fight.neutralBadge === "moonmoth-cloak", "U9 hero token: talent mark (tooltip lists them) + neutral mark", ui.fight)
+    const panel = page.locator(".hwt-threat")
+    if (await panel.count()) await panel.screenshot({ path: `${SHOTS}/dota2-threat-enemy-talents.png` })
+    await page.screenshot({ path: `${SHOTS}/dota2-fight.png` })
+    // The talented skill shows its charges on the skill bar.
+    await page.locator('.hwt-token[data-side="player"][data-unit-id^="player-bulwark"]').click()
+    await page.waitForTimeout(300)
+    ui.skill = await page.evaluate(() => ({ charges: document.querySelector('.hwt-skill-btn[data-skill-id="shield-wall"]')?.getAttribute("data-charges"), talent: document.querySelector('.hwt-skill-btn[data-skill-id="shield-wall"] .hwt-skill-talent')?.textContent }))
+    check(ui.skill.charges === "2" && /×2/.test(ui.skill.talent || ""), "U10 skill bar: Shield Wall shows ✦ ×2 charges", ui.skill)
+    })
+    check(errs.length === 0, "U11 no page errors", errs.slice(0, 3))
+  } finally {
+    await browser.close()
+  }
+  console.log(JSON.stringify(ui, null, 1))
+  return out
 }
