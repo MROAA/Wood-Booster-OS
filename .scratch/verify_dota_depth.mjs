@@ -595,7 +595,11 @@ const seed = (spec) =>
   }))
   check(bar.actives.join() === "gale-push,salve,glowdust", "U8 active items on the hero's action bar", bar)
   check(bar.kits.length > 0 && /Enemy tricks/.test(bar.panel), "U9 enemy kit badges + the Enemy tricks panel", bar)
-  await page.screenshot({ path: `${SHOTS}/dota-active-bar.png` })
+  const kitTok = page.locator('.hwt-token:has([data-kit-badge])').first()
+  const kitBox = await page.locator("[data-kit-badge]").first().boundingBox().catch(() => null)
+  check(!!kitBox && kitBox.width > 4, "U9b a kit badge is visible on the enemy token", kitBox)
+  await kitTok.screenshot({ path: `${SHOTS}/dota-kit-badge.png` }).catch(() => {})
+  await page.locator(".hwt-universal-actions").screenshot({ path: `${SHOTS}/dota-active-bar.png` }).catch(() => page.screenshot({ path: `${SHOTS}/dota-active-bar.png` }))
   // Salve: arm, click the hero itself -> a use is spent.
   await page.locator('[data-item-active="salve"]').click()
   await page.locator('.hwt-token[data-side="player"][data-unit-id^="player-hexbreaker"]').click()

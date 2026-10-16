@@ -3713,3 +3713,15 @@ button.hwt-tl-chip:hover { border-color: var(--hwt-gold); }
 .hwt-counter-name { font-weight: 600; }
 .hwt-counter-answer { color: var(--hw-muted); margin-left: auto; text-align: right; }
 .hwt-counter-row[data-answered="true"] .hwt-counter-answer { color: var(--hwt-gold); }
+/* The enemy trick sits on its own corner chip - readable at a glance. */
+.hwt-token-status > .hwt-kit-badge[data-kit-badge] {
+  position: absolute;
+  left: 2px;
+  top: 38%;
+  height: 15px;
+  padding: 0 3px;
+  font-size: 10px;
+  border: 1px solid color-mix(in srgb, var(--hwt-gold) 60%, transparent);
+  background: rgba(20, 14, 8, 0.85);
+}
+.hwt-token-status > .hwt-kit-badge[data-kit-badge="shroud"][data-revealed="true"] { border-style: dashed; }

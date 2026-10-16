@@ -9426,3 +9426,4 @@ img.hw-intent-glyph {
 .hw-counter-read { font-size: 12px; margin: 4px 0 0; color: var(--hw-ember); font-weight: 600; }
 .hw-counter-read-kits { color: var(--hw-muted); font-weight: 400; }
 .hw-counter-read-have { color: var(--hw-moss); font-weight: 400; }
+.hw-build-forge .hw-move-btn:disabled { opacity: 0.45; cursor: not-allowed; }

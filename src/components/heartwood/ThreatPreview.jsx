@@ -62,6 +62,8 @@ export default function ThreatPreview({ runState, node, previewEnemies }) {
         </p>
       )}
 
+      {t.note && <p className="hw-threat-note">{t.note}</p>}
+
       {counters.kits.length > 0 && (
         <p className="hw-counter-read" data-counter-read={counters.bring.join(" ")} title="These enemies bring a trick - the right item answers it. Forge or buy it before the fight.">
           {bringText(counters.bring)}
@@ -69,8 +71,6 @@ export default function ThreatPreview({ runState, node, previewEnemies }) {
           {counters.bring.some((b) => have.has(b)) && <span className="hw-counter-read-have"> · you carry: {counters.bring.filter((b) => have.has(b)).map((b) => COUNTER_TAGS[b]?.label).join(", ")}</span>}
         </p>
       )}
-
-      {t.note && <p className="hw-threat-note">{t.note}</p>}
 
       {t.relative && (
         <p className="hw-threat-relative" data-tone={t.relative.tone}>

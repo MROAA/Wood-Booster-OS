@@ -86,7 +86,7 @@ export const COUNTER_KITS = {
     id: "mist", name: "Mist Veil", icon: "🌫", act: 2, dodges: 2,
     text: "The first 2 basic attacks on it each turn miss completely. Skills and splash still land.",
     answers: ["true-strike", "area", "skills"],
-    enemies: ["mist-growler", "mossveil", "wraithgale", "veilgnaw", "thinreach-wraith", "wayfarer-scout", "echo-shade", "drowned-siren", "quillfang"],
+    enemies: ["mist-growler", "pack-runner", "mossveil", "wraithgale", "veilgnaw", "thinreach-wraith", "wayfarer-scout", "echo-shade", "drowned-siren", "quillfang"],
   },
   bloom: {
     id: "bloom", name: "Mossbloom", icon: "✿", act: 2, heal: 4, radius: 2,
@@ -104,7 +104,7 @@ export const COUNTER_KITS = {
     id: "runeshell", name: "Runeshell", icon: "⬡", act: 3, shell: 8,
     text: "A magic shell soaks the first 8 damage and regrows at the start of every enemy turn.",
     answers: ["mana-burn", "dispel"],
-    enemies: ["rune-warden", "runewisp-acolyte", "hex-acolyte", "silence-weaver", "ritual-adept", "hollowcurse", "witherbound-effigy", "riftmnemon", "ashen-regent", "coven-matron"],
+    enemies: ["rune-warden", "ritual-warden", "runewisp-acolyte", "hex-acolyte", "silence-weaver", "ritual-adept", "hollowcurse", "witherbound-effigy", "riftmnemon", "ashen-regent", "coven-matron"],
   },
   shroud: {
     id: "shroud", name: "Shadowmoss", icon: "◐", act: 3, reach: 1,
