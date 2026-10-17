@@ -10,6 +10,7 @@ import { RESERVE_CAP, DEPLOY_SLOTS, unitHpPct } from "../../services/heartwood/r
 import { CardGlyph } from "./cardArt"
 import { marketUiText } from "../../data/heartwood/marketUi"
 import UiTitle from "./CampTitle"
+import DevDesk from "./DevDesk"
 import "./heartwood-market-table.css"
 import "./headquarters-screen.css"
 
@@ -83,6 +84,7 @@ export default function HeadquartersScreen({ kit }) {
           </section>
         </aside>
         <main className="hwq-squad" aria-label="Your squad">
+          <DevDesk heroDefIds={runState.bench.map((e) => e.defId)} />
           <section className="hwm-panel">
             <UiTitle className="hwm-panel-title" k="hqFight" extra={` ${deployedCount}/${DEPLOY_SLOTS}`} />
             <div className="hwq-cards">{deployedEntries.map((e) => renderBenchCard(e))}</div>
