@@ -227,6 +227,12 @@ function HeartwoodBattleScreens() {
   // insert - runEngine.js's phase machine is untouched, the actual
   // leaveShop() call is just deferred one click.
   const [showMapAfterShop, setShowMapAfterShop] = useState(false)
+  // Headquarters between fights: open over any between-fight screen from
+  // the utility bar; closes by itself whenever the run moves to a new phase.
+  const [hqOverlay, setHqOverlay] = useState(false)
+  useEffect(() => {
+    setHqOverlay(false)
+  }, [runState?.phase])
 
   // Act Crossroads (crossroads.js): holds the Act number whose boundary
   // interstitial is currently due, or null. Armed by the effect below
@@ -505,8 +511,18 @@ function HeartwoodBattleScreens() {
   // shop's actual decision-making, so they read as one small utility
   // cluster instead of competing with the cards for top-left
   // attention.
+  // Headquarters is reachable on every between-fight screen; at a market
+  // stop it is already the default screen (SquadDraft), except on the
+  // map shown after leaving the market.
+  const hqAvailable =
+    !!runState && LEVEL_UP_PHASES.has(runState.phase) && !(runState.phase === "shop" && !showMapAfterShop)
   const utilityBar = (
     <div className="hw-utility-bar">
+      {hqAvailable && !hqOverlay && (
+        <button className="hw-exit-link hw-utility-btn hw-hq-open-btn" onClick={() => setHqOverlay(true)} title="Your camp: squad, commander, relics and the road">
+          ᛞ Headquarters
+        </button>
+      )}
       <button className="hw-exit-link hw-utility-btn" onClick={() => setShowIntro(true)}>
         How to Play
       </button>
@@ -1323,6 +1339,51 @@ function HeartwoodBattleScreens() {
     )
   }
 
+  // One set of props for the market stop and for Headquarters between
+  // fights, so every squad action behaves the same wherever it's opened.
+  const squadDraftProps = {
+    runState: runState,
+    onRecruit: handleRecruit,
+    onRankUp: handleRankUp,
+    onUpgradeRelic: handleUpgradeRelic,
+    onUpgradeUnit: handleUpgradeUnit,
+    onReforge: handleReforge,
+    onSell: handleSell,
+    onRetrain: handleRetrain,
+    onBuyItem: handleBuyItem,
+    onEquipItem: handleEquipItem,
+    onUnequipItem: handleUnequipItem,
+    onMoveGear: handleMoveGear,
+    onSellItem: handleSellItem,
+    onRerollItems: handleRerollItems,
+    onToggleItemLock: handleToggleItemLock,
+    onSendItemHome: handleSendItemHome,
+    onLevelUpMarket: handleLevelUpMarket,
+    onAdvanceMarketTier: handleAdvanceMarketTier,
+    onToggleFreeze: handleToggleFreeze,
+    onUseCommanderActive: handleUseCommanderActive,
+    onReroll: handleReroll,
+    onGamble: handleGamble,
+    onAntidote: handleAntidote,
+    onMend: handleMend,
+    onBuyInvestment: handleBuyInvestment,
+    onReclaimBuyback: handleReclaimBuyback,
+    onRunAction: (fn) => setRunState((current) => fn(current)),
+    onContinue: () => setShowMapAfterShop(true),
+    showIntro: showIntro,
+    onDismissIntro: dismissIntro,
+    mapSlot: <RunMap runState={runState} mode="rail" onScout={handleScout} />,
+  }
+
+  if (hqOverlay && hqAvailable) {
+    return (
+      <div className="hw-root hw-screen-fade" style={rootStyle} key="hq">
+        {utilityBar}
+        <SquadDraft {...squadDraftProps} hqOnly onCloseHq={() => setHqOverlay(false)} />
+      </div>
+    )
+  }
+
   if (showMapAfterShop) {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} data-screen="map-after-shop" key="map-after-shop">
@@ -1350,39 +1411,7 @@ function HeartwoodBattleScreens() {
         {utilityBar}
         {setBanner}
         {activeCoachTip && <CoachTip tip={activeCoachTip} onDismiss={dismissCoach} />}
-        <SquadDraft
-          runState={runState}
-          onRecruit={handleRecruit}
-          onRankUp={handleRankUp}
-          onUpgradeRelic={handleUpgradeRelic}
-          onUpgradeUnit={handleUpgradeUnit}
-          onReforge={handleReforge}
-          onSell={handleSell}
-          onRetrain={handleRetrain}
-          onBuyItem={handleBuyItem}
-          onEquipItem={handleEquipItem}
-          onUnequipItem={handleUnequipItem}
-          onMoveGear={handleMoveGear}
-          onSellItem={handleSellItem}
-          onRerollItems={handleRerollItems}
-          onToggleItemLock={handleToggleItemLock}
-          onSendItemHome={handleSendItemHome}
-          onLevelUpMarket={handleLevelUpMarket}
-          onAdvanceMarketTier={handleAdvanceMarketTier}
-          onToggleFreeze={handleToggleFreeze}
-          onUseCommanderActive={handleUseCommanderActive}
-          onReroll={handleReroll}
-          onGamble={handleGamble}
-          onAntidote={handleAntidote}
-          onMend={handleMend}
-          onBuyInvestment={handleBuyInvestment}
-          onReclaimBuyback={handleReclaimBuyback}
-          onRunAction={(fn) => setRunState((current) => fn(current))}
-          onContinue={() => setShowMapAfterShop(true)}
-          showIntro={showIntro}
-          onDismissIntro={dismissIntro}
-          mapSlot={<RunMap runState={runState} mode="rail" onScout={handleScout} />}
-        />
+        <SquadDraft {...squadDraftProps} />
       </div>
     )
   }

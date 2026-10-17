@@ -27,6 +27,7 @@ export const MARKET_UI = {
   hqBuild: { name: "Your build", subtitle: "", rune: "ᛉ", meaning: "Algiz - protection" },
   hqMarket: { name: "The market", subtitle: "", rune: "ᚲ", meaning: "Kenaz - the torch, the craftsman" },
   visitMarket: { name: "Visit the market", subtitle: "Heroes, gear, the Ledger", rune: "", meaning: "" },
+  backToRoad: { name: "Back to the road", subtitle: "Pick up where you left off", rune: "", meaning: "" },
 }
 
 // Safe lookup: a missing or half-edited entry still renders something.
