@@ -6,8 +6,9 @@
 // road ahead and Continue. The market nearby is one click away.
 // Dependencies: pieces + state from SquadDraft.jsx through `kit`.
 // Look: heartwood-market-table.css (shared panels) + headquarters-screen.css.
-import { RESERVE_CAP, DEPLOY_SLOTS, unitHpPct } from "../../services/heartwood/runEngine"
+import { RESERVE_CAP, DEPLOY_SLOTS, unitHpPct, assignToSlot } from "../../services/heartwood/runEngine"
 import { CardGlyph } from "./cardArt"
+import { UNITS } from "../../data/heartwood/units"
 import { marketUiText } from "../../data/heartwood/marketUi"
 import UiTitle from "./CampTitle"
 import DevDesk from "./DevDesk"
@@ -28,6 +29,7 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
     mapSlot,
     nextLabel,
     onContinue,
+    onRunAction,
     piece_buildScore,
     piece_commanderCluster,
     piece_overlays,
@@ -42,6 +44,33 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
     visitMarket,
   } = kit
 
+  // Places in the fight that stand empty: the war table shows them, and
+  // a reserve hero can step into the first one right here (the same
+  // assignToSlot the Formation screen uses).
+  const firstEmptySlot = (rs) => Array.from({ length: DEPLOY_SLOTS }, (_, i) => i).find((i) => rs.deployed[i] == null) ?? -1
+  const emptyCount = Math.max(0, DEPLOY_SLOTS - deployedCount)
+  const joinFor = (entry) =>
+    onRunAction && firstEmptySlot(runState) >= 0
+      ? () => onRunAction((rs) => (firstEmptySlot(rs) >= 0 ? assignToSlot(rs, firstEmptySlot(rs), entry.key) : rs))
+      : null
+  // The camp at a glance: the one thing to know before setting out -
+  // an empty place in the fight, who is hurt, or that all is ready.
+  const hurt = deployedEntries.filter((e) => unitHpPct(e) < 1 || e.wounded)
+  const hurtNames = hurt.map((e) => UNITS[e.defId]?.name).filter(Boolean)
+  const status =
+    deployedCount < DEPLOY_SLOTS
+      ? {
+            state: "warn",
+            text: `${emptyCount === 1 ? "A place" : `${emptyCount} places`} in the fight ${emptyCount === 1 ? "stands" : "stand"} empty${reserveEntries.length > 0 ? " - call a hero from the reserve" : ""}`,
+          }
+      : hurtNames.length > 0
+        ? {
+            state: "hurt",
+            text: `${hurtNames.length === 1 ? `${hurtNames[0]} is` : hurtNames.length === 2 ? `${hurtNames[0]} and ${hurtNames[1]} are` : `${hurtNames.length} heroes are`} hurt - mend at the workbench`,
+          }
+        : { state: "ready", text: "The camp is ready to set out" }
+  const hasBelongings = (runState.relics || []).length > 0 || (runState.items || []).length > 0
+
   return (
     <div className="hwq-root hw-market-stage" aria-label={marketUiText("hq").name}>
       {piece_overlays()}
@@ -53,11 +82,12 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
             {difficultyTier.name}
           </span>
           {nextLabel && <span className="hwm-top-chip">Next: {nextLabel}</span>}
-          <span
-            className="hwm-top-chip"
-            data-state={deployedCount >= DEPLOY_SLOTS && !runState.bench.some((e) => unitHpPct(e) < 1 || e.wounded) ? "ready" : "warn"}
-          >
-            Squad {deployedCount}/{DEPLOY_SLOTS}
+        </div>
+        <div className="hwq-status" data-state={status.state} role="status">
+          <span className="hwq-status-rune" aria-hidden="true">{status.state === "ready" ? "ᛞ" : status.state === "hurt" ? "ᚢ" : "ᛗ"}</span>
+          <span className="hwq-status-text">{status.text}</span>
+          <span className="hwq-status-squad">
+            Squad <b>{deployedCount}/{DEPLOY_SLOTS}</b>
           </span>
         </div>
         <div className="hwm-essence">
@@ -91,9 +121,18 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
           </section>
           <section className="hwm-panel hwm-panel--rails">
             <UiTitle className="hwm-panel-title" k="hqRelics" />
-            {renderOwnedRail(["relics", "items"])}
-            {(runState.relics || []).length === 0 && (runState.items || []).length === 0 && (
-              <p className="hwm-hint">No relics or items yet - find them on the road or buy gear at a market.</p>
+            {hasBelongings ? (
+              renderOwnedRail(["relics", "items"])
+            ) : (
+              /* empty sockets waiting to be filled - the place shows what it is for */
+              <div className="hwq-sockets" title="Relics are found on the road; gear is bought at a market">
+                <div className="hwq-socket-row">
+                  {[0, 1, 2, 3].map((i) => (
+                    <span key={i} className="hwq-socket" aria-hidden="true">ᛟ</span>
+                  ))}
+                </div>
+                <p className="hwq-sockets-hint">Found on the road · bought at a market</p>
+              </div>
             )}
           </section>
           <section className="hwm-panel">
@@ -105,12 +144,21 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
           <DevDesk heroDefIds={runState.bench.map((e) => e.defId)} />
           <section className="hwm-panel hwq-table">
             <UiTitle className="hwm-panel-title" k="hqFight" extra={` ${deployedCount}/${DEPLOY_SLOTS}`} />
-            <div className="hwq-cards">{deployedEntries.map((e) => renderBenchCard(e, { tray: true }))}</div>
+            <div className="hwq-cards">
+              {deployedEntries.map((e) => renderBenchCard(e, { tray: true }))}
+              {Array.from({ length: emptyCount }, (_, i) => (
+                <div key={`empty-${i}`} className="hwq-empty-place">
+                  <span className="hwq-empty-rune" aria-hidden="true">ᛗ</span>
+                  <span className="hwq-empty-name">An empty place</span>
+                  <span className="hwq-empty-hint">{reserveEntries.length > 0 ? "Call a hero from the reserve below" : "Recruit a hero at the market"}</span>
+                </div>
+              ))}
+            </div>
           </section>
           {reserveEntries.length > 0 && (
             <section className="hwm-panel hwq-reserve">
               <UiTitle className="hwm-panel-title" k="hqReserve" extra={` ${reserveCount}/${RESERVE_CAP + (runState.benchCapBonus || 0)}`} />
-              <div className="hwq-cards">{reserveEntries.map((e) => renderBenchCard(e, { tray: true }))}</div>
+              <div className="hwq-cards">{reserveEntries.map((e) => renderBenchCard(e, { tray: true, onJoin: joinFor(e) }))}</div>
             </section>
           )}
         </main>

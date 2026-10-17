@@ -648,3 +648,153 @@ html:not(.hw-layout-tools) .hwq-devdesk {
 .hwq-root .hwm-launch {
   padding: 4px 4px 2px;
 }
+
+/* ---------- The camp at a glance (top bar) ----------
+   One carved line in the middle of the bar: the single thing to know
+   before setting out. Moss when ready, ember when someone is hurt, gold
+   when a place in the fight stands empty. */
+.hwq-top {
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+}
+.hwq-status {
+  --st: var(--hwm-moss);
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 6px 8px 6px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--st) 45%, transparent);
+  background:
+    radial-gradient(ellipse 60% 140% at 0% 50%, color-mix(in srgb, var(--st) 14%, transparent), transparent 70%),
+    rgba(10, 13, 8, 0.82);
+  box-shadow: inset 0 1px 0 rgba(232, 226, 200, 0.05);
+}
+.hwq-status[data-state="hurt"] {
+  --st: #d0654a;
+}
+.hwq-status[data-state="warn"] {
+  --st: var(--hwm-gold);
+}
+.hwq-status-rune {
+  font-size: 16px;
+  line-height: 1;
+  color: var(--st);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--st) 55%, transparent);
+}
+.hwq-status-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--hwm-parch);
+}
+.hwq-status-squad {
+  flex: 0 0 auto;
+  padding: 2px 9px;
+  border-radius: 7px;
+  border-left: 1px solid var(--hwm-line);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hwm-ink);
+}
+.hwq-status-squad b {
+  font-weight: 600;
+  color: var(--hwm-parch);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Relics & bag, still empty: sockets waiting ---------- */
+.hwq-sockets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hwq-socket-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.hwq-socket {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  max-height: 46px;
+  border-radius: 10px;
+  border: 1px dashed color-mix(in srgb, var(--hwm-gold) 28%, transparent);
+  background: radial-gradient(circle, rgba(205, 180, 122, 0.05), transparent 70%), rgba(8, 10, 6, 0.6);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+  font-size: 16px;
+  color: color-mix(in srgb, var(--hwm-gold) 22%, transparent);
+}
+.hwq-sockets-hint {
+  margin: 0;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--hwm-ink);
+  text-align: center;
+}
+
+/* the hurt hero's Mend plaque breathes ember, answering the status line */
+.hwq-root.hw-market-stage .hwq-tray .hw-mend-btn.hwq-act--main.hw-move-btn:not(:disabled) {
+  animation: hwq-mend-breathe 2.8s ease-in-out infinite;
+}
+@keyframes hwq-mend-breathe {
+  50% { box-shadow: inset 0 1px 0 rgba(232, 226, 200, 0.08), 0 0 12px -2px rgba(208, 101, 74, 0.55); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwq-root.hw-market-stage .hwq-tray .hw-mend-btn.hwq-act--main.hw-move-btn { animation: none; }
+}
+
+/* ---------- An empty place at the war table ----------
+   Card-sized, dashed, mannaz (the people) faint inside - the table shows
+   where a hero is missing instead of leaving a gap. */
+.hwq-empty-place {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 240px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1.5px dashed color-mix(in srgb, var(--hwm-gold) 35%, transparent);
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 45%, rgba(205, 180, 122, 0.06), transparent 70%),
+    rgba(6, 8, 5, 0.45);
+  text-align: center;
+}
+.hwq-empty-rune {
+  font-size: 44px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--hwm-gold) 30%, transparent);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--hwm-gold) 20%, transparent);
+}
+.hwq-empty-name {
+  font-family: var(--hw-font-display);
+  font-size: 16px;
+  color: var(--hwm-parch);
+}
+.hwq-empty-hint {
+  font-size: 11.5px;
+  color: var(--hwm-ink);
+}
+/* Join the fight: the reserve's moss plaque while a place stands empty */
+.hwq-root.hw-market-stage .hwq-tray .hwq-join.hwq-act--main.hw-move-btn.hw-move-btn {
+  flex: 0 0 auto;
+  justify-content: center;
+  gap: 8px;
+  border-color: color-mix(in srgb, var(--hwm-moss) 70%, transparent);
+  background:
+    radial-gradient(ellipse 80% 140% at 50% 120%, color-mix(in srgb, var(--hwm-moss) 22%, transparent), transparent 70%),
+    linear-gradient(180deg, rgba(30, 40, 22, 0.95), rgba(16, 22, 12, 0.95));
+  color: color-mix(in srgb, var(--hwm-moss) 35%, var(--hwm-parch));
+}
+.hwq-root.hw-market-stage .hwq-tray .hwq-join.hwq-act--main.hw-move-btn.hw-move-btn:hover {
+  border-color: var(--hwm-moss);
+  box-shadow: 0 0 12px -2px color-mix(in srgb, var(--hwm-moss) 50%, transparent);
+}

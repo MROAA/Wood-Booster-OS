@@ -48,6 +48,14 @@ Marc's own words, kept as the compass:
   - **Setting out** — Continue is the camp's own carved plaque with
     raido (the journey) and an arrow; no baked plaque art behind it.
   - The whole camp fits 1536×864 without scrolling (one reserve row).
+  - **The camp at a glance** — one line in the middle of the top bar says
+    the single thing to know before setting out: a place in the fight
+    stands empty (gold), someone is hurt (ember, and their Mend plaque
+    breathes), or the camp is ready (moss).
+  - **An empty place** at the war table is a dashed card-sized frame
+    (mannaz); while one stands empty, reserve heroes carry a moss
+    **Join the fight** plaque (the Formation screen's own `assignToSlot`).
+  - **Relics & bag, still empty**, shows four waiting sockets instead of a sentence.
 
 ### The market
 - A place **your camp arrives at** ("Your camp arrives at the market").

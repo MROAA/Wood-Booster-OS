@@ -700,7 +700,9 @@ export default function SquadDraft({
   // workbench under the card - Upgrade is the one gold plaque, Reforge /
   // Sell sit quietly beside it, fusion shows as three pips. Same buttons,
   // classes and handlers as the classic stack below.
-  function renderBenchCard(entry, { tray = false } = {}) {
+  // `onJoin` (Headquarters reserve, while a place in the fight is empty):
+  // a moss "Join the fight" plaque heads the workbench.
+  function renderBenchCard(entry, { tray = false, onJoin = null } = {}) {
     const def = UNITS[entry.defId]
     const canReforge = def?.displayTier !== 2
     // Upgrade (upgrades.js): branch picks recorded on entry.upgrades;
@@ -750,6 +752,11 @@ export default function SquadDraft({
         <div key={entry.key} className="hwq-hero">
           {card}
           <div className="hwq-tray">
+            {onJoin && (
+              <button type="button" className="hw-move-btn hwq-act hwq-act--main hwq-join" onClick={onJoin} title={`Send ${def?.name} into the fight`}>
+                Join the fight <span aria-hidden="true">↑</span>
+              </button>
+            )}
             <div className="hw-gear-row-wrap hwq-tray-gear">
               <GearRow
                 items={runState.items}
@@ -2010,6 +2017,7 @@ export default function SquadDraft({
   // shared pieces and state as the classic layout, handed over by name.
   const marketKit = {
     runState,
+    onRunAction,
     commander,
     commanderRank,
     offers,
