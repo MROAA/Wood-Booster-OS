@@ -11,11 +11,10 @@ import { promoTitle } from "../../services/heartwood/promotions"
 import { PROMOTIONS } from "../../data/heartwood/promotions"
 import HeroIdentityRow from "./HeroIdentityRow"
 import { CLASS_GROUPS, classById } from "../../data/heartwood/classes"
-import { signatureAbilityForDef } from "../../services/heartwood/tacticsEngine"
+import { signatureAbilityForDef, attackFromMovePattern } from "../../services/heartwood/tacticsEngine"
 import { describeAbility, signatureUpgrades, SIGNATURE_SKILL_KEY } from "../../services/heartwood/tacticsAbilities"
 import "./heartwood-cards.css"
 
-const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
 
 // Class chip tooltip: passive, class skills, then the unit's signature;
 // skill-tree branches the unit has chosen are listed under each skill.
@@ -105,7 +104,6 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
   // once the win count is within reach (or already met).
   const evo = def && evolutionFor(def.id)
   const evoClose = evo && (entry?.wins || 0) >= (evo.when.minWins || 0) - 1
-  const moves = def.movePattern.filter((m) => ICON_BY_MOVE[m.type])
   // Lasting consequences: a hurt/Wounded bench unit shows its carried HP.
   const hpPct = typeof entry?.hpPct === "number" ? Math.max(0, Math.min(1, entry.hpPct)) : 1
   const hurt = hpPct < 1 || !!entry?.wounded
@@ -242,7 +240,8 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           tribe. Glanceable from across the board without reading text. */}
       {edgeAccent && <div className="hw-card-tribe-edge" style={{ background: edgeAccent }} />}
       <div className="hw-card-head">
-        <span className="hw-card-cost">
+        <span className="hw-card-cost" title={`Costs ${costOverride != null ? costOverride : def.recruitCost} Essence to recruit`}>
+          <CardGlyph name="spark" className="hw-card-gem-icon" />
           {discounted && <span className="hw-card-cost-base">{def.recruitCost}</span>}
           {costOverride != null ? costOverride : (def.recruitCost ?? "★")}
         </span>
@@ -250,7 +249,7 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
             readable number instead of only appearing in the small text
             line below - "playable by eye," per Marc's own ask, not
             something you have to read a sentence to find. */}
-        <span className="hw-card-hp" title="HP">
+        <span className="hw-card-hp" title={`Health: ${hurt ? `${curHp} of ${def.maxHp}` : def.maxHp}`}>
           <CardGlyph name="heart" className="hw-effect-icon-glyph" />
           {hurt ? curHp : def.maxHp}
         </span>
@@ -407,13 +406,16 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           ))}
         </div>
       )}
+      {/* Attack: the ONE number the tactics battle uses for this hero's
+          hits (tacticsEngine's attackFromMovePattern - the same function,
+          so card and battle can never disagree). Three numbers per card,
+          Hearthstone-style: cost top-left, attack bottom-left, health
+          bottom-right. */}
       <div className="hw-effect-icons">
-        {moves.map((m, i) => (
-          <span key={i} className="hw-effect-icon">
-            <CardGlyph name={ICON_BY_MOVE[m.type]} className="hw-effect-icon-glyph" />
-            {m.amount}
-          </span>
-        ))}
+        <span className="hw-effect-icon" data-move="attack" title={`Attack: ${attackFromMovePattern(def.movePattern)} damage per hit`}>
+          <CardGlyph name="sword" className="hw-effect-icon-glyph" />
+          {attackFromMovePattern(def.movePattern)}
+        </span>
       </div>
       <div className="hw-card-desc">
         {def.tier[0].toUpperCase() + def.tier.slice(1)}

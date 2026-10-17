@@ -732,14 +732,6 @@
   height: 108px;
   padding: 24px;
 }
-/* The dev-only "✎ Layout" switch moves up under the utility bar here,
-   off the squad strip. */
-html:has(.hwm-root) .hw-layout-tools-toggle {
-  top: 54px;
-  right: 14px;
-  bottom: auto;
-  left: auto;
-}
 /* Squad label on one line; the Finnish word sits right after it. */
 .hwm-squad {
   grid-template-columns: 200px minmax(0, 1fr);
@@ -853,13 +845,6 @@ html:has(.hwm-root) .hw-layout-tools-toggle {
 .hwm-table--gear .hw-cost-inline .hw-intent-glyph {
   width: 12px;
   height: 12px;
-}
-/* The Studio switch: bottom-right of the squad strip, out of the way. */
-html:has(.hwm-root) .hw-layout-tools-toggle {
-  top: auto;
-  bottom: 18px;
-  right: 22px;
-  left: auto;
 }
 
 /* ---------- The player's HQ (Marc: "pelaajan HQ ... tuntuvan siltä
