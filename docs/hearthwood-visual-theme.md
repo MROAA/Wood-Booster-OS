@@ -72,6 +72,18 @@ Marc's own words, kept as the compass:
 - It sells what the current shop system offers; the shop itself will be
   developed further.
 - Back to camp is one click (`← Headquarters`).
+- Level with Headquarters (graphics round 7):
+  - The same **camp-at-a-glance** line in the top bar (`campStatus.js`,
+    short form; the full sentence on hover). The Act chip lives in "The road on".
+  - **Your squad stays in view** under the gear: round portraits of who
+    fights, empty places, then the reserve; a hurt hero wears an ember
+    ring, copies toward a fusion show pips. A tile opens Headquarters.
+  - **Fusion pips on offers** you already own ("◆◇◇ Own 1"; ember when
+    buying completes a fusion).
+  - **Relics & bag** sit in the right column, beside the gear for sale.
+  - **Reroll is the one gold plaque**; Freeze / Gamble / Antidote are quiet.
+  - **Gear prices wear the gold coin** (✦ 150) like the heroes; a common
+    piece has a moss hairline, finer rarities keep their colour.
 
 ### Cards
 - Hero cards are like **tarot cards carrying a unit's lore and numbers**
