@@ -547,3 +547,71 @@ html:not(.hw-layout-tools) .hw-shop-layout-toolbar {
   gap: 8px;
   flex-wrap: wrap;
 }
+
+/* ---------- Graphics round 3: the Market speaks one visual language ---------- */
+/* Every secondary Market button (Reroll, Freeze, Gamble, Antidote, item
+   reroll, Gear, Ledger prices) was a flat pale-green pill next to the
+   dark carved plaques of the top strip. They now share the plaque look:
+   dark wood, a gold hairline, warm parchment text - the green is kept
+   only as a thin accent so "affordable" still reads. Sizes untouched
+   (Marc asked for these bigger earlier; the screen must still fit). */
+.hw-market-stage .hw-move-btn:not(.hw-strip-btn):not(.hw-shop-confirm-btn):not(.hw-end-turn) {
+  background:
+    linear-gradient(180deg, rgba(255, 236, 190, 0.06), transparent 55%),
+    linear-gradient(rgba(19, 15, 9, 0.92), rgba(12, 9, 5, 0.95));
+  color: #f0dcae;
+  border: 1px solid color-mix(in srgb, var(--hw-moss) 55%, rgba(212, 162, 76, 0.5));
+  box-shadow: inset 0 1px 0 rgba(255, 236, 190, 0.08), 0 2px 5px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
+  transition: border-color 0.14s ease, color 0.14s ease, box-shadow 0.14s ease, translate 0.14s ease;
+}
+.hw-market-stage .hw-move-btn:not(.hw-strip-btn):not(.hw-shop-confirm-btn):not(.hw-end-turn):not(:disabled):hover {
+  color: #fff3d6;
+  border-color: color-mix(in srgb, var(--hw-moss) 40%, #e9be6a);
+  box-shadow: inset 0 1px 0 rgba(255, 236, 190, 0.12), 0 0 12px rgba(214, 170, 90, 0.28), 0 3px 8px rgba(0, 0, 0, 0.5);
+  translate: 0 -1px;
+}
+.hw-market-stage .hw-move-btn:not(.hw-strip-btn):not(.hw-shop-confirm-btn):not(.hw-end-turn):disabled {
+  color: rgba(240, 220, 174, 0.4);
+  border-color: rgba(120, 105, 80, 0.4);
+  box-shadow: none;
+}
+.hw-market-stage .hw-gamble-btn.hw-move-btn {
+  border-color: color-mix(in srgb, var(--hw-cosmic) 60%, rgba(212, 162, 76, 0.4));
+  color: #e6d4ff;
+}
+
+/* For Sale: every card fills its slot, so the row has one baseline.
+   A hero without a painting gets an art frame the same size as a
+   painted portrait - its glyph centred in a tinted panel - instead of
+   a small floating icon on a shorter card. */
+.hw-market-featured-grid > .hw-free-layout-section > div,
+.hw-market-featured-grid > .hw-free-layout-section > div > .hw-card {
+  height: 100%;
+  box-sizing: border-box;
+}
+.hw-market-featured-grid .hw-card[data-portrait="false"] .hw-card-art {
+  width: 100%;
+  height: 130px;
+  box-sizing: border-box;
+  padding: 30px;
+  border-radius: 8px;
+  background-image:
+    radial-gradient(ellipse 55% 60% at 50% 50%, color-mix(in srgb, currentColor 22%, transparent), transparent 75%),
+    linear-gradient(180deg, rgba(255, 236, 190, 0.04), rgba(0, 0, 0, 0.35));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 25%, transparent), inset 0 0 24px rgba(0, 0, 0, 0.55);
+}
+
+/* Continue: the plaque art (vines, candles) stays as the frame, but its
+   centre carries baked "CONFIRM" + "Quick Sale 150" lettering that
+   fought the real label. A dark lacquered inset panel now covers that
+   centre, so only "Continue" reads. */
+.hw-end-turn.hw-shop-confirm-btn {
+  background:
+    linear-gradient(180deg, #5a230e, #2e0d06) center / 58% 66% no-repeat,
+    url("../../assets/heartwood/buttons/shop-confirm-plaque.png") center / cover no-repeat;
+  font-family: var(--hw-font-display);
+  letter-spacing: 0.06em;
+  color: #ffe6a8;
+  text-shadow: 0 0 8px rgba(255, 190, 90, 0.45), 0 1px 2px #000;
+}
