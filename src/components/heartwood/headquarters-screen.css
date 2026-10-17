@@ -244,3 +244,9 @@ html:not(.hw-layout-tools) .hwq-devdesk {
   font-size: 10.5px;
   font-variant-numeric: tabular-nums;
 }
+/* "Back to the road" sits exactly where Continue does at a market stop. */
+.hwq-return {
+  flex: 0 0 auto;
+  align-items: center;
+  text-align: center;
+}

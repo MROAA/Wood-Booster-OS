@@ -14,7 +14,10 @@ import DevDesk from "./DevDesk"
 import "./heartwood-market-table.css"
 import "./headquarters-screen.css"
 
-export default function HeadquartersScreen({ kit }) {
+// `onClose` set = opened between fights (from the page's Headquarters
+// button): no market here, and the Continue spot becomes "Back to the road"
+// - the same place, the same look, so where to go next is always obvious.
+export default function HeadquartersScreen({ kit, onClose = null }) {
   const {
     deployedCount,
     deployedEntries,
@@ -97,24 +100,33 @@ export default function HeadquartersScreen({ kit }) {
           )}
         </main>
         <aside className="hwm-side" aria-label="The market and the road ahead">
-          <section className="hwm-panel hwq-market-entry">
-            <UiTitle className="hwm-panel-title" k="hqMarket" />
-            {renderCenterSections(["greeting"])}
-            <button type="button" className="hwq-visit" onClick={visitMarket}>
-              <span className="hwq-visit-name">{marketUiText("visitMarket").name} →</span>
-              {marketUiText("visitMarket").subtitle && <span className="hwq-visit-sub">{marketUiText("visitMarket").subtitle}</span>}
-            </button>
-          </section>
+          {!onClose && (
+            <section className="hwm-panel hwq-market-entry">
+              <UiTitle className="hwm-panel-title" k="hqMarket" />
+              {renderCenterSections(["greeting"])}
+              <button type="button" className="hwq-visit" onClick={visitMarket}>
+                <span className="hwq-visit-name">{marketUiText("visitMarket").name} →</span>
+                {marketUiText("visitMarket").subtitle && <span className="hwq-visit-sub">{marketUiText("visitMarket").subtitle}</span>}
+              </button>
+            </section>
+          )}
           <section className="hwm-panel hwq-road">
             <UiTitle className="hwm-panel-title" k="hqRoad" />
             <div className="hwm-map">{mapSlot}</div>
           </section>
-          <div className="hwm-launch">
-            <button className="hw-end-turn hw-shop-confirm-btn hwm-continue" onClick={onContinue}>
-              Continue
+          {onClose ? (
+            <button type="button" className="hwq-visit hwq-return" onClick={onClose}>
+              <span className="hwq-visit-name">← {marketUiText("backToRoad").name}</span>
+              {marketUiText("backToRoad").subtitle && <span className="hwq-visit-sub">{marketUiText("backToRoad").subtitle}</span>}
             </button>
-            {nextLabel && <span className="hwm-launch-next">Next: {nextLabel}</span>}
-          </div>
+          ) : (
+            <div className="hwm-launch">
+              <button className="hw-end-turn hw-shop-confirm-btn hwm-continue" onClick={onContinue}>
+                Continue
+              </button>
+              {nextLabel && <span className="hwm-launch-next">Next: {nextLabel}</span>}
+            </div>
+          )}
         </aside>
       </div>
     </div>

@@ -11,7 +11,8 @@ import { promoTitle } from "../../services/heartwood/promotions"
 import { PROMOTIONS } from "../../data/heartwood/promotions"
 import HeroIdentityRow from "./HeroIdentityRow"
 import { CLASS_GROUPS, classById } from "../../data/heartwood/classes"
-import { signatureAbilityForDef, attackFromMovePattern } from "../../services/heartwood/tacticsEngine"
+import { signatureAbilityForDef } from "../../services/heartwood/tacticsEngine"
+import { unitStrength } from "../../services/heartwood/unitStrength"
 import { describeAbility, signatureUpgrades, SIGNATURE_SKILL_KEY } from "../../services/heartwood/tacticsAbilities"
 import "./heartwood-cards.css"
 
@@ -406,17 +407,24 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           ))}
         </div>
       )}
-      {/* Attack: the ONE number the tactics battle uses for this hero's
-          hits (tacticsEngine's attackFromMovePattern - the same function,
-          so card and battle can never disagree). Three numbers per card,
-          Hearthstone-style: cost top-left, attack bottom-left, health
-          bottom-right. */}
-      <div className="hw-effect-icons">
-        <span className="hw-effect-icon" data-move="attack" title={`Attack: ${attackFromMovePattern(def.movePattern)} damage per hit`}>
-          <CardGlyph name="sword" className="hw-effect-icon-glyph" />
-          {attackFromMovePattern(def.movePattern)}
-        </span>
-      </div>
+      {/* Attack and health (Marc: bars "ota mittarit pois ... tarpeettomat"):
+          one calm row - icon + number each. Attack is the battle's own
+          number (unitStrength.js); a hurt hero shows what it has left. */}
+      {(() => {
+        const st = unitStrength(def, entry)
+        return (
+          <div className="hw-card-strength">
+            <span className="hw-card-stat" data-stat="attack" title={`Attack: ${st.attack} damage per hit`}>
+              <CardGlyph name="sword" className="hw-card-stat-icon" />
+              <b className="hw-card-stat-num">{st.attack}</b>
+            </span>
+            <span className="hw-card-stat" data-stat="health" title={`Health: ${st.health === st.maxHealth ? st.maxHealth : `${st.health} of ${st.maxHealth}`}`}>
+              <CardGlyph name="heart" className="hw-card-stat-icon" />
+              <b className="hw-card-stat-num">{st.health}</b>
+            </span>
+          </div>
+        )
+      })()}
       <div className="hw-card-desc">
         {def.tier[0].toUpperCase() + def.tier.slice(1)}
         {def.displayTier === 2 ? " Tier 2" : ""}
