@@ -617,3 +617,20 @@ html:not(.hw-layout-tools) .hw-studio-edit-link {
   color: #ffe6a8;
   text-shadow: 0 0 8px rgba(255, 190, 90, 0.45), 0 1px 2px #000;
 }
+
+/* ---------- No "error" cursor anywhere (Marc: "kun käytän pop up
+   ikkunaa se antaa kursorille error kuvakkeen") ----------
+   Locked buttons and cards used cursor: not-allowed (a red no-entry
+   sign), and the squad's own cards - drawn as data-disabled because they
+   can't be bought - showed it on every hover, in Headquarters and in the
+   hero pop-up alike. Locked things already read as locked (dimmed; an
+   unaffordable card shakes "no"), so they just keep the normal arrow. */
+/* ...and then Marc: "kursori pysyy kokoajan samana" - the cursor stays
+   the same all the time. One plain arrow over the whole game (hands,
+   help marks, grab hands and no-entry signs all retired); only text
+   fields keep the typing caret so editing still works. */
+html body .hw-root,
+html body .hw-root *:not(input):not(textarea):not([contenteditable="true"]),
+html body .hw-layout-tools-toggle {
+  cursor: default !important;
+}
