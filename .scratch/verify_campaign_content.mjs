@@ -592,7 +592,16 @@ async function uiChecks() {
   const check = (cond, msg, data) => cond || out.push(data === undefined ? msg : `${msg} ${JSON.stringify(data).slice(0, 300)}`)
   const browser = await chromium.launch()
   try {
-    const page = await (await browser.newContext({ viewport: { width: 1500, height: 1000 } })).newPage()
+    const ctx = await browser.newContext({ viewport: { width: 1500, height: 1000 } })
+    // Each seeded step gets a FRESH tab: after 4-5 navigations of one dev-server
+    // tab the next load hung on a blank page (ui5 flake), never a game error.
+    await ctx.addInitScript(() => {
+      if (location.search.includes("fresh=1")) {
+        localStorage.removeItem("heartwood-campaign-save-v1")
+        localStorage.removeItem("heartwood-play-mode")
+      }
+    })
+    let page = await ctx.newPage()
     const errs = []
     page.on("pageerror", (e) => errs.push(String(e)))
     const step = async (name, fn) => {
@@ -605,10 +614,14 @@ async function uiChecks() {
     }
     // Seeds a campaign save (built in-page from the real modules) and opens the campaign.
     page.on("crash", () => errs.push("page crashed"))
+    // A mounted campaign fight autosaves on every state change, so a previous
+    // step's fight could overwrite the new seed: ?fresh=1 (init script above)
+    // clears the campaign save BEFORE the app boots.
     const seedCampaign = async (setup) => {
-      // Leave the previous campaign (maybe mid-fight) before loading the next.
-      await page.evaluate(() => localStorage.removeItem("heartwood-campaign-save-v1")).catch(() => {})
-      await page.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
+      await page.close().catch(() => {})
+      page = await ctx.newPage()
+      page.on("pageerror", (e) => errs.push(String(e)))
+      await page.goto(`http://localhost:${PORT}/heartwood?fresh=1`, { waitUntil: "domcontentloaded" })
       await page.waitForTimeout(600)
       await page.evaluate(async (setupSrc) => {
         localStorage.setItem("heartwood-autobattler-intro-seen", "1")
@@ -626,7 +639,7 @@ async function uiChecks() {
         localStorage.setItem("heartwood-campaign-save-v1", JSON.stringify(CE.serializeCampaign(c)))
         localStorage.setItem("heartwood-play-mode", "campaign")
       }, setup.toString())
-      await page.reload({ waitUntil: "domcontentloaded" })
+      await page.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
     }
     const missionSetup = (kind, chapter) => `(CE, CC, CB) => {
       let c = CE.createCampaign({ seed: 21 })
