@@ -14,14 +14,18 @@
    sparingly for what you can act on; ember-red only for danger.
    Panels stay calm; the cards are the stars. */
 
-.hwm-root {
-  --hwm-gold: #cdb47a; /* lichen gold - the one accent */
-  --hwm-moss: #8fb07a;
-  --hwm-parch: #e8e2c8; /* pale lichen text */
-  --hwm-ink: rgba(232, 226, 200, 0.62);
-  --hwm-wood: rgba(15, 19, 12, 0.9); /* forest floor */
+/* shared by the Market and Headquarters screens (headquarters-screen.css
+   overrides the layout parts for Headquarters) */
+.hwm-root,
+.hwq-root {
+  /* all four come from the Studio-editable --hw-ui-* tokens (heartwood.css) */
+  --hwm-gold: var(--hw-ui-accent, #cdb47a); /* lichen gold - the one accent */
+  --hwm-moss: var(--hw-ui-leaf, #8fb07a);
+  --hwm-parch: var(--hw-ui-text, #e8e2c8); /* pale lichen text */
+  --hwm-ink: color-mix(in srgb, var(--hw-ui-text, #e8e2c8) 62%, transparent);
+  --hwm-wood: color-mix(in srgb, var(--hw-ui-panel, #0f130c) 90%, transparent); /* forest floor */
   --hwm-wood-2: rgba(24, 22, 15, 0.93); /* stump top */
-  --hwm-line: rgba(143, 176, 122, 0.22); /* moss hairline */
+  --hwm-line: color-mix(in srgb, var(--hw-ui-leaf, #8fb07a) 22%, transparent); /* moss hairline */
   --hwm-radius: 14px;
   box-sizing: border-box;
   height: 100vh;
@@ -109,7 +113,7 @@
 /* ---------- Three columns ---------- */
 .hwm-main {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 262px;
+  grid-template-columns: var(--hw-ui-left-width, 300px) minmax(0, 1fr) var(--hw-ui-right-width, 262px);
   gap: 14px;
   min-height: 0;
 }
@@ -170,8 +174,8 @@
   font-family: "Noto Sans Runic", "Segoe UI Historic", serif;
   font-size: 1.05em;
   line-height: 1;
-  color: #e7c27a;
-  text-shadow: 0 0 6px rgba(231, 170, 80, 0.75), 0 0 14px rgba(231, 150, 60, 0.35);
+  color: color-mix(in srgb, var(--hwm-gold) 85%, #fff);
+  text-shadow: 0 0 6px rgba(231, 170, 80, var(--hw-ui-rune-glow, 0.75)), 0 0 14px rgba(231, 150, 60, calc(var(--hw-ui-rune-glow, 0.75) * 0.47));
 }
 /* Finnish subtitle beside each English title - quiet, lowercase-feeling. */
 .hwm-panel-title small,
@@ -183,7 +187,7 @@
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(143, 176, 122, 0.75);
+  color: color-mix(in srgb, var(--hwm-moss) 75%, transparent);
 }
 .hwm-table-title small {
   margin-left: 4px;
@@ -806,4 +810,344 @@ html:has(.hwm-root) .hw-layout-tools-toggle {
 .hwm-inspector .hw-gear-row-wrap {
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* Card art heights on the table go through the shared card anatomy
+   (heartwood-cards.css) so the market only sets the size it wants. */
+.hwm-offer-slot .hw-card { --card-art-h: 96px; }
+.hwm-inspector .hw-card { --card-art-h: 118px; }
+
+/* ---------- HQ declutter (Marc: "poistaa turhaa melua ja tietoa että
+   siitä tulee selkeä") - each item asked "does the player need this
+   right now, here?" ---------- */
+/* Run map: the seed code and the playstyle / power read-outs are
+   analysis, not decisions - the road ahead and the act track stay. */
+.hwm-map .hw-seed-rail,
+.hwm-map .hw-playstyle-compact,
+.hwm-map .hw-power-compact {
+  display: none;
+}
+/* Empty lists say nothing - hide them until there is something to show. */
+.hwm-rail-section[data-rail="relics"]:has(.hw-rail-empty),
+.hwm-rail-section[data-rail="items"]:has(.hw-rail-empty),
+.hwm-rail-section[data-rail="buyback"]:not(:has(*)) {
+  display: none;
+}
+.hwm-rail-section[data-rail="relics"]:has(.hw-rail-empty) + .hwm-rail-section,
+.hwm-rail-section:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+/* The panel title already names the Ledger. */
+.hwm-rail-section[data-rail="ledger"] > * > .hw-rail-label:first-child,
+.hwm-rail-section[data-rail="ledger"] > .hw-rail-label:first-child {
+  display: none;
+}
+/* Cost chips inside the action plaques read as "Reroll ✦ 50". */
+.hwm-actions .hw-cost-inline,
+.hwm-table--gear .hw-cost-inline {
+  margin-left: 6px;
+  color: color-mix(in srgb, var(--hwm-gold) 85%, #fff);
+}
+.hwm-actions .hw-cost-inline .hw-intent-glyph,
+.hwm-table--gear .hw-cost-inline .hw-intent-glyph {
+  width: 12px;
+  height: 12px;
+}
+/* The Studio switch: bottom-right of the squad strip, out of the way. */
+html:has(.hwm-root) .hw-layout-tools-toggle {
+  top: auto;
+  bottom: 18px;
+  right: 22px;
+  left: auto;
+}
+
+/* ---------- The player's HQ (Marc: "pelaajan HQ ... tuntuvan siltä
+   kuin se olisi oikea HQ ... siitä pelaaja pilotoi peliä") - a place,
+   not a shop: your lodge where the merchant comes to call, and the
+   cockpit you steer the run from. ---------- */
+.hwm-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.hwm-title small {
+  font-family: var(--hw-font-body, system-ui, sans-serif);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--hwm-moss) 80%, transparent);
+}
+/* status board: green when the squad is ready to set out, amber when
+   a slot is empty or someone is hurt */
+.hwm-top-chip[data-state="ready"] {
+  --chip: #8fb07a;
+}
+.hwm-top-chip[data-state="warn"] {
+  --chip: #e0a85a;
+}
+.hwm-top-chip b {
+  font-weight: 600;
+}
+
+/* Launch: the Continue plaque says where you are heading next. */
+.hwm-launch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.hwm-launch-next {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: rgba(232, 226, 200, 0.75);
+  text-align: center;
+}
+
+/* Hearth glow: warm firelight rising from below, as if the squad sat
+   round the lodge fire. Breathes very slowly; still under reduced motion. */
+.hwm-root {
+  position: relative;
+  isolation: isolate;
+}
+.hwm-hearth {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  bottom: -40px;
+  height: 260px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 50% 60% at 50% 100%, rgba(232, 140, 60, var(--hw-ui-hearth-glow, 0.16)), rgba(200, 100, 40, calc(var(--hw-ui-hearth-glow, 0.16) * 0.4)) 45%, transparent 70%);
+  animation: hwm-hearth 5.5s ease-in-out infinite alternate;
+}
+@keyframes hwm-hearth {
+  0% { opacity: 0.75; transform: scaleX(0.97); }
+  40% { opacity: 1; }
+  70% { opacity: 0.85; transform: scaleX(1.02); }
+  100% { opacity: 0.95; transform: scaleX(1); }
+}
+.hw-reduce-motion .hwm-hearth { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hwm-hearth { animation: none; }
+}
+/* The panel title already names the Ledger (its own label sits three
+   levels down inside the rail section). */
+.hwm-rail-section[data-rail="ledger"] .hw-rail-section--ledger > .hw-rail-label:first-child {
+  display: none;
+}
+/* Commander panel, compact: badges on one line, the action plaques in
+   two columns, the gear row on a single line. */
+.hwm-panel .hw-commander-cluster {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.hwm-panel .hw-commander-cluster > .hw-badge {
+  justify-self: start;
+}
+.hwm-panel .hw-commander-cluster > .hw-strip-btn {
+  font-size: 12.5px;
+  padding: 7px 8px;
+  white-space: nowrap;
+}
+.hwm-panel .hw-commander-cluster > .hw-gear-row-wrap,
+.hwm-panel .hw-commander-cluster > .hw-badge--active,
+.hwm-panel .hw-commander-cluster > [data-commander-health] {
+  grid-column: 1 / -1;
+}
+.hwm-panel .hw-commander-cluster > .hw-gear-row-wrap {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+}
+.hwm-panel .hw-commander-cluster > .hw-gear-row-wrap > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.hwm-panel .hw-commander-cluster > .hw-gear-row-wrap .hw-gear-open {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+}
+.hwm-side {
+  gap: 8px;
+}
+.hwm-panel {
+  padding: 10px 12px;
+  gap: 8px;
+}
+/* Commander panel, fixed: a wrapping row instead of a strict 2-column
+   grid - plaques take the width their label needs, so nothing spills
+   past the panel edge. */
+.hwm-panel .hw-commander-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.hwm-panel .hw-commander-cluster > .hw-badge {
+  white-space: nowrap;
+}
+.hwm-panel .hw-commander-cluster > .hw-strip-btn {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+.hwm-panel .hw-commander-cluster > .hw-gear-row-wrap,
+.hwm-panel .hw-commander-cluster > .hw-badge--active,
+.hwm-panel .hw-commander-cluster > [data-commander-health] {
+  flex: 1 1 100%;
+}
+/* Gear row on one line: slots a little smaller here. */
+.hwm-panel .hw-gear-row {
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+.hwm-panel .hw-gear-row .hw-gear-slot {
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+}
+.hwm-panel--rails {
+  gap: 8px;
+}
+
+/* ---------- Market and Päämaja as two places (graphics round 5) ----------
+   The market is somewhere you ARRIVE to trade; Päämaja is your own camp
+   that travels with you and pitches up beside it. */
+
+/* The Päämaja button in the market's top bar: your camp is one click away. */
+.hwm-hq-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--hwm-moss) 55%, transparent);
+  background: linear-gradient(180deg, rgba(40, 52, 30, 0.95), rgba(20, 27, 14, 0.95));
+  color: var(--hwm-parch, #e8e2c8);
+  font-family: var(--hw-font-display);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(232, 226, 200, 0.08);
+  transition: border-color 0.15s ease, translate 0.15s ease, box-shadow 0.15s ease;
+}
+.hwm-hq-btn:hover {
+  border-color: var(--hwm-gold, #cdb47a);
+  translate: 0 -1px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.55), 0 0 12px color-mix(in srgb, var(--hwm-moss) 30%, transparent);
+}
+.hwm-hq-btn-rune,
+.hwq-title-rune {
+  font-family: "Noto Sans Runic", "Segoe UI Historic", serif;
+  color: color-mix(in srgb, var(--hwm-gold) 85%, #fff);
+  text-shadow: 0 0 6px rgba(231, 170, 80, var(--hw-ui-rune-glow, 0.75));
+}
+.hwm-top {
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+}
+
+/* The road on: where Continue takes you, map one click away. */
+.hwm-way {
+  flex: 0 0 auto;
+}
+.hwm-way-map {
+  align-self: flex-start;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: color-mix(in srgb, var(--hwm-moss) 90%, transparent);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.hwm-side--right {
+  justify-content: flex-end;
+}
+
+/* Arrival: Päämaja rolls up to the market - one calm banner, then the
+   merchant deals out the wares. */
+.hwm-arrival {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  z-index: 60;
+  translate: -50% -50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 64px 14px;
+  pointer-events: none;
+  border-top: 1px solid rgba(205, 180, 122, 0.45);
+  border-bottom: 1px solid rgba(205, 180, 122, 0.45);
+  background: linear-gradient(90deg, transparent, rgba(12, 16, 9, 0.92) 20%, rgba(12, 16, 9, 0.92) 80%, transparent);
+  animation: hwm-arrive var(--hw-ui-arrival-speed, 1900ms) cubic-bezier(.2, .8, .3, 1) both;
+}
+.hwm-arrival-rune {
+  font-family: "Noto Sans Runic", "Segoe UI Historic", serif;
+  font-size: 26px;
+  color: color-mix(in srgb, var(--hwm-gold) 85%, #fff);
+  text-shadow: 0 0 10px rgba(231, 170, 80, 0.8);
+}
+.hwm-arrival-text {
+  font-family: var(--hw-font-display);
+  font-size: 30px;
+  letter-spacing: 0.06em;
+  color: #efe8cf;
+  white-space: nowrap;
+  text-shadow: 0 2px 8px #000;
+}
+.hwm-arrival-sub {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--hwm-moss) 85%, transparent);
+}
+@keyframes hwm-arrive {
+  0% { opacity: 0; translate: -46% -50%; }
+  18% { opacity: 1; translate: -50% -50%; }
+  72% { opacity: 1; translate: -50% -50%; }
+  100% { opacity: 0; translate: -54% -50%; visibility: hidden; }
+}
+/* the wares are dealt just as the banner clears */
+.hwm-offer-slot,
+.hwm-gear-slot {
+  animation-delay: calc(var(--hw-ui-arrival-speed, 1900ms) * 0.58 + var(--deal-i, 0) * var(--hw-card-deal-stagger, 80ms));
+}
+
+.hw-reduce-motion .hwm-arrival,
+.hw-reduce-motion .hwq-root {
+  animation: none;
+}
+.hw-reduce-motion .hwm-arrival {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwm-arrival { display: none; }
+  .hwq-root { animation: none; }
+}
+/* The merchant's corner: who you have arrived to trade with. */
+.hwm-merchant > *:not(.hwm-panel-title) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(232, 226, 200, 0.82);
+}
+.hwm-side--right {
+  justify-content: flex-start;
+}
+.hwm-side-spacer {
+  flex: 1 1 auto;
+}
+/* A hero you already own has no price - its cost gem is noise there. */
+.hwq-cards .hw-card .hw-card-cost,
+.hwm-inspector .hw-card .hw-card-cost {
+  display: none !important;
 }

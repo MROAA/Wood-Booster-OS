@@ -454,10 +454,12 @@
 
 /* ---------- Graphics round 2: calmer screens around the battle ---------- */
 /* Studio layout toolbars stay hidden until the corner "✎ Layout"
-   switch (LayoutToolsToggle.jsx) turns them on. */
+   switch (LayoutToolsToggle.jsx) turns them on - and the same for every
+   "Edit in Studio" link. */
 html:not(.hw-layout-tools) .hw-free-layout-toolbar,
-html:not(.hw-layout-tools) .hw-shop-layout-toolbar {
-  display: none;
+html:not(.hw-layout-tools) .hw-shop-layout-toolbar,
+html:not(.hw-layout-tools) .hw-studio-edit-link {
+  display: none !important;
 }
 .hw-layout-tools-toggle {
   position: fixed;

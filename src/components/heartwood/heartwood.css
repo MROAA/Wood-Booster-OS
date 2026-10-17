@@ -3,6 +3,25 @@
    accents plus one new HP red in the same desaturated family. */
 
 .hw-root {
+  /* Card feel (heartwood-cards.css + SquadDraft flyToSquad) - tunable
+     from the Studio's Colors & Theme panel, "Card feel" section. */
+  --hw-card-deal-speed: 460ms;
+  --hw-card-deal-stagger: 80ms;
+  --hw-card-deal-distance: 140px;
+  --hw-card-sheen: 0.2;
+  --hw-card-lift: 22px;
+  --hw-card-flight-speed: 620ms;
+  /* Market & Headquarters look (heartwood-market-table.css) - tunable
+     from the Studio's Colors & Theme panel, "Market & Headquarters look". */
+  --hw-ui-accent: #cdb47a;
+  --hw-ui-leaf: #8fb07a;
+  --hw-ui-text: #e8e2c8;
+  --hw-ui-panel: #0f130c;
+  --hw-ui-rune-glow: 0.75;
+  --hw-ui-hearth-glow: 0.16;
+  --hw-ui-left-width: 300px;
+  --hw-ui-right-width: 262px;
+  --hw-ui-arrival-speed: 1900ms;
   --hw-bg: var(--wood-bg);
   --hw-panel: var(--wood-panel);
   --hw-card: var(--wood-card);
