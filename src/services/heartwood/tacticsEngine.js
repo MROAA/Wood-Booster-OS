@@ -456,7 +456,7 @@ export const ENEMY_FORMATIONS = {
 // (averaged if it swings more than once) - the same numbers the auto-
 // battler already uses, not a fresh guess. A pure-support kit with no
 // attack step (rare) falls back to a token 3.
-function attackFromMovePattern(movePattern) {
+export function attackFromMovePattern(movePattern) {
   const steps = (movePattern || []).filter((m) => m.type === "attack")
   if (!steps.length) return 3
   return Math.round(steps.reduce((sum, m) => sum + (m.amount || 0), 0) / steps.length)

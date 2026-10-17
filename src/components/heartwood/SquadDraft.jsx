@@ -1,4 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react"
+import "./heartwood-market-table.css"
+import MarketScreen from "./MarketScreen"
+import HeadquartersScreen from "./HeadquartersScreen"
 import { setCountMap } from "../../data/heartwood/buildSets"
 import { UNITS, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
@@ -152,6 +155,11 @@ export default function SquadDraft({
   // built here in renderOwnedRail() since every piece of data it needs
   // is already in scope.
   mapSlot,
+  // Headquarters between fights: HeartwoodBattle renders SquadDraft with
+  // `hqOnly` (and `onCloseHq`) from any between-fight screen - just the
+  // camp, with every squad action, no market.
+  hqOnly = false,
+  onCloseHq,
 }) {
   const offers = runState.shopOffers.map((id) => UNITS[id])
   // Item shop rotation (runEngine.js's rollItemShop/itemOffers) -
@@ -332,6 +340,45 @@ export default function SquadDraft({
   // shows at a time, selected here. Defaults to "market" since that's
   // the panel with actual purchase decisions to make on arrival.
   const [activeTab, setActiveTab] = useState("market")
+  // The Market table (graphics round 4): the redesigned Market - offers,
+  // gear and the whole squad on one screen, upgrades in one side panel.
+  // "classic" keeps the old tabbed layout (and its Studio drag-editing)
+  // one click away. Remembered per browser.
+  // Automated verify suites (navigator.webdriver) predate the table and
+  // drive the classic DOM, so they get "classic" unless they ask for
+  // the table explicitly - players always get the table by default.
+  const [marketView, setMarketView] = useState(() => {
+    try {
+      const saved = localStorage.getItem("hw-market-view")
+      if (saved === "classic" || saved === "table") return saved
+    } catch {
+      /* storage blocked - fall through to the default */
+    }
+    return typeof navigator !== "undefined" && navigator.webdriver ? "classic" : "table"
+  })
+  function chooseMarketView(view) {
+    setMarketView(view)
+    try {
+      localStorage.setItem("hw-market-view", view)
+    } catch {
+      /* storage blocked - the choice still holds for this visit */
+    }
+  }
+  // Which squad hero's full card + actions is open on the Market table.
+  const [inspectKey, setInspectKey] = useState(null)
+  // The player's own camp - Päämaja - travels with the squad and pitches
+  // up beside each market. Opened from the market's "Päämaja" button.
+  // Headquarters is the DEFAULT stance at a market stop (Marc: "toimii
+  // default stancena"); the market is somewhere you go from there.
+  const [hqOpen, setHqOpen] = useState(true)
+  // Counts trips into the market, so each visit replays the arrival
+  // banner and the merchant dealing out the wares.
+  const [marketVisit, setMarketVisit] = useState(0)
+  function visitMarket() {
+    setInspectKey(null)
+    setMarketVisit((n) => n + 1)
+    setHqOpen(false)
+  }
   // Free Layout foundation, extended into the Market tab's own content
   // (Marc: "haluan keskittyä nyt market osion muokattavuuden
   // parantamiseen... minun pitää muokkaa siitä itselleni mukavan
@@ -499,7 +546,9 @@ export default function SquadDraft({
     const recruitedEntry = newEntries[0]
     if (recruitedEntry) {
       setJustPurchasedKey(recruitedEntry.key)
-      const timer = setTimeout(() => setJustPurchasedKey((cur) => (cur === recruitedEntry.key ? null : cur)), 550)
+      // 1300ms: long enough for the Market table's card flight + landing
+      // glow (hwm-chip[data-landed]); the classic purchase flash runs once.
+      const timer = setTimeout(() => setJustPurchasedKey((cur) => (cur === recruitedEntry.key ? null : cur)), 1300)
       return () => clearTimeout(timer)
     }
   }, [runState.bench])
@@ -548,6 +597,45 @@ export default function SquadDraft({
   // of "every button individually" - slot-based positioning for the 3
   // recruit-offer cards) so each of the 3 fixed slots can call this
   // independently instead of one shared .map over the whole array.
+  // Card feel (Market): a bought hero's card flies from the table to
+  // the Headquarters button, like a card going to your hand. Purely a
+  // visual clone - the purchase itself happens immediately as before.
+  function flyToSquad(cardEl) {
+    // The market is trading only now: the bought hero heads home to
+    // your camp - the Headquarters button.
+    const slot = document.querySelector(".hwm-hq-btn")
+    if (!cardEl || !slot || document.documentElement.classList.contains("hw-reduce-motion")) return
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return
+    const from = cardEl.getBoundingClientRect()
+    const to = slot.getBoundingClientRect()
+    const ghost = cardEl.cloneNode(true)
+    Object.assign(ghost.style, {
+      position: "fixed",
+      left: `${from.left}px`,
+      top: `${from.top}px`,
+      width: `${from.width}px`,
+      height: `${from.height}px`,
+      margin: "0",
+      zIndex: "80",
+      pointerEvents: "none",
+      transform: "none",
+    })
+    ghost.classList.add("hwm-card-flight")
+    document.body.appendChild(ghost)
+    const dx = to.left + to.width / 2 - (from.left + from.width / 2)
+    const dy = to.top + to.height / 2 - (from.top + from.height / 2)
+    ghost
+      .animate(
+        [
+          { translate: "0 0", scale: 1, rotate: "0deg", opacity: 1 },
+          { translate: `${dx * 0.35}px ${dy * 0.2 - 40}px`, scale: 1.06, rotate: "-4deg", opacity: 1, offset: 0.3 },
+          { translate: `${dx}px ${dy}px`, scale: 0.28, rotate: "6deg", opacity: 0.2 },
+        ],
+        { duration: parseFloat(getComputedStyle(cardEl).getPropertyValue("--hw-card-flight-speed")) || 620, easing: "cubic-bezier(.45,.05,.4,1)" },
+      )
+      .finished.finally(() => ghost.remove())
+  }
+
   function renderRecruitCard(def) {
     const owned = runState.bench.filter((e) => e.defId === def.id).length
     const willFuse = owned >= 2
@@ -573,7 +661,10 @@ export default function SquadDraft({
         <UnitCard
           def={def}
           disabled={runState.essence < effectiveRecruitCost(runState, def) || reserveFull}
-          onClick={() => onRecruit(def.id)}
+          onClick={(e) => {
+            flyToSquad(e?.currentTarget)
+            onRecruit(def.id)
+          }}
           tribeMatch={tribeMatch}
           frozen={!!runState.frozen}
           costOverride={effectiveRecruitCost(runState, def)}
@@ -605,7 +696,15 @@ export default function SquadDraft({
   // reserve lists render identical cards - the only difference between
   // the two groups is which section they sit in and the quiet dim on
   // the reserve grid, nothing about the card itself.
-  function renderBenchCard(entry) {
+  // `tray` (Headquarters): the same actions gathered into one calm
+  // workbench under the card - Upgrade is the one gold plaque, Reforge /
+  // Sell sit quietly beside it, fusion shows as three pips. Same buttons,
+  // classes and handlers as the classic stack below.
+  // `onJoin` (Headquarters reserve, while a place in the fight is empty):
+  // a moss "Join the fight" plaque heads the workbench.
+  // `joinMode` "swap": the table is full - the plaque turns quiet and
+  // starts a swap (Headquarters then asks whose place to take).
+  function renderBenchCard(entry, { tray = false, onJoin = null, joinMode = "join", joinActive = false } = {}) {
     const def = UNITS[entry.defId]
     const canReforge = def?.displayTier !== 2
     // Upgrade (upgrades.js): branch picks recorded on entry.upgrades;
@@ -630,21 +729,125 @@ export default function SquadDraft({
       def && runState.deployed.includes(entry.key)
         ? findDualClassFor(entry.defId, deployedDefIds, UNITS)
         : null
+    const cardFx =
+      justFusedKey === entry.key
+        ? "hw-card--fused"
+        : justReforgedKey === entry.key
+          ? "hw-card--reforged"
+          : justPurchasedKey === entry.key
+            ? "hw-card--purchased"
+            : undefined
+    const card = (
+      <div className={cardFx}>
+        <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} dualClass={dualClass} entry={entry} collarClassId={collarClassFor(runState, entry.key)} />
+      </div>
+    )
+    const cost = (n) => (
+      <span className="hw-cost-inline">
+        <CardGlyph name="spark" className="hw-intent-glyph" />
+        {n}
+      </span>
+    )
+    if (tray) {
+      const hurt = onMend && (unitHpPct(entry) < 1 || entry.wounded)
+      return (
+        <div key={entry.key} className="hwq-hero">
+          {card}
+          <div className="hwq-tray">
+            {onJoin && (
+              <button
+                type="button"
+                className="hw-move-btn hwq-act hwq-act--main hwq-join"
+                data-mode={joinMode}
+                data-active={joinActive || undefined}
+                aria-pressed={joinMode === "swap" ? joinActive : undefined}
+                onClick={onJoin}
+                title={joinMode === "swap" ? `Swap ${def?.name} with one of the four who fight` : `Send ${def?.name} into the fight`}
+              >
+                {joinMode === "swap" ? (joinActive ? "Choose a place above" : "Swap into the fight") : "Join the fight"} <span aria-hidden="true">{joinMode === "swap" ? "⇅" : "↑"}</span>
+              </button>
+            )}
+            <div className="hw-gear-row-wrap hwq-tray-gear">
+              <GearRow
+                items={runState.items}
+                ownerKey={entry.key}
+                slots={maxItemSlots}
+                selectedItemDef={selectedItemDef}
+                justEquippedSlot={justEquippedSlot}
+                onSlotClick={(slotIndex, occupied) => handleSlotClick(entry.key, slotIndex, occupied)}
+                onMove={onMoveGear ? (from, to) => onMoveGear(entry.key, from, to) : undefined}
+              />
+              {def?.displayTier !== 2 && (
+                <span
+                  className="hwq-fuse"
+                  data-count={copiesOwned}
+                  title={`Fusion ${copiesOwned}/3 - 3 owned copies of the same hero fuse automatically into a stronger Tier 2 version`}
+                  aria-label={`Fusion ${copiesOwned} of 3`}
+                >
+                  {[0, 1, 2].map((i) => (
+                    <i key={i} data-on={i < copiesOwned || undefined} />
+                  ))}
+                </span>
+              )}
+            </div>
+            <div className="hwq-tray-main">
+              {hurt ? (
+                <button
+                  className="hw-move-btn hw-mend-btn hwq-act hwq-act--main"
+                  disabled={runState.essence < mendCost(runState)}
+                  onClick={() => onMend(entry.key)}
+                  title={`Heal ${def?.name} to full HP${entry.wounded ? " and clear Wounded" : ""} (${mendCost(runState)} Essence)`}
+                >
+                  Mend {cost(mendCost(runState))}
+                </button>
+              ) : (
+                def?.displayTier !== 2 && (
+                  <button
+                    className="hw-move-btn hw-upgrade-btn hwq-act hwq-act--main"
+                    disabled={!canUpgrade || runState.essence < (upCost ?? Infinity)}
+                    onClick={() => setUpgradingKey(entry.key)}
+                    title={canUpgrade ? `Pick an upgrade branch for ${def?.name} (${upCost} Essence)` : `${def?.name} is fully upgraded`}
+                  >
+                    {canUpgrade ? <>Upgrade {cost(upCost)}</> : "Maxed"}
+                  </button>
+                )
+              )}
+              <button className="hw-move-btn hw-gear-open hwq-gear-btn hwq-act" data-gear-open={entry.key} onClick={() => setGearOwner(entry.key)} title={`Open ${def?.name}'s gear screen`}>
+                Gear
+              </button>
+            </div>
+            <div className="hwq-tray-minor">
+              {hurt && def?.displayTier !== 2 && (
+                <button
+                  className="hw-move-btn hw-upgrade-btn hwq-act"
+                  disabled={!canUpgrade || runState.essence < (upCost ?? Infinity)}
+                  onClick={() => setUpgradingKey(entry.key)}
+                  title={canUpgrade ? `Pick an upgrade branch for ${def?.name} (${upCost} Essence)` : `${def?.name} is fully upgraded`}
+                >
+                  {canUpgrade ? "Upgrade" : "Maxed"}
+                </button>
+              )}
+              {canReforge && (
+                <button
+                  className="hw-move-btn hwq-act"
+                  disabled={runState.essence < REFORGE_COST}
+                  onClick={() => handleReforge(entry.key)}
+                  title={`Swap ${def?.name} for a different random hero of the same tier (${REFORGE_COST} Essence)`}
+                >
+                  Reforge {!hurt && cost(REFORGE_COST)}
+                </button>
+              )}
+              <button className="hw-move-btn hw-sell-btn hwq-act" onClick={() => handleSell(entry.key)} title={`Sell ${def?.name} back for ${sellRefund} Essence`}>
+                Sell <span className="hwq-gain">+{sellRefund}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
     return (
       <div key={entry.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <div
-          className={
-            justFusedKey === entry.key
-              ? "hw-card--fused"
-              : justReforgedKey === entry.key
-                ? "hw-card--reforged"
-                : justPurchasedKey === entry.key
-                  ? "hw-card--purchased"
-                  : undefined
-          }
-        >
-          <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} dualClass={dualClass} entry={entry} collarClassId={collarClassFor(runState, entry.key)} />
-        </div>
+        {card}
         {/* Gear sprint: the hero's gear ROW (adjacency links glow between
             slots; drag to reorder) + its full gear screen. */}
         <div className="hw-gear-row-wrap">
@@ -962,7 +1165,7 @@ export default function SquadDraft({
 
   const DEFAULT_CENTER_ORDER = ["greeting", "tutorialHint", "evolutionNotice", "tabs", "equipPrompt", "marketEventBanner"]
 
-  function renderCenterSections() {
+  function renderCenterSections(onlyKeys) {
     const centerSections = {
       // The traveling merchant (merchant.js / MerchantGreeting) - a
       // named face + one hand-authored line that shifts with the Act,
@@ -1166,12 +1369,13 @@ export default function SquadDraft({
         ),
     }
 
-    const order = SHOP_LAYOUT.market?.centerOrder || DEFAULT_CENTER_ORDER
+    // onlyKeys: the new Market table asks for single sections by name.
+    const order = onlyKeys || SHOP_LAYOUT.market?.centerOrder || DEFAULT_CENTER_ORDER
 
     return order.map((key) => centerSections[key]?.() ?? null)
   }
 
-  function renderOwnedRail() {
+  function renderOwnedRail(onlyKeys) {
     const relics = runState.relics || []
     const items = runState.items || []
     const buyback = runState.buyback
@@ -1400,45 +1604,480 @@ export default function SquadDraft({
     // mode - free positioning only changes HOW a section is wrapped
     // (absolute left/top vs plain flow), never the order it's visited
     // in.
+    // onlyKeys: the new Market table places these sections itself (no
+    // free-layout positioning there).
+    if (onlyKeys) return <>{onlyKeys.map((key) => <div key={key} className="hwm-rail-section" data-rail={key}>{sections[key]?.()}</div>)}</>
     return <>{order.map((key) => renderPositionedSection(RAILS.left, key, sections[key]?.(), leftFreeActive))}</>
   }
 
   const upgradingEntry = upgradingKey != null ? runState.bench.find((e) => e.key === upgradingKey) : null
 
+
+
+
+  function piece_overlays() {
+    return (
+      <>
+        {upgradingEntry && (
+          <UpgradeChoice
+            unit={upgradingEntry}
+            essence={runState.essence}
+            onPick={(branchId) => {
+              onUpgradeUnit(upgradingEntry.key, branchId)
+              setUpgradingKey(null)
+            }}
+            onCancel={() => setUpgradingKey(null)}
+          />
+        )}
+        {gearOwner != null && (gearOwner === "commander" || runState.bench.some((e) => e.key === gearOwner)) && (
+          <GearScreen
+            runState={runState}
+            ownerKey={gearOwner}
+            onClose={() => setGearOwner(null)}
+            onEquip={onEquipItem}
+            onUnequip={onUnequipItem}
+            onMove={(owner, from, to) => onMoveGear?.(owner, from, to)}
+            onSell={onSellItem}
+            onForge={onRunAction ? (recipeId, owner) => onRunAction((rs) => forgeItem(rs, recipeId, owner)) : undefined}
+            onChooseBuild={onRunAction ? (owner, pathId) => onRunAction((rs) => chooseHeroBuild(rs, owner, pathId)) : undefined}
+            onEquipNeutral={onRunAction ? (owner, id) => onRunAction((rs) => equipNeutral(rs, owner, id)) : undefined}
+            onUnequipNeutral={onRunAction ? (owner) => onRunAction((rs) => unequipNeutral(rs, owner)) : undefined}
+          />
+        )}
+        {forged && ITEMS[forged.result] && (
+          <div className="hw-gear-forged" data-gear-forged={forged.recipeId} key={forged.key}>
+            <span className="hw-gear-forged-spark">⚗</span> Recipe! <b>{ITEMS[forged.result].name}</b> forged
+            <span className="hw-gear-forged-sub"> - {ITEMS[forged.result].description}</span>
+          </div>
+        )}
+      </>
+    )
+  }
+  function piece_retrain() {
+    return (
+        <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+          {otherCommanders.map((c) => (
+            <button
+              key={c.id}
+              className="hw-move-btn"
+              style={{ fontSize: 11, padding: "4px 8px" }}
+              disabled={runState.essence < RETRAIN_COST}
+              onClick={() => {
+                onRetrain(c.id)
+                setShowRetrain(false)
+              }}
+              title={c.description}
+            >
+              <CardGlyph name={c.art} className="hw-intent-glyph" /> {c.name} ({RETRAIN_COST} Essence)
+            </button>
+          ))}
+        </div>
+    )
+  }
+  function piece_gearShopbar() {
+    return (
+            <div className="hw-gear-shopbar" data-gear-purse={gearPurseLeft(runState)}>
+              <span title="How much Essence the merchant will take for gear (items + item rerolls) this visit. Grows with the Act and your Market Level.">
+                Gear purse: <b>{gearPurseLeft(runState)}</b> / {gearPurse(runState)} left this visit
+              </span>
+              {onRerollItems && (
+                <button
+                  className="hw-move-btn"
+                  data-item-reroll={itemRerollCost(runState)}
+                  disabled={runState.essence < itemRerollCost(runState) || gearPurseLeft(runState) < itemRerollCost(runState)}
+                  onClick={onRerollItems}
+                  title="New item offers (locked ones stay). Costs more each time this visit."
+                >
+                  Reroll items <span className="hw-cost-inline"><CardGlyph name="spark" className="hw-intent-glyph" />{itemRerollCost(runState)}</span>
+                </button>
+              )}
+            </div>
+    )
+  }
+  function renderItemOffer(i) {
+    return (
+                  itemOffers[i] ? (
+                    <ItemCard
+                      def={itemOffers[i]}
+                      disabled={runState.essence < itemOffers[i].cost || gearPurseLeft(runState) < itemOffers[i].cost}
+                      onClick={() => onBuyItem(itemOffers[i].id)}
+                      locked={!!(runState.itemLocks || [])[i]}
+                      onToggleLock={onToggleItemLock ? () => onToggleItemLock(i) : undefined}
+                      setCounts={setCountMap(runState)}
+                      wantedBy={wanted.get(itemOffers[i].id) || null}
+                    />
+                  ) : null
+    )
+  }
+  function piece_marketLevelWidget() {
+    return (
+            /* Market Level (Battlegrounds/Guildrun-style tavern tier) -
+               raises the shop's rarity ceiling (runEngine.js's
+               rollShop/MARKET_LEVEL_UNLOCKS). Marc, direct: "market lvl
+               on keskeinen osa pelin kehitystä ja siksi saa tärkeän
+               asemapaikan" (Market Level is central to the run's
+               progression and deserves an important position) - was one
+               .hw-badge indistinguishable from every other badge in the
+               row. Now its own bordered widget with real tier pips
+               (●●○, not just "1/3" as text) and the Level Up action
+               fused into the SAME box, so "this pip row and this button
+               are one system" is visible at a glance instead of reading
+               as two separate, coincidentally-adjacent controls. Kept
+               fused here too (this round only splits DIFFERENT widgets
+               apart from each other, not a widget's own internal pip+
+               button pairing - see this file's plan notes). */
+            <div className="hw-market-level-widget" title={`Unlocks: ${(MARKET_LEVEL_UNLOCKS[marketLevel] || []).join(", ")} tier heroes in the shop`}>
+              <span className="hw-market-level-label">Market</span>
+              <span className="hw-market-level-pips">
+                {Array.from({ length: MARKET_LEVEL_MAX }, (_, i) => (
+                  <span key={i} className="hw-market-level-pip" data-filled={i < marketLevel} />
+                ))}
+              </span>
+              {marketCost === null ? (
+                <span className="hw-badge" style={{ fontSize: 11 }}>MAX</span>
+              ) : (
+                <button
+                  className="hw-move-btn hw-strip-btn"
+                  disabled={runState.essence < marketCost}
+                  onClick={onLevelUpMarket}
+                  title={`Unlock ${MARKET_LEVEL_UNLOCKS[marketLevel + 1]?.slice(-1)[0]}-tier heroes in future shop rolls`}
+                >
+                  Level Up
+                  <span className="hw-cost-inline">
+                    <CardGlyph name="spark" className="hw-intent-glyph" />
+                    {marketCost}
+                  </span>
+                </button>
+              )}
+            </div>
+    )
+  }
+  function piece_marketTierWidget() {
+    return (
+            /* Market TIER (feat/hearthwood-market-tiers) - the SECOND market
+               axis, a sibling of the Level widget above. Level raises the
+               rarity ceiling; Tier unlocks new KINDS of unit (a specialist
+               sub-pool). Advancing a Tier is a pure Essence sink that buys
+               options, not stats. */
+            <div
+              className="hw-market-tier-widget"
+              title={`Market Tier ${effTier}: ${MARKET_TIERS[effTier]?.name}. ${
+                tierPreview ? `Next: ${tierPreview.name} (${tierPreview.cost}) - ${tierPreview.unlocks.join("; ")}` : "Max Tier."
+              }`}
+            >
+              <span className="hw-market-tier-label">Tier</span>
+              <span className="hw-market-tier-pips">
+                {Array.from({ length: MARKET_TIER_MAX }, (_, i) => (
+                  <span key={i} className="hw-market-tier-pip" data-filled={i < effTier} data-charter={(i >= marketTier && i < effTier) || undefined} />
+                ))}
+              </span>
+              <span className="hw-market-tier-name">{MARKET_TIERS[effTier]?.name}</span>
+              {tierCost === null ? (
+                <span className="hw-badge" style={{ fontSize: 11 }}>MAX</span>
+              ) : (
+                <button
+                  className="hw-move-btn hw-strip-btn"
+                  disabled={runState.essence < tierCost}
+                  onClick={onAdvanceMarketTier}
+                  title={`Advance to ${MARKET_TIERS[marketTier + 1]?.name} - unlocks ${MARKET_TIERS[marketTier + 1]?.unlocks.join("; ")}`}
+                >
+                  Advance
+                  <span className="hw-cost-inline">
+                    <CardGlyph name="spark" className="hw-intent-glyph" />
+                    {tierCost}
+                  </span>
+                </button>
+              )}
+            </div>
+    )
+  }
+  function piece_commanderCluster() {
+    return (
+            /* Commander cluster - deliberately separated from the Market
+               widget above (own container + a visual divider) so Rank Up
+               reads as "about your commander", never "the other Level
+               Up button". Kept fused internally, same reasoning as the
+               Market Level widget above. */
+            <div className="hw-commander-cluster">
+              <span className="hw-badge" title={commander?.description}>
+                <CardGlyph name={commander?.art} className="hw-intent-glyph" />
+                {commander?.name} · Rank {commanderRank}
+              </span>
+              <span
+                className="hw-badge hw-level-badge"
+                data-commander-level
+                title={`Level ${levelForXp(runState.commanderXp)}${(runState.commanderPerks || []).length ? " - perks: " + runState.commanderPerks.map((id) => PERKS[id]?.name).join(", ") : ""}`}
+              >
+                Lv{levelForXp(runState.commanderXp)}
+                {(runState.commanderPerks || []).map((id) => PERKS[id]?.icon).join("")}
+              </span>
+              {(commanderHpPct(runState) < 1 || runState.commanderWounded) && (
+                <span className="hw-badge" data-commander-health style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}>
+                  {Math.round(commanderHpPct(runState) * 100)}% HP{runState.commanderWounded ? " · Wounded" : ""}
+                </span>
+              )}
+              {onMend && (commanderHpPct(runState) < 1 || runState.commanderWounded) && (
+                <button
+                  className="hw-move-btn hw-strip-btn hw-mend-btn"
+                  data-mend-commander
+                  disabled={runState.essence < mendCost(runState)}
+                  onClick={() => onMend("commander")}
+                  title={`Heal ${commander?.name} to full HP (${mendCost(runState)} Essence)`}
+                >
+                  Mend
+                  <span className="hw-cost-inline">
+                    <CardGlyph name="spark" className="hw-intent-glyph" />
+                    {mendCost(runState)}
+                  </span>
+                </button>
+              )}
+              {commanderBentRole && (
+                <span className="hw-badge hw-badge--bent" title={`Bent to ${commanderBentRole}`}>
+                  Bent: {commanderBentRole}
+                </span>
+              )}
+              {rankCost === null ? (
+                <span className="hw-badge" style={{ fontSize: 11 }}>Rank MAX</span>
+              ) : (
+                <button
+                  className="hw-move-btn hw-strip-btn"
+                  disabled={runState.essence < rankCost}
+                  onClick={onRankUp}
+                  title={`Permanently strengthen ${commander?.name}'s squad passive (rank ${commanderRank} -> ${commanderRank + 1})`}
+                >
+                  Rank Up
+                  <span className="hw-cost-inline">
+                    <CardGlyph name="spark" className="hw-intent-glyph" />
+                    {rankCost}
+                  </span>
+                </button>
+              )}
+              {activePower && (
+                <>
+                  <button
+                    className="hw-move-btn hw-strip-btn"
+                    data-active={primed}
+                    disabled={activePowerUsed || runState.essence < activePower.cost}
+                    onClick={onUseCommanderActive}
+                    title={activePower.description}
+                  >
+                    {activePower.name}
+                    <span className="hw-cost-inline">
+                      <CardGlyph name="spark" className="hw-intent-glyph" />
+                      {activePower.cost}
+                    </span>
+                  </button>
+                  {primed && (
+                    <span className="hw-badge hw-badge--active" title={activePower.description}>
+                      {activePower.name} primed - next battle
+                    </span>
+                  )}
+                </>
+              )}
+              <button
+                className="hw-move-btn hw-strip-btn"
+                data-active={showRetrain}
+                onClick={() => setShowRetrain((cur) => !cur)}
+                title="Switch to a different Commander for the rest of this run"
+              >
+                Retrain...
+              </button>
+              {/* The Commander is a real 5th deployed unit now (Marc: "se
+                  commander on pelattava hahmo pelissä... jota voi
+                  synergisoida buildilla ja itemeillä" - the Commander is a
+                  playable character you can synergize with the build and
+                  items) - same item-slot pips and click-to-equip flow every
+                  bench unit already has, just keyed to the "commander"
+                  sentinel instead of a real bench key. Kept inside
+                  commanderCluster this round - its own slot count
+                  (effectiveItemSlots) can grow mid-run via upgrades, the
+                  same "not a fixed set" problem as the recruit/item/bench
+                  grids, deliberately deferred to that later round. */}
+              <div className="hw-gear-row-wrap">
+                <GearRow
+                  items={runState.items}
+                  ownerKey="commander"
+                  slots={maxItemSlots}
+                  selectedItemDef={selectedItemDef}
+                  justEquippedSlot={justEquippedSlot}
+                  onSlotClick={(slotIndex, occupied) => handleSlotClick("commander", slotIndex, occupied)}
+                  onMove={onMoveGear ? (from, to) => onMoveGear("commander", from, to) : undefined}
+                />
+                <button className="hw-move-btn hw-gear-open" data-gear-open="commander" onClick={() => setGearOwner("commander")} title="Open the Commander's gear screen">
+                  Gear
+                </button>
+              </div>
+            </div>
+    )
+  }
+  function piece_rerollBtn() {
+    return (
+                  <button
+                    className="hw-move-btn"
+                    disabled={runState.essence < runState.rerollCost || offers.length === 0 || marketEventLocked}
+                    onClick={onReroll}
+                    title={marketEventLocked ? `${marketEventDef.name}: no Reroll this stop - take what's shown` : undefined}
+                  >
+                    Reroll <span className="hw-cost-inline"><CardGlyph name="spark" className="hw-intent-glyph" />{runState.rerollCost}</span>
+                  </button>
+    )
+  }
+  function piece_freezeBtn() {
+    return (
+                  <button
+                    className="hw-move-btn"
+                    data-active={!!runState.frozen && !marketEventLocked}
+                    disabled={marketEventLocked}
+                    onClick={onToggleFreeze}
+                    title={marketEventLocked ? `${marketEventDef.name}: no Freeze this stop` : "Keep these offers when you next visit the shop"}
+                  >
+                    {runState.frozen && !marketEventLocked ? "Frozen ✓" : "Freeze"}
+                  </button>
+    )
+  }
+  function piece_gambleBtn() {
+    return (
+                  onGamble && (
+                    <button
+                      className="hw-move-btn hw-gamble-btn"
+                      disabled={runState.essence < GAMBLE_COST}
+                      onClick={onGamble}
+                      title="Wager Essence for a random item - or, rarely, a relic you could never otherwise buy"
+                    >
+                      Gamble <span className="hw-cost-inline"><CardGlyph name="spark" className="hw-intent-glyph" />{GAMBLE_COST}</span>
+                    </button>
+                  )
+    )
+  }
+  function piece_antidoteBtn() {
+    return (
+                  onAntidote && (
+                    <button
+                      className="hw-move-btn hw-antidote-btn"
+                      data-active={antidoteQueued(runState) || undefined}
+                      disabled={!antidoteQueued(runState) && runState.essence < antidoteCost(runState)}
+                      onClick={onAntidote}
+                      title="Your whole squad starts the next battle with Regen - out-drips an opening poison spike"
+                    >
+                      {antidoteQueued(runState) ? "Antidote ✓" : <>Field Antidote <span className="hw-cost-inline"><CardGlyph name="spark" className="hw-intent-glyph" />{antidoteCost(runState)}</span></>}
+                    </button>
+                  )
+    )
+  }
+  function piece_gambleReveal() {
+    return (
+                runState.lastGambleReward && (
+                  <div
+                    className="hw-gamble-reveal"
+                    data-tone={runState.lastGambleReward.kind === "relic" ? "cosmic" : "plain"}
+                  >
+                    {runState.lastGambleReward.kind === "relic"
+                      ? `Jackpot! You won ${RELICS[runState.lastGambleReward.defId]?.name}.`
+                      : `You won ${ITEMS[runState.lastGambleReward.defId]?.name}.`}
+                  </div>
+                )
+    )
+  }
+  function piece_buildScore(variant = null) {
+    return (
+                /* Build evaluation (buildScore.js) - visible while
+                   recruiting so a shop is "improve the build or fix its
+                   weakness?" */
+                <BuildScore runState={runState} variant={variant} />
+    )
+  }
+  function piece_itemBag() {
+    return (
+                runState.items.length > 0 && (
+                  <div>
+                    <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 4, marginBottom: 4 }}>
+                      Your items ({runState.items.filter((it) => it.equippedTo === null).length} unequipped) - click one,
+                      then click a slot below to equip it.
+                    </p>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+                      {runState.items
+                        .filter((it) => it.equippedTo === null)
+                        .map((it) => {
+                          const def = ITEMS[it.defId]
+                          return (
+                            <span
+                              key={it.key}
+                              className="hw-badge"
+                              style={{
+                                cursor: "pointer",
+                                gap: 6,
+                                color: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
+                                borderColor: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
+                              }}
+                              title={def?.description}
+                              onClick={() => handleBagItemClick(it.key)}
+                            >
+                              <CardGlyph name={def?.icon} className="hw-intent-glyph" />
+                              {def?.name}
+                            </span>
+                          )
+                        })}
+                    </div>
+                  </div>
+                )
+    )
+  }
+
+  // Everything the Market and Headquarters screens draw with - the same
+  // shared pieces and state as the classic layout, handed over by name.
+  const marketKit = {
+    runState,
+    onRunAction,
+    commander,
+    commanderRank,
+    offers,
+    itemOffers,
+    nextLabel,
+    difficultyTier,
+    deployedCount,
+    reserveCount,
+    deployedEntries,
+    reserveEntries,
+    essenceFlash,
+    tierPreview,
+    showRetrain,
+    inspectKey,
+    setInspectKey,
+    selectedItemKey,
+    justPurchasedKey,
+    marketVisit,
+    mapSlot,
+    onContinue,
+    setHqOpen,
+    chooseMarketView,
+    visitMarket,
+    piece_overlays,
+    piece_marketLevelWidget,
+    piece_marketTierWidget,
+    piece_commanderCluster,
+    piece_retrain,
+    piece_rerollBtn,
+    piece_freezeBtn,
+    piece_gambleBtn,
+    piece_antidoteBtn,
+    piece_gambleReveal,
+    piece_gearShopbar,
+    piece_buildScore,
+    renderRecruitCard,
+    renderItemOffer,
+    renderBenchCard,
+    renderOwnedRail,
+    renderCenterSections,
+  }
+  if (hqOnly) return <HeadquartersScreen kit={marketKit} onClose={onCloseHq} />
+  if (marketView === "table") return hqOpen ? <HeadquartersScreen kit={marketKit} /> : <MarketScreen kit={marketKit} />
+
   return (
     <div className="hw-intro hw-market-stage hw-shop-3zone-stage">
-      {upgradingEntry && (
-        <UpgradeChoice
-          unit={upgradingEntry}
-          essence={runState.essence}
-          onPick={(branchId) => {
-            onUpgradeUnit(upgradingEntry.key, branchId)
-            setUpgradingKey(null)
-          }}
-          onCancel={() => setUpgradingKey(null)}
-        />
-      )}
-      {gearOwner != null && (gearOwner === "commander" || runState.bench.some((e) => e.key === gearOwner)) && (
-        <GearScreen
-          runState={runState}
-          ownerKey={gearOwner}
-          onClose={() => setGearOwner(null)}
-          onEquip={onEquipItem}
-          onUnequip={onUnequipItem}
-          onMove={(owner, from, to) => onMoveGear?.(owner, from, to)}
-          onSell={onSellItem}
-          onForge={onRunAction ? (recipeId, owner) => onRunAction((rs) => forgeItem(rs, recipeId, owner)) : undefined}
-          onChooseBuild={onRunAction ? (owner, pathId) => onRunAction((rs) => chooseHeroBuild(rs, owner, pathId)) : undefined}
-          onEquipNeutral={onRunAction ? (owner, id) => onRunAction((rs) => equipNeutral(rs, owner, id)) : undefined}
-          onUnequipNeutral={onRunAction ? (owner) => onRunAction((rs) => unequipNeutral(rs, owner)) : undefined}
-        />
-      )}
-      {forged && ITEMS[forged.result] && (
-        <div className="hw-gear-forged" data-gear-forged={forged.recipeId} key={forged.key}>
-          <span className="hw-gear-forged-spark">⚗</span> Recipe! <b>{ITEMS[forged.result].name}</b> forged
-          <span className="hw-gear-forged-sub"> - {ITEMS[forged.result].description}</span>
-        </div>
-      )}
+      {piece_overlays()}
+      <button type="button" className="hwm-classic-link hwm-classic-link--back" onClick={() => chooseMarketView("table")} title="Switch to the redesigned Market table">
+        New Market layout
+      </button>
       {/* paddingRight/flexWrap keep this row's right-aligned badges clear
           of the fixed top-right utility cluster (HeartwoodBattle.jsx's
           utilityBar - exit link + How to Play + Change Commander) - it's
@@ -1564,84 +2203,12 @@ export default function SquadDraft({
       >
         {marketHeaderLayout.renderSection(
           "marketLevelWidget",
-          /* Market Level (Battlegrounds/Guildrun-style tavern tier) -
-             raises the shop's rarity ceiling (runEngine.js's
-             rollShop/MARKET_LEVEL_UNLOCKS). Marc, direct: "market lvl
-             on keskeinen osa pelin kehitystä ja siksi saa tärkeän
-             asemapaikan" (Market Level is central to the run's
-             progression and deserves an important position) - was one
-             .hw-badge indistinguishable from every other badge in the
-             row. Now its own bordered widget with real tier pips
-             (●●○, not just "1/3" as text) and the Level Up action
-             fused into the SAME box, so "this pip row and this button
-             are one system" is visible at a glance instead of reading
-             as two separate, coincidentally-adjacent controls. Kept
-             fused here too (this round only splits DIFFERENT widgets
-             apart from each other, not a widget's own internal pip+
-             button pairing - see this file's plan notes). */
-          <div className="hw-market-level-widget" title={`Unlocks: ${(MARKET_LEVEL_UNLOCKS[marketLevel] || []).join(", ")} tier heroes in the shop`}>
-            <span className="hw-market-level-label">Market</span>
-            <span className="hw-market-level-pips">
-              {Array.from({ length: MARKET_LEVEL_MAX }, (_, i) => (
-                <span key={i} className="hw-market-level-pip" data-filled={i < marketLevel} />
-              ))}
-            </span>
-            {marketCost === null ? (
-              <span className="hw-badge" style={{ fontSize: 11 }}>MAX</span>
-            ) : (
-              <button
-                className="hw-move-btn hw-strip-btn"
-                disabled={runState.essence < marketCost}
-                onClick={onLevelUpMarket}
-                title={`Unlock ${MARKET_LEVEL_UNLOCKS[marketLevel + 1]?.slice(-1)[0]}-tier heroes in future shop rolls`}
-              >
-                Level Up
-                <span className="hw-cost-inline">
-                  <CardGlyph name="spark" className="hw-intent-glyph" />
-                  {marketCost}
-                </span>
-              </button>
-            )}
-          </div>
+          piece_marketLevelWidget()
         )}
 
         {marketHeaderLayout.renderSection(
           "marketTierWidget",
-          /* Market TIER (feat/hearthwood-market-tiers) - the SECOND market
-             axis, a sibling of the Level widget above. Level raises the
-             rarity ceiling; Tier unlocks new KINDS of unit (a specialist
-             sub-pool). Advancing a Tier is a pure Essence sink that buys
-             options, not stats. */
-          <div
-            className="hw-market-tier-widget"
-            title={`Market Tier ${effTier}: ${MARKET_TIERS[effTier]?.name}. ${
-              tierPreview ? `Next: ${tierPreview.name} (${tierPreview.cost}) - ${tierPreview.unlocks.join("; ")}` : "Max Tier."
-            }`}
-          >
-            <span className="hw-market-tier-label">Tier</span>
-            <span className="hw-market-tier-pips">
-              {Array.from({ length: MARKET_TIER_MAX }, (_, i) => (
-                <span key={i} className="hw-market-tier-pip" data-filled={i < effTier} data-charter={(i >= marketTier && i < effTier) || undefined} />
-              ))}
-            </span>
-            <span className="hw-market-tier-name">{MARKET_TIERS[effTier]?.name}</span>
-            {tierCost === null ? (
-              <span className="hw-badge" style={{ fontSize: 11 }}>MAX</span>
-            ) : (
-              <button
-                className="hw-move-btn hw-strip-btn"
-                disabled={runState.essence < tierCost}
-                onClick={onAdvanceMarketTier}
-                title={`Advance to ${MARKET_TIERS[marketTier + 1]?.name} - unlocks ${MARKET_TIERS[marketTier + 1]?.unlocks.join("; ")}`}
-              >
-                Advance
-                <span className="hw-cost-inline">
-                  <CardGlyph name="spark" className="hw-intent-glyph" />
-                  {tierCost}
-                </span>
-              </button>
-            )}
-          </div>
+          piece_marketTierWidget()
         )}
 
         {tierPreview &&
@@ -1654,121 +2221,7 @@ export default function SquadDraft({
 
         {marketHeaderLayout.renderSection(
           "commanderCluster",
-          /* Commander cluster - deliberately separated from the Market
-             widget above (own container + a visual divider) so Rank Up
-             reads as "about your commander", never "the other Level
-             Up button". Kept fused internally, same reasoning as the
-             Market Level widget above. */
-          <div className="hw-commander-cluster">
-            <span className="hw-badge" title={commander?.description}>
-              <CardGlyph name={commander?.art} className="hw-intent-glyph" />
-              {commander?.name} · Rank {commanderRank}
-            </span>
-            <span
-              className="hw-badge hw-level-badge"
-              data-commander-level
-              title={`Level ${levelForXp(runState.commanderXp)}${(runState.commanderPerks || []).length ? " - perks: " + runState.commanderPerks.map((id) => PERKS[id]?.name).join(", ") : ""}`}
-            >
-              Lv{levelForXp(runState.commanderXp)}
-              {(runState.commanderPerks || []).map((id) => PERKS[id]?.icon).join("")}
-            </span>
-            {(commanderHpPct(runState) < 1 || runState.commanderWounded) && (
-              <span className="hw-badge" data-commander-health style={{ color: "var(--hw-hp)", borderColor: "var(--hw-hp)" }}>
-                {Math.round(commanderHpPct(runState) * 100)}% HP{runState.commanderWounded ? " · Wounded" : ""}
-              </span>
-            )}
-            {onMend && (commanderHpPct(runState) < 1 || runState.commanderWounded) && (
-              <button
-                className="hw-move-btn hw-strip-btn hw-mend-btn"
-                data-mend-commander
-                disabled={runState.essence < mendCost(runState)}
-                onClick={() => onMend("commander")}
-                title={`Heal ${commander?.name} to full HP (${mendCost(runState)} Essence)`}
-              >
-                Mend
-                <span className="hw-cost-inline">
-                  <CardGlyph name="spark" className="hw-intent-glyph" />
-                  {mendCost(runState)}
-                </span>
-              </button>
-            )}
-            {commanderBentRole && (
-              <span className="hw-badge hw-badge--bent" title={`Bent to ${commanderBentRole}`}>
-                Bent: {commanderBentRole}
-              </span>
-            )}
-            {rankCost === null ? (
-              <span className="hw-badge" style={{ fontSize: 11 }}>Rank MAX</span>
-            ) : (
-              <button
-                className="hw-move-btn hw-strip-btn"
-                disabled={runState.essence < rankCost}
-                onClick={onRankUp}
-                title={`Permanently strengthen ${commander?.name}'s squad passive (rank ${commanderRank} -> ${commanderRank + 1})`}
-              >
-                Rank Up
-                <span className="hw-cost-inline">
-                  <CardGlyph name="spark" className="hw-intent-glyph" />
-                  {rankCost}
-                </span>
-              </button>
-            )}
-            {activePower && (
-              <>
-                <button
-                  className="hw-move-btn hw-strip-btn"
-                  data-active={primed}
-                  disabled={activePowerUsed || runState.essence < activePower.cost}
-                  onClick={onUseCommanderActive}
-                  title={activePower.description}
-                >
-                  {activePower.name}
-                  <span className="hw-cost-inline">
-                    <CardGlyph name="spark" className="hw-intent-glyph" />
-                    {activePower.cost}
-                  </span>
-                </button>
-                {primed && (
-                  <span className="hw-badge hw-badge--active" title={activePower.description}>
-                    {activePower.name} primed - next battle
-                  </span>
-                )}
-              </>
-            )}
-            <button
-              className="hw-move-btn hw-strip-btn"
-              data-active={showRetrain}
-              onClick={() => setShowRetrain((cur) => !cur)}
-              title="Switch to a different Commander for the rest of this run"
-            >
-              Retrain...
-            </button>
-            {/* The Commander is a real 5th deployed unit now (Marc: "se
-                commander on pelattava hahmo pelissä... jota voi
-                synergisoida buildilla ja itemeillä" - the Commander is a
-                playable character you can synergize with the build and
-                items) - same item-slot pips and click-to-equip flow every
-                bench unit already has, just keyed to the "commander"
-                sentinel instead of a real bench key. Kept inside
-                commanderCluster this round - its own slot count
-                (effectiveItemSlots) can grow mid-run via upgrades, the
-                same "not a fixed set" problem as the recruit/item/bench
-                grids, deliberately deferred to that later round. */}
-            <div className="hw-gear-row-wrap">
-              <GearRow
-                items={runState.items}
-                ownerKey="commander"
-                slots={maxItemSlots}
-                selectedItemDef={selectedItemDef}
-                justEquippedSlot={justEquippedSlot}
-                onSlotClick={(slotIndex, occupied) => handleSlotClick("commander", slotIndex, occupied)}
-                onMove={onMoveGear ? (from, to) => onMoveGear("commander", from, to) : undefined}
-              />
-              <button className="hw-move-btn hw-gear-open" data-gear-open="commander" onClick={() => setGearOwner("commander")} title="Open the Commander's gear screen">
-                Gear
-              </button>
-            </div>
-          </div>
+          piece_commanderCluster()
         )}
       </div>
 
@@ -1788,25 +2241,7 @@ export default function SquadDraft({
         <img src={hearthwoodLogo} alt="Hearthwood" className="hw-market-banner-logo" />
       </div>
 
-      {showRetrain && (
-        <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-          {otherCommanders.map((c) => (
-            <button
-              key={c.id}
-              className="hw-move-btn"
-              style={{ fontSize: 11, padding: "4px 8px" }}
-              disabled={runState.essence < RETRAIN_COST}
-              onClick={() => {
-                onRetrain(c.id)
-                setShowRetrain(false)
-              }}
-              title={c.description}
-            >
-              <CardGlyph name={c.art} className="hw-intent-glyph" /> {c.name} ({RETRAIN_COST} Essence)
-            </button>
-          ))}
-        </div>
-      )}
+      {showRetrain && piece_retrain()}
 
       {/* ===== 3-ZONE SHOP LAYOUT =====
           Marc's sketch: a full-width layout with the owned Items/Relics
@@ -2011,14 +2446,7 @@ export default function SquadDraft({
             <div style={{ marginTop: 3, display: "flex", gap: 8, flexWrap: "wrap" }}>
               {marketTabLayout.renderSection(
                 "rerollBtn",
-                <button
-                  className="hw-move-btn"
-                  disabled={runState.essence < runState.rerollCost || offers.length === 0 || marketEventLocked}
-                  onClick={onReroll}
-                  title={marketEventLocked ? `${marketEventDef.name}: no Reroll this stop - take what's shown` : undefined}
-                >
-                  Reroll ({runState.rerollCost} Essence)
-                </button>
+                piece_rerollBtn()
               )}
               {/* Freeze (runEngine.js's toggleFreeze) - keeps this offer
                   set into the next shop visit instead of it re-rolling
@@ -2027,15 +2455,7 @@ export default function SquadDraft({
                   currently armed. */}
               {marketTabLayout.renderSection(
                 "freezeBtn",
-                <button
-                  className="hw-move-btn"
-                  data-active={!!runState.frozen && !marketEventLocked}
-                  disabled={marketEventLocked}
-                  onClick={onToggleFreeze}
-                  title={marketEventLocked ? `${marketEventDef.name}: no Freeze this stop` : "Keep these offers when you next visit the shop"}
-                >
-                  {runState.frozen && !marketEventLocked ? "Frozen ✓" : "Freeze"}
-                </button>
+                piece_freezeBtn()
               )}
               {/* The Gamble (Marc: "the game needs also gamble mechanic") -
                   spend Essence for an UNCHOSEN random item or relic
@@ -2044,33 +2464,14 @@ export default function SquadDraft({
                   the unit-offer roll at all), repeatable like Reroll. */}
               {marketTabLayout.renderSection(
                 "gambleBtn",
-                onGamble && (
-                  <button
-                    className="hw-move-btn hw-gamble-btn"
-                    disabled={runState.essence < GAMBLE_COST}
-                    onClick={onGamble}
-                    title="Wager Essence for a random item - or, rarely, a relic you could never otherwise buy"
-                  >
-                    Gamble ({GAMBLE_COST} Essence)
-                  </button>
-                )
+                piece_gambleBtn()
               )}
               {/* Field Antidote (runEngine.js's buyAntidote, feat/hearthwood-rot):
                   a one-fight squad-wide Regen, the answer to a Rot pack's poison
                   drip. One queued at a time; cost climbs per Act. */}
               {marketTabLayout.renderSection(
                 "antidoteBtn",
-                onAntidote && (
-                  <button
-                    className="hw-move-btn hw-antidote-btn"
-                    data-active={antidoteQueued(runState) || undefined}
-                    disabled={!antidoteQueued(runState) && runState.essence < antidoteCost(runState)}
-                    onClick={onAntidote}
-                    title="Your whole squad starts the next battle with Regen - out-drips an opening poison spike"
-                  >
-                    {antidoteQueued(runState) ? "Antidote ✓" : `Field Antidote (${antidoteCost(runState)})`}
-                  </button>
-                )
+                piece_antidoteBtn()
               )}
             </div>
 
@@ -2083,16 +2484,7 @@ export default function SquadDraft({
                 individually" per Marc's exact words. */}
             {marketTabLayout.renderSection(
               "gambleReveal",
-              runState.lastGambleReward && (
-                <div
-                  className="hw-gamble-reveal"
-                  data-tone={runState.lastGambleReward.kind === "relic" ? "cosmic" : "plain"}
-                >
-                  {runState.lastGambleReward.kind === "relic"
-                    ? `Jackpot! You won ${RELICS[runState.lastGambleReward.defId]?.name}.`
-                    : `You won ${ITEMS[runState.lastGambleReward.defId]?.name}.`}
-                </div>
-              )
+              piece_gambleReveal()
             )}
           </div>
 
@@ -2142,38 +2534,13 @@ export default function SquadDraft({
               {[0, 1, 2].map((i) =>
                 marketItemLayout.renderSection(
                   `slot${i}`,
-                  itemOffers[i] ? (
-                    <ItemCard
-                      def={itemOffers[i]}
-                      disabled={runState.essence < itemOffers[i].cost || gearPurseLeft(runState) < itemOffers[i].cost}
-                      onClick={() => onBuyItem(itemOffers[i].id)}
-                      locked={!!(runState.itemLocks || [])[i]}
-                      onToggleLock={onToggleItemLock ? () => onToggleItemLock(i) : undefined}
-                      setCounts={setCountMap(runState)}
-                      wantedBy={wanted.get(itemOffers[i].id) || null}
-                    />
-                  ) : null
+                  renderItemOffer(i)
                 )
               )}
             </div>
             {/* Gear sprint - shop tension: the merchant's gear purse for this
                 visit + a paid item reroll whose price climbs each time. */}
-            <div className="hw-gear-shopbar" data-gear-purse={gearPurseLeft(runState)}>
-              <span title="How much Essence the merchant will take for gear (items + item rerolls) this visit. Grows with the Act and your Market Level.">
-                Gear purse: <b>{gearPurseLeft(runState)}</b> / {gearPurse(runState)} left this visit
-              </span>
-              {onRerollItems && (
-                <button
-                  className="hw-move-btn"
-                  data-item-reroll={itemRerollCost(runState)}
-                  disabled={runState.essence < itemRerollCost(runState) || gearPurseLeft(runState) < itemRerollCost(runState)}
-                  onClick={onRerollItems}
-                  title="New item offers (locked ones stay). Costs more each time this visit."
-                >
-                  Reroll items (-{itemRerollCost(runState)})
-                </button>
-              )}
-            </div>
+            {piece_gearShopbar()}
           </div>
         </div>
 
@@ -2216,46 +2583,12 @@ export default function SquadDraft({
           >
             {squadTopLayout.renderSection(
               "buildScore",
-              /* Build evaluation (buildScore.js) - visible while
-                 recruiting so a shop is "improve the build or fix its
-                 weakness?" */
-              <BuildScore runState={runState} />
+              piece_buildScore()
             )}
 
             {squadTopLayout.renderSection(
               "itemBag",
-              runState.items.length > 0 && (
-                <div>
-                  <p style={{ fontSize: 12, color: "var(--hw-muted)", marginTop: 4, marginBottom: 4 }}>
-                    Your items ({runState.items.filter((it) => it.equippedTo === null).length} unequipped) - click one,
-                    then click a slot below to equip it.
-                  </p>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-                    {runState.items
-                      .filter((it) => it.equippedTo === null)
-                      .map((it) => {
-                        const def = ITEMS[it.defId]
-                        return (
-                          <span
-                            key={it.key}
-                            className="hw-badge"
-                            style={{
-                              cursor: "pointer",
-                              gap: 6,
-                              color: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
-                              borderColor: selectedItemKey === it.key ? "var(--hw-ember)" : undefined,
-                            }}
-                            title={def?.description}
-                            onClick={() => handleBagItemClick(it.key)}
-                          >
-                            <CardGlyph name={def?.icon} className="hw-intent-glyph" />
-                            {def?.name}
-                          </span>
-                        )
-                      })}
-                  </div>
-                </div>
-              )
+              piece_itemBag()
             )}
           </div>
 

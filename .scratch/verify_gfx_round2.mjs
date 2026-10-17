@@ -13,6 +13,7 @@ const seed = async (phase) => {
     const bench = ["the-fool", "the-magician", "the-chariot"].map((defId, i) => ({ key: `b${i}`, defId, upgradeLevel: 0, upgrades: [] }))
     const rs = { ...startRun("tommy", null, { forcedSeed: 424243 }), nodeIndex: idx, path: RUN_PATH.slice(0, idx + 1), phase, bench, deployed: [...bench.map((e) => e.key), null], items: [], lastSeenAct: 1 }
     localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(rs)))
+    if (localStorage.getItem("hw-layout-tools") === null) localStorage.setItem("hw-layout-tools", "0") // player default
   }, phase)
   await page.reload({ waitUntil: "domcontentloaded" }); await page.waitForTimeout(1300)
 }
