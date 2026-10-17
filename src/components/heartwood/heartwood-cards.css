@@ -1,0 +1,491 @@
+/* Hero cards, Hearthstone-clear in the Nordic forest theme.
+
+   Purpose: one card anatomy everywhere a hero card appears (Market,
+   squad, rewards, formation, almanac...). Marc: "käytä inspiraationa
+   hearthstonea, siinä on selkeä ja mukava käyttöliittymä" + the
+   standing Nordic forest theme + "paljon tietoa ilman tulematta
+   sekavaksi".
+
+   Anatomy (read in this order, at a glance):
+     1. the art - big, framed like a carved arch
+     2. the name on a banner across the art's foot
+     3. three numbers in fixed corners, never moved:
+          top-left   = cost  (lichen-gold gem)
+          bottom-left= what it does each turn (attack / block / heal gems)
+          bottom-right = health (red drop)
+     4. tribe + role lines, small
+     5. everything else (tags, rarity, upgrades text) folds away and
+        opens when you hover the card - detail on demand.
+
+   Only look and order change here (CSS `order` on the same DOM), so every
+   test hook and click target in UnitCard.jsx stays where it was. The
+   doubled class keeps these rules above the older base rules in
+   heartwood.css regardless of stylesheet order. */
+
+.hw-card.hw-card:not(.hw-item-card) {
+  --card-art-h: 118px;
+  --gem: 30px;
+  padding: 0 0 22px;
+  gap: 5px;
+  border-radius: 14px;
+  border-color: rgba(143, 176, 122, 0.35);
+  background:
+    linear-gradient(180deg, rgba(232, 226, 200, 0.04), transparent 35%),
+    linear-gradient(rgba(14, 18, 11, 0.94), rgba(10, 12, 8, 0.96)),
+    url("../../assets/heartwood/ui-bg-panel.png") center / cover no-repeat;
+  box-shadow: 0 8px 18px -8px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(232, 226, 200, 0.06);
+  overflow: visible;
+}
+/* everything but the art keeps a little side breathing room */
+.hw-card.hw-card:not(.hw-item-card) > :not(.hw-card-portrait):not(.hw-card-art):not(.hw-card-tribe-edge):not(.hw-card-head) {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+/* 1. The art - first, big, an arch carved into the card. */
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-portrait,
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-art {
+  order: -3;
+  box-sizing: border-box;
+  width: calc(100% - 10px);
+  height: var(--card-art-h);
+  margin: 5px 5px 0;
+  padding: 0;
+  border-radius: 11px 11px 46% 46% / 11px 11px 16px 16px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(205, 180, 122, 0.3);
+}
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-portrait {
+  object-fit: cover;
+  object-position: 50% 20%;
+}
+/* a hero without a painting: its glyph centred in a tinted frame of
+   the same size, so every card in a row shares one silhouette */
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-art {
+  padding: calc(var(--card-art-h) * 0.24);
+  align-self: stretch;
+  background-image:
+    radial-gradient(ellipse 55% 60% at 50% 50%, color-mix(in srgb, currentColor 22%, transparent), transparent 75%),
+    linear-gradient(180deg, rgba(232, 226, 200, 0.04), rgba(0, 0, 0, 0.4));
+  filter: none;
+}
+
+/* 2. The name banner across the foot of the art. */
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-name {
+  order: -2;
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  max-width: calc(100% - 22px);
+  margin: -14px auto 0 !important;
+  padding: 3px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(205, 180, 122, 0.45);
+  background: linear-gradient(180deg, #2b3322, #181d12);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+  font-family: var(--hw-font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #efe8cf;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 3. The corner numbers. The head row dissolves so cost + health can
+   take their own corners. */
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-head {
+  display: contents;
+}
+.hw-card.hw-card:not(.hw-item-card) .hw-card-cost,
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp,
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: var(--gem);
+  height: var(--gem);
+  padding: 0 6px;
+  border-radius: calc(var(--gem) / 2);
+  font-family: var(--hw-font-display);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff8e6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95), 0 0 3px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -2px 3px rgba(0, 0, 0, 0.35);
+}
+/* cost - top-left, a lichen-gold gem */
+.hw-card.hw-card:not(.hw-item-card) .hw-card-cost {
+  top: -8px;
+  left: -8px;
+  border: 1px solid #f2dc9c;
+  background: radial-gradient(circle at 35% 30%, #f3d98e, #b88a32 60%, #6e4f17);
+}
+.hw-card.hw-card:not(.hw-item-card) .hw-card-cost-base {
+  font-size: 10px;
+  margin-right: 3px;
+}
+/* health - bottom-right, a red drop */
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp {
+  bottom: -8px;
+  right: -8px;
+  border: 1px solid #f0a08a;
+  border-radius: 50% 50% 50% 50% / 58% 58% 42% 42%;
+  background: radial-gradient(circle at 35% 30%, #f08a6e, #b0321f 60%, #5c140b);
+}
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp .hw-effect-icon-glyph {
+  display: none;
+}
+/* what it does - bottom-left, one small gem per move (attack is amber
+   bronze, block steel-blue, heal moss), its glyph tiny above the number */
+.hw-card.hw-card:not(.hw-item-card) > .hw-effect-icons {
+  position: absolute;
+  left: -8px;
+  bottom: -8px;
+  z-index: 2;
+  display: flex;
+  gap: 3px;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon {
+  position: static;
+  gap: 2px;
+  border: 1px solid #e3c08a;
+  background: radial-gradient(circle at 35% 30%, #d9a86a, #8a5a26 60%, #432a10);
+}
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon .hw-effect-icon-glyph {
+  width: 11px;
+  height: 11px;
+  opacity: 0.85;
+}
+
+/* 4. Tribe + role lines: small and centred under the name. */
+.hw-card.hw-card:not(.hw-item-card) > .hw-tribe-band {
+  order: -1;
+  justify-content: center;
+}
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-role-line,
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-class,
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-tclass {
+  justify-content: center;
+  text-align: center;
+  font-size: 11px;
+}
+
+/* 5. Detail on demand: tags, rarity line and upgrade text fold away
+   and open when the card is hovered or selected. */
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-tags,
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-desc,
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-target-line {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin-top: -5px;
+  transition: max-height 0.2s ease, opacity 0.2s ease, margin-top 0.2s ease;
+}
+.hw-card.hw-card:not(.hw-item-card):hover > .hw-card-tags,
+.hw-card.hw-card:not(.hw-item-card):hover > .hw-card-desc,
+.hw-card.hw-card:not(.hw-item-card):hover > .hw-card-target-line,
+.hw-card.hw-card:not(.hw-item-card)[data-selected="true"] > .hw-card-tags,
+.hw-card.hw-card:not(.hw-item-card)[data-selected="true"] > .hw-card-desc,
+.hw-card.hw-card:not(.hw-item-card)[data-selected="true"] > .hw-card-target-line {
+  max-height: 48px;
+  opacity: 1;
+  margin-top: 0;
+}
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-desc {
+  padding: 0 !important;
+  font-size: 10.5px;
+  text-align: center;
+  color: rgba(232, 226, 200, 0.6);
+}
+
+/* Rarity speaks through the frame, not a word: rare/legendary borders. */
+.hw-card.hw-card:not(.hw-item-card)[data-tier="rare"] {
+  border-color: rgba(120, 170, 230, 0.6);
+}
+.hw-card.hw-card:not(.hw-item-card)[data-tier="legendary"] {
+  border-color: rgba(230, 180, 90, 0.75);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-card.hw-card:not(.hw-item-card) > .hw-card-tags,
+  .hw-card.hw-card:not(.hw-item-card) > .hw-card-desc,
+  .hw-card.hw-card:not(.hw-item-card) > .hw-card-target-line {
+    transition: none;
+  }
+}
+
+/* ---------- Clarity pass 2 ---------- */
+/* Gems sit just inside the card corners, so two cards side by side
+   never touch each other's numbers. */
+.hw-card.hw-card:not(.hw-item-card) .hw-card-cost { top: -6px; left: -3px; }
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp { bottom: -8px; right: -3px; }
+.hw-card.hw-card:not(.hw-item-card) > .hw-effect-icons { left: -3px; bottom: -8px; }
+/* Numbers: bright, outlined, readable on any gem. */
+.hw-card.hw-card:not(.hw-item-card) .hw-card-cost,
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp,
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon {
+  color: #fffdf4;
+  -webkit-text-stroke: 3px rgba(20, 12, 4, 0.9);
+  paint-order: stroke fill;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+/* One identity line on the card: the battle ROLE (Tank / Healer / DPS
+   / Support / Control). The class names say the same thing in other
+   words - they open on hover with the rest of the detail. */
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-class,
+.hw-card.hw-card:not(.hw-item-card) > .hw-card-tclass {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin-top: -5px;
+  transition: max-height 0.2s ease, opacity 0.2s ease, margin-top 0.2s ease;
+}
+.hw-card.hw-card:not(.hw-item-card):hover > .hw-card-class,
+.hw-card.hw-card:not(.hw-item-card):hover > .hw-card-tclass,
+.hw-card.hw-card:not(.hw-item-card)[data-selected="true"] > .hw-card-class,
+.hw-card.hw-card:not(.hw-item-card)[data-selected="true"] > .hw-card-tclass {
+  max-height: 40px;
+  opacity: 1;
+  margin-top: 0;
+}
+
+/* Gear cards: what it does stays; recipes / adjacency / auras are
+   detail and open on hover. */
+.hw-item-card .hw-item-line {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin-top: 0;
+  transition: max-height 0.2s ease, opacity 0.2s ease;
+}
+.hw-item-card:hover .hw-item-line,
+.hw-item-card[data-selected="true"] .hw-item-line {
+  max-height: 60px;
+  opacity: 1;
+  margin-top: 2px;
+}
+/* Gem numbers: bold, plain and bright - the display serif's thin
+   strokes vanished under an outline; a dark halo reads cleaner. */
+.hw-card.hw-card:not(.hw-item-card) .hw-card-cost,
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp,
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon {
+  font-family: var(--hw-font-body, system-ui, sans-serif);
+  font-size: 15px;
+  font-weight: 800;
+  -webkit-text-stroke: 0;
+  text-shadow: 0 0 2px #1a0e04, 0 0 2px #1a0e04, 0 1px 2px #000, 0 0 4px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- Card feel (Marc: "korttien tuntuvan kuin korteilta ...
+   kuin käsittelisi kortteja ... animoi kortit") ---------- */
+/* Thickness: a stacked edge under the card, and a shadow that grows
+   when the card lifts off the table on hover (UnitCard's framer hover
+   already raises and tilts it toward the pointer). */
+.hw-card.hw-card:not(.hw-item-card),
+.hw-card.hw-item-card {
+  box-shadow:
+    0 1px 0 #2a2418,
+    0 2px 0 #1b170f,
+    0 3px 0 #110e09,
+    0 8px 14px -6px rgba(0, 0, 0, 0.85);
+  transition: box-shadow 0.18s ease, border-color 0.18s ease, filter 0.18s ease, opacity 0.2s ease;
+}
+.hw-card.hw-card:not(.hw-item-card):not([data-disabled="true"]):hover,
+.hw-card.hw-item-card:not([data-disabled="true"]):hover {
+  box-shadow:
+    0 1px 0 #2a2418,
+    0 2px 0 #1b170f,
+    0 3px 0 #110e09,
+    0 var(--hw-card-lift, 22px) calc(var(--hw-card-lift, 22px) * 1.4) -10px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(205, 180, 122, 0.35);
+}
+/* Sheen: a soft light glides across the face with the pointer, like
+   lamplight on a lacquered card. Off when the card can't be played. */
+/* (::before, not ::after - rare/legendary cards already use ::after for
+   their glow; frozen cards keep ::before for their frost.) */
+.hw-card.hw-card:not(.hw-item-card):not([data-frozen="true"])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--px, 50%) var(--py, 0%), rgba(255, 246, 220, var(--hw-card-sheen, 0.2)), rgba(255, 246, 220, calc(var(--hw-card-sheen, 0.2) / 4)) 28%, transparent 55%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.hw-card.hw-card:not(.hw-item-card):not([data-frozen="true"]):not([data-disabled="true"]):hover::before {
+  opacity: 1;
+}
+
+/* Dealing: when the merchant lays out wares (opening the HQ, or a
+   Reroll), each card slides in from the deck at the right and lands
+   face up on the table, one after another. */
+.hwm-offer-slot,
+.hwm-gear-slot {
+  animation: hw-card-deal var(--hw-card-deal-speed, 460ms) cubic-bezier(.2, .75, .3, 1) both;
+  animation-delay: calc(var(--deal-i, 0) * var(--hw-card-deal-stagger, 80ms));
+}
+@keyframes hw-card-deal {
+  0% { opacity: 0; translate: var(--hw-card-deal-distance, 140px) -30px; rotate: 9deg; scale: 0.82; }
+  65% { opacity: 1; translate: -4px 2px; rotate: -1.2deg; scale: 1.02; }
+  100% { opacity: 1; translate: 0 0; rotate: 0deg; scale: 1; }
+}
+/* The flying copy of a bought card (SquadDraft flyToSquad). */
+.hwm-card-flight {
+  box-shadow: 0 26px 40px -12px rgba(0, 0, 0, 0.9) !important;
+}
+
+.hw-reduce-motion .hwm-offer-slot,
+.hw-reduce-motion .hwm-gear-slot {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwm-offer-slot,
+  .hwm-gear-slot { animation: none; }
+  .hw-card.hw-card:not(.hw-item-card):not([data-frozen="true"])::before { display: none; }
+}
+
+/* "Not enough Essence": a card you can't afford shakes its head when
+   pressed instead of silently doing nothing. */
+.hw-card[data-disabled="true"]:active {
+  animation: hw-card-nope 0.32s ease;
+}
+@keyframes hw-card-nope {
+  0%, 100% { translate: 0 0; }
+  20% { translate: -5px 0; }
+  45% { translate: 4px 0; }
+  70% { translate: -2px 0; }
+}
+
+/* Landing: the bought hero pops into its squad slot with a short glow,
+   timed to the flying card's arrival. */
+.hwm-chip[data-landed] {
+  animation: hwm-chip-land 0.5s cubic-bezier(.2, .9, .3, 1.3) both;
+  animation-delay: calc(var(--hw-card-flight-speed, 620ms) * 0.75);
+}
+@keyframes hwm-chip-land {
+  0% { scale: 0.6; opacity: 0; box-shadow: 0 0 0 0 rgba(205, 180, 122, 0); }
+  60% { scale: 1.06; opacity: 1; box-shadow: 0 0 22px 4px rgba(205, 180, 122, 0.55); }
+  100% { scale: 1; opacity: 1; box-shadow: 0 0 0 0 rgba(205, 180, 122, 0); }
+}
+
+.hw-reduce-motion .hw-card[data-disabled="true"]:active,
+.hw-reduce-motion .hwm-chip[data-landed] {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-card[data-disabled="true"]:active,
+  .hwm-chip[data-landed] { animation: none; }
+}
+
+/* ---------- What the numbers mean (Marc: "korteissa olevat numerot ...
+   en tiedä mitä ne tarkoittaa") ----------
+   Every gem carries its own icon, Hearthstone-style, and explains
+   itself on hover (title text from UnitCard.jsx):
+     gold coin + ✦  = cost in Essence
+     red drop  + ♥  = health
+     bronze    + ⚔  = attack each turn
+     steel     + ⛨  = block each turn
+     moss      + ♥  = heal each turn */
+.hw-card.hw-card:not(.hw-item-card) .hw-card-cost,
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp,
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon {
+  gap: 3px;
+  padding: 0 7px 0 6px;
+  cursor: help;
+}
+.hw-card.hw-card:not(.hw-item-card) .hw-card-gem-icon,
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp .hw-effect-icon-glyph,
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon .hw-effect-icon-glyph {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  opacity: 1;
+  color: #fff8e6;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
+}
+/* one colour per kind of move, so attack / block / heal read apart */
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon[data-move="block"] {
+  border-color: #a9c4e0;
+  background: radial-gradient(circle at 35% 30%, #a8c3dc, #4c6d8f 60%, #1f3247);
+}
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon[data-move="heal"] {
+  border-color: #b5d99a;
+  background: radial-gradient(circle at 35% 30%, #a9d38a, #4d8a3c 60%, #1f3d17);
+}
+
+
+/* ---------- Gem silhouettes (Marc: "ei selityksiä vaan graafisia
+   muutoksia ... antaa paljon tietoa mutta ei näytä sekavalta") ----------
+   No words: each number's SHAPE + colour + icon says what it is.
+     coin (gold, ✦)        cost
+     blade diamond (bronze) attack each turn
+     shield (steel)        block each turn
+     leaf (moss)           heal each turn
+     drop (red, ♥)         health
+   Icon sits small above the number inside every gem. */
+.hw-card.hw-card:not(.hw-item-card) .hw-card-cost,
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp,
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon {
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+  min-width: 34px;
+  height: 36px;
+  padding: 0 5px;
+  line-height: 1;
+  font-size: 14px;
+}
+.hw-card.hw-card:not(.hw-item-card) .hw-card-gem-icon,
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp .hw-effect-icon-glyph,
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon .hw-effect-icon-glyph {
+  width: 10px;
+  height: 10px;
+  margin-bottom: 1px;
+  opacity: 0.9;
+}
+/* cost: a round coin */
+.hw-card.hw-card:not(.hw-item-card) .hw-card-cost {
+  border-radius: 50%;
+  min-width: 36px;
+  width: auto;
+}
+/* attack: a blade-point diamond */
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon[data-move="attack"] {
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  box-shadow: none;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.75));
+}
+/* block: a shield */
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon[data-move="block"] {
+  border-radius: 8px 8px 50% 50% / 8px 8px 70% 70%;
+  min-width: 32px;
+  height: 37px;
+  padding-bottom: 3px;
+}
+/* heal: a leaf */
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon[data-move="heal"] {
+  border-radius: 4px 70% 4px 70%;
+  min-width: 34px;
+}
+/* health: the red drop (shape set above) - icon over number too */
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp {
+  min-width: 34px;
+  height: 38px;
+  padding-top: 2px;
+}

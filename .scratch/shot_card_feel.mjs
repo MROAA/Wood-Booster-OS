@@ -1,0 +1,37 @@
+// Card feel frames: deal-in, hover sheen, bought card in flight, landing.
+// usage: node .scratch/shot_card_feel.mjs <outPrefix> [port]
+import { chromium } from "playwright"
+const OUT = process.argv[2], PORT = process.argv[3] || 5173
+const b = await chromium.launch()
+const page = await (await b.newContext({ viewport: { width: 1536, height: 864 } })).newPage()
+const errs = []; page.on("pageerror", (e) => errs.push(e.message))
+await page.goto(`http://localhost:${PORT}/heartwood`)
+await page.evaluate(async () => {
+  localStorage.clear()
+  const { startRun, serializeRun, RUN_PATH } = await import("/src/services/heartwood/runEngine.js")
+  const idx = RUN_PATH.findIndex((n) => n.type === "battle" && n.formationId)
+  const bench = ["the-fool", "the-magician", "the-chariot"].map((defId, i) => ({ key: `b${i}`, defId, upgradeLevel: 0, upgrades: [] }))
+  const rs = { ...startRun("tommy", null, { forcedSeed: 424243 }), nodeIndex: idx, path: RUN_PATH.slice(0, idx + 1), phase: "shop", bench, deployed: [...bench.map((e) => e.key), null], items: [], lastSeenAct: 1 }
+  localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(rs)))
+  localStorage.setItem("hw-market-view", "table"); localStorage.setItem("hw-layout-tools", "0")
+})
+await page.reload({ waitUntil: "domcontentloaded" })
+await page.waitForSelector(".hwm-offer-slot", { timeout: 15000 })
+await page.waitForTimeout(170)
+await page.screenshot({ path: `${OUT}-1-dealing.png`, clip: { x: 330, y: 60, width: 920, height: 330 } })
+await page.waitForTimeout(1200)
+const card = page.locator(".hwm-offers .hw-card").nth(1)
+const r = await card.boundingBox()
+await page.mouse.move(r.x + r.width * 0.3, r.y + r.height * 0.25)
+await page.waitForTimeout(450)
+await page.screenshot({ path: `${OUT}-2-hover.png`, clip: { x: r.x - 30, y: r.y - 40, width: r.width + 60, height: r.height + 70 } })
+const sheen = await card.evaluate((el) => ({ px: el.style.getPropertyValue("--px"), op: getComputedStyle(el, "::before").opacity }))
+await card.click()
+await page.waitForTimeout(260)
+await page.screenshot({ path: `${OUT}-3-flight.png` })
+const flights = await page.locator(".hwm-card-flight").count()
+await page.waitForTimeout(560)
+await page.screenshot({ path: `${OUT}-4-landing.png`, clip: { x: 0, y: 760, width: 1536, height: 104 } })
+const landed = await page.locator(".hwm-chip[data-landed]").count()
+console.log(JSON.stringify({ sheen, flights, landed, errs }))
+await b.close()

@@ -193,6 +193,7 @@ export const ENTITY_TYPES = {
     crownless: { file: "crownless.js", exportName: "CROWNLESS_INTRO_BY_TRIBE" },
     events: { file: "events.js", exportName: "EVENTS" },
     merchants: { file: "merchant.js", exportName: "MERCHANTS" },
+    marketUi: { file: "marketUi.js", exportName: "MARKET_UI" },
     moods: { file: "moods.js", exportName: "FOREST_MOOD" },
     boons: { file: "boons.js", exportName: "RUN_BOONS" },
     banes: { file: "boons.js", exportName: "RUN_BANES" },

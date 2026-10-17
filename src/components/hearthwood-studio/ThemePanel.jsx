@@ -33,7 +33,38 @@ const FRIENDLY_COLORS = [
   { prop: "--hw-cosmic", label: "Cosmic Tribe" },
 ]
 
-const FRIENDLY_PROPS = new Set(FRIENDLY_COLORS.map(entry => entry.prop))
+// Card feel (Marc: "haluan pystyä muokkaamaan niitä dev toolilla mutta
+// niissä pitää olla yleisesti kortin tuntuma animaatioina") - the card
+// animation strengths as plain-English sliders, no CSS names shown.
+const FRIENDLY_MOTION = [
+  { prop: "--hw-card-deal-speed", label: "Card deal speed", unit: "ms", min: 150, max: 1200, step: 10, hint: "How long a card takes to land on the table" },
+  { prop: "--hw-card-deal-stagger", label: "Pause between dealt cards", unit: "ms", min: 0, max: 300, step: 10, hint: "0 = all cards land at once" },
+  { prop: "--hw-card-deal-distance", label: "How far cards slide in", unit: "px", min: 0, max: 400, step: 10, hint: "0 = cards just fade in" },
+  { prop: "--hw-card-sheen", label: "Card shine", unit: "", min: 0, max: 0.6, step: 0.02, hint: "The light that follows your mouse" },
+  { prop: "--hw-card-lift", label: "Card lift on hover", unit: "px", min: 0, max: 50, step: 1, hint: "How high a card rises off the table" },
+  { prop: "--hw-card-flight-speed", label: "Bought card flight", unit: "ms", min: 200, max: 1500, step: 10, hint: "A bought hero flying down to your squad" },
+]
+// Market & Headquarters look (Marc: "tee tästä yleisesti helposti
+// muokattava versio dev tooliin ... kaiken tarpeellisen") - the four
+// theme colours of the Market table / Headquarters screens plus their
+// glows, column widths and the arrival banner, all in plain English.
+// (Titles, subtitles and runes are text: Studio > "Market & Päämaja Texts".)
+const FRIENDLY_LOOK_COLORS = [
+  { prop: "--hw-ui-accent", label: "Accent (gold)" },
+  { prop: "--hw-ui-leaf", label: "Lines & leaves" },
+  { prop: "--hw-ui-text", label: "Panel text" },
+  { prop: "--hw-ui-panel", label: "Panel background" },
+]
+const FRIENDLY_LOOK_SLIDERS = [
+  { prop: "--hw-ui-rune-glow", label: "Rune glow", unit: "", min: 0, max: 1, step: 0.05, hint: "How brightly the title runes shine" },
+  { prop: "--hw-ui-hearth-glow", label: "Hearth fire glow", unit: "", min: 0, max: 0.5, step: 0.01, hint: "Warm firelight rising from the bottom of the Market" },
+  { prop: "--hw-ui-left-width", label: "Left column width", unit: "px", min: 240, max: 400, step: 5, hint: "Market level, tier and the Ledger" },
+  { prop: "--hw-ui-right-width", label: "Right column width", unit: "px", min: 220, max: 360, step: 5, hint: "The merchant, the road on and Continue" },
+  { prop: "--hw-ui-arrival-speed", label: "Arrival banner", unit: "ms", min: 0, max: 4000, step: 100, hint: "How long the 'arrives at the market' banner shows - 0 turns it off" },
+]
+const FRIENDLY_PROPS = new Set(
+  [...FRIENDLY_COLORS, ...FRIENDLY_MOTION, ...FRIENDLY_LOOK_COLORS, ...FRIENDLY_LOOK_SLIDERS].map(entry => entry.prop),
+)
 
 const COLOR_HINTS = [
   "bg", "panel", "card", "border", "text", "muted", "ember", "moss", "rune",
@@ -198,6 +229,33 @@ function ThemePanel({ onApplied, onPreviewUrlChange }) {
     )
   }
 
+  function Slider({ decl, entry }) {
+    const value = currentValue(decl)
+    const dirty = isDirty(decl)
+    const number = parseFloat(value)
+    return (
+      <label className="flex flex-col gap-1" title={entry.hint}>
+        <span className="flex items-baseline justify-between text-xs text-[var(--wood-text)]">
+          {entry.label}
+          <span className={dirty ? "text-[var(--wood-accent)]" : "text-[var(--wood-muted)]"}>
+            {Number.isFinite(number) ? number : value}
+            {entry.unit}
+          </span>
+        </span>
+        <input
+          type="range"
+          min={entry.min}
+          max={entry.max}
+          step={entry.step}
+          value={Number.isFinite(number) ? number : entry.min}
+          onChange={event => setValue(decl, `${event.target.value}${entry.unit}`)}
+          className="w-full accent-[var(--wood-accent)]"
+        />
+        <span className="text-[11px] text-[var(--wood-muted)]">{entry.hint}</span>
+      </label>
+    )
+  }
+
   function Row({ decl }) {
     const value = currentValue(decl)
     const dirty = isDirty(decl)
@@ -293,6 +351,40 @@ function ThemePanel({ onApplied, onPreviewUrlChange }) {
                 }
               </div>
 
+              <div>
+                <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--wood-muted)]">
+                  Market & Headquarters look
+                </div>
+                <div className="mb-4 grid grid-cols-4 gap-4">
+                  {
+                    FRIENDLY_LOOK_COLORS.map(entry => {
+                      const decl = friendlyRows.find(d => d.prop === entry.prop)
+                      return decl ? <Swatch key={entry.prop} decl={decl} label={entry.label} /> : null
+                    })
+                  }
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {
+                    FRIENDLY_LOOK_SLIDERS.map(entry => {
+                      const decl = friendlyRows.find(d => d.prop === entry.prop)
+                      return decl ? <Slider key={entry.prop} decl={decl} entry={entry} /> : null
+                    })
+                  }
+                </div>
+              </div>
+              <div>
+                <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--wood-muted)]">
+                  Card feel
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {
+                    FRIENDLY_MOTION.map(entry => {
+                      const decl = friendlyRows.find(d => d.prop === entry.prop)
+                      return decl ? <Slider key={entry.prop} decl={decl} entry={entry} /> : null
+                    })
+                  }
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowAdvanced(previous => !previous)}
