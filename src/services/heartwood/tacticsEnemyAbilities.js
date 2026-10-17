@@ -34,6 +34,8 @@ const DEBUFF_TO_STATUS = { weak: "weak", dampen: "weak", vulnerable: "vulnerable
 const mk = (kind, props = {}) => ({ kind, cooldown: ENEMY_SKILL_KINDS[kind].cooldown, mana: ENEMY_SKILL_MANA[kind], ...props, id: props.id || kind })
 const hex = (status, amount = 1, name) => mk("hex", { status, amount, name: name || HEX_NAMES[status] })
 
+const drainSkill = (name, amount = 15) => mk("drain", { id: "mana-drain", name, amount })
+
 // Hand-picked kits: elites, minibosses, the boss.
 const EXPLICIT = {
   deepwarden: [mk("slam", { name: "Deep Quake", amount: 8 }), hex("vulnerable", 1, "Mark of the Deep")],
@@ -52,6 +54,26 @@ const EXPLICIT = {
   blightfang: [mk("pounce", { name: "Blight Lunge", bonus: 2 })],
   "tainted-sapling": [hex("weak", 1, "Withering Touch")],
   "blightheart-troll": [mk("slam", { name: "Rot Quake", amount: 7 })],
+  // The Long Campaign (campaignEnemies.js): campaign-only foes + named mini-bosses.
+  "ley-cutter": [mk("pounce", { name: "Knife Dash", bonus: 2 })],
+  "mire-lantern": [mk("spot", { name: "Lantern Glare" })],
+  "ember-cantor": [hex("burn", 2, "Cinder Hymn")],
+  "ley-glutton": [mk("slam", { name: "Belly Slam", amount: 8 })],
+  "tide-cantor": [mk("mend", { name: "Undertow Hymn", amount: 8 }), { ...hex("chill", 1, "Cold Current"), id: "element-hex" }],
+  "thornwall-warden": [mk("shield", { name: "Palisade", amount: 8 })],
+  "ash-hound": [mk("pounce", { name: "Ash Lunge", bonus: 2 })],
+  "shard-hoarder": [mk("shield", { name: "Crystal Crust", amount: 8 })],
+  "void-cantor": [drainSkill("Hollow Hymn", 15), hex("vulnerable", 1, "Silence Mark")],
+  "root-cantor": [hex("root", 1, "Rootsong")],
+  "hollow-reaver": [mk("pounce", { name: "Rend", bonus: 4 })],
+  "verge-chanter": [mk("summon", { name: "Edge Echo", minion: "echo-shade" })],
+  "mb-gnarlwick": [mk("slam", { name: "Root Stomp", amount: 8 }), hex("root", 1, "Grasping Roots")],
+  "mb-cinderveil": [mk("volley", { name: "Cinder Rain" }), hex("burn", 3, "Veil of Cinders")],
+  "mb-choirmother": [mk("summon", { name: "Drowned Voice", minion: "drowned-siren" }), hex("chill", 1, "Undertow Hymn")],
+  "mb-orrin": [mk("slam", { name: "Millstone", amount: 10 }), mk("shove", { id: "shove", name: "Quarry Heave", push: 2 })],
+  "mb-vesper": [drainSkill("Crown's Hunger", 20), hex("vulnerable", 1, "Mark of the Unthroned")],
+  "mb-mirrorwright": [mk("summon", { name: "Polish an Echo", minion: "echo-shade" }), mk("pounce", { name: "Glass Step", bonus: 4 })],
+  "mb-rootrot": [mk("slam", { name: "Uprooting", amount: 12 }), hex("poison", 4, "Rot Bloom")],
 }
 
 // Regular enemies: one skill from the def's own non-attack moves, plus

@@ -69,6 +69,13 @@ import {
 import { LEY_WARD_SHARD_BONUS, HUNT_IGNORED_DOOM } from "../../data/heartwood/campaignStory"
 // Mana sprint 3: the ley network (lines, Ley Breach, fight bonuses).
 import { leyOf, leyDayTick, leyMissionResult, leyOnStoryChoice, leyFightBonus, lineName } from "./campaignLey"
+// Content sprint: new mission kinds, Named Foes, chapter rosters/maps, events + lasting effects.
+import {
+  contentOf, specialMissionType, missionContentFields, contentReward, maybeSpawnWarlord, missionNode, missionOpsSpec,
+  contentDayTick, chooseContentEvent, dismissEventResult, contentOvercharge, contentEnemyBonus, contentEssenceMult,
+  contentThreatMult, contentHealBonus, contentFates, contentAftermath, isContentType,
+} from "./campaignContentEngine"
+import { campaignOpsResult } from "./tacticsCampaignOps"
 
 const arr = (v) => (Array.isArray(v) ? v : [])
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n))
@@ -297,7 +304,7 @@ export const storyWinsNeeded = (c) => Math.max(1, STORY_AFTER_WINS - (storyOf(c)
 // The extra DifficultyEngine score every campaign fight gets: the chosen
 // difficulty, each fallen region, and how full the doom clock is.
 export function campaignThreatBonus(c) {
-  return difficultyOf(c).enemyBonus + FALLEN_ENEMY_BONUS * fallenCount(c) + Math.floor((DOOM_ENEMY_BONUS * clamp(c.doom, 0, doomMax(c))) / doomMax(c))
+  return difficultyOf(c).enemyBonus + FALLEN_ENEMY_BONUS * fallenCount(c) + Math.floor((DOOM_ENEMY_BONUS * clamp(c.doom, 0, doomMax(c))) / doomMax(c)) + contentEnemyBonus(c)
 }
 
 export function missionAct(c, regionId) {
@@ -339,7 +346,7 @@ export function squadLimits(c) {
 // Missions
 // ---------------------------------------------------------------------------
 
-function rewardFor(type, act, region, rng, c) {
+function rewardFor(type, act, region, rng, c, id) {
   const r = { essence: 0, leyShards: 0, recruit: false, item: null, relic: null }
   if (type === "fight") r.essence = 120 + 30 * act
   if (type === "elite") {
@@ -380,6 +387,8 @@ function rewardFor(type, act, region, rng, c) {
     r.essence = 90 + 20 * act
     r.leyShards = 1
   }
+  // Content sprint: the new kinds (own seeded salt - no rolls on `rng`).
+  if (isContentType(type)) Object.assign(r, contentReward(type, act, c, id))
   return r
 }
 
@@ -408,9 +417,11 @@ function makeMission(c, type, regionId, rng, extra = {}) {
     title: story ? story.title : nemesis ? `${nemesis.name} - ${region?.short || regionId}` : faction ? `Call to Arms - ${faction.short}` : line ? `${t.name} - ${lineName(line)} line` : `${t.name} - ${region?.short || regionId}`,
     line: story ? story.line : nemesis ? `${nemesis.blurb} ${t.blurb}` : faction ? `${faction.name} call for help. ${t.blurb}` : t.blurb,
     chapter: story ? c.chapter : null,
-    reward: rewardFor(type, act, region, rng, c),
+    reward: rewardFor(type, act, region, rng, c, id),
     ...(nemesis ? { nemesisId: nemesis.id } : {}),
     ...(line ? { lineId: line.id, lineColour: line.colour } : {}),
+    // Content sprint: chapter roster / battlefield / Named Foe (own salt).
+    ...missionContentFields(c, type, regionId, id),
   }
   return { c: { ...c, nextMissionId: id + 1, missions: [...arr(c.missions), mission] }, mission }
 }
@@ -431,7 +442,7 @@ export function spawnMissions(c0, count = 1) {
     const front = [...CAMPAIGN_REGIONS].reverse().find((r) => !r.home && usable(r.id))
     c = makeMission(c, "story", want && usable(want) ? want : front?.id || "crownless", rng).c
   }
-  const regular = () => arr(c.missions).filter((m) => m.type !== "story").length
+  const regular = () => arr(c.missions).filter((m) => m.type !== "story" && m.type !== "warlord").length
   for (let n = 0; n < count && regular() < missionCap(c); n++) {
     const open = arr(c.regions).filter((r) => !r.fallen && regionLive(c, r.id))
     const fallen = arr(c.regions).filter((r) => r.fallen && !regionSunk(c, r.id) && !arr(c.missions).some((m) => m.regionId === r.id))
@@ -462,9 +473,12 @@ export function spawnMissions(c0, count = 1) {
     else if (t < 0.72) type = "fight"
     else if (t < 0.86) type = "supply"
     else type = "rescue"
+    // Content sprint: some fights / rescues become a new mission kind (own salt).
+    type = specialMissionType(c, type, region.id)
     c = makeMission(c, type, region.id, rng).c
   }
-  return c
+  // Content sprint: the chapter's Named Foe turns up after a few wins.
+  return maybeSpawnWarlord(c, { makeMission, regionLive })
 }
 
 // ---------------------------------------------------------------------------
@@ -584,7 +598,7 @@ export function advanceDay(c0, { fought = [] } = {}) {
   const diff = difficultyOf(c)
 
   // Heal + train the roster; the Commander heals too.
-  const heal = healPerDay(c)
+  const heal = healPerDay(c) + contentHealBonus(c)
   const xp = trainingXpPerDay(c)
   c = {
     ...c,
@@ -634,7 +648,7 @@ export function advanceDay(c0, { fought = [] } = {}) {
     if (!st || st.fallen || !regionLive(c, r.id)) continue
     const fallenNear = CAMPAIGN_ROADS.filter(([a, bb]) => (a === r.id || bb === r.id) && c.regions.find((x) => x.id === (a === r.id ? bb : a))?.fallen).length
     // Story marks: Allied / Warded regions creep up half as fast, Drained ones faster.
-    c = bumpThreat(c, r.id, diff.threatRate * r.threatMult * storyThreatMult(c, r.id) * doomPush + FALLEN_NEIGHBOUR_THREAT * fallenNear, true)
+    c = bumpThreat(c, r.id, diff.threatRate * r.threatMult * storyThreatMult(c, r.id) * contentThreatMult(c, r.id) * doomPush + FALLEN_NEIGHBOUR_THREAT * fallenNear, true)
   }
 
   // Regions that crossed 100 fall.
@@ -672,6 +686,11 @@ export function advanceDay(c0, { fought = [] } = {}) {
   const ley = leyDayTick(c, { open: regionLive, makeMission, expired })
   c = ley.c
   lines.push(...ley.lines)
+
+  // Content sprint: lasting effects fade, events lapse, a new event may turn up.
+  const content = contentDayTick(c, { regionLive, recruit: recruitFree })
+  c = content.c
+  lines.push(...content.lines)
 
   c = checkGameOver(c)
   if (!lines.length) lines.push("A quiet day. The Rot creeps on all the same.")
@@ -741,7 +760,8 @@ export function missionRunState(c, missionId, squadKeys) {
   const region = regionDef(m.regionId)
   const base = startRun(c.commanderId, null, { forcedSeed: m.seed })
   const bench = squadKeys.map((k) => c.roster.find((h) => h.key === k)).filter(Boolean).map((h) => ({ ...h, manaBonus: heroManaBonus(c, h) }))
-  const node = RUN_PATH[m.nodeIndex]
+  // Content sprint: the chapter roster / Named Foe replaces the node's own encounter.
+  const node = missionNode(m, RUN_PATH[m.nodeIndex])
   // Mana sprint 3: the ley network's fight bonus (start mana, regen, colours).
   const leyNet = leyFightBonus(c, regionLive)
   const overcharge =
@@ -749,7 +769,8 @@ export function missionRunState(c, missionId, squadKeys) {
     (m.type === "ley" ? LEY_MISSION_OVERCHARGE : 0) +
     (region?.ley && regionMod(c, m.regionId) !== "drained" ? LEY_REGION_OVERCHARGE : 0) +
     (LEY_WELL_OVERCHARGE[roomLevel(c, "leywell")] || 0) +
-    storyOvercharge(c)
+    storyOvercharge(c) +
+    contentOvercharge(c)
   return {
     ...base,
     nodeIndex: m.nodeIndex,
@@ -780,7 +801,9 @@ export function missionRunState(c, missionId, squadKeys) {
     campaignMissionId: m.id,
     // The story's faction ally / hunting nemesis, as fight fates
     // (tacticsBetweenFights.withFateArrivals puts them on the board).
-    fates: storyFates(c, m),
+    fates: [...storyFates(c, m), ...contentFates(c, m)],
+    // Content sprint: the mission's own objective, kits, chapter battlefield.
+    campaignOps: missionOpsSpec(c, m),
   }
 }
 
@@ -880,8 +903,10 @@ export function resolveMission(c0, { retreat = false } = {}) {
     c = { ...c, missions: c.missions.filter((x) => x.id !== m.id) }
     const r = m.reward || {}
     if (r.essence) {
-      c = { ...c, essence: c.essence + r.essence }
-      rewards.push(`+${r.essence} Essence`)
+      // Content sprint: a lasting Essence bonus (events) scales mission pay.
+      const pay = Math.round(r.essence * contentEssenceMult(c0))
+      c = { ...c, essence: c.essence + pay }
+      rewards.push(`+${pay} Essence`)
     }
     if (r.leyShards) {
       c = { ...c, leyShards: (c.leyShards || 0) + r.leyShards }
@@ -938,6 +963,13 @@ export function resolveMission(c0, { retreat = false } = {}) {
     c = leyLoss.c
     lines.push(...leyLoss.lines)
   }
+  // Content sprint: freed captives, a Ley-Cutter's cut, shards, a Named Foe, spent allies/rivals.
+  if (m) {
+    const ca = contentAftermath(c, m, campaignOpsResult(battle), won, { recruit: recruitFree })
+    c = ca.c
+    lines.push(...ca.lines)
+    rewards.push(...ca.rewards)
+  }
   if (wipe) {
     c = { ...c, doom: c.doom + DOOM_PER_WIPE }
     c = rollRecruitOffers(c, { rookies: ROOKIE_OFFERS_ON_WIPE })
@@ -963,6 +995,23 @@ export function resolveMission(c0, { retreat = false } = {}) {
   c = advanceDay(checkGameOver(c), { fought: am.squadKeys })
   return { ...checkGameOver(c), lastAftermath: aftermath }
 }
+
+// ---------------------------------------------------------------------------
+// Content sprint: free recruits (events, freed captives) + world-map events
+// ---------------------------------------------------------------------------
+
+// A hero who joins for free (an event, a freed captive). Respects the Barracks.
+export function recruitFree(c, tier = "common", salt = "free") {
+  if (arr(c.roster).length >= rosterCap(c)) return { c, hero: null }
+  const rng = rngFor(c, `free-recruit:${salt}`)
+  const made = makeHero(c, rollRecruitDef(c, rng, ["common", "uncommon", "rare"].includes(tier) ? tier : "common"), `free:${salt}`)
+  return { c: { ...made.c, roster: [...made.c.roster, made.hero], stats: { ...made.c.stats, recruited: (made.c.stats?.recruited || 0) + 1 } }, hero: made.hero }
+}
+
+export function chooseEvent(c, uid, optionId) {
+  return checkGameOver(chooseContentEvent(c, uid, optionId, { regionLive, recruit: recruitFree }))
+}
+export const clearEventResult = (c) => dismissEventResult(c)
 
 // ---------------------------------------------------------------------------
 // The story: choices, unique heroes
@@ -1076,6 +1125,7 @@ export function deserializeCampaign(saved) {
     activeMission: c.activeMission?.run?.battle ? c.activeMission : null,
     story: normalizeStory(c.story),
     ley: leyOf(c),
+    content: contentOf(c),
   }
 }
 

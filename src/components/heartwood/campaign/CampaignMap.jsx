@@ -12,6 +12,8 @@ import { FACTIONS, REGION_MODS, storyStanding } from "../../../services/heartwoo
 import { difficultyForRunNode } from "../../../services/heartwood/tacticsRealMatchup"
 // Mana sprint 3: ley lines + the network panel.
 import { LeyLines, LeyNetworkPanel } from "./LeyNetworkUi"
+// Content sprint: mission briefings, world-map events, lasting effects.
+import { MissionBriefing, EventMarkers, WorldEventCard, LastingEffects } from "./CampaignContentUi"
 
 const STATE_LABEL = { safe: "Safe", threatened: "Threatened", fallen: "Fallen", sunk: "Sunk" }
 
@@ -80,7 +82,7 @@ export function CampaignTopBar({ campaign, children }) {
   )
 }
 
-export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onPickMission }) {
+export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onPickMission, onEventChoose, onEventDismiss }) {
   const [focus, setFocus] = useState(null) // mission id
   const [help, setHelp] = useState(false)
   const standing = storyStanding(campaign)
@@ -220,6 +222,7 @@ export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onP
                 </g>
               )
             })}
+            <EventMarkers campaign={campaign} />
           </svg>
           <div className="hwc-legend">
             <span className="hwc-legend-dot is-safe" /> Safe
@@ -266,6 +269,8 @@ export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onP
           )}
 
           <LeyNetworkPanel campaign={campaign} />
+          <WorldEventCard campaign={campaign} onChoose={onEventChoose} onDismiss={onEventDismiss} />
+          <LastingEffects campaign={campaign} />
 
           {focused && (
             <div className="hwc-mission-card" data-type={focused.type} data-campaign-mission-detail={focused.id}>
@@ -279,6 +284,7 @@ export default function CampaignMap({ campaign, onExit, onHearth, onPassDay, onP
                 </div>
               </div>
               <p className="hwc-mission-line">{focused.line}</p>
+              <MissionBriefing mission={focused} />
               <div className="hwc-mission-facts">
                 <span className="hwc-danger" data-tier={dangers[focused.id]?.tier}>
                   Danger: T{dangers[focused.id]?.tier} {dangers[focused.id]?.name}

@@ -5,6 +5,9 @@
 // (Rotwood Husk, Moss Troll, Rune Warden) keep working with zero changes
 // to their own data.
 
+import { CAMPAIGN_FORMATIONS } from "./campaignContent"
+import { CAMPAIGN_BOSS_FORMATIONS } from "./campaignBosses"
+
 export const FORMATIONS = {
   "rotwood-husk-pair": {
     id: "rotwood-husk-pair",
@@ -800,6 +803,10 @@ export const FORMATIONS = {
     playerStart: { row: 2, col: 1 },
   },
 }
+
+// The Long Campaign (content sprint): chapter rosters + mini-boss fights.
+// Only campaign missions ever name these ids - nothing in the Expedition does.
+Object.assign(FORMATIONS, CAMPAIGN_FORMATIONS, CAMPAIGN_BOSS_FORMATIONS)
 
 export function resolveFormation(formationOrEnemyId) {
   if (FORMATIONS[formationOrEnemyId]) return FORMATIONS[formationOrEnemyId]

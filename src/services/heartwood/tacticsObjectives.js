@@ -9,6 +9,9 @@
 // Battle state gets `objective` (see applyObjective) - absent = kill-all.
 import { streamRng } from "../../data/heartwood/seed"
 import { emit, getUnit, setUnit, livingUnits, applyDamageWithBlock, checkTacticsBattleEnd, deriveTacticsUnit } from "./tacticsEngine"
+// The Long Campaign (content sprint): campaign mission objectives + enemy kits
+// ride these same three hooks (tacticsCampaignOps.js).
+import { campaignOpsVerdict, campaignOpsEnemyPhaseStart, campaignOpsBeforeNewTurn, campaignOpsNewTurn, describeCampaignOps } from "./tacticsCampaignOps"
 
 export const OBJECTIVE_TYPES = ["kill", "survive", "protect", "totem"]
 export const OBJECTIVE_NAMES = {
@@ -148,6 +151,10 @@ export function applyObjective(battle, spec) {
 // Objective-specific end conditions, checked before the default ones.
 // Returns null (no verdict) or { phase, line }.
 export function objectiveVerdict(state) {
+  return baseObjectiveVerdict(state) || (state.campaignOps ? campaignOpsVerdict(state) : null)
+}
+
+function baseObjectiveVerdict(state) {
   const obj = state.objective
   if (!obj) return null
   if (obj.type === "protect" && !(getUnit(state, obj.npcId)?.hp > 0)) return { phase: "lost", line: "The Wandering Seer has fallen. The fight is lost." }
@@ -161,6 +168,11 @@ export function objectiveVerdict(state) {
 
 // Start of the enemy phase: the Totem pulses on its turn.
 export function objectiveEnemyPhaseStart(state) {
+  const next = baseObjectiveEnemyPhaseStart(state)
+  return next.campaignOps && next.phase === "enemy" ? campaignOpsEnemyPhaseStart(next) : next
+}
+
+function baseObjectiveEnemyPhaseStart(state) {
   const obj = state.objective
   if (!obj || obj.type !== "totem" || state.turn < obj.nextPulseTurn) return state
   const totem = getUnit(state, obj.totemId)
@@ -187,6 +199,12 @@ export function objectiveEnemyPhaseStart(state) {
 // A new player turn has just begun (state.turn already advanced):
 // Survive completes, reinforcements arrive.
 export function objectiveNewTurn(state) {
+  if (!state.campaignOps) return baseObjectiveNewTurn(state)
+  const next = baseObjectiveNewTurn(campaignOpsBeforeNewTurn(state))
+  return campaignOpsNewTurn(next)
+}
+
+function baseObjectiveNewTurn(state) {
   const obj = state.objective
   if (!obj) return state
   if (obj.type === "survive" && state.turn > obj.turns) {
@@ -226,6 +244,15 @@ export function turnsUntilPulse(state) {
 
 // { title, detail, extra } for the side panel.
 export function describeObjective(state) {
+  const campaign = state.campaignOps?.kind ? describeCampaignOps(state) : null
+  if (campaign) {
+    const base = baseDescribeObjective(state)
+    return { ...campaign, extra: campaign.extra || base.extra }
+  }
+  return baseDescribeObjective(state)
+}
+
+function baseDescribeObjective(state) {
   const obj = state.objective
   const title = obj ? OBJECTIVE_NAMES[obj.type] : OBJECTIVE_NAMES.kill
   let detail = "Win by clearing the field."

@@ -35,6 +35,8 @@ import { classFieldsFor } from "./tacticsClasses"
 import { collarClassFor } from "./gear"
 import { riskOf } from "./betweenFights"
 import { withFateArrivals, withCommunePools, withStartCharge, betweenFightsMana } from "./tacticsBetweenFights"
+// The Long Campaign content sprint: mission objectives, campaign enemy kits, chapter maps.
+import { applyCampaignOps, finishCampaignOps } from "./tacticsCampaignOps"
 
 // Only these two phases mean "the player is standing in front of, or
 // mid-way through, a real fight" - every other phase (shop/relic/event/
@@ -260,7 +262,9 @@ export function buildRunTacticsBattle(runState, start) {
   })
   const factioned = battle && formation.faction ? applyFaction(battle, formation.faction) : battle
   // Mana step 1: every real fight runs with mana (all pools start full).
-  const built = applyObjective(arena ? applyBossFight(factioned, encounterId) : factioned, objectiveForRunNode(runState))
+  const built0 = applyObjective(arena ? applyBossFight(factioned, encounterId) : factioned, objectiveForRunNode(runState))
+  // The Long Campaign: the mission's own objective / kits / chapter battlefield.
+  const built = built0 && runState.campaignOps ? applyCampaignOps(built0, runState.campaignOps) : built0
   // Difficulty sprint 2: the DifficultyEngine (threat tier for this node) -
   // before mana, so escorts get their bars too.
   // Between-fights: a fated ally / rival joins (before the threat tier, so
@@ -270,11 +274,12 @@ export function buildRunTacticsBattle(runState, start) {
   // Combat depth sprint: stances, combos, reactions, Delay/Stagger on.
   // Between-fights mana: build-set tiers, camp Commune, mana-tide fates.
   // Mana sprint 3: campaign ley line colours (15% cheaper skills of that colour).
-  return threatened
+  const done = threatened
     ? enableCombatDepth(
         withLeyColours(withStartCharge(withCommunePools(enableMana(withBredClasses(threatened, runState), runState.relics || [], betweenFightsMana(runState)), runState), runState), runState),
       )
     : threatened
+  return done?.campaignOps ? finishCampaignOps(done) : done
 }
 
 // The DifficultyEngine spec for a run node: its Act, how deep into the Act
@@ -320,6 +325,8 @@ export function objectiveForRunNode(runState, nodeIndex = runState?.nodeIndex) {
   if (!runState || nodeIndex == null) return null
   const node = runState.path?.[nodeIndex]
   if (!node) return null
+  // The Long Campaign: a mission kind with its own objective replaces the random one.
+  if (runState.campaignOps?.kind) return null
   return objectiveForNode(runState.seed, nodeIndex, node.type, actIndexForNode(nodeIndex, RUN_PATH.length))
 }
 
