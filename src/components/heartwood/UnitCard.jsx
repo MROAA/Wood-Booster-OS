@@ -13,6 +13,7 @@ import HeroIdentityRow from "./HeroIdentityRow"
 import { CLASS_GROUPS, classById } from "../../data/heartwood/classes"
 import { signatureAbilityForDef } from "../../services/heartwood/tacticsEngine"
 import { describeAbility, signatureUpgrades, SIGNATURE_SKILL_KEY } from "../../services/heartwood/tacticsAbilities"
+import "./heartwood-cards.css"
 
 const ICON_BY_MOVE = { attack: "sword", block: "shield", heal: "heart" }
 
@@ -167,10 +168,16 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
     if (!rect.width || !rect.height) return
     pointerX.set((e.clientX - rect.left) / rect.width)
     pointerY.set((e.clientY - rect.top) / rect.height)
+    // Card feel: the light sheen on the card face follows the pointer
+    // (heartwood-cards.css reads --px/--py).
+    e.currentTarget.style.setProperty("--px", `${Math.round(((e.clientX - rect.left) / rect.width) * 100)}%`)
+    e.currentTarget.style.setProperty("--py", `${Math.round(((e.clientY - rect.top) / rect.height) * 100)}%`)
   }
-  function handlePointerLeave() {
+  function handlePointerLeave(e) {
     pointerX.set(0.5)
     pointerY.set(0.5)
+    e?.currentTarget?.style.removeProperty("--px")
+    e?.currentTarget?.style.removeProperty("--py")
   }
 
   return (

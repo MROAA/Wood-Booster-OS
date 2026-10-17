@@ -1,0 +1,155 @@
+/* Headquarters ("Päämaja") - HeadquartersScreen.jsx.
+
+   The player's camp and the default stance at a market stop: the
+   commander, the whole squad, relics and build on one calm screen, the
+   market one click away. Shares the Nordic forest panels, titles and
+   runes with the Market (heartwood-market-table.css); only what is
+   particular to the camp lives here. */
+
+
+/* ---------- Päämaja screen ---------- */
+.hwq-root {
+  /* a page of its own (the market isn't drawn underneath), so the
+     page's utility buttons - Help, How to Play... - stay reachable */
+  position: relative;
+  height: 100vh;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px 16px 12px;
+  color: var(--hwm-parch, #e8e2c8);
+  background:
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(232, 140, 60, 0.12), transparent 70%),
+    radial-gradient(ellipse 70% 60% at 50% 30%, rgba(30, 40, 22, 0.55), rgba(4, 6, 3, 0.96)),
+    #070906;
+  animation: hwq-open 0.28s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes hwq-open {
+  from { opacity: 0; scale: 0.985; }
+  to { opacity: 1; scale: 1; }
+}
+.hwq-top {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding-right: 450px;
+  min-height: 48px;
+}
+.hwq-top::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 5px;
+  opacity: 0.55;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 0 1px, #9b4436 1px 2px, transparent 2px 3px, #c4a14a 3px 4px, transparent 4px),
+    repeating-linear-gradient(90deg, transparent 0 14px, rgba(60, 96, 150, 0.9) 14px 18px, transparent 18px 32px, rgba(82, 128, 76, 0.9) 32px 36px);
+  background-size: 100% 100%, 100% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 0, 0 4px;
+}
+.hwq-back {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(205, 180, 122, 0.5);
+  background: rgba(14, 18, 11, 0.9);
+  color: var(--hwm-parch, #e8e2c8);
+  font-size: 13px;
+  cursor: pointer;
+}
+.hwq-back:hover {
+  border-color: var(--hwm-gold, #cdb47a);
+}
+.hwq-main {
+  display: grid;
+  grid-template-columns: var(--hw-ui-left-width, 300px) minmax(0, 1fr) var(--hw-ui-left-width, 300px);
+  gap: 14px;
+  min-height: 0;
+}
+.hwq-squad {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding: 8px 4px 4px;
+}
+.hwq-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 18px 14px;
+  padding: 6px 2px 10px;
+}
+.hwq-cards .hw-card {
+  width: 100%;
+  min-width: 0;
+  --card-art-h: 120px;
+}
+.hwq-root .hwm-map {
+  overflow: visible;
+}
+/* Päämaja sits above every market layer (tutorial hints included). */
+
+
+/* The market nearby: the merchant's line and the way over there. */
+.hwq-market-entry > *:not(.hwm-panel-title):not(.hwq-visit) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--hwm-ink);
+}
+.hwq-visit {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--hwm-gold) 55%, transparent);
+  background:
+    radial-gradient(ellipse 80% 120% at 100% 50%, color-mix(in srgb, var(--hwm-gold) 14%, transparent), transparent 70%),
+    linear-gradient(180deg, rgba(40, 46, 26, 0.95), rgba(20, 24, 13, 0.95));
+  color: var(--hwm-parch);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(232, 226, 200, 0.08);
+  transition: border-color 0.15s ease, translate 0.15s ease, box-shadow 0.15s ease;
+}
+.hwq-visit:hover {
+  border-color: var(--hwm-gold);
+  translate: 0 -2px;
+  box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.85), 0 0 14px color-mix(in srgb, var(--hwm-gold) 30%, transparent);
+}
+.hwq-visit-name {
+  font-family: var(--hw-font-display);
+  font-size: 18px;
+  letter-spacing: 0.03em;
+}
+.hwq-visit-sub {
+  font-size: 11.5px;
+  color: var(--hwm-ink);
+}
+/* The road fills the space; Continue anchors the bottom of the column. */
+.hwq-road {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+.hwq-root .hwm-side {
+  min-height: 0;
+  overflow-y: auto;
+}
+.hwq-root .hwm-launch {
+  flex: 0 0 auto;
+}

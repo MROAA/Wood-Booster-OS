@@ -18,6 +18,10 @@ await page.evaluate(async () => {
 await page.reload({ waitUntil: "domcontentloaded" }); await page.waitForTimeout(1500)
 const got = page.locator("button", { hasText: "Got it" }); if (await got.count()) await got.first().click()
 const c = {}
+// Headquarters is the default stance; the market is one click away
+c.hqIsDefault = (await page.locator(".hwq-root").count()) === 1 && (await page.locator(".hwm-root").count()) === 0
+c.hqHasContinue = (await page.locator(".hwq-root .hwm-continue").count()) === 1
+await page.locator(".hwq-visit").click(); await page.waitForTimeout(2600)
 const essence = async () => Number((await page.locator(".hwm-root .hw-essence-value").textContent()).trim())
 c.tableShown = (await page.locator(".hwm-root").count()) === 1
 c.noPageScroll = await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1 && document.documentElement.scrollWidth <= innerWidth + 1)
@@ -48,7 +52,17 @@ c.classicReachable = (await page.locator(".hw-shop-3zone-stage").count()) === 1
 await page.reload({ waitUntil: "domcontentloaded" }); await page.waitForTimeout(1200)
 c.classicRemembered = (await page.locator(".hw-shop-3zone-stage").count()) === 1
 await page.locator(".hwm-classic-link--back").click(); await page.waitForTimeout(500)
-c.backToTable = (await page.locator(".hwm-root").count()) === 1
+c.backToTable = (await page.locator(".hwq-root").count()) === 1
+await page.locator(".hwq-visit").click(); await page.waitForTimeout(2600)
+// Päämaja: the player's camp opens from the market and comes back
+await page.locator(".hwm-hq-btn").click(); await page.waitForTimeout(500)
+c.hqOpens = (await page.locator(".hwq-root").count()) === 1
+c.hqShowsSquad = (await page.locator(".hwq-cards .hw-card").count()) >= 3
+c.hqHasCommander = (await page.locator(".hwq-root .hw-commander-cluster").count()) === 1
+c.hqHidesOwnedPrice = await page.evaluate(() => [...document.querySelectorAll(".hwq-cards .hw-card-cost")].every((e) => getComputedStyle(e).display === "none"))
+await page.locator(".hwq-visit").click(); await page.waitForTimeout(2600)
+c.hqBack = (await page.locator(".hwq-root").count()) === 0
+c.marketNoCommander = (await page.locator(".hwm-root .hwm-side--left .hw-commander-cluster").count()) === 0
 // Continue leaves the shop
 await page.locator(".hwm-continue").click(); await page.waitForTimeout(900)
 c.continueLeaves = (await page.locator(".hwm-root").count()) === 0
