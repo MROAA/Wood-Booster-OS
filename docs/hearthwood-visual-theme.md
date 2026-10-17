@@ -128,11 +128,10 @@ Tree backdrop. All titles/runes/meanings live in
 2. Name on a banner across the art's foot.
 3. **Cost** — a gold coin in the top-left corner (owned heroes show no price).
 4. Tribe chips + the battle **role** (Tank / Healer / DPS / Support / Control).
-5. **Strength as bars** (`unitStrength.js`): ⚔ attack (bronze) and ♥ health
-   (red) — a long bar is a strong hero, the exact number at the bar's end.
-   A full bar = the strong end of the roster (attack 12, health 90). Attack is
-   the battle's own number (`attackFromMovePattern`); a hurt hero's lost
-   health is the dimmed end of its bar. No bare corner numbers to decode.
+5. **Attack and health** — one calm row at the foot: ⚔ attack, ♥ health, icon +
+   number (no bars - Marc found them unnecessary). Attack is the battle's own
+   number (`unitStrength.js` → `attackFromMovePattern`); a hurt hero shows
+   what it has left.
 6. Everything else folds away and opens on hover.
 
 ## 9. Animation — the feel of handling cards

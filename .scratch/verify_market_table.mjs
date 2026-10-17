@@ -39,11 +39,6 @@ c.cardAttackIsBattleAttack = await page.evaluate(async () => {
   return got.every((g) => g.length === 1) && got.map((g) => g[0]).sort().join() === want.sort().join()
 })
 
-// strength bars: a stronger attack is a longer bar
-c.attackBarsScale = await page.evaluate(() => {
-  const rows = [...document.querySelectorAll('.hwq-cards .hw-card-stat[data-stat="attack"]')].map((r) => [Number(r.querySelector(".hw-card-stat-num").textContent), r.querySelector(".hw-card-stat-fill").getBoundingClientRect().width])
-  return rows.every(([n1, w1]) => rows.every(([n2, w2]) => (n1 > n2 ? w1 >= w2 : true)))
-})
 // one plain cursor everywhere (Marc: "kursori pysyy kokoajan samana")
 const cursorsHere = () => page.evaluate(() => [...new Set([...document.querySelectorAll(".hw-root *")].filter((e) => e.offsetParent).map((e) => getComputedStyle(e).cursor))])
 c.hqCursorSame = (await cursorsHere()).every((k) => k === "default")
