@@ -15,6 +15,7 @@ import { signatureAbilityForDef } from "../../services/heartwood/tacticsEngine"
 import { unitStrength } from "../../services/heartwood/unitStrength"
 import { describeAbility, signatureUpgrades, SIGNATURE_SKILL_KEY } from "../../services/heartwood/tacticsAbilities"
 import "./heartwood-cards.css"
+import "./fusion-reward.css"
 
 
 // Class chip tooltip: passive, class skills, then the unit's signature;
@@ -210,7 +211,7 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       // things) - a Tier 2 fusion result reads as "rare" regardless of
       // its base tier, matching displayTier's own "always the top
       // rarity" framing elsewhere in the UI.
-      data-tier={def.displayTier === 2 ? "rare" : def.tier}
+      data-tier={def.displayTier === 3 ? "legendary" : def.displayTier === 2 ? "rare" : def.tier}
       // Golden/upgraded look (Hearthstone Battlegrounds' own "Golden"
       // convention for a tripled minion) - distinct from and layered on
       // top of the plain rare glow above, a PERSISTENT marker (not just
@@ -218,7 +219,8 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       // already plays the moment a fusion completes) so a Tier 2 unit
       // still reads as special every time you see it afterward, not
       // just in that first instant.
-      data-fused={def.displayTier === 2}
+      data-fused={(def.displayTier || 1) >= 2}
+      data-fusion-tier={def.displayTier || 1}
       data-tribe-match={!!tribeMatch}
       data-frozen={!!frozen}
       onClick={!disabled ? onClick : undefined}
@@ -427,7 +429,7 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
       })()}
       <div className="hw-card-desc">
         {def.tier[0].toUpperCase() + def.tier.slice(1)}
-        {def.displayTier === 2 ? " Tier 2" : ""}
+        {def.displayTier === 3 ? " Tier 3" : def.displayTier === 2 ? " Tier 2" : ""}
         {def.attackPattern !== "single" ? ` · ${def.attackPattern}` : ""}
         {def.haste ? " · haste" : ""}
         {/* Build-around hooks (feat/hearthwood-legendary-units) - same

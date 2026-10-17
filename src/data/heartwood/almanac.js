@@ -79,7 +79,7 @@ function unitSub(def) {
   const tribes = tribesOf(def.id, def)
     .map((t) => TRIBES[t]?.name || t)
     .join(", ")
-  const tier = def.displayTier === 2 ? " · fused" : def.evolvedFrom ? " · evolved" : ""
+  const tier = def.displayTier === 3 ? " · fused ★" : def.displayTier === 2 ? " · fused" : def.evolvedFrom ? " · evolved" : ""
   return tribes ? `${role} · ${tribes}${tier}` : `${role}${tier}`
 }
 

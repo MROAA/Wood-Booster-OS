@@ -1,0 +1,139 @@
+/* Fusion reward choice (FusionRewardChoice.jsx) - Nordic forest theme:
+   a dark panel, a soft burst of light behind the fused hero's name
+   (silver for Tier 2, gold for Tier 3), three tarot-like choices. */
+.hw-fusion-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at 50% 45%, rgba(10, 14, 8, 0.7), rgba(3, 4, 2, 0.92));
+  animation: hw-fusion-fade 0.25s ease both;
+}
+.hw-fusion-panel {
+  --fusion: #c9d2dc;
+  position: relative;
+  width: min(760px, calc(100vw - 32px));
+  padding: 26px 28px 24px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--fusion) 55%, transparent);
+  background: linear-gradient(180deg, rgba(22, 27, 17, 0.97), rgba(10, 13, 8, 0.98));
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.9), 0 0 40px color-mix(in srgb, var(--fusion) 18%, transparent);
+  text-align: center;
+  color: #e8e2c8;
+  overflow: hidden;
+  animation: hw-fusion-rise 0.45s cubic-bezier(.2, .8, .3, 1) both;
+}
+.hw-fusion-panel[data-tier="3"] {
+  --fusion: #e7c27a;
+}
+.hw-fusion-burst {
+  position: absolute;
+  left: 50%;
+  top: 40px;
+  width: 360px;
+  height: 160px;
+  translate: -50% 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--fusion) 35%, transparent), transparent 70%);
+  animation: hw-fusion-pulse 2.4s ease-in-out infinite;
+}
+.hw-fusion-kicker {
+  position: relative;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--fusion);
+}
+.hw-fusion-title {
+  position: relative;
+  margin: 6px 0 2px;
+  font-family: var(--hw-font-display);
+  font-size: 34px;
+  letter-spacing: 0.04em;
+  color: #f4ecd0;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--fusion) 55%, transparent), 0 2px 4px #000;
+}
+.hw-fusion-sub {
+  position: relative;
+  margin: 0 0 20px;
+  font-size: 13px;
+  color: rgba(232, 226, 200, 0.7);
+}
+.hw-fusion-options {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.hw-fusion-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(205, 180, 122, 0.35);
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(205, 180, 122, 0.08), transparent 70%),
+    rgba(14, 18, 11, 0.95);
+  color: #e8e2c8;
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 10px 18px -8px rgba(0, 0, 0, 0.85);
+  transition: translate 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.hw-fusion-option:hover {
+  translate: 0 -4px;
+  border-color: var(--fusion);
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 20px 26px -10px rgba(0, 0, 0, 0.9), 0 0 16px color-mix(in srgb, var(--fusion) 30%, transparent);
+}
+.hw-fusion-option-gem {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f3d98e, #b88a32 60%, #6e4f17);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.hw-fusion-option[data-reward="seasoned"] .hw-fusion-option-gem { background: radial-gradient(circle at 35% 30%, #d9a86a, #8a5a26 60%, #432a10); }
+.hw-fusion-option[data-reward="gear"] .hw-fusion-option-gem { background: radial-gradient(circle at 35% 30%, #a8c3dc, #4c6d8f 60%, #1f3247); }
+.hw-fusion-option[data-reward="rest"] .hw-fusion-option-gem { background: radial-gradient(circle at 35% 30%, #f08a6e, #b0321f 60%, #5c140b); }
+.hw-fusion-option-icon {
+  width: 22px;
+  height: 22px;
+  color: #fff8e6;
+}
+.hw-fusion-option-name {
+  font-family: var(--hw-font-display);
+  font-size: 17px;
+}
+.hw-fusion-option-text {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: rgba(232, 226, 200, 0.75);
+}
+@keyframes hw-fusion-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hw-fusion-rise {
+  from { opacity: 0; translate: 0 18px; scale: 0.96; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+@keyframes hw-fusion-pulse {
+  0%, 100% { opacity: 0.7; scale: 1; }
+  50% { opacity: 1; scale: 1.08; }
+}
+.hw-reduce-motion .hw-fusion-overlay,
+.hw-reduce-motion .hw-fusion-panel,
+.hw-reduce-motion .hw-fusion-burst { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hw-fusion-overlay, .hw-fusion-panel, .hw-fusion-burst { animation: none; }
+}
+
+/* Tier frames on hero cards: Tier 2 silver, Tier 3 gold. */
+.hw-card.hw-card[data-fusion-tier="2"] {
+  border-color: rgba(201, 210, 220, 0.75);
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 8px 14px -6px rgba(0, 0, 0, 0.85), 0 0 12px rgba(201, 210, 220, 0.25);
+}
+.hw-card.hw-card[data-fusion-tier="3"] {
+  border-color: rgba(231, 194, 122, 0.9);
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 8px 14px -6px rgba(0, 0, 0, 0.85), 0 0 18px rgba(231, 194, 122, 0.4);
+}

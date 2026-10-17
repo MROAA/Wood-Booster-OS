@@ -2110,6 +2110,25 @@ function makeTier2(base) {
 const TIER2_UNITS = Object.fromEntries(
   Object.values(BASE_UNITS).map((base) => [`${base.id}${TIER2_SUFFIX}`, makeTier2(base)]),
 )
+// Fusion Tier 3 (docs/hearthwood-fusion-design.md): 3 copies of the same
+// Tier 2 fuse into a golden Tier 3 - the Tier 2 step applied once more
+// (+50% HP, +40% amounts on top of Tier 2). `fusedFrom` stays the BASE
+// id so everything that maps a fused hero back to its base (dualClasses'
+// baseIdOf, pools) keeps working. Max tier.
+export const TIER3_SUFFIX = "++"
+function makeTier3(base) {
+  const t2 = makeTier2(base)
+  return {
+    ...makeTier2(t2),
+    id: `${base.id}${TIER3_SUFFIX}`,
+    name: `${base.name}★`,
+    fusedFrom: base.id,
+    displayTier: 3,
+  }
+}
+const TIER3_UNITS = Object.fromEntries(
+  Object.values(BASE_UNITS).map((base) => [`${base.id}${TIER3_SUFFIX}`, makeTier3(base)]),
+)
 
 // Upgrade: a second, independent way to spend Essence on the bench
 // besides recruiting/rerolling and (via runEngine.js's relic nodes)
@@ -2155,4 +2174,4 @@ export function unitDefWithUpgrade(def, upgrades) {
   return upgrades.reduce((d, id) => applyBranch(id, d), def)
 }
 
-export const UNITS = { ...BASE_UNITS, ...TIER2_UNITS }
+export const UNITS = { ...BASE_UNITS, ...TIER2_UNITS, ...TIER3_UNITS }

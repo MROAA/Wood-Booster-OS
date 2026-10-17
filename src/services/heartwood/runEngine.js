@@ -12,7 +12,7 @@
 // still points at the right unit (or clears itself) no matter how the
 // bench array reshuffles underneath it.
 
-import { UNITS, TIER2_SUFFIX, upgradeCost } from "../../data/heartwood/units"
+import { UNITS, TIER2_SUFFIX, TIER3_SUFFIX, upgradeCost } from "../../data/heartwood/units"
 import { branchAvailable, branchById, ECONOMY_WIN_BONUS } from "../../data/heartwood/upgrades"
 import { RELICS, relicPool, RELIC_REROLL_COST } from "../../data/heartwood/relics"
 import { ITEMS, ITEM_SLOTS, itemPool, collarPool, RARITIES } from "../../data/heartwood/items"
@@ -959,32 +959,92 @@ export function freshItemShop(rs, nodeIndex) {
 function tryFuseOnce(bench, deployed, items, nextKey) {
   const groups = {}
   for (const entry of bench) {
-    if (UNITS[entry.defId].displayTier === 2) continue
+    // Tier 3 is the top - nothing fuses past it (docs/hearthwood-fusion-design.md)
+    if ((UNITS[entry.defId]?.displayTier || 1) >= 3) continue
     ;(groups[entry.defId] ||= []).push(entry)
   }
   for (const [defId, entries] of Object.entries(groups)) {
     if (entries.length < 3) continue
+    const def = UNITS[defId]
+    // base x3 -> Tier 2; Tier 2 x3 -> Tier 3 (its base is def.fusedFrom)
+    const tier = def.displayTier === 2 ? 3 : 2
+    const resultId = tier === 3 ? `${def.fusedFrom}${TIER3_SUFFIX}` : `${defId}${TIER2_SUFFIX}`
+    if (!UNITS[resultId]) continue
     const consumed = new Set(entries.slice(0, 3).map((e) => e.key))
     // Traits: the fused hero keeps its parts' traits (deduped, capped).
     const partTraits = entries.slice(0, 3).filter((e) => Array.isArray(e.heroTraits))
     const traits = partTraits.length ? [...new Set(partTraits.flatMap((e) => e.heroTraits))].slice(0, MAX_TRAITS) : null
     const nextBench = [
       ...bench.filter((e) => !consumed.has(e.key)),
-      { key: nextKey, defId: `${defId}${TIER2_SUFFIX}`, upgradeLevel: 0, ...(traits ? { heroTraits: traits } : {}) },
+      { key: nextKey, defId: resultId, upgradeLevel: 0, ...(traits ? { heroTraits: traits } : {}) },
     ]
     const nextDeployed = deployed.map((k) => (consumed.has(k) ? null : k))
     const nextItems = items.map((it) => (consumed.has(it.equippedTo) ? { ...it, equippedTo: null, slotIndex: null } : it))
-    return { bench: nextBench, deployed: nextDeployed, items: nextItems, nextKey: nextKey + 1, changed: true }
+    return { bench: nextBench, deployed: nextDeployed, items: nextItems, nextKey: nextKey + 1, changed: true, event: { key: nextKey, defId: resultId, tier } }
   }
   return { bench, deployed, items, nextKey, changed: false }
 }
-
 function fuseAll(bench, deployed, items, nextKey) {
   let state = { bench, deployed, items, nextKey, changed: true }
+  // every fusion that happened, in order - each earns a reward choice
+  const events = []
   while (state.changed) {
     state = tryFuseOnce(state.bench, state.deployed, state.items, state.nextKey)
+    if (state.event) events.push(state.event)
   }
-  return state
+  return { ...state, events }
+}
+
+// ---- Fusion rewards (docs/hearthwood-fusion-design.md) ----
+// Every fusion queues a 1-of-3 reward choice on runState.pendingFusionRewards
+// (a queue - two fusions at once give two choices). Options are rolled from
+// the run seed, so the same run offers the same rewards.
+export const FUSION_REWARDS = {
+  spoils: { name: "Spoils", icon: "spark", text: (r) => `+${r.essence} Essence` },
+  gear: { name: "A gift of gear", icon: "shield", text: (r) => `${ITEMS[r.itemId]?.name || "An item"} for your bag` },
+  seasoned: { name: "Seasoned", icon: "sword", text: (r) => `${UNITS[r.defId]?.name || "The hero"} gains ${r.xp} XP` },
+  rest: { name: "Rest by the fire", icon: "heart", text: () => "Your whole squad heals to full" },
+}
+function rollFusionReward(runState, event) {
+  const rng = streamRng(runState.seed || 0, "loot", `fusion:${event.key}`)
+  const t3 = event.tier === 3
+  const wantRarities = t3 ? ["epic", "legendary", "rare"] : ["common", "rare"]
+  let itemId = null
+  for (const rarity of wantRarities) {
+    const pool = itemPool().filter((it) => it.rarity === rarity)
+    if (pool.length) {
+      itemId = pool[Math.floor(rng() * pool.length)].id
+      break
+    }
+  }
+  const all = [
+    { id: "spoils", essence: t3 ? 150 : 60 },
+    ...(itemId ? [{ id: "gear", itemId }] : []),
+    { id: "seasoned", key: event.key, defId: event.defId, xp: t3 ? 15 : 6 },
+    { id: "rest" },
+  ]
+  // offer 3 (drop one at random when there are 4)
+  if (all.length > 3) all.splice(Math.floor(rng() * all.length), 1)
+  return { key: event.key, defId: event.defId, tier: event.tier, options: all }
+}
+function withFusionRewards(runState, events = []) {
+  if (!events.length) return runState
+  return { ...runState, pendingFusionRewards: [...(runState.pendingFusionRewards || []), ...events.map((e) => rollFusionReward(runState, e))] }
+}
+export function chooseFusionReward(runState, rewardId) {
+  const [current, ...rest] = runState.pendingFusionRewards || []
+  if (!current) return runState
+  const opt = current.options.find((o) => o.id === rewardId)
+  if (!opt) return runState
+  let rs = { ...runState, pendingFusionRewards: rest }
+  if (opt.id === "spoils") rs = { ...rs, essence: (rs.essence || 0) + opt.essence }
+  if (opt.id === "gear" && ITEMS[opt.itemId]) {
+    const key = rs.itemKeyCounter || 0
+    rs = { ...rs, items: [...(rs.items || []), { key, defId: opt.itemId, equippedTo: null, slotIndex: null }], itemKeyCounter: key + 1 }
+  }
+  if (opt.id === "seasoned") rs = { ...rs, bench: rs.bench.map((e) => (e.key === opt.key ? { ...e, xp: (e.xp || 0) + opt.xp } : e)) }
+  if (opt.id === "rest") rs = { ...rs, bench: rs.bench.map((e) => ({ ...e, hpPct: 1, wounded: false })) }
+  return rs
 }
 
 // Marc: "peli alkaa siitä että commander on yksin, ja siitä
@@ -1315,6 +1375,7 @@ function addUnitToBench(runState, defId, upgradeLevel = 0) {
   const newKey = runState.benchKeyCounter
   const withNew = [...runState.bench, { key: newKey, defId, upgradeLevel, upgrades: [] }]
   const fused = fuseAll(withNew, runState.deployed, runState.items, runState.benchKeyCounter + 1)
+  runState = withFusionRewards(runState, fused.events)
   let deployed = fused.deployed
   const deployedKeys = new Set(deployed.filter((k) => k !== null))
   for (const entry of fused.bench) {
@@ -1375,7 +1436,7 @@ export function reforgeUnit(runState, benchKey) {
   const entry = runState.bench.find((e) => e.key === benchKey)
   if (!entry || runState.essence < REFORGE_COST) return runState
   const currentDef = UNITS[entry.defId]
-  if (!currentDef || currentDef.displayTier === 2 || currentDef.tier === "legendary") return runState
+  if (!currentDef || currentDef.displayTier >= 2 || currentDef.tier === "legendary") return runState
   const pool = Object.values(UNITS).filter((u) => !u.fusedFrom && !u.summonOnly && !u.evolvedFrom && u.tier === currentDef.tier && u.id !== entry.defId)
   if (!pool.length) return runState
   // Seed engine's `shop` stream, salted by the bench key + how many
@@ -1937,7 +1998,7 @@ export function upgradeUnit(runState, benchKey, branchId) {
   const entry = runState.bench.find((e) => e.key === benchKey)
   if (!entry) return runState
   const def = UNITS[entry.defId]
-  if (!def || def.displayTier === 2) return runState
+  if (!def || def.displayTier >= 2) return runState
   const upgrades = entry.upgrades || []
   const level = upgrades.length || entry.upgradeLevel || 0
   const cost = upgradeCost(level)
@@ -2063,7 +2124,7 @@ function applyEventEffect(runState, eff, effIndex = 0) {
     const newKey = runState.benchKeyCounter + 1
     const withNew = [...runState.bench, { key: newKey, defId: id, upgradeLevel: 0 }]
     const fused = fuseAll(withNew, runState.deployed, runState.items, newKey)
-    return withRolledTraits({ ...runState, bench: fused.bench, deployed: fused.deployed, items: fused.items, benchKeyCounter: newKey })
+    return withRolledTraits({ ...withFusionRewards(runState, fused.events), bench: fused.bench, deployed: fused.deployed, items: fused.items, benchKeyCounter: newKey })
   }
   if (Array.isArray(eff.squadNextBattle)) {
     // Same one-battle channel the Commander's active power uses - applied
