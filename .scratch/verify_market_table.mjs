@@ -35,10 +35,18 @@ c.cardAttackIsBattleAttack = await page.evaluate(async () => {
   const { attackFromMovePattern } = await import("/src/services/heartwood/tacticsEngine.js")
   const { UNITS } = await import("/src/data/heartwood/units.js")
   const want = ["the-fool", "the-magician", "the-chariot"].map((id) => String(attackFromMovePattern(UNITS[id].movePattern)))
-  const got = [...document.querySelectorAll(".hwq-cards .hw-card")].map((card) => [...card.querySelectorAll(".hw-effect-icon")].map((g) => g.textContent.trim()))
+  const got = [...document.querySelectorAll(".hwq-cards .hw-card")].map((card) => [...card.querySelectorAll('.hw-card-stat[data-stat="attack"] .hw-card-stat-num')].map((g) => g.textContent.trim()))
   return got.every((g) => g.length === 1) && got.map((g) => g[0]).sort().join() === want.sort().join()
 })
 
+// strength bars: a stronger attack is a longer bar
+c.attackBarsScale = await page.evaluate(() => {
+  const rows = [...document.querySelectorAll('.hwq-cards .hw-card-stat[data-stat="attack"]')].map((r) => [Number(r.querySelector(".hw-card-stat-num").textContent), r.querySelector(".hw-card-stat-fill").getBoundingClientRect().width])
+  return rows.every(([n1, w1]) => rows.every(([n2, w2]) => (n1 > n2 ? w1 >= w2 : true)))
+})
+// one plain cursor everywhere (Marc: "kursori pysyy kokoajan samana")
+const cursorsHere = () => page.evaluate(() => [...new Set([...document.querySelectorAll(".hw-root *")].filter((e) => e.offsetParent).map((e) => getComputedStyle(e).cursor))])
+c.hqCursorSame = (await cursorsHere()).every((k) => k === "default")
 // --- to the Market
 await page.locator(".hwq-visit").click(); await page.waitForTimeout(2600)
 c.marketShown = (await page.locator(".hwm-root").count()) === 1
@@ -46,6 +54,7 @@ c.marketFits = await fits()
 c.marketCenterFits = await page.evaluate(() => { const el = document.querySelector(".hwm-center"); return el.scrollHeight - el.clientHeight <= 2 })
 c.marketTradingOnly = (await page.locator(".hwm-root .hwm-squad, .hwm-root .hwm-continue, .hwm-root .hw-commander-cluster").count()) === 0
 c.threeOffers = (await page.locator(".hwm-offers .hw-card").count()) === 3
+c.marketCursorSame = (await cursorsHere()).every((k) => k === "default")
 c.runesOnTitles = (await page.locator("[data-rune]").count()) >= 6
 const e0 = await essence()
 await page.locator(".hwm-offers .hw-card").first().click(); await page.waitForTimeout(800)

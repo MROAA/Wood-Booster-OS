@@ -117,18 +117,23 @@ Tree backdrop. All titles/runes/meanings live in
 5. **One button language** — dark carved plaques with a gold hairline.
 6. **Fit Marc's real screen**: 1536×864 (125% of 1920×1080) with no page
    scroll; never shrink buttons he asked to be bigger.
-7. **Studio tools stay out of the player's way** — Edit Layout / Edit in
+7. **One cursor** — the plain arrow everywhere, always (no hands, help marks
+   or no-entry signs); only text fields show the typing caret.
+8. **Studio tools stay out of the player's way** — Edit Layout / Edit in
    Studio hide behind the corner `✎ Studio` switch.
 
 ## 8. Cards — Hearthstone-clear anatomy (`heartwood-cards.css`)
 
 1. Art first, big, in a carved arch.
 2. Name on a banner across the art's foot.
-3. Fixed corners: **cost** gem top-left (lichen gold), **what it does each
-   turn** gems bottom-left (attack/block/heal), **health** drop bottom-right
-   (red). Owned heroes show no price.
+3. **Cost** — a gold coin in the top-left corner (owned heroes show no price).
 4. Tribe chips + the battle **role** (Tank / Healer / DPS / Support / Control).
-5. Everything else folds away and opens on hover.
+5. **Strength as bars** (`unitStrength.js`): ⚔ attack (bronze) and ♥ health
+   (red) — a long bar is a strong hero, the exact number at the bar's end.
+   A full bar = the strong end of the roster (attack 12, health 90). Attack is
+   the battle's own number (`attackFromMovePattern`); a hurt hero's lost
+   health is the dimmed end of its bar. No bare corner numbers to decode.
+6. Everything else folds away and opens on hover.
 
 ## 9. Animation — the feel of handling cards
 
