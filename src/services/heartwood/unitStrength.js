@@ -1,9 +1,9 @@
-// Unit strength - a hero's attack and health as a share of the game's
-// strong end, so a card can SHOW strength as bar length instead of asking
-// the player to judge bare numbers (Marc: "yksikön vahvuus pitää näkyä
-// selkeämmin ... en osaa lukea näitä hyvin").
+// Unit strength - a hero's attack and health for its card (UnitCard.jsx).
+// The *Pct values (share of the roster's strong end) are kept for any
+// future strength read-out; cards show the plain numbers since Marc
+// dropped the bars ("ota mittarit pois ... tarpeettomat").
 //
-// Purpose: one source for the strength bars on hero cards (UnitCard.jsx).
+// Purpose: one source for a hero's attack/health as shown on its card.
 // Attack uses tacticsEngine's attackFromMovePattern - the very number the
 // battle hits with - so the card and the fight can never disagree.
 // Public API: unitStrength(def, entry?) -> { attack, health, maxHealth,

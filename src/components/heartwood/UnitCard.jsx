@@ -407,29 +407,19 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
           ))}
         </div>
       )}
-      {/* Strength (Marc: "yksikön vahvuus pitää näkyä selkeämmin"): attack
-          and health as bars - a long bar is a strong hero, no reading
-          needed - with the number at the end. Attack is the battle's own
-          number (see unitStrength.js); the health bar dims what a hurt
-          hero has lost. */}
+      {/* Attack and health (Marc: bars "ota mittarit pois ... tarpeettomat"):
+          one calm row - icon + number each. Attack is the battle's own
+          number (unitStrength.js); a hurt hero shows what it has left. */}
       {(() => {
         const st = unitStrength(def, entry)
         return (
           <div className="hw-card-strength">
             <span className="hw-card-stat" data-stat="attack" title={`Attack: ${st.attack} damage per hit`}>
               <CardGlyph name="sword" className="hw-card-stat-icon" />
-              <span className="hw-card-stat-bar">
-                <span className="hw-card-stat-fill" style={{ width: `${st.attackPct}%` }} />
-              </span>
               <b className="hw-card-stat-num">{st.attack}</b>
             </span>
             <span className="hw-card-stat" data-stat="health" title={`Health: ${st.health === st.maxHealth ? st.maxHealth : `${st.health} of ${st.maxHealth}`}`}>
               <CardGlyph name="heart" className="hw-card-stat-icon" />
-              <span className="hw-card-stat-bar">
-                <span className="hw-card-stat-fill" style={{ width: `${st.healthPct}%` }}>
-                  <span className="hw-card-stat-lost" style={{ width: `${100 - st.hurtPct}%` }} />
-                </span>
-              </span>
               <b className="hw-card-stat-num">{st.health}</b>
             </span>
           </div>
