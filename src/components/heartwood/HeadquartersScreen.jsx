@@ -7,11 +7,12 @@
 // Dependencies: pieces + state from SquadDraft.jsx through `kit`.
 // Look: heartwood-market-table.css (shared panels) + headquarters-screen.css.
 import { useEffect, useState } from "react"
-import { RESERVE_CAP, DEPLOY_SLOTS, unitHpPct, assignToSlot } from "../../services/heartwood/runEngine"
+import { RESERVE_CAP, DEPLOY_SLOTS, assignToSlot } from "../../services/heartwood/runEngine"
 import { CardGlyph } from "./cardArt"
 import { UNITS } from "../../data/heartwood/units"
 import { marketUiText } from "../../data/heartwood/marketUi"
 import UiTitle from "./CampTitle"
+import { campStatus, STATUS_RUNE } from "./campStatus"
 import DevDesk from "./DevDesk"
 import "./heartwood-market-table.css"
 import "./headquarters-screen.css"
@@ -79,23 +80,10 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
     })
     setSwapKey(null)
   }
-  // The camp at a glance: the one thing to know before setting out -
-  // an empty place in the fight, who is hurt, or that all is ready.
-  const hurt = deployedEntries.filter((e) => unitHpPct(e) < 1 || e.wounded)
-  const hurtNames = hurt.map((e) => UNITS[e.defId]?.name).filter(Boolean)
+  // The camp at a glance (campStatus.js), or the swap in progress.
   const status = swapName
-    ? { state: "pick", text: `Choose whose place ${swapName} takes` }
-    : deployedCount < DEPLOY_SLOTS
-      ? {
-            state: "warn",
-            text: `${emptyCount === 1 ? "A place" : `${emptyCount} places`} in the fight ${emptyCount === 1 ? "stands" : "stand"} empty${reserveEntries.length > 0 ? " - call a hero from the reserve" : ""}`,
-          }
-      : hurtNames.length > 0
-        ? {
-            state: "hurt",
-            text: `${hurtNames.length === 1 ? `${hurtNames[0]} is` : hurtNames.length === 2 ? `${hurtNames[0]} and ${hurtNames[1]} are` : `${hurtNames.length} heroes are`} hurt - mend at the workbench`,
-          }
-        : { state: "ready", text: "The camp is ready to set out" }
+    ? { state: "pick", rune: STATUS_RUNE.pick, text: `Choose whose place ${swapName} takes` }
+    : campStatus({ deployedEntries, deployedCount, reserveCount, where: "hq" })
   const hasBelongings = (runState.relics || []).length > 0 || (runState.items || []).length > 0
 
   return (
@@ -111,7 +99,7 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
           {nextLabel && <span className="hwm-top-chip">Next: {nextLabel}</span>}
         </div>
         <div className="hwq-status" data-state={status.state} role="status">
-          <span className="hwq-status-rune" aria-hidden="true">{status.state === "ready" ? "ᛞ" : status.state === "hurt" ? "ᚢ" : "ᛗ"}</span>
+          <span className="hwq-status-rune" aria-hidden="true">{status.rune}</span>
           <span className="hwq-status-text">{status.text}</span>
           {swapName && (
             <button type="button" className="hwq-status-cancel" onClick={() => setSwapKey(null)}>
