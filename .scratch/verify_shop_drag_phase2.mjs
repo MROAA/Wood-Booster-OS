@@ -40,6 +40,7 @@ const relicsBefore = await page.locator(".hw-rail-section", { hasText: "Relics" 
 console.log("Map position before Edit Layout:", mapBefore?.x, mapBefore?.y)
 console.log("Relics position before Edit Layout:", relicsBefore?.x, relicsBefore?.y)
 
+await page.evaluate(() => { localStorage.setItem("hw-layout-tools", "1"); document.documentElement.classList.add("hw-layout-tools") }) // toolbars hide behind the corner switch (remembered across reloads)
 await page.locator("button", { hasText: "Edit Layout" }).click()
 await page.waitForTimeout(300)
 

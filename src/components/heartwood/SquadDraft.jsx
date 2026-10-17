@@ -974,7 +974,7 @@ export default function SquadDraft({
         showIntro && (
           <div key="tutorialHint" className="hw-hint hw-hint--tutorial" style={{ marginTop: 3 }}>
             <span>
-              Recruit heroes, place up to 4 on the grid, then watch them fight automatically. Win to earn Essence and
+              Recruit heroes, then lead them in turn-based fights on the battlefield. Win to earn Essence and
               press on - lose, and the run ends.
             </span>
             <div className="hw-tutorial-actions">

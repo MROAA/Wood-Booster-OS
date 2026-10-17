@@ -37,6 +37,7 @@ await seedShopRun(page)
 const relicsSectionBefore = await page.locator(".hw-rail-section", { hasText: "Relics" }).boundingBox()
 console.log("Relics section position BEFORE Edit Layout:", relicsSectionBefore?.x, relicsSectionBefore?.y)
 
+await page.evaluate(() => { localStorage.setItem("hw-layout-tools", "1"); document.documentElement.classList.add("hw-layout-tools") }) // toolbars hide behind the corner switch (remembered across reloads)
 const editLayoutBtn = page.locator("button", { hasText: "Edit Layout" })
 console.log("Edit Layout button present (dev-only):", await editLayoutBtn.count() > 0)
 await editLayoutBtn.click()

@@ -451,3 +451,99 @@
   .hwt-token-art,
   .hwt-token-glyph { animation: none !important; }
 }
+
+/* ---------- Graphics round 2: calmer screens around the battle ---------- */
+/* Studio layout toolbars stay hidden until the corner "✎ Layout"
+   switch (LayoutToolsToggle.jsx) turns them on. */
+html:not(.hw-layout-tools) .hw-free-layout-toolbar,
+html:not(.hw-layout-tools) .hw-shop-layout-toolbar {
+  display: none;
+}
+.hw-layout-tools-toggle {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 40;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--hw-border, #4a3f2e) 80%, transparent);
+  background: rgba(18, 13, 8, 0.7);
+  color: var(--hw-muted, #a89a7c);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+.hw-layout-tools-toggle:hover,
+.hw-layout-tools-toggle[data-on] {
+  opacity: 1;
+  color: #f0d9a8;
+}
+
+/* Commander select: the Training / Almanac / Grove buttons used to stack
+   up over the commander cards. They now sit in one row on a dark dock
+   fixed to the bottom edge, and the page leaves room to scroll the last
+   cards clear of it. */
+.hw-root:has(> .hw-grove-open-btn) {
+  padding-bottom: 96px;
+  /* opacity-only entrance: hw-screen-enter's lingering transform would
+     turn this root into the containing block and un-fix the dock */
+  animation-name: hw-screen-fade-in;
+  /* keeps the top-corner buttons anchored to the page, not the window */
+  position: relative;
+}
+.hw-root:has(> .hw-grove-open-btn)::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 76px;
+  z-index: 19;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(10, 8, 5, 0.88) 55%);
+}
+.hw-root > .hw-training-open-btn,
+.hw-root > .hw-almanac-open-btn,
+.hw-root > .hw-grove-open-btn {
+  position: fixed;
+  bottom: 18px;
+  top: auto;
+  z-index: 20;
+}
+.hw-root > .hw-almanac-open-btn { left: 50%; transform: translateX(-50%); }
+.hw-root > .hw-training-open-btn { left: auto; right: calc(50% + 108px); transform: none; }
+.hw-root > .hw-grove-open-btn { left: calc(50% + 108px); transform: none; }
+.hw-root > .hw-help-open-btn,
+.hw-root > .hw-settings-open-btn {
+  position: fixed;
+  z-index: 20;
+}
+
+/* Pre-battle screen: a dark reading panel over the forest art, so the
+   text sits on calm ground instead of glowing runes and bark. */
+.hw-formation-screen {
+  background: linear-gradient(180deg, rgba(14, 12, 8, 0.78), rgba(14, 12, 8, 0.86));
+  border: 1px solid rgba(212, 162, 76, 0.18);
+  border-radius: 18px;
+  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.8);
+  margin-top: 8px;
+}
+.hw-combo-more > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px dashed rgba(212, 162, 76, 0.35);
+  font-size: 12px;
+  color: rgba(240, 217, 168, 0.75);
+}
+.hw-combo-more[open] > summary {
+  margin-bottom: 8px;
+}
+.hw-combo-more-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
