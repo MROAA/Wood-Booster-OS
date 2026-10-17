@@ -34,6 +34,20 @@ Marc's own words, kept as the compass:
   your camp. From here you **pilot the run** — the commander, the whole squad
   with every action, relics and bag, your build, the road ahead, Continue.
 - It should **feel like a real headquarters**: a place, a cockpit, not a menu.
+- How it reads as a place (graphics round 6):
+  - **The treeline** — dark spruce silhouettes at the edges, firelit from below.
+  - **The commander's crest** — a carved medallion with the commander's
+    mark (tiwaz faint behind it), the name and tagline: a person, not a row of chips.
+  - **The war table** — the four who fight are laid out on a wooden table
+    (growth rings, hearth glow).
+  - **The reserve rests** — smaller tiles (art, tribe, name, numbers) with
+    the workbench beside; the rest returns when the hero joins the fight.
+  - **One workbench per hero** under its card: the gear row with fusion
+    pips (◆◇◇, lit per copy owned), one gold plaque (Upgrade, or Mend when
+    hurt) with Gear beside it, and a quiet row for Reforge / Sell.
+  - **Setting out** — Continue is the camp's own carved plaque with
+    raido (the journey) and an arrow; no baked plaque art behind it.
+  - The whole camp fits 1536×864 without scrolling (one reserve row).
 
 ### The market
 - A place **your camp arrives at** ("Your camp arrives at the market").

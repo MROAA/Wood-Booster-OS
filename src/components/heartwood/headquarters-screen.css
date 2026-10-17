@@ -250,3 +250,401 @@ html:not(.hw-layout-tools) .hwq-devdesk {
   align-items: center;
   text-align: center;
 }
+
+
+/* ---------- The camp as a place (graphics round 6) ----------
+   Headquarters should read as somewhere you stand, not a menu: a spruce
+   treeline around the clearing, the fighters laid out on the war table,
+   the reserve resting smaller beside it, and each hero's actions on one
+   carved workbench under its card. */
+
+/* the treeline - dark spruce silhouettes behind everything, firelit from below */
+.hwq-root::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 210px;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 120' preserveAspectRatio='none'%3E%3Cpath fill='%23050704' d='M0 120V78l8-14 4 8 7-30 6 22 5-12 8 26 6-40 7 30 5-14 7 22 9-46 8 36 5-10 6 18 8-34 7 28 6-16 7 20 10-50 9 40 5-12 6 20 7-28 6 20 8-38 7 30 6-12 7 18 9-42 8 34 5-10 7 24 8-30 6 22V120z'/%3E%3C/svg%3E") bottom / 720px 100% repeat-x;
+  -webkit-mask: linear-gradient(90deg, #000, transparent 30%, transparent 70%, #000);
+  mask: linear-gradient(90deg, #000, transparent 30%, transparent 70%, #000);
+}
+.hwq-top,
+.hwq-main {
+  position: relative;
+  z-index: 1;
+}
+
+/* the war table - where the four who fight are laid out */
+.hwq-table {
+  position: relative;
+  background:
+    radial-gradient(ellipse 60% 70% at 50% 115%, color-mix(in srgb, #e88c3c 13%, transparent), transparent 70%),
+    repeating-radial-gradient(ellipse 120% 90% at 50% 140%, transparent 0 22px, rgba(205, 180, 122, 0.035) 22px 23px),
+    linear-gradient(180deg, rgba(30, 26, 17, 0.96), rgba(17, 15, 10, 0.97));
+  border-color: color-mix(in srgb, var(--hwm-gold) 30%, transparent);
+  box-shadow: inset 0 1px 0 rgba(232, 226, 200, 0.06), 0 18px 30px -18px rgba(0, 0, 0, 0.9);
+}
+.hwq-table .hwq-cards {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* the reserve rests by the fire - the same cards, smaller */
+.hwq-reserve .hwq-cards {
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 12px 16px;
+}
+
+/* one hero: the card, then its workbench */
+.hwq-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.hwq-tray {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--hwm-line);
+  background: linear-gradient(180deg, rgba(14, 17, 10, 0.92), rgba(9, 11, 7, 0.92));
+}
+.hwq-tray .hwq-tray-gear {
+  margin: 0;
+  padding: 0 0 6px;
+  border: 0;
+  border-bottom: 1px solid var(--hwm-line);
+  border-radius: 0;
+  background: none;
+}
+.hwq-tray-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hwq-tray-minor {
+  display: flex;
+  gap: 4px;
+}
+
+/* the actions: Upgrade/Mend is the one gold plaque, the rest stay quiet */
+.hwq-root.hw-market-stage .hwq-tray .hwq-act.hw-move-btn.hw-move-btn {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 4px 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--hwm-ink);
+  box-shadow: none;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.hwq-root.hw-market-stage .hwq-tray .hwq-act.hw-move-btn.hw-move-btn:hover:not(:disabled) {
+  color: var(--hwm-parch);
+  border-color: color-mix(in srgb, var(--hwm-gold) 45%, transparent);
+  background: rgba(205, 180, 122, 0.06);
+}
+.hwq-root.hw-market-stage .hwq-tray .hwq-act--main.hw-move-btn.hw-move-btn {
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-family: var(--hw-font-display);
+  font-size: 13.5px;
+  letter-spacing: 0.03em;
+  color: var(--hwm-parch);
+  border-color: color-mix(in srgb, var(--hwm-gold) 55%, transparent);
+  background: linear-gradient(180deg, rgba(44, 42, 26, 0.95), rgba(22, 22, 13, 0.95));
+  box-shadow: inset 0 1px 0 rgba(232, 226, 200, 0.08);
+}
+.hwq-root.hw-market-stage .hwq-tray .hwq-act--main.hw-move-btn.hw-move-btn:hover:not(:disabled) {
+  border-color: var(--hwm-gold);
+  background: linear-gradient(180deg, rgba(56, 52, 30, 0.95), rgba(28, 27, 15, 0.95));
+}
+.hwq-root.hw-market-stage .hwq-tray .hwq-act.hw-move-btn.hw-move-btn:disabled {
+  opacity: 0.45;
+}
+.hwq-act .hw-cost-inline {
+  font-family: var(--hw-font-body, system-ui, sans-serif);
+  font-size: 11.5px;
+  color: var(--hwm-gold);
+  font-variant-numeric: tabular-nums;
+}
+.hwq-gain {
+  color: var(--hwm-moss);
+  font-variant-numeric: tabular-nums;
+}
+.hwq-act.hw-mend-btn.hwq-act--main {
+  border-color: color-mix(in srgb, #d0654a 60%, transparent);
+}
+
+/* fusion - three pips, lit by each copy you own (3 fuse into Tier 2) */
+.hwq-fuse {
+  flex: 0 0 auto;
+  display: inline-flex;
+  gap: 4px;
+  padding: 0 2px;
+}
+.hwq-fuse i {
+  width: 7px;
+  height: 7px;
+  rotate: 45deg;
+  border: 1px solid color-mix(in srgb, var(--hw-ember, #e0784a) 55%, transparent);
+  border-radius: 1px;
+}
+.hwq-fuse i[data-on] {
+  background: var(--hw-ember, #e0784a);
+  border-color: var(--hw-ember, #e0784a);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--hw-ember, #e0784a) 60%, transparent);
+}
+.hwq-fuse[data-count="2"] i[data-on] {
+  animation: hwq-fuse-near 2.4s ease-in-out infinite;
+}
+@keyframes hwq-fuse-near {
+  50% { box-shadow: 0 0 10px var(--hw-ember, #e0784a); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwq-fuse i[data-on] { animation: none; }
+}
+
+/* fit the whole camp on Marc's 1536x864 screen: a slimmer art arch, the
+   gear row on one line, and the trays lined up along the table edge even
+   when a hurt hero's card carries its extra health line */
+.hwq-root .hwq-cards .hw-card {
+  --card-art-h: 104px;
+}
+.hwq-hero > :first-child {
+  flex: 1 1 auto;
+}
+.hwq-hero > :first-child > .hw-card {
+  height: 100%;
+}
+.hwq-tray .hwq-tray-gear {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+.hwq-tray .hwq-tray-gear::before {
+  display: none;
+}
+.hwq-tray .hw-gear-row {
+  gap: 3px;
+  min-width: 0;
+}
+.hwq-tray .hw-gear-row--small .hw-gear-slot {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+}
+.hwq-tray .hw-gear-row--small .hw-gear-slot .hw-intent-glyph {
+  width: 16px;
+  height: 16px;
+}
+.hwq-tray .hwq-tray-gear {
+  justify-content: space-between;
+}
+/* Gear sits beside the gold plaque: same height, quiet hairline */
+.hwq-root.hw-market-stage .hwq-tray .hwq-gear-btn.hw-move-btn.hw-move-btn {
+  flex: 0 0 auto;
+  align-self: stretch;
+  padding: 0 10px;
+  font-size: 11.5px;
+  border-color: var(--hwm-line);
+}
+.hwq-tray-minor {
+  flex-wrap: wrap;
+}
+
+/* the reserve's resting tiles: a small card (art, tribe, name, numbers)
+   with its workbench beside it - everything else is on the hero
+   inspector and returns when the hero joins the fight */
+.hwq-reserve .hwq-hero {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 8px;
+}
+.hwq-reserve .hwq-hero > :first-child {
+  flex: 0 0 140px;
+}
+.hwq-reserve .hwq-cards .hw-card {
+  --card-art-h: 64px;
+}
+.hwq-reserve .hw-card .hw-card-level,
+.hwq-reserve .hw-card .hw-card-identity,
+.hwq-reserve .hw-card .hw-card-role-line,
+.hwq-reserve .hw-card .hw-card-tags,
+.hwq-reserve .hw-card .hw-card-tclass {
+  display: none;
+}
+.hwq-reserve .hwq-tray {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+/* the quiet row keeps to its words: no stretching, no overlap */
+.hwq-tray-minor {
+  justify-content: space-between;
+  gap: 2px 4px;
+}
+.hwq-root.hw-market-stage .hwq-tray-minor .hwq-act.hw-move-btn.hw-move-btn {
+  flex: 0 1 auto;
+  padding: 3px 5px;
+  gap: 3px;
+}
+.hwq-tray-minor .hw-cost-inline .hw-intent-glyph {
+  width: 9px;
+  height: 9px;
+}
+/* a little more air for the reserve row on Marc's screen */
+.hwq-root {
+  gap: 10px;
+  padding-top: 12px;
+}
+.hwq-squad {
+  gap: 10px;
+  padding-top: 4px;
+}
+.hwq-reserve .hwq-cards .hw-card {
+  --card-art-h: 52px;
+}
+
+/* ---------- The commander's crest ----------
+   A carved medallion with the commander's mark, the name in the display
+   face and the tagline beneath - the camp's leader reads as a person.
+   The cluster's own name chip would repeat it, so it steps aside here. */
+.hwq-crest {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.hwq-crest-medallion {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--hwm-gold) 60%, transparent);
+  background:
+    radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--hwm-gold) 18%, transparent), transparent 65%),
+    radial-gradient(circle, rgba(34, 30, 19, 0.95), rgba(12, 11, 7, 0.98));
+  box-shadow:
+    0 0 0 4px rgba(10, 12, 7, 0.9),
+    0 0 0 5px color-mix(in srgb, var(--hwm-gold) 25%, transparent),
+    0 8px 16px -6px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(232, 226, 200, 0.1);
+}
+/* tiwaz, the warrior's rune, faint behind the mark */
+.hwq-crest-medallion::before {
+  content: "ᛏ";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 46px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--hwm-gold) 10%, transparent);
+  pointer-events: none;
+}
+.hwq-crest-glyph {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  color: var(--hwm-gold);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--hwm-gold) 35%, transparent));
+}
+.hwq-crest-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.hwq-crest-name {
+  font-family: var(--hw-font-display);
+  font-size: 21px;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  color: var(--hwm-parch);
+}
+.hwq-crest-rank {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--hwm-gold);
+}
+.hwq-crest-tagline {
+  margin-top: 3px;
+  font-size: 11.5px;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--hwm-ink);
+}
+.hwq-commander .hw-commander-cluster > .hw-badge:first-child {
+  display: none;
+}
+
+/* ---------- Setting out: the Continue plaque ----------
+   The camp's one big decision, in the game's own button language: a
+   carved dark plaque, gold hairline, ember light inside, raido (the
+   journey) at its side. Replaces the old vine plaque art here, whose
+   baked lettering peeked out from behind the label. */
+.hwq-root .hw-end-turn.hw-shop-confirm-btn.hwm-continue {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--hwm-gold) 70%, transparent);
+  background:
+    radial-gradient(ellipse 70% 120% at 50% 120%, rgba(232, 140, 60, 0.38), transparent 70%),
+    linear-gradient(180deg, #3a1a0c, #1c0b05);
+  box-shadow:
+    0 0 0 3px rgba(8, 9, 5, 0.9),
+    0 0 0 4px color-mix(in srgb, var(--hwm-gold) 28%, transparent),
+    0 14px 26px -12px rgba(0, 0, 0, 0.95),
+    0 0 26px -6px rgba(232, 140, 60, 0.35),
+    inset 0 1px 0 rgba(255, 230, 168, 0.14);
+  font-size: 23px;
+  color: #ffe6a8;
+  transition: box-shadow 0.18s ease, translate 0.18s ease, border-color 0.18s ease;
+}
+.hwq-root .hw-end-turn.hw-shop-confirm-btn.hwm-continue::before {
+  content: "ᚱ";
+  font-size: 20px;
+  color: color-mix(in srgb, var(--hwm-gold) 85%, #fff);
+  text-shadow: 0 0 10px var(--hw-ui-rune-glow, rgba(205, 180, 122, 0.6));
+}
+.hwq-root .hw-end-turn.hw-shop-confirm-btn.hwm-continue::after {
+  content: "→";
+  font-family: var(--hw-font-body, system-ui, sans-serif);
+  font-size: 18px;
+  opacity: 0.8;
+  transition: translate 0.18s ease;
+}
+.hwq-root .hw-end-turn.hw-shop-confirm-btn.hwm-continue:not(:disabled):hover {
+  translate: 0 -2px;
+  border-color: var(--hwm-gold);
+  box-shadow:
+    0 0 0 3px rgba(8, 9, 5, 0.9),
+    0 0 0 4px color-mix(in srgb, var(--hwm-gold) 45%, transparent),
+    0 18px 30px -12px rgba(0, 0, 0, 0.95),
+    0 0 34px -4px rgba(232, 140, 60, 0.55),
+    inset 0 1px 0 rgba(255, 230, 168, 0.2);
+}
+.hwq-root .hw-end-turn.hw-shop-confirm-btn.hwm-continue:not(:disabled):hover::after {
+  translate: 4px 0;
+}
+.hwq-root .hwm-launch {
+  padding: 4px 4px 2px;
+}

@@ -696,7 +696,11 @@ export default function SquadDraft({
   // reserve lists render identical cards - the only difference between
   // the two groups is which section they sit in and the quiet dim on
   // the reserve grid, nothing about the card itself.
-  function renderBenchCard(entry) {
+  // `tray` (Headquarters): the same actions gathered into one calm
+  // workbench under the card - Upgrade is the one gold plaque, Reforge /
+  // Sell sit quietly beside it, fusion shows as three pips. Same buttons,
+  // classes and handlers as the classic stack below.
+  function renderBenchCard(entry, { tray = false } = {}) {
     const def = UNITS[entry.defId]
     const canReforge = def?.displayTier !== 2
     // Upgrade (upgrades.js): branch picks recorded on entry.upgrades;
@@ -721,21 +725,112 @@ export default function SquadDraft({
       def && runState.deployed.includes(entry.key)
         ? findDualClassFor(entry.defId, deployedDefIds, UNITS)
         : null
+    const cardFx =
+      justFusedKey === entry.key
+        ? "hw-card--fused"
+        : justReforgedKey === entry.key
+          ? "hw-card--reforged"
+          : justPurchasedKey === entry.key
+            ? "hw-card--purchased"
+            : undefined
+    const card = (
+      <div className={cardFx}>
+        <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} dualClass={dualClass} entry={entry} collarClassId={collarClassFor(runState, entry.key)} />
+      </div>
+    )
+    const cost = (n) => (
+      <span className="hw-cost-inline">
+        <CardGlyph name="spark" className="hw-intent-glyph" />
+        {n}
+      </span>
+    )
+    if (tray) {
+      const hurt = onMend && (unitHpPct(entry) < 1 || entry.wounded)
+      return (
+        <div key={entry.key} className="hwq-hero">
+          {card}
+          <div className="hwq-tray">
+            <div className="hw-gear-row-wrap hwq-tray-gear">
+              <GearRow
+                items={runState.items}
+                ownerKey={entry.key}
+                slots={maxItemSlots}
+                selectedItemDef={selectedItemDef}
+                justEquippedSlot={justEquippedSlot}
+                onSlotClick={(slotIndex, occupied) => handleSlotClick(entry.key, slotIndex, occupied)}
+                onMove={onMoveGear ? (from, to) => onMoveGear(entry.key, from, to) : undefined}
+              />
+              {def?.displayTier !== 2 && (
+                <span
+                  className="hwq-fuse"
+                  data-count={copiesOwned}
+                  title={`Fusion ${copiesOwned}/3 - 3 owned copies of the same hero fuse automatically into a stronger Tier 2 version`}
+                  aria-label={`Fusion ${copiesOwned} of 3`}
+                >
+                  {[0, 1, 2].map((i) => (
+                    <i key={i} data-on={i < copiesOwned || undefined} />
+                  ))}
+                </span>
+              )}
+            </div>
+            <div className="hwq-tray-main">
+              {hurt ? (
+                <button
+                  className="hw-move-btn hw-mend-btn hwq-act hwq-act--main"
+                  disabled={runState.essence < mendCost(runState)}
+                  onClick={() => onMend(entry.key)}
+                  title={`Heal ${def?.name} to full HP${entry.wounded ? " and clear Wounded" : ""} (${mendCost(runState)} Essence)`}
+                >
+                  Mend {cost(mendCost(runState))}
+                </button>
+              ) : (
+                def?.displayTier !== 2 && (
+                  <button
+                    className="hw-move-btn hw-upgrade-btn hwq-act hwq-act--main"
+                    disabled={!canUpgrade || runState.essence < (upCost ?? Infinity)}
+                    onClick={() => setUpgradingKey(entry.key)}
+                    title={canUpgrade ? `Pick an upgrade branch for ${def?.name} (${upCost} Essence)` : `${def?.name} is fully upgraded`}
+                  >
+                    {canUpgrade ? <>Upgrade {cost(upCost)}</> : "Maxed"}
+                  </button>
+                )
+              )}
+              <button className="hw-move-btn hw-gear-open hwq-gear-btn hwq-act" data-gear-open={entry.key} onClick={() => setGearOwner(entry.key)} title={`Open ${def?.name}'s gear screen`}>
+                Gear
+              </button>
+            </div>
+            <div className="hwq-tray-minor">
+              {hurt && def?.displayTier !== 2 && (
+                <button
+                  className="hw-move-btn hw-upgrade-btn hwq-act"
+                  disabled={!canUpgrade || runState.essence < (upCost ?? Infinity)}
+                  onClick={() => setUpgradingKey(entry.key)}
+                  title={canUpgrade ? `Pick an upgrade branch for ${def?.name} (${upCost} Essence)` : `${def?.name} is fully upgraded`}
+                >
+                  {canUpgrade ? "Upgrade" : "Maxed"}
+                </button>
+              )}
+              {canReforge && (
+                <button
+                  className="hw-move-btn hwq-act"
+                  disabled={runState.essence < REFORGE_COST}
+                  onClick={() => handleReforge(entry.key)}
+                  title={`Swap ${def?.name} for a different random hero of the same tier (${REFORGE_COST} Essence)`}
+                >
+                  Reforge {!hurt && cost(REFORGE_COST)}
+                </button>
+              )}
+              <button className="hw-move-btn hw-sell-btn hwq-act" onClick={() => handleSell(entry.key)} title={`Sell ${def?.name} back for ${sellRefund} Essence`}>
+                Sell <span className="hwq-gain">+{sellRefund}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
     return (
       <div key={entry.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <div
-          className={
-            justFusedKey === entry.key
-              ? "hw-card--fused"
-              : justReforgedKey === entry.key
-                ? "hw-card--reforged"
-                : justPurchasedKey === entry.key
-                  ? "hw-card--purchased"
-                  : undefined
-          }
-        >
-          <UnitCard def={def} disabled role={bentRole} bent={bentRole !== def?.role} dualClass={dualClass} entry={entry} collarClassId={collarClassFor(runState, entry.key)} />
-        </div>
+        {card}
         {/* Gear sprint: the hero's gear ROW (adjacency links glow between
             slots; drag to reorder) + its full gear screen. */}
         <div className="hw-gear-row-wrap">
@@ -1915,6 +2010,8 @@ export default function SquadDraft({
   // shared pieces and state as the classic layout, handed over by name.
   const marketKit = {
     runState,
+    commander,
+    commanderRank,
     offers,
     itemOffers,
     nextLabel,

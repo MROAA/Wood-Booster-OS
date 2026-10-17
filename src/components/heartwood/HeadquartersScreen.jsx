@@ -19,6 +19,8 @@ import "./headquarters-screen.css"
 // - the same place, the same look, so where to go next is always obvious.
 export default function HeadquartersScreen({ kit, onClose = null }) {
   const {
+    commander,
+    commanderRank,
     deployedCount,
     deployedEntries,
     difficultyTier,
@@ -69,8 +71,21 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
       </header>
       <div className="hwq-main">
         <aside className="hwm-side" aria-label="Commander and belongings">
-          <section className="hwm-panel">
+          <section className="hwm-panel hwq-commander">
             <UiTitle className="hwm-panel-title" k="hqCommander" />
+            {/* the commander's crest - who leads this camp, before what they can do */}
+            {commander && (
+              <div className="hwq-crest" title={commander.description}>
+                <span className="hwq-crest-medallion">
+                  <CardGlyph name={commander.art} className="hwq-crest-glyph" />
+                </span>
+                <span className="hwq-crest-text">
+                  <span className="hwq-crest-name">{commander.name}</span>
+                  <span className="hwq-crest-rank">Rank {commanderRank}</span>
+                  {commander.tagline && <span className="hwq-crest-tagline">{commander.tagline}</span>}
+                </span>
+              </div>
+            )}
             {piece_commanderCluster()}
             {showRetrain && piece_retrain()}
           </section>
@@ -88,14 +103,14 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
         </aside>
         <main className="hwq-squad" aria-label="Your squad">
           <DevDesk heroDefIds={runState.bench.map((e) => e.defId)} />
-          <section className="hwm-panel">
+          <section className="hwm-panel hwq-table">
             <UiTitle className="hwm-panel-title" k="hqFight" extra={` ${deployedCount}/${DEPLOY_SLOTS}`} />
-            <div className="hwq-cards">{deployedEntries.map((e) => renderBenchCard(e))}</div>
+            <div className="hwq-cards">{deployedEntries.map((e) => renderBenchCard(e, { tray: true }))}</div>
           </section>
           {reserveEntries.length > 0 && (
-            <section className="hwm-panel">
+            <section className="hwm-panel hwq-reserve">
               <UiTitle className="hwm-panel-title" k="hqReserve" extra={` ${reserveCount}/${RESERVE_CAP + (runState.benchCapBonus || 0)}`} />
-              <div className="hwq-cards">{reserveEntries.map((e) => renderBenchCard(e))}</div>
+              <div className="hwq-cards">{reserveEntries.map((e) => renderBenchCard(e, { tray: true }))}</div>
             </section>
           )}
         </main>
