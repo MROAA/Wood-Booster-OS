@@ -108,6 +108,16 @@ export const MISSION_TYPES = {
   allied: { id: "allied", name: "Call to Arms", icon: "🔔", node: "battle", threatDrop: 25, expiry: [3, 5], blurb: "Your allies call for help. Their warriors fight beside you." },
   // Mana sprint 3: the Rot tries to cut a ley line of your network.
   breach: { id: "breach", name: "Ley Breach", icon: "⚡", node: "battle", threatDrop: 15, expiry: [2, 3], blurb: "The Rot is cutting a ley line. Win before it expires - or the line is CUT and your ley network shrinks." },
+  // Content sprint (campaignContent.js MISSION_BRIEFS + campaignContentEngine.js):
+  // new mission kinds with their own objectives, and a Named Foe per chapter.
+  escort: { id: "escort", name: "Ley-Carrier Escort", icon: "🏮", node: "battle", threatDrop: 20, expiry: [3, 5], blurb: "A ley-carrier must cross the field to the far waystone. Keep it alive and clear its road." },
+  well: { id: "well", name: "Hold the Mana Well", icon: "⛲", node: "battle", threatDrop: 20, expiry: [3, 5], blurb: "The Rot wants a Mana Well. Hold it for 5 turns - it feeds your heroes' mana while it stands." },
+  assassinate: { id: "assassinate", name: "Fleeing Caster", icon: "🎯", node: "battle", threatDrop: 25, expiry: [2, 3], blurb: "A Rot caster is running for the treeline with stolen ley. Kill it before it escapes." },
+  liberate: { id: "liberate", name: "Free the Captives", icon: "⛓", node: "battle", threatDrop: 15, expiry: [2, 4], blurb: "Heroes locked in Rot cages. Free them and they join the Hearth." },
+  night: { id: "night", name: "Night Raid", icon: "🌙", node: "battle", threatDrop: 25, expiry: [2, 4], blurb: "Strike a Rot camp in the dark. Your heroes see only 2 tiles by torchlight. Pays half again." },
+  storm: { id: "storm", name: "Mana Storm", icon: "🌈", node: "battle", threatDrop: 20, expiry: [2, 4], blurb: "A mana storm rolls over the field. Its colour shifts every turn - heroes of that colour drink deep, attuned enemies rage." },
+  twofront: { id: "twofront", name: "Two Fronts", icon: "⇄", node: "battle", threatDrop: 25, expiry: [3, 5], blurb: "The Rot comes from both sides. Half its force arrives behind you on turn 2." },
+  warlord: { id: "warlord", name: "Named Foe", icon: "👑", node: "elite", threatDrop: 30, expiry: [4, 6], blurb: "A named champion of the Rot leads this region. Beat it and the whole chapter breathes easier." },
 }
 
 // Mana sprint 3: LEY LINES between regions (coloured). Lines whose both

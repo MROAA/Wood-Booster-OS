@@ -5,7 +5,7 @@ import { formatSeed, parseSeed } from "../../../data/heartwood/seed"
 import {
   createCampaign, loadCampaign, saveCampaign, clearCampaign, loadCampaignUnlocks, saveCampaignUnlocks, campaignCommanderIds,
   advanceDay, launchMission, updateMissionBattle, resolveMission, recruitHero, startBuild, attuneHero, campaignRunView,
-  campaignChooseLevelPerk, campaignChoosePromotion, campaignEquip, campaignUnequip, campaignEquipNeutral, campaignUnequipNeutral, difficultyOf, chooseStory, clearStoryResult,
+  campaignChooseLevelPerk, campaignChoosePromotion, campaignEquip, campaignUnequip, campaignEquipNeutral, campaignUnequipNeutral, difficultyOf, chooseStory, clearStoryResult, chooseEvent, clearEventResult,
 } from "../../../services/heartwood/campaignEngine"
 import { sceneDef, START_VARIANTS, ENDINGS, ENDING_ORDER, chronicleEntries } from "../../../services/heartwood/campaignStoryEngine"
 import { startTacticsFormationBattle } from "../../../services/heartwood/runEngine"
@@ -22,6 +22,7 @@ import CampaignSquad from "./CampaignSquad"
 import CampaignHearth from "./CampaignHearth"
 import CampaignAftermath from "./CampaignAftermath"
 import CampaignStoryScene, { CampaignStoryResult, CampaignEpilogue } from "./CampaignStoryScene"
+import { CampaignOpsPanel } from "./CampaignContentUi"
 import "./campaign.css"
 
 // The Long Campaign (campaignEngine.js) - the screen host. Owns the
@@ -106,6 +107,7 @@ export default function CampaignScreen({ onExit, metaUnlocked = [] }) {
                 </button>
               ))}
           </div>
+          <CampaignOpsPanel battle={battle} />
         </TacticsBoard>
       </div>
     )
@@ -198,6 +200,8 @@ export default function CampaignScreen({ onExit, metaUnlocked = [] }) {
       onExit={onExit}
       onHearth={() => setView("hearth")}
       onPassDay={() => update((c) => advanceDay(c))}
+      onEventChoose={(uid, optionId) => update((c) => chooseEvent(c, uid, optionId))}
+      onEventDismiss={() => update((c) => clearEventResult(c))}
       onPickMission={(id) => {
         setMissionId(id)
         setView("squad")

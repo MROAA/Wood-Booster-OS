@@ -17,6 +17,9 @@ import { emit, getUnit, setUnit, livingUnits, applyDamageWithBlock, checkTactics
 import { TERRAIN, sidesConnected } from "./tacticsTerrain"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { feedNovaTiles } from "./tacticsManaFeed"
+// The Long Campaign: named mini-bosses (one per chapter) + the `manaburn` hazard.
+import { CAMPAIGN_BOSS_FIGHTS } from "../../data/heartwood/campaignBosses"
+import { burnMana } from "./tacticsMana"
 
 // ---- arena helpers ----------------------------------------------------------
 // Destructibles: T tree, B powder barrel, O boulder, Y ice pillar (tacticsObjects.js).
@@ -299,6 +302,9 @@ export function bossFightFor(encounterId) {
   return BOSS_FIGHTS[encounterId] || null
 }
 
+// The Long Campaign: chapter mini-bosses share every rule above.
+Object.assign(BOSS_FIGHTS, CAMPAIGN_BOSS_FIGHTS)
+
 export function arenaTerrainFor(encounterId) {
   const fight = BOSS_FIGHTS[encounterId]
   return fight ? parseArena(fight.arena) : null
@@ -364,7 +370,7 @@ function uniqueTiles(s, tiles) {
 // Builds one pending (telegraphed) hazard from a spec, or null.
 function buildHazard(s, boss, spec, due) {
   const base = { kind: spec.kind, label: spec.label, due }
-  if (spec.kind === "quake") {
+  if (spec.kind === "quake" || spec.kind === "manaburn") {
     const tiles = uniqueTiles(s, spec.tiles || aimedTiles(s, spec))
     return tiles.length ? { ...base, tiles, amount: spec.amount } : null
   }
@@ -567,6 +573,17 @@ function resolveHazard(state, h) {
     }
     return checkTacticsBattleEnd(next)
   }
+  // The Long Campaign: the marked tiles burn MANA, not HP.
+  if (h.kind === "manaburn") {
+    next = tag(`${h.label}!`)
+    next = { ...next, log: [...next.log, `${h.label}! The marked tiles burn ${h.amount} mana.`], bossFlash: { seq: next.eventSeq, tiles: h.tiles, kind: "quake" } }
+    for (const p of h.tiles) {
+      const victim = occupant(next, p)
+      if (!victim || victim.side !== "player") continue
+      next = burnMana(next, victim.id, h.amount).next
+    }
+    return next
+  }
   if (h.kind === "terrain") {
     let terrain = { ...(next.terrain || {}) }
     const wallHp = { ...(next.wallHp || {}) }
@@ -654,13 +671,14 @@ const HAZARD_TEXT = {
   terrain: (h) => `marked tiles become ${h.to}`,
   adds: (h) => `${h.tiles.length} add${h.tiles.length === 1 ? "" : "s"} arrive at the marked tiles`,
   teleport: () => "the boss reappears at the marked tile",
+  manaburn: (h) => `heroes on the marked tiles lose ${h.amount} mana`,
 }
 
 // Tiles to warn about right now: key -> hazard kind (quake/lava/water/wall/.../adds/teleport).
 export function bossWarningTiles(state) {
   const map = new Map()
   for (const h of state.boss?.pending || []) {
-    const kind = h.kind === "terrain" ? h.to : h.kind
+    const kind = h.kind === "terrain" ? h.to : h.kind === "manaburn" ? "quake" : h.kind
     for (const t of h.tiles) map.set(key(t), kind)
   }
   // Mana sprint 3: a gorged Maw's Mana Nova lands here when you end the turn.
