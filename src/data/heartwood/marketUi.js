@@ -1,9 +1,9 @@
-// Market & Päämaja texts - every title, subtitle and rune on the
-// Market table and the Päämaja camp screen (SquadDraft.jsx).
+// Market & Headquarters texts - every title, subtitle and rune on the
+// Market screen and the Headquarters camp screen.
 //
-// Editable in Hearthwood Studio ("Market & Päämaja Texts") - Marc:
+// Editable in Hearthwood Studio ("Market & Headquarters Texts") - Marc:
 // "haluan pystyä muokkaamaan siitä kaiken tarpeellisen". The game is in
-// English; the camp is "Headquarters", nicknamed "Päämaja". Each entry:
+// English - every word on screen; the camp is "Headquarters". Each entry:
 //   name     - the English title shown on screen
 //   subtitle - an optional small line beside it, in English (or "")
 //   rune     - one Elder Futhark rune shown before the title (or "")
@@ -18,7 +18,7 @@ export const MARKET_UI = {
   heroes: { name: "Heroes for sale", subtitle: "", rune: "ᚢ", meaning: "Uruz - strength" },
   gear: { name: "Gear for sale", subtitle: "", rune: "ᚷ", meaning: "Gebo - the gift" },
   squad: { name: "Your squad", subtitle: "", rune: "ᛗ", meaning: "Mannaz - the people" },
-  hq: { name: "Headquarters", subtitle: "Päämaja", rune: "ᛞ", meaning: "Dagaz - daybreak" },
+  hq: { name: "Headquarters", subtitle: "", rune: "ᛞ", meaning: "Dagaz - daybreak" },
   hqCommander: { name: "Commander", subtitle: "", rune: "ᛏ", meaning: "Tiwaz - the warrior" },
   hqRelics: { name: "Relics & bag", subtitle: "", rune: "ᛟ", meaning: "Othala - inheritance" },
   hqFight: { name: "In the fight", subtitle: "", rune: "ᛗ", meaning: "Mannaz - the people" },

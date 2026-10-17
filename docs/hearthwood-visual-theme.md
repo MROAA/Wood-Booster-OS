@@ -27,9 +27,9 @@ Marc's own words, kept as the compass:
 
 ## 2. Lore of the places
 
-### Headquarters — "Päämaja"
+### Headquarters
 - The player's **own camp**. It travels with the squad along the road.
-- Official name **Headquarters**; its informal nickname is **Päämaja**.
+- Name on screen: **Headquarters**. ("Päämaja" is only our internal working name - never shown in the game.)
 - It is the **default stance** at a market stop: you arrive, and you are in
   your camp. From here you **pilot the run** — the commander, the whole squad
   with every action, relics and bag, your build, the road ahead, Continue.
@@ -53,9 +53,10 @@ Marc's own words, kept as the compass:
 
 ## 3. Language
 
-- The game is in **English**. No Finnish subtitles on titles.
-- **Päämaja** stays as Headquarters' nickname — a Finnish touch, like a place name.
-- Runes stay (decorative, with their meaning on hover).
+- The game is in **English** - **no Finnish visible anywhere in the game**
+  (Marc, 2026-10-17: "ei suomea näkyviin pelissä"). Finnishness lives in
+  the look (forest, birch, kuusenhavu), never in on-screen words.
+- Runes stay (decorative, with their meaning in English on hover).
 
 ## 4. Palette (tokens on `.hw-root`, heartwood.css — Studio-editable)
 
@@ -88,7 +89,7 @@ from below, darkness at the edges so the eye rests in the middle.
 
 Runes glow softly (`--hw-ui-rune-glow`), like the runes carved in the World
 Tree backdrop. All titles/runes/meanings live in
-`src/data/heartwood/marketUi.js` (Studio: **Market & Päämaja Texts**).
+`src/data/heartwood/marketUi.js` (Studio: **Market & Headquarters Texts**).
 
 ## 6. Nordic craft details — thin, muted, never louder than the cards
 

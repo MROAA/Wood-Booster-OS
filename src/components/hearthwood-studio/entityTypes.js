@@ -52,7 +52,7 @@ export const ALL_TYPES = [
   { type: "dialogues", label: "Dialogues", category: "Story" },
   { type: "merchants", label: "Merchant Lines", category: "Story" },
   // Graphics round 5: every title / Finnish word / rune on the Market and Päämaja.
-  { type: "marketUi", label: "Market & Päämaja Texts", category: "Guidance" },
+  { type: "marketUi", label: "Market & Headquarters Texts", category: "Guidance" },
   { type: "moods", label: "Forest Mood", category: "Story" },
   { type: "almanac", label: "Almanac Lore", category: "Story" },
 
