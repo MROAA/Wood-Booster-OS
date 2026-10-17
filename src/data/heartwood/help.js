@@ -15,6 +15,10 @@ export const CAMPAIGN_HELP = [
   { term: "Allies & nemeses", blurb: "An allied faction's warriors fight beside you in their home region, every story mission and their Call to Arms missions. A nemesis sends Hunted missions every few days - beat it twice to drive it off; ignore one and Doom rises." },
   { term: "Ley network", blurb: "Coloured ley lines join the regions. A line counts while you hold BOTH its regions (not fallen) and it links back to the Hearthstead. The bigger your network, the more start mana and regen every fight gets, and each line colour makes skills of that colour 15% cheaper. Ley Breach missions (⚡) try to cut a line - ignore or lose one and the line is cut; winning a Ley Site next to a cut line mends it. Warded ley lines count double and can't be breached; Drained ley surges for a few days, then its lines wither." },
   { term: "Endings", blurb: "Six endings, each opened by different choices. Every ending unlocks something for your next campaign: a commander, a starting relic, or a new story start." },
+  { term: "Mission kinds", blurb: "Besides plain fights: escort a Ley-Carrier across the field, hold a Mana Well for 5 turns, kill a caster before it escapes, free captives from Rot cages (they join you), night raids where you only see 2 tiles, mana storms whose colour shifts each turn, and battles on two fronts. Open a mission to read its briefing." },
+  { term: "Named Foes", blurb: "Once a chapter has a couple of wins, its Named Foe (👑) turns up: a mini-boss with its own arena, phases and hazards. Beat it for a rich reward and Doom -1." },
+  { term: "Chapters", blurb: "Every chapter fields its own enemies (Ley-Cutters, colour-attuned Cantors, Ash Hounds, Hollow Reavers...) and its own battlefield. Cantors drink the mana of heroes of their own colour - bring other colours against them." },
+  { term: "Events", blurb: "Events turn up on the map (a pulsing marker) - a caravan, a ley storm, refugees, an omen, your chapter's own stories. Choose in the side panel before they pass. Some effects last for days: shown as chips under the event card." },
 ]
 
 export const HELP_SECTIONS = [

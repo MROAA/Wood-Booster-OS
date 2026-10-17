@@ -214,6 +214,18 @@ export const FEED_FAMILIES = {
     gorged: 3,
     text: "Wraiths that feed on spellcraft from a long way off.",
   },
+  // The Long Campaign (campaignEnemies.js): mana-gluttons of the ley roads.
+  "ley-glutton": {
+    id: "ley-glutton",
+    name: "Ley Gluttons",
+    icon: "🍽",
+    members: ["ley-glutton", "shard-hoarder"],
+    range: 3,
+    per: 1,
+    max: 4,
+    gorged: 2,
+    text: "Fat things of the ley roads. Every spell cast near them is another mouthful.",
+  },
 }
 export const FEED_BOSSES = {
   "the-gorging-maw": { id: "maw", name: "The Gorging Maw", icon: "👄", range: 4, per: 1, max: 6, nova: { radius: 2, damage: 8, keep: 1 }, text: "The Maw gorges on spent mana. Full Hunger = a MANA NOVA on every hero within 2 at the start of its turn." },

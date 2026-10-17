@@ -1,0 +1,115 @@
+/* The Long Campaign - content sprint (CampaignContentUi.jsx): mission
+   briefings, world-map events, lasting effects, the campaign fight panel. */
+
+/* --- mission briefing --- */
+.hwc-briefing {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--hwc-line, #5a4527);
+  background: color-mix(in srgb, var(--hw-panel, #24180e) 88%, #000 12%);
+  font-size: var(--hw-fs-sm, 13px);
+}
+.hwc-briefing-goal { font-weight: 600; color: var(--hwc-gold, #e8c46e); }
+.hwc-briefing-rules { margin: 0; padding-left: 18px; color: var(--hw-text, #eadfc8); line-height: 1.4; }
+.hwc-briefing-label { font-size: var(--hw-fs-xs, 11px); letter-spacing: 0.08em; text-transform: uppercase; color: var(--hw-muted, #a99a80); }
+.hwc-briefing-boss { display: flex; flex-direction: column; gap: 4px; padding: 6px 8px; border-left: 3px solid #c0503f; background: color-mix(in srgb, #c0503f 8%, transparent); border-radius: 6px; }
+.hwc-briefing-intro { color: #f0d9b5; }
+.hwc-briefing-phases { margin: 0; padding-left: 18px; line-height: 1.4; color: var(--hw-muted, #a99a80); }
+.hwc-briefing-feature { color: var(--hw-muted, #a99a80); }
+.hwc-foes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.hwc-foe { display: flex; align-items: center; gap: 6px; }
+.hwc-foe-glyph { display: inline-flex; width: 22px; height: 22px; color: #d9b98a; }
+.hwc-foe-glyph svg { width: 22px; height: 22px; }
+.hwc-foe[data-colour="ember"] .hwc-foe-glyph { color: #e0773a; }
+.hwc-foe[data-colour="tide"] .hwc-foe-glyph { color: #4f9fd6; }
+.hwc-foe[data-colour="root"] .hwc-foe-glyph { color: #6fae4c; }
+.hwc-foe[data-colour="void"] .hwc-foe-glyph { color: #9a6ad0; }
+.hwc-foe-name { font-weight: 600; }
+.hwc-foe-kit { font-size: var(--hw-fs-xs, 11px); padding: 1px 6px; border-radius: 999px; border: 1px solid var(--hwc-line, #5a4527); color: var(--hwc-gold, #e8c46e); }
+
+/* --- world-map event markers --- */
+.hwc-event-marker { cursor: pointer; }
+.hwc-event-ring { fill: none; stroke: #f3d58a; stroke-width: 0.5; animation: hwc-event-pulse 1.8s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+.hwc-event-core { fill: #2a1d10; stroke: #f3d58a; stroke-width: 0.4; }
+.hwc-event-icon { font-size: 3px; text-anchor: middle; }
+@keyframes hwc-event-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.25); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwc-event-ring { animation: none; }
+}
+
+/* --- event card --- */
+.hwc-event-card {
+  margin: 8px 0;
+  padding: 10px 12px;
+  border-radius: var(--hw-radius-lg, 12px);
+  border: 1px solid var(--hwc-gold, #e8c46e);
+  background: color-mix(in srgb, var(--hwc-wood-hi, #2e2012) 90%, #f3d58a 6%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hwc-event-head { display: flex; gap: 10px; align-items: center; }
+.hwc-event-big { font-size: 26px; line-height: 1; }
+.hwc-event-title { font-family: var(--hw-font-display, serif); font-size: var(--hw-fs-lg, 16px); }
+.hwc-event-lines p { margin: 0 0 4px; line-height: 1.45; font-size: var(--hw-fs-sm, 13px); }
+.hwc-event-lines p[data-narration] { color: var(--hw-muted, #a99a80); font-style: italic; }
+.hwc-event-options { display: flex; flex-direction: column; gap: 6px; }
+.hwc-event-option {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 7px 9px;
+  border-radius: 9px;
+  border: 1px solid var(--hwc-line, #5a4527);
+  background: var(--hwc-wood, #24180e);
+  color: var(--hw-text, #eadfc8);
+  cursor: pointer;
+  font: inherit;
+}
+.hwc-event-option:hover:not(:disabled) { border-color: var(--hwc-gold, #e8c46e); }
+.hwc-event-option:disabled { opacity: 0.55; cursor: not-allowed; }
+.hwc-event-result { margin: 0; line-height: 1.45; }
+.hwc-event-effects { margin: 0; padding-left: 18px; color: var(--hwc-gold, #e8c46e); font-size: var(--hw-fs-sm, 13px); }
+
+/* --- lasting effects --- */
+.hwc-lasting { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.hwc-lasting-chip { font-size: var(--hw-fs-xs, 11px); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--hwc-line, #5a4527); color: var(--hw-text, #eadfc8); background: color-mix(in srgb, var(--hwc-wood, #24180e) 80%, transparent); }
+.hwc-lasting-chip[data-kind="enemyBonus"] { border-color: #b3503f; }
+.hwc-lasting-chip[data-kind="overcharge"] { border-color: #7fb6d6; }
+.hwc-lasting-chip[data-kind="ally"] { border-color: #6f9b4e; }
+.hwc-lasting-chip[data-kind="rival"] { border-color: #c0503f; }
+
+/* --- the campaign fight panel --- */
+.hwc-ops {
+  --hwc-storm: #c9a35c;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--hwc-storm) 45%, #5a4527);
+  background: color-mix(in srgb, #1c140b 88%, var(--hwc-storm) 12%);
+  font-size: 13px;
+  color: #eadfc8;
+}
+.hwc-ops-objective strong { color: #e8c46e; }
+.hwc-ops-storm { display: flex; gap: 8px; align-items: center; }
+.hwc-ops-storm-now { font-weight: 700; color: var(--hwc-storm); text-shadow: 0 0 6px var(--hwc-storm); }
+.hwc-ops-intro { color: #f0d9b5; }
+.hwc-ops-kits { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; }
+.hwc-ops-kits li[data-colour="ember"] strong { color: #e0773a; }
+.hwc-ops-kits li[data-colour="tide"] strong { color: #4f9fd6; }
+.hwc-ops-kits li[data-colour="root"] strong { color: #6fae4c; }
+.hwc-ops-kits li[data-colour="void"] strong { color: #b38ae0; }
+.hwc-ops-kit-status { color: #a99a80; }
+.hwc-ops-feature { color: #a99a80; }
+.hwc-ops-warn { color: #e0624f; font-weight: 600; }

@@ -7,6 +7,8 @@
 // turn ahead, just less predictable to plan around).
 
 import enemyPlaceholderImg from "../../assets/heartwood/enemies/enemy-placeholder.svg"
+// The Long Campaign content sprint: campaign-only enemies + named mini-bosses.
+import { CAMPAIGN_ENEMIES, CAMPAIGN_ENEMY_IDS } from "./campaignEnemies"
 
 export const ENEMIES = {
   "rotwood-husk": {
@@ -2306,6 +2308,10 @@ export const ENEMIES = {
 // ACT_ENEMIES / the rollable-and-fallback pool below - they only ever
 // appear on their own fixed miniboss/boss RUN_PATH nodes, wrapped by a
 // Trial.
+// The Long Campaign: campaign-only foes join the bestiary (Almanac) but
+// stay OUT of the Expedition's solo pool (NON_BATTLE_ENEMY_IDS below).
+Object.assign(ENEMIES, CAMPAIGN_ENEMIES)
+
 export const ACT_COUNT = 7
 
 // Minibosses + boss + the elites (feat/hearthwood-elites): fixed
@@ -2385,6 +2391,9 @@ export const NON_BATTLE_ENEMY_IDS = new Set([
   "tainted-sapling",
   "blightheart-troll",
   "blight-seer",
+  // The Long Campaign (campaignEnemies.js): only via campaign formations
+  // and mini-boss fights - never a solo actEnemyForNode pick.
+  ...CAMPAIGN_ENEMY_IDS,
 ])
 
 // { 1: [...ids], 2: [...], ... 7: [...] } - solo-battle-eligible
