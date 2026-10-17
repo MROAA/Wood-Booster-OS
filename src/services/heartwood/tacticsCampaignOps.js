@@ -552,7 +552,7 @@ export function describeCampaignOps(state) {
     const reinf = state.objective?.reinforcements
     detail = reinf && !reinf.arrived ? `${reinf.templates.length} foe(s) wait behind you - they come out on turn ${reinf.turn}.` : "Both fronts are open. Clear the field."
   } else if (ops.kind === "warlord") {
-    detail = ops.intro ? `"${ops.intro.replace(/^"|"$/g, "")}"` : "Defeat the champion."
+    detail = "Defeat the champion. Break its weak points first - every hazard is marked a turn ahead."
   }
   return { type: `campaign-${ops.kind}`, title: KIND_TITLE[ops.kind], detail, extra }
 }

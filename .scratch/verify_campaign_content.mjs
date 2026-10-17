@@ -604,7 +604,10 @@ async function uiChecks() {
       }
     }
     // Seeds a campaign save (built in-page from the real modules) and opens the campaign.
+    page.on("crash", () => errs.push("page crashed"))
     const seedCampaign = async (setup) => {
+      // Leave the previous campaign (maybe mid-fight) before loading the next.
+      await page.evaluate(() => localStorage.removeItem("heartwood-campaign-save-v1")).catch(() => {})
       await page.goto(`http://localhost:${PORT}/heartwood`, { waitUntil: "domcontentloaded" })
       await page.waitForTimeout(600)
       await page.evaluate(async (setupSrc) => {

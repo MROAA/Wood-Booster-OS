@@ -31,7 +31,7 @@ export const CAMPAIGN_ENEMIES = {
     campaign: true,
     behavior: "assassin",
     description: "It carries a hooked knife made for one job: opening the ley under your feet and letting the light run out.",
-    campKit: { id: "leycut", icon: "✂", label: "Ley-Cutter", every: 3, burn: 10, text: "Every 3rd enemy turn with no hero next to it, it CUTS the ley: every hero loses 10 mana, and after the fight a ley line here is cut. Stand next to it to stop the knife." },
+    campKit: { id: "leycut", icon: "✂", label: "Cuts the ley", every: 3, burn: 10, text: "Every 3rd enemy turn with no hero next to it, it CUTS the ley: every hero loses 10 mana, and after the fight a ley line here is cut. Stand next to it to stop the knife." },
     moveSelect: "sequence",
     movePattern: [
       { type: "attack", amount: 7 },
