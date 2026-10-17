@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react"
+import "./heartwood-market-table.css"
 import { setCountMap } from "../../data/heartwood/buildSets"
 import { UNITS, upgradeCost } from "../../data/heartwood/units"
 import { RELICS } from "../../data/heartwood/relics"
@@ -332,6 +333,27 @@ export default function SquadDraft({
   // shows at a time, selected here. Defaults to "market" since that's
   // the panel with actual purchase decisions to make on arrival.
   const [activeTab, setActiveTab] = useState("market")
+  // The Market table (graphics round 4): the redesigned Market - offers,
+  // gear and the whole squad on one screen, upgrades in one side panel.
+  // "classic" keeps the old tabbed layout (and its Studio drag-editing)
+  // one click away. Remembered per browser.
+  const [marketView, setMarketView] = useState(() => {
+    try {
+      return localStorage.getItem("hw-market-view") === "classic" ? "classic" : "table"
+    } catch {
+      return "table"
+    }
+  })
+  function chooseMarketView(view) {
+    setMarketView(view)
+    try {
+      localStorage.setItem("hw-market-view", view)
+    } catch {
+      /* storage blocked - the choice still holds for this visit */
+    }
+  }
+  // Which squad hero's full card + actions is open on the Market table.
+  const [inspectKey, setInspectKey] = useState(null)
   // Free Layout foundation, extended into the Market tab's own content
   // (Marc: "haluan keskittyä nyt market osion muokattavuuden
   // parantamiseen... minun pitää muokkaa siitä itselleni mukavan
@@ -1412,6 +1434,234 @@ export default function SquadDraft({
   // Market pieces, shared by the classic layout below and the new
   // Market table (renderMarketTable). Each returns exactly what the
   // classic layout used to inline at that spot.
+  // ===== The Market table (graphics round 4) =====
+  // One screen, three zones, nothing hidden behind tabs:
+  //   top    - title, merchant line, run chips, Essence
+  //   left   - every upgrade (Market, Tier, Commander, Ledger, relics, bag)
+  //   centre - the merchant's table: heroes for sale + their actions,
+  //            then gear for sale
+  //   right  - the run map and the Continue plaque
+  //   bottom - the whole squad as a compact strip; click a hero to open
+  //            its full card with Upgrade / Mend / Reforge / Sell / Gear
+  // Every piece is the same one the classic layout renders (piece_*,
+  // renderRecruitCard, renderBenchCard...), so all buying, selling and
+  // equipping behaves exactly as before - only the arrangement changed.
+  function renderSquadChip(entry, deployed) {
+    const def = UNITS[entry.defId]
+    if (!def) return null
+    const hp = Math.round(unitHpPct(entry) * 100)
+    const lv = (entry.upgrades || []).length
+    const equipped = runState.items.filter((it) => it.equippedTo === entry.key).length
+    return (
+      <button
+        key={entry.key}
+        type="button"
+        className="hwm-chip"
+        data-deployed={deployed || undefined}
+        data-open={inspectKey === entry.key || undefined}
+        data-tier2={def.displayTier === 2 || undefined}
+        data-hurt={hp < 100 || entry.wounded || undefined}
+        data-equip-ready={selectedItemKey !== null || undefined}
+        data-role={def.role}
+        onClick={() => setInspectKey((cur) => (cur === entry.key ? null : entry.key))}
+        title={`${def.name} - click for upgrades, gear, mend and sell`}
+      >
+        <span className="hwm-chip-art">
+          {def.image ? <img src={def.image} alt="" /> : <CardGlyph name={def.art} className="hwm-chip-glyph" />}
+        </span>
+        <span className="hwm-chip-text">
+          <span className="hwm-chip-name">{def.name}</span>
+          <span className="hwm-chip-meta">
+            {def.role}
+            {lv > 0 && <b> · Lv {lv}</b>}
+            {equipped > 0 && <span> · {equipped}⚙</span>}
+            {entry.wounded && <span className="hwm-chip-wound"> · Wounded</span>}
+          </span>
+          <span className="hwm-chip-hp" aria-hidden="true">
+            <span style={{ width: `${hp}%` }} />
+          </span>
+        </span>
+      </button>
+    )
+  }
+
+  function renderMarketTable() {
+    const inspected = inspectKey != null ? runState.bench.find((e) => e.key === inspectKey) : null
+    const reserveCap = RESERVE_CAP + (runState.benchCapBonus || 0)
+    return (
+      <div className="hwm-root hw-market-stage">
+        {piece_overlays()}
+
+        <header className="hwm-top">
+          <div className="hwm-title-block">
+            <h1 className="hwm-title">The Hearthwood Market</h1>
+            {renderCenterSections(["greeting"])}
+          </div>
+          <div className="hwm-top-chips">
+            <span className="hwm-top-chip" style={{ "--chip": difficultyTier.color }} title="How far into the run you are">
+              <CardGlyph name="moonGlyph" className="hw-intent-glyph" />
+              {difficultyTier.name}
+            </span>
+            {nextLabel && (
+              <span className="hwm-top-chip" title="What you'll face right after this shop visit">
+                Next: {nextLabel}
+              </span>
+            )}
+          </div>
+          <div className="hwm-essence">
+            <span className="hw-essence-display" data-flash={essenceFlash || undefined} title="Essence">
+              <span className="hw-essence-orb">
+                <CardGlyph name="spark" className="hw-essence-orb-glyph" />
+              </span>
+              <span className="hw-essence-value">{runState.essence}</span>
+            </span>
+            {bankInterestFor(runState) > 0 && (
+              <span className="hw-essence-interest" title="Interest - Essence you keep grows a little with every victory.">
+                ▲ +{bankInterestFor(runState)}
+              </span>
+            )}
+          </div>
+        </header>
+
+        <div className="hwm-main">
+          <aside className="hwm-side hwm-side--left" aria-label="Upgrades">
+            <section className="hwm-panel">
+              <h2 className="hwm-panel-title" data-rune="ᚠ" title="Fehu - wealth">Market<small>Markkinat</small></h2>
+              {piece_marketLevelWidget()}
+              {piece_marketTierWidget()}
+              {tierPreview && (
+                <p className="hwm-hint">
+                  Next tier: <b>{tierPreview.name}</b> — {tierPreview.unlocks[0]}
+                </p>
+              )}
+            </section>
+            <section className="hwm-panel">
+              <h2 className="hwm-panel-title" data-rune="ᛏ" title="Tiwaz - the warrior">Commander<small>Päällikkö</small></h2>
+              {piece_commanderCluster()}
+              {showRetrain && piece_retrain()}
+            </section>
+            <section className="hwm-panel hwm-panel--rails">
+              <h2 className="hwm-panel-title" data-rune="ᛟ" title="Othala - inheritance">Ledger &amp; relics<small>Aarteet</small></h2>
+              {renderOwnedRail(["ledger", "buyback", "relics", "items"])}</section>
+          </aside>
+
+          <main className="hwm-center">
+            <div className="hwm-notices">{renderCenterSections(["tutorialHint", "evolutionNotice", "equipPrompt", "marketEventBanner"])}</div>
+
+            <section className="hwm-table" data-frozen={!!runState.frozen || undefined}>
+              <div className="hwm-table-head">
+                <h2 className="hwm-table-title" data-rune="ᚢ" title="Uruz - strength">Heroes for sale<small>Sankarit</small></h2>
+                <div className="hwm-actions">
+                  {piece_rerollBtn()}
+                  {piece_freezeBtn()}
+                  {piece_gambleBtn()}
+                  {piece_antidoteBtn()}
+                </div>
+              </div>
+              <div className="hwm-offers">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="hwm-offer-slot">
+                    {offers[i] ? renderRecruitCard(offers[i]) : <div className="hwm-offer-empty">Sold</div>}
+                  </div>
+                ))}
+              </div>
+              {piece_gambleReveal()}
+            </section>
+
+            <section className="hwm-table hwm-table--gear">
+              <div className="hwm-table-head">
+                <h2 className="hwm-table-title" data-rune="ᚷ" title="Gebo - the gift">Gear for sale<small>Varusteet</small></h2>
+                {piece_gearShopbar()}
+              </div>
+              <div className="hwm-gear-offers">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="hwm-gear-slot">
+                    {renderItemOffer(i)}
+                  </div>
+                ))}
+              </div>
+            </section>
+          </main>
+
+          <aside className="hwm-side hwm-side--right" aria-label="Run map">
+            <div className="hwm-map">{mapSlot}</div>
+            <button className="hw-end-turn hw-shop-confirm-btn hwm-continue" onClick={onContinue}>
+              Continue
+            </button>
+            <button type="button" className="hwm-classic-link" onClick={() => chooseMarketView("classic")} title="Switch to the previous tabbed Market layout">
+              Classic layout
+            </button>
+          </aside>
+        </div>
+
+        <footer className="hwm-squad" aria-label="Your squad">
+          <div className="hwm-squad-label">
+            <b data-rune="ᛗ" title="Mannaz - the people">Your squad<small>Joukko</small></b>
+            <span>
+              In the fight {deployedCount}/{DEPLOY_SLOTS} · Reserve {reserveCount}/{reserveCap}
+            </span>
+          </div>
+          <div className="hwm-squad-row">
+            {deployedEntries.map((e) => renderSquadChip(e, true))}
+            {Array.from({ length: Math.max(0, DEPLOY_SLOTS - deployedEntries.length) }, (_, i) => (
+              <span key={`empty${i}`} className="hwm-chip hwm-chip--empty">
+                Empty slot
+              </span>
+            ))}
+            {reserveEntries.length > 0 && <span className="hwm-squad-divider" aria-hidden="true" />}
+            {reserveEntries.map((e) => renderSquadChip(e, false))}
+          </div>
+          {inspected && (
+            <div className="hwm-inspector" role="dialog" aria-label={`${UNITS[inspected.defId]?.name} details`}>
+              <button type="button" className="hwm-inspector-close" onClick={() => setInspectKey(null)} aria-label="Close">
+                ×
+              </button>
+              {renderBenchCard(inspected)}
+            </div>
+          )}
+        </footer>
+      </div>
+    )
+  }
+
+  function piece_overlays() {
+    return (
+      <>
+        {upgradingEntry && (
+          <UpgradeChoice
+            unit={upgradingEntry}
+            essence={runState.essence}
+            onPick={(branchId) => {
+              onUpgradeUnit(upgradingEntry.key, branchId)
+              setUpgradingKey(null)
+            }}
+            onCancel={() => setUpgradingKey(null)}
+          />
+        )}
+        {gearOwner != null && (gearOwner === "commander" || runState.bench.some((e) => e.key === gearOwner)) && (
+          <GearScreen
+            runState={runState}
+            ownerKey={gearOwner}
+            onClose={() => setGearOwner(null)}
+            onEquip={onEquipItem}
+            onUnequip={onUnequipItem}
+            onMove={(owner, from, to) => onMoveGear?.(owner, from, to)}
+            onSell={onSellItem}
+            onForge={onRunAction ? (recipeId, owner) => onRunAction((rs) => forgeItem(rs, recipeId, owner)) : undefined}
+            onChooseBuild={onRunAction ? (owner, pathId) => onRunAction((rs) => chooseHeroBuild(rs, owner, pathId)) : undefined}
+            onEquipNeutral={onRunAction ? (owner, id) => onRunAction((rs) => equipNeutral(rs, owner, id)) : undefined}
+            onUnequipNeutral={onRunAction ? (owner) => onRunAction((rs) => unequipNeutral(rs, owner)) : undefined}
+          />
+        )}
+        {forged && ITEMS[forged.result] && (
+          <div className="hw-gear-forged" data-gear-forged={forged.recipeId} key={forged.key}>
+            <span className="hw-gear-forged-spark">⚗</span> Recipe! <b>{ITEMS[forged.result].name}</b> forged
+            <span className="hw-gear-forged-sub"> - {ITEMS[forged.result].description}</span>
+          </div>
+        )}
+      </>
+    )
+  }
   function piece_retrain() {
     return (
         <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
@@ -1782,40 +2032,14 @@ export default function SquadDraft({
     )
   }
 
+  if (marketView === "table") return renderMarketTable()
+
   return (
     <div className="hw-intro hw-market-stage hw-shop-3zone-stage">
-      {upgradingEntry && (
-        <UpgradeChoice
-          unit={upgradingEntry}
-          essence={runState.essence}
-          onPick={(branchId) => {
-            onUpgradeUnit(upgradingEntry.key, branchId)
-            setUpgradingKey(null)
-          }}
-          onCancel={() => setUpgradingKey(null)}
-        />
-      )}
-      {gearOwner != null && (gearOwner === "commander" || runState.bench.some((e) => e.key === gearOwner)) && (
-        <GearScreen
-          runState={runState}
-          ownerKey={gearOwner}
-          onClose={() => setGearOwner(null)}
-          onEquip={onEquipItem}
-          onUnequip={onUnequipItem}
-          onMove={(owner, from, to) => onMoveGear?.(owner, from, to)}
-          onSell={onSellItem}
-          onForge={onRunAction ? (recipeId, owner) => onRunAction((rs) => forgeItem(rs, recipeId, owner)) : undefined}
-          onChooseBuild={onRunAction ? (owner, pathId) => onRunAction((rs) => chooseHeroBuild(rs, owner, pathId)) : undefined}
-          onEquipNeutral={onRunAction ? (owner, id) => onRunAction((rs) => equipNeutral(rs, owner, id)) : undefined}
-          onUnequipNeutral={onRunAction ? (owner) => onRunAction((rs) => unequipNeutral(rs, owner)) : undefined}
-        />
-      )}
-      {forged && ITEMS[forged.result] && (
-        <div className="hw-gear-forged" data-gear-forged={forged.recipeId} key={forged.key}>
-          <span className="hw-gear-forged-spark">⚗</span> Recipe! <b>{ITEMS[forged.result].name}</b> forged
-          <span className="hw-gear-forged-sub"> - {ITEMS[forged.result].description}</span>
-        </div>
-      )}
+      {piece_overlays()}
+      <button type="button" className="hwm-classic-link hwm-classic-link--back" onClick={() => chooseMarketView("table")} title="Switch to the redesigned Market table">
+        New Market layout
+      </button>
       {/* paddingRight/flexWrap keep this row's right-aligned badges clear
           of the fixed top-right utility cluster (HeartwoodBattle.jsx's
           utilityBar - exit link + How to Play + Change Commander) - it's
