@@ -155,6 +155,11 @@ export default function SquadDraft({
   // built here in renderOwnedRail() since every piece of data it needs
   // is already in scope.
   mapSlot,
+  // Headquarters between fights: HeartwoodBattle renders SquadDraft with
+  // `hqOnly` (and `onCloseHq`) from any between-fight screen - just the
+  // camp, with every squad action, no market.
+  hqOnly = false,
+  onCloseHq,
 }) {
   const offers = runState.shopOffers.map((id) => UNITS[id])
   // Item shop rotation (runEngine.js's rollItemShop/itemOffers) -
@@ -1949,6 +1954,7 @@ export default function SquadDraft({
     renderOwnedRail,
     renderCenterSections,
   }
+  if (hqOnly) return <HeadquartersScreen kit={marketKit} onClose={onCloseHq} />
   if (marketView === "table") return hqOpen ? <HeadquartersScreen kit={marketKit} /> : <MarketScreen kit={marketKit} />
 
   return (
