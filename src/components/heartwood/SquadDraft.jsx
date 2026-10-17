@@ -702,7 +702,9 @@ export default function SquadDraft({
   // classes and handlers as the classic stack below.
   // `onJoin` (Headquarters reserve, while a place in the fight is empty):
   // a moss "Join the fight" plaque heads the workbench.
-  function renderBenchCard(entry, { tray = false, onJoin = null } = {}) {
+  // `joinMode` "swap": the table is full - the plaque turns quiet and
+  // starts a swap (Headquarters then asks whose place to take).
+  function renderBenchCard(entry, { tray = false, onJoin = null, joinMode = "join", joinActive = false } = {}) {
     const def = UNITS[entry.defId]
     const canReforge = def?.displayTier !== 2
     // Upgrade (upgrades.js): branch picks recorded on entry.upgrades;
@@ -753,8 +755,16 @@ export default function SquadDraft({
           {card}
           <div className="hwq-tray">
             {onJoin && (
-              <button type="button" className="hw-move-btn hwq-act hwq-act--main hwq-join" onClick={onJoin} title={`Send ${def?.name} into the fight`}>
-                Join the fight <span aria-hidden="true">↑</span>
+              <button
+                type="button"
+                className="hw-move-btn hwq-act hwq-act--main hwq-join"
+                data-mode={joinMode}
+                data-active={joinActive || undefined}
+                aria-pressed={joinMode === "swap" ? joinActive : undefined}
+                onClick={onJoin}
+                title={joinMode === "swap" ? `Swap ${def?.name} with one of the four who fight` : `Send ${def?.name} into the fight`}
+              >
+                {joinMode === "swap" ? (joinActive ? "Choose a place above" : "Swap into the fight") : "Join the fight"} <span aria-hidden="true">{joinMode === "swap" ? "⇅" : "↑"}</span>
               </button>
             )}
             <div className="hw-gear-row-wrap hwq-tray-gear">
@@ -1968,12 +1978,12 @@ export default function SquadDraft({
                 )
     )
   }
-  function piece_buildScore() {
+  function piece_buildScore(variant = null) {
     return (
                 /* Build evaluation (buildScore.js) - visible while
                    recruiting so a shop is "improve the build or fix its
                    weakness?" */
-                <BuildScore runState={runState} />
+                <BuildScore runState={runState} variant={variant} />
     )
   }
   function piece_itemBag() {

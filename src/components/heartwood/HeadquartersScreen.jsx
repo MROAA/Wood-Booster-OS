@@ -6,6 +6,7 @@
 // road ahead and Continue. The market nearby is one click away.
 // Dependencies: pieces + state from SquadDraft.jsx through `kit`.
 // Look: heartwood-market-table.css (shared panels) + headquarters-screen.css.
+import { useEffect, useState } from "react"
 import { RESERVE_CAP, DEPLOY_SLOTS, unitHpPct, assignToSlot } from "../../services/heartwood/runEngine"
 import { CardGlyph } from "./cardArt"
 import { UNITS } from "../../data/heartwood/units"
@@ -49,16 +50,42 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
   // assignToSlot the Formation screen uses).
   const firstEmptySlot = (rs) => Array.from({ length: DEPLOY_SLOTS }, (_, i) => i).find((i) => rs.deployed[i] == null) ?? -1
   const emptyCount = Math.max(0, DEPLOY_SLOTS - deployedCount)
+  // the table in slot order, so a hero lands exactly where it was sent
+  const fighters = [...deployedEntries].sort((a, b) => runState.deployed.indexOf(a.key) - runState.deployed.indexOf(b.key))
+  const tableFull = firstEmptySlot(runState) < 0
   const joinFor = (entry) =>
-    onRunAction && firstEmptySlot(runState) >= 0
-      ? () => onRunAction((rs) => (firstEmptySlot(rs) >= 0 ? assignToSlot(rs, firstEmptySlot(rs), entry.key) : rs))
-      : null
+    !onRunAction
+      ? null
+      : !tableFull
+        ? () => onRunAction((rs) => (firstEmptySlot(rs) >= 0 ? assignToSlot(rs, firstEmptySlot(rs), entry.key) : rs))
+        : () => setSwapKey((k) => (k === entry.key ? null : entry.key))
+
+  // A swap in progress: the reserve hero chosen, waiting for the place
+  // it takes - the fighter there steps back into the reserve.
+  const [swapKey, setSwapKey] = useState(null)
+  const swapEntry = tableFull ? reserveEntries.find((e) => e.key === swapKey) : null
+  const swapName = swapEntry ? UNITS[swapEntry.defId]?.name : null
+  useEffect(() => {
+    if (!swapEntry) return undefined
+    const onKey = (ev) => ev.key === "Escape" && setSwapKey(null)
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [swapEntry])
+  const takePlace = (fighter) => {
+    const incoming = swapEntry.key
+    onRunAction((rs) => {
+      const slot = rs.deployed.indexOf(fighter.key)
+      return slot >= 0 ? assignToSlot(rs, slot, incoming) : rs
+    })
+    setSwapKey(null)
+  }
   // The camp at a glance: the one thing to know before setting out -
   // an empty place in the fight, who is hurt, or that all is ready.
   const hurt = deployedEntries.filter((e) => unitHpPct(e) < 1 || e.wounded)
   const hurtNames = hurt.map((e) => UNITS[e.defId]?.name).filter(Boolean)
-  const status =
-    deployedCount < DEPLOY_SLOTS
+  const status = swapName
+    ? { state: "pick", text: `Choose whose place ${swapName} takes` }
+    : deployedCount < DEPLOY_SLOTS
       ? {
             state: "warn",
             text: `${emptyCount === 1 ? "A place" : `${emptyCount} places`} in the fight ${emptyCount === 1 ? "stands" : "stand"} empty${reserveEntries.length > 0 ? " - call a hero from the reserve" : ""}`,
@@ -86,6 +113,11 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
         <div className="hwq-status" data-state={status.state} role="status">
           <span className="hwq-status-rune" aria-hidden="true">{status.state === "ready" ? "ᛞ" : status.state === "hurt" ? "ᚢ" : "ᛗ"}</span>
           <span className="hwq-status-text">{status.text}</span>
+          {swapName && (
+            <button type="button" className="hwq-status-cancel" onClick={() => setSwapKey(null)}>
+              Cancel
+            </button>
+          )}
           <span className="hwq-status-squad">
             Squad <b>{deployedCount}/{DEPLOY_SLOTS}</b>
           </span>
@@ -137,7 +169,7 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
           </section>
           <section className="hwm-panel">
             <UiTitle className="hwm-panel-title" k="hqBuild" />
-            {piece_buildScore()}
+            {piece_buildScore("camp")}
           </section>
         </aside>
         <main className="hwq-squad" aria-label="Your squad">
@@ -145,7 +177,19 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
           <section className="hwm-panel hwq-table">
             <UiTitle className="hwm-panel-title" k="hqFight" extra={` ${deployedCount}/${DEPLOY_SLOTS}`} />
             <div className="hwq-cards">
-              {deployedEntries.map((e) => renderBenchCard(e, { tray: true }))}
+              {fighters.map((e) =>
+                swapEntry ? (
+                  <div key={e.key} className="hwq-slot" data-picking>
+                    {renderBenchCard(e, { tray: true })}
+                    <button type="button" className="hwq-take" onClick={() => takePlace(e)}>
+                      <span className="hwq-take-name">{swapName} takes this place</span>
+                      <span className="hwq-take-sub">{UNITS[e.defId]?.name} rests in the reserve</span>
+                    </button>
+                  </div>
+                ) : (
+                  renderBenchCard(e, { tray: true })
+                ),
+              )}
               {Array.from({ length: emptyCount }, (_, i) => (
                 <div key={`empty-${i}`} className="hwq-empty-place">
                   <span className="hwq-empty-rune" aria-hidden="true">ᛗ</span>
@@ -158,7 +202,7 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
           {reserveEntries.length > 0 && (
             <section className="hwm-panel hwq-reserve">
               <UiTitle className="hwm-panel-title" k="hqReserve" extra={` ${reserveCount}/${RESERVE_CAP + (runState.benchCapBonus || 0)}`} />
-              <div className="hwq-cards">{reserveEntries.map((e) => renderBenchCard(e, { tray: true, onJoin: joinFor(e) }))}</div>
+              <div className="hwq-cards">{reserveEntries.map((e) => renderBenchCard(e, { tray: true, onJoin: joinFor(e), joinMode: tableFull ? "swap" : "join", joinActive: swapKey === e.key }))}</div>
             </section>
           )}
         </main>

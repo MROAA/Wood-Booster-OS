@@ -56,6 +56,12 @@ Marc's own words, kept as the compass:
     (mannaz); while one stands empty, reserve heroes carry a moss
     **Join the fight** plaque (the Formation screen's own `assignToSlot`).
   - **Relics & bag, still empty**, shows four waiting sockets instead of a sentence.
+  - **Swapping** with the table full: the reserve plaque turns quiet
+    ("Swap into the fight ⇅"); pressed, each fighter wears a "takes this
+    place" veil and the status line asks whose place it is (Esc / Cancel).
+    The table always shows heroes in slot order.
+  - **Your build as a verdict**: Strongest / Weakest tiles first, then the
+    seven bars as one magnitude in one hue (moss), numbers in text ink.
 
 ### The market
 - A place **your camp arrives at** ("Your camp arrives at the market").
