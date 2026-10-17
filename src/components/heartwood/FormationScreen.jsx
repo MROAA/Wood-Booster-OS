@@ -294,7 +294,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
   }
 
   return (
-    <div className="hw-intro">
+    <div className="hw-intro hw-formation-screen">
       {/* paddingRight keeps the difficulty badge clear of the fixed
           .hw-exit-link corner button - see SquadDraft.jsx's header row
           for the same fix and why it's needed. */}
@@ -594,8 +594,12 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
               greyed with what's still missing, the same "here's what
               you're building toward" cue the tribe row uses. */}
           <div className="hw-section-label">Combos</div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-            {COMBO_SYNERGIES.map((combo) => {
+          {/* Graphics pass: only the combos in play show by default -
+              lit ones and ones the squad already has a tribe toward;
+              the rest fold behind "+N more" so the row stays readable. */}
+          {(() => {
+            const near = (combo) => activeCombos.some((c) => c.id === combo.id) || Object.keys(combo.tribes).some((t) => (tribeCounts[t] || 0) > 0)
+            const chip = (combo) => {
               const on = activeCombos.some((c) => c.id === combo.id)
               const need = Object.entries(combo.tribes)
                 .filter(([t, n]) => (tribeCounts[t] || 0) < n)
@@ -612,8 +616,21 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
                   {on ? " ✓" : need ? ` (need ${need})` : ""}
                 </span>
               )
-            })}
-          </div>
+            }
+            const shown = COMBO_SYNERGIES.filter(near)
+            const rest = COMBO_SYNERGIES.filter((c) => !near(c))
+            return (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-start", marginBottom: 14 }}>
+                {shown.map(chip)}
+                {rest.length > 0 && (
+                  <details className="hw-combo-more">
+                    <summary>{shown.length ? `+${rest.length} more` : `Show all ${rest.length}`}</summary>
+                    <div className="hw-combo-more-list">{rest.map(chip)}</div>
+                  </details>
+                )}
+              </div>
+            )
+          })()}
 
           {positionHits.length > 0 && (
             <>
