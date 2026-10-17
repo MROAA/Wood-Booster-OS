@@ -592,15 +592,16 @@ export default function SquadDraft({
   // of "every button individually" - slot-based positioning for the 3
   // recruit-offer cards) so each of the 3 fixed slots can call this
   // independently instead of one shared .map over the whole array.
-  // Card feel (Market table): a bought hero's card flies from the table
-  // down into the squad strip, like a card going to your hand. Purely a
+  // Card feel (Market): a bought hero's card flies from the table to
+  // the Headquarters button, like a card going to your hand. Purely a
   // visual clone - the purchase itself happens immediately as before.
   function flyToSquad(cardEl) {
-    const row = document.querySelector(".hwm-squad-row")
-    if (!cardEl || !row || document.documentElement.classList.contains("hw-reduce-motion")) return
+    // The market is trading only now: the bought hero heads home to
+    // your camp - the Headquarters button.
+    const slot = document.querySelector(".hwm-hq-btn")
+    if (!cardEl || !slot || document.documentElement.classList.contains("hw-reduce-motion")) return
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return
     const from = cardEl.getBoundingClientRect()
-    const slot = row.querySelector(".hwm-chip--empty") || row.lastElementChild || row
     const to = slot.getBoundingClientRect()
     const ghost = cardEl.cloneNode(true)
     Object.assign(ghost.style, {

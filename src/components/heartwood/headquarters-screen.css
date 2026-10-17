@@ -153,3 +153,8 @@
 .hwq-root .hwm-launch {
   flex: 0 0 auto;
 }
+/* breathing room under the Continue plaque (the shared panel rule's
+   padding otherwise wins here) */
+.hwq-root.hw-market-stage {
+  padding-bottom: 16px;
+}

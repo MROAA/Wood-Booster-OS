@@ -387,3 +387,105 @@
   .hw-card[data-disabled="true"]:active,
   .hwm-chip[data-landed] { animation: none; }
 }
+
+/* ---------- What the numbers mean (Marc: "korteissa olevat numerot ...
+   en tiedä mitä ne tarkoittaa") ----------
+   Every gem carries its own icon, Hearthstone-style, and explains
+   itself on hover (title text from UnitCard.jsx):
+     gold coin + ✦  = cost in Essence
+     red drop  + ♥  = health
+     bronze    + ⚔  = attack each turn
+     steel     + ⛨  = block each turn
+     moss      + ♥  = heal each turn */
+.hw-card.hw-card:not(.hw-item-card) .hw-card-cost,
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp,
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon {
+  gap: 3px;
+  padding: 0 7px 0 6px;
+  cursor: help;
+}
+.hw-card.hw-card:not(.hw-item-card) .hw-card-gem-icon,
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp .hw-effect-icon-glyph,
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon .hw-effect-icon-glyph {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  opacity: 1;
+  color: #fff8e6;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
+}
+/* one colour per kind of move, so attack / block / heal read apart */
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon[data-move="block"] {
+  border-color: #a9c4e0;
+  background: radial-gradient(circle at 35% 30%, #a8c3dc, #4c6d8f 60%, #1f3247);
+}
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon[data-move="heal"] {
+  border-color: #b5d99a;
+  background: radial-gradient(circle at 35% 30%, #a9d38a, #4d8a3c 60%, #1f3d17);
+}
+
+
+/* ---------- Gem silhouettes (Marc: "ei selityksiä vaan graafisia
+   muutoksia ... antaa paljon tietoa mutta ei näytä sekavalta") ----------
+   No words: each number's SHAPE + colour + icon says what it is.
+     coin (gold, ✦)        cost
+     blade diamond (bronze) attack each turn
+     shield (steel)        block each turn
+     leaf (moss)           heal each turn
+     drop (red, ♥)         health
+   Icon sits small above the number inside every gem. */
+.hw-card.hw-card:not(.hw-item-card) .hw-card-cost,
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp,
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon {
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+  min-width: 34px;
+  height: 36px;
+  padding: 0 5px;
+  line-height: 1;
+  font-size: 14px;
+}
+.hw-card.hw-card:not(.hw-item-card) .hw-card-gem-icon,
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp .hw-effect-icon-glyph,
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon .hw-effect-icon-glyph {
+  width: 10px;
+  height: 10px;
+  margin-bottom: 1px;
+  opacity: 0.9;
+}
+/* cost: a round coin */
+.hw-card.hw-card:not(.hw-item-card) .hw-card-cost {
+  border-radius: 50%;
+  min-width: 36px;
+  width: auto;
+}
+/* attack: a blade-point diamond */
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon[data-move="attack"] {
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  box-shadow: none;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.75));
+}
+/* block: a shield */
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon[data-move="block"] {
+  border-radius: 8px 8px 50% 50% / 8px 8px 70% 70%;
+  min-width: 32px;
+  height: 37px;
+  padding-bottom: 3px;
+}
+/* heal: a leaf */
+.hw-card.hw-card:not(.hw-item-card) .hw-effect-icon[data-move="heal"] {
+  border-radius: 4px 70% 4px 70%;
+  min-width: 34px;
+}
+/* health: the red drop (shape set above) - icon over number too */
+.hw-card.hw-card:not(.hw-item-card) .hw-card-hp {
+  min-width: 34px;
+  height: 38px;
+  padding-top: 2px;
+}
