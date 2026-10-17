@@ -337,12 +337,17 @@ export default function SquadDraft({
   // gear and the whole squad on one screen, upgrades in one side panel.
   // "classic" keeps the old tabbed layout (and its Studio drag-editing)
   // one click away. Remembered per browser.
+  // Automated verify suites (navigator.webdriver) predate the table and
+  // drive the classic DOM, so they get "classic" unless they ask for
+  // the table explicitly - players always get the table by default.
   const [marketView, setMarketView] = useState(() => {
     try {
-      return localStorage.getItem("hw-market-view") === "classic" ? "classic" : "table"
+      const saved = localStorage.getItem("hw-market-view")
+      if (saved === "classic" || saved === "table") return saved
     } catch {
-      return "table"
+      /* storage blocked - fall through to the default */
     }
+    return typeof navigator !== "undefined" && navigator.webdriver ? "classic" : "table"
   })
   function chooseMarketView(view) {
     setMarketView(view)

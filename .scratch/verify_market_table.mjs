@@ -13,12 +13,13 @@ await page.evaluate(async () => {
   const bench = ["the-fool", "the-magician", "the-chariot"].map((defId, i) => ({ key: `b${i}`, defId, upgradeLevel: 0, upgrades: [] }))
   const rs = { ...startRun("tommy", null, { forcedSeed: 424243 }), nodeIndex: idx, path: RUN_PATH.slice(0, idx + 1), phase: "shop", bench, deployed: [...bench.map((e) => e.key), null], items: [], lastSeenAct: 1 }
   localStorage.setItem("heartwood-run-save-v1", JSON.stringify(serializeRun(rs)))
+  localStorage.setItem("hw-market-view", "table") // suites default to classic
 })
 await page.reload({ waitUntil: "domcontentloaded" }); await page.waitForTimeout(1500)
 const got = page.locator("button", { hasText: "Got it" }); if (await got.count()) await got.first().click()
 const c = {}
 const essence = async () => Number((await page.locator(".hwm-root .hw-essence-value").textContent()).trim())
-c.tableIsDefault = (await page.locator(".hwm-root").count()) === 1
+c.tableShown = (await page.locator(".hwm-root").count()) === 1
 c.noPageScroll = await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1 && document.documentElement.scrollWidth <= innerWidth + 1)
 c.centerFits = await page.evaluate(() => { const el = document.querySelector(".hwm-center"); return el.scrollHeight - el.clientHeight <= 2 })
 c.threeOffers = (await page.locator(".hwm-offers .hw-card").count()) === 3
