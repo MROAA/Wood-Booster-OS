@@ -134,6 +134,7 @@ import { buildRunTacticsBattle } from "../services/heartwood/tacticsRealMatchup"
 import { withHitRolls } from "../services/heartwood/tacticsCover"
 import "../components/heartwood/heartwood.css"
 import "../components/heartwood/heartwood-tactics.css"
+import LayoutToolsToggle from "../components/heartwood/LayoutToolsToggle"
 import "../components/heartwood/heartwood-graphics.css"
 
 const LEVEL_UP_PHASES = new Set(["shop", "relic", "event", "choice", "formation", "camp"])
@@ -151,7 +152,18 @@ const PLAY_MODE_KEY = "heartwood-play-mode"
 // Spacemonkey boss fight ends the run one way or the other. No card is
 // ever played by hand - the player's only actions are recruiting,
 // placing units on the grid, and choosing when to leave the shop.
+// Graphics pass: the corner switch for the Studio layout toolbars sits
+// beside every screen this page renders (the page has many early returns).
 export default function HeartwoodBattle() {
+  return (
+    <>
+      <HeartwoodBattleScreens />
+      <LayoutToolsToggle />
+    </>
+  )
+}
+
+function HeartwoodBattleScreens() {
   // Restore a saved run on mount (Marc, direct: refreshing the page
   // loses all progress, "that needs to change"). useMemo(() => ..., [])
   // rather than an effect - an effect-based restore would show a
