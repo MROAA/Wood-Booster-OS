@@ -158,3 +158,89 @@
 .hwq-root.hw-market-stage {
   padding-bottom: 16px;
 }
+
+/* ---------- The dev desk (DevDesk.jsx) - Marc's doorway into every
+   editor. Dev builds only, and only while the "✎ Studio" switch is on. */
+html:not(.hw-layout-tools) .hwq-devdesk {
+  display: none;
+}
+.hwq-devdesk {
+  flex: 0 0 auto;
+  gap: 8px;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--hwm-moss) 45%, transparent);
+  background: color-mix(in srgb, var(--hwm-wood) 70%, transparent);
+}
+.hwq-devdesk-title small {
+  margin-left: auto;
+  font-family: var(--hw-font-body, system-ui, sans-serif);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hwm-ink);
+}
+.hwq-devdesk-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+.hwq-devdesk-label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hwm-ink);
+  min-width: 110px;
+}
+.hwq-devdesk-toggle {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.hwq-devdesk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.hwq-devdesk-chip {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--hwm-gold) 40%, transparent);
+  background: rgba(10, 13, 8, 0.8);
+  color: var(--hwm-parch);
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+.hwq-devdesk-chip:hover {
+  border-color: var(--hwm-gold);
+}
+.hwq-devdesk-cat {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 14px;
+}
+.hwq-devdesk-cat-name {
+  font-size: 11px;
+  color: var(--hwm-gold);
+}
+.hwq-devdesk-open {
+  flex: 1 1 100%;
+  padding-left: 14px;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--hwm-moss) 90%, #fff);
+}
+.hwq-devdesk-count {
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hwm-moss) 22%, transparent);
+  color: color-mix(in srgb, var(--hwm-moss) 85%, #fff);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
