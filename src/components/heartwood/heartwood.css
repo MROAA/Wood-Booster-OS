@@ -9553,3 +9553,26 @@ img.hw-intent-glyph {
 .hw-neutral-drop-body { display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
 .hw-neutral-drop-eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--hw-neutral, var(--hw-ember)); }
 .hw-neutral-drop-text { font-size: 12px; color: var(--hw-muted); }
+
+/* Commander portraits (Marc's art, characters.js `image`): the painting
+   fills the round portrait frame; the glyph stays the fallback. */
+.hw-commander-portrait[data-has-image] {
+  overflow: hidden;
+  padding: 0;
+}
+.hw-commander-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+.hw-commander-badge-img {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 4px;
+  vertical-align: -4px;
+  box-shadow: 0 0 0 1px rgba(224, 176, 74, 0.6);
+}
