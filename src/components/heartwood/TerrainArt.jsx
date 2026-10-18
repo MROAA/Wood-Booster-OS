@@ -35,15 +35,49 @@ const waterBase = (a, glints = true) =>
     : "")
 const WATER_DEFS = `<linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#20485a"/><stop offset="1" stop-color="#132a36"/></linearGradient>`
 
-const tuft = (x, y, h, c) =>
-  `<path d="M${x} ${y}q-2 ${-h / 2} -6 ${-h}M${x} ${y}q-1 ${-h / 2} -1 ${-h - 2}M${x} ${y}q1 ${-h / 2} 3 ${-h}M${x} ${y}q3 ${-h / 2} 7 ${-h + 3}" stroke="${c}"/>`
-
 const flame = (x, y, s, dur, begin) =>
   `<g transform="translate(${x} ${y}) scale(${s})"><g>` +
   `<path d="M0 0C-11 0-12-12-5-22C-5-15 1-15-1-28C9-19 11-8 10-4C9 0 5 0 0 0Z" fill="#d9531c"/>` +
   `<path d="M0 0C-6 0-7-7-3-13C-2-9 2-9 1-17C6-11 7-5 6-3C5 0 3 0 0 0Z" fill="#f29a2e"/>` +
   `<path d="M0 0C-3 0-3-4-1-7C0-5 2-5 2-8C4-5 4-2 3-1C2 0 1 0 0 0Z" fill="#ffd98a"/>` +
   `%ANIM%</g></g>`.replace("%ANIM%", dur ? `<animateTransform attributeName="transform" type="scale" values="1 1;.9 1.12;1.04 .94;1 1" dur="${dur}" begin="${begin}" repeatCount="indefinite"/>` : "")
+
+// Battlefield piece 2 helpers: an autumn grass clump and a small spruce.
+const GRASS = ["#34461b", "#4f6426", "#6b7a2c", "#8f8a34", "#3e5220", "#b0943a"]
+const grassClump = (x, y, h, i, a) => {
+  const leans = [-7, -4, -1, 2, 5, 8]
+  const blades = leans
+    .map((lean, j) => {
+      const c = j === 3 && i % 3 === 0 ? "#a5602a" : GRASS[(i + j) % GRASS.length]
+      const hh = h - Math.abs(lean) * 0.5 + (j % 2) * 2
+      return `<path d="M${x} ${y}q${lean * 0.3} ${-hh * 0.55} ${lean} ${-hh}" stroke="${c}" stroke-width="1.7" fill="none" stroke-linecap="round"/>`
+    })
+    .join("")
+  // a seed head on some clumps only (a meadow, not a wheat field)
+  const seeds = (i % 3 === 1 ? [leans[3]] : i % 3 === 2 ? [leans[1]] : [])
+    .map((lean) => {
+      const hh = h - Math.abs(lean) * 0.5 + 2
+      return `<ellipse cx="${x + lean}" cy="${y - hh - 1}" rx=".9" ry="2" fill="#c9b273" opacity=".8" transform="rotate(${lean * 3} ${x + lean} ${y - hh - 1})"/>`
+    })
+    .join("")
+  const sway = a ? `<animateTransform attributeName="transform" type="rotate" values="-2 ${x} ${y};2.5 ${x} ${y};-2 ${x} ${y}" dur="${4 + (i % 3) * 0.7}s" begin="-${i * 0.6}s" repeatCount="indefinite"/>` : ""
+  return `<ellipse cx="${x}" cy="${y + 1}" rx="7" ry="2" fill="#0d1208" opacity=".55"/><g>${blades}${seeds}${sway}</g>`
+}
+const spruceSvg = (x, base, s, lit = "#3d6238") =>
+  `<g transform="translate(${x} ${base}) scale(${s})">` +
+  `<ellipse cx="0" cy="1" rx="11" ry="2.6" fill="#0d1208" opacity=".6"/><rect x="-1.4" y="-6" width="2.8" height="7" fill="#4a3220"/>` +
+  [
+    [-30, 6, 10],
+    [-20, 9, 11],
+    [-10, 12, 12],
+  ]
+    .map(
+      ([cy, w, h]) =>
+        `<path d="M0 ${cy - h}L${w} ${cy}L${w * 0.5} ${cy - 1.4}L0 ${cy - 0.6}L${-w * 0.5} ${cy - 1.4}L${-w} ${cy}Z" fill="#16261a"/>` +
+        `<path d="M0 ${cy - h + 1}L${-w + 1.2} ${cy - 0.8}L${-w * 0.5} ${cy - 2}L0 ${cy - 1.4}Z" fill="${lit}" opacity=".85"/>`,
+    )
+    .join("") +
+  `</g>`
 
 // type -> (animated) => svg string
 const TERRAIN_SVG = {
@@ -83,14 +117,23 @@ const TERRAIN_SVG = {
         `<circle cx="36" cy="42" r="1.6">${anim(a, loop("r", ".6;2;.6", "2.2s", "1.6s") + loop("opacity", "0;1;0", "2.2s", "1.6s"))}</circle>` +
         `</g>`,
     ),
-  bush: () =>
+  // Battlefield piece 2: autumn tall grass - olive-to-gold blades with seed
+  // heads, a copper blade here and there, swaying gently (still when reduced).
+  bush: (a) =>
     svg(
       MOSS +
-        `<g fill="none" stroke-width="1.8" stroke-linecap="round">` +
-        [[12, 22, 12], [34, 18, 13], [55, 24, 12], [22, 38, 14], [46, 40, 14], [8, 56, 13], [32, 58, 15], [56, 60, 13]]
-          .map(([x, y, h], i) => tuft(x, y, h, "#2c4419") + tuft(x + 3, y + 1, h - 2, i % 2 ? "#4f7430" : "#5a8036"))
-          .join("") +
-        `</g><g fill="#a8c860" opacity=".4"><circle cx="31" cy="4" r="1"/><circle cx="52" cy="26" r="1"/></g>`,
+        [
+          [14, 26, 15, 0],
+          [36, 20, 16, 1],
+          [54, 28, 13, 2],
+          [24, 42, 17, 3],
+          [48, 46, 16, 4],
+          [10, 58, 14, 5],
+          [32, 60, 17, 6],
+          [56, 61, 13, 7],
+        ]
+          .map(([x, y, h, i]) => grassClump(x, y, h, i, a))
+          .join(""),
     ),
   ice: (a) =>
     svg(
@@ -124,16 +167,21 @@ const TERRAIN_SVG = {
         `<path d="M34 29C33 20 40 14 47 15C55 16 59 23 56 30C53 34 38 35 34 29Z" fill="#7a7468"/>` +
         `<path d="M38 20C41 16 47 16 50 17C45 18 41 20 38 23Z" fill="#a8a193" opacity=".7"/>` +
         `<path d="M40 52C39 46 44 43 48 43C53 43 56 47 54 52C51 55 42 55 40 52Z" fill="#5f5a51"/>` +
-        `<path d="M22 30l3 7-2 5M46 20l-2 6" stroke="#2c2924" stroke-width="1" fill="none"/>`,
+        `<path d="M22 30l3 7-2 5M46 20l-2 6" stroke="#2c2924" stroke-width="1" fill="none"/>` +
+        // Battlefield piece 2: moss caps and lichen (sammal ja jäkälä)
+        `<path d="M11 31C14 25 22 23 28 26C24 27 22 30 18 29C15 29 13 31 11 33Z" fill="#4f6b2e"/><path d="M14 28C17 25 21 25 23 26C20 27 17 27 14 29Z" fill="#7a9a4a" opacity=".7"/>` +
+        `<path d="M36 19C38 14 45 12 50 14C46 15 44 17 40 17C38 17 37 18 36 20Z" fill="#4f6b2e"/>` +
+        `<g fill="#b4bc8f" opacity=".75"><circle cx="30" cy="36" r="1.2"/><circle cx="33" cy="39" r=".8"/><circle cx="50" cy="24" r="1.1"/><circle cx="44" cy="28" r=".7"/><circle cx="47" cy="49" r=".9"/></g>`,
     ),
+  // Battlefield piece 2: open woodland - two young spruces and undergrowth.
   forest: () =>
     svg(
       MOSS +
-        `<g fill="#15200f" opacity=".6"><ellipse cx="16" cy="30" rx="9" ry="2.5"/><ellipse cx="46" cy="56" rx="10" ry="2.5"/></g>` +
-        `<rect x="15" y="22" width="2.4" height="8" fill="#4a3220"/><path d="M16 4L25 16H20L27 25H5L12 16H7Z" fill="#3a5a26"/><path d="M16 4L20 9.5 16 11Z" fill="#557a37"/>` +
-        `<rect x="45" y="46" width="2.6" height="10" fill="#4a3220"/><path d="M46 24L56 38H50L58 48H34L42 38H36Z" fill="#35532a"/><path d="M46 24L51 31 46 33Z" fill="#557a37"/>` +
-        `<g fill="none" stroke="#4d6d30" stroke-width="1.3" stroke-linecap="round"><path d="M30 44q2-5 7-6M33 44q0-4 3-7M52 12q-3 2-3 6M8 52q4-3 8-2"/></g>` +
-        `<g fill="#6d8c3a" opacity=".6"><circle cx="30" cy="16" r="1"/><circle cx="24" cy="58" r="1"/></g>`,
+        spruceSvg(17, 30, 0.82) +
+        spruceSvg(46, 58, 1.05, "#467040") +
+        `<g fill="none" stroke="#4d6d30" stroke-width="1.3" stroke-linecap="round"><path d="M30 44q2-5 7-6M33 44q0-4 3-7M8 52q4-3 8-2"/></g>` +
+        `<g fill="#b5602a" opacity=".85"><ellipse cx="30" cy="20" rx="1.8" ry="1.1" transform="rotate(30 30 20)"/><ellipse cx="24" cy="56" rx="1.8" ry="1.1" transform="rotate(-20 24 56)"/></g>` +
+        `<g fill="#6d8c3a" opacity=".6"><circle cx="54" cy="16" r="1"/><circle cx="8" cy="40" r="1"/></g>`,
     ),
   wall: () =>
     svg(
@@ -240,20 +288,104 @@ export function terrainArtStyle(type) {
 
 const SHADOW = <ellipse cx="32" cy="58" rx="18" ry="3.6" fill="#000" opacity=".45" />
 
-function TreeSprite({ burning }) {
-  const leaf = burning ? ["#3a2616", "#57341a", "#6e4020", "#8a5424"] : ["#1f3414", "#335a22", "#447330", "#5f8f3e"]
+// Battlefield piece 2: three Nordic species, painted with the light from the
+// top-left (the same side as the sun shafts). Which species stands on a tile
+// is a stable choice made by the board (variant), so a grove is mixed.
+const TREE_SPECIES = ["birch", "aspen", "spruce"]
+const CANOPY = {
+  // koivu - golden autumn birch
+  birch: { dark: "#7d5f1e", mid: "#b8902e", light: "#e2bd52", glint: "#f4dc8a", bark: "#e6e0d0", barkDark: "#1d1a16" },
+  // haapa - copper-red autumn aspen
+  aspen: { dark: "#5e2414", mid: "#9a3d1e", light: "#cc6a2e", glint: "#eba05a", bark: "#8d8a72", barkDark: "#3f3d31" },
+}
+const BURNT = { dark: "#2a1c12", mid: "#3a2616", light: "#57341a", glint: "#6e4020", bark: "#3a2a1c", barkDark: "#140d08" }
+
+function DeciduousTree({ c, birch }) {
+  return (
+    <>
+      <path d="M22 58q4-1 7-6M42 58q-4-1-6-6" stroke={c.barkDark} strokeWidth="2.4" fill="none" strokeLinecap="round" opacity=".7" />
+      <path d="M28.6 58C29.6 50 29 42 30.4 33h3.2C35 42 34.4 50 35.4 58Z" fill={c.bark} />
+      <path d="M33.6 33C35 42 34.4 50 35.4 58h-2.2C32.6 50 33 42 32.2 33Z" fill="#000" opacity=".22" />
+      {birch && (
+        <g fill={c.barkDark}>
+          <path d="M29.4 52h2.6v1.1h-2.6zM31.2 46h2.7v.9h-2.7zM29.8 40h2v.8h-2zM31.6 55h2.8v.8h-2.8z" />
+        </g>
+      )}
+      <path d="M31 41l-6-7M33 38l6-8M30.4 36l-3-6" stroke={c.bark} strokeWidth="1.6" fill="none" strokeLinecap="round" />
+      {/* canopy: dark mass, mid clumps, then the lit top-left */}
+      <g fill={c.dark}>
+        <circle cx="32" cy="24" r="16" />
+        <circle cx="18" cy="31" r="11.5" />
+        <circle cx="46" cy="31" r="11.5" />
+        <circle cx="24" cy="15" r="10" />
+        <circle cx="41" cy="15" r="10" />
+        <circle cx="25" cy="37" r="8" />
+        <circle cx="40" cy="37" r="8" />
+      </g>
+      <g fill={c.mid}>
+        <circle cx="30" cy="21" r="13" />
+        <circle cx="17" cy="29" r="9" />
+        <circle cx="44" cy="28" r="9" />
+        <circle cx="26" cy="34" r="6" />
+        <circle cx="23" cy="13" r="8" />
+        <circle cx="39" cy="12" r="7.5" />
+      </g>
+      <g fill={c.light}>
+        <circle cx="25" cy="13" r="6" />
+        <circle cx="34" cy="10" r="5" />
+        <circle cx="18" cy="24" r="5" />
+        <circle cx="29" cy="20" r="5.5" opacity=".7" />
+      </g>
+      <g fill={c.glint} opacity=".9">
+        <circle cx="23" cy="10" r="1.6" />
+        <circle cx="33" cy="7.5" r="1.3" />
+        <circle cx="16" cy="22" r="1.3" />
+        <circle cx="27" cy="16" r="1" />
+        <circle cx="40" cy="20" r="1" />
+        <circle cx="46" cy="26" r=".9" />
+      </g>
+      <ellipse cx="33" cy="42" rx="15" ry="3.4" fill={c.dark} opacity=".6" />
+      <g fill={c.dark}>
+        <circle cx="12" cy="34" r="1.2" />
+        <circle cx="51" cy="35" r="1.1" />
+        <circle cx="47" cy="40" r=".9" />
+      </g>
+    </>
+  )
+}
+
+// kuusi - a spruce: jagged tiers, lit on the left faces.
+const SPRUCE_TIERS = [
+  [16, 8, 13],
+  [27, 12, 14],
+  [38, 16, 15],
+  [50, 20, 15],
+]
+const tierPath = (cy, w, h) => `M32 ${cy - h}L${32 + w} ${cy}L${32 + w * 0.6} ${cy - 1.6}L${32 + w * 0.3} ${cy + 0.6}L32 ${cy - 1}L${32 - w * 0.3} ${cy + 0.6}L${32 - w * 0.6} ${cy - 1.6}L${32 - w} ${cy}Z`
+const tierLit = (cy, w, h) => `M32 ${cy - h}L${32 - w} ${cy}L${32 - w * 0.6} ${cy - 1.6}L${32 - w * 0.3} ${cy + 0.6}L32 ${cy - 1}Z`
+function SpruceTree({ burning }) {
+  const col = burning ? ["#2a1c12", "#3a2616", "#57341a"] : ["#16261a", "#24402a", "#3d6238"]
+  return (
+    <>
+      <rect x="30.4" y="48" width="3.2" height="10" fill="#4a3220" />
+      {SPRUCE_TIERS.map(([cy, w, h]) => (
+        <g key={cy}>
+          <path d={tierPath(cy, w, h)} fill={col[0]} />
+          <path d={tierPath(cy - 1, w - 1.5, h - 1.5)} fill={col[1]} />
+          <path d={tierLit(cy - 1, w - 1.5, h - 1.5)} fill={col[2]} opacity=".85" />
+        </g>
+      ))}
+      <path d="M32 3l1.2 3h-2.4z" fill={col[2]} />
+    </>
+  )
+}
+
+function TreeSprite({ burning, variant = 0 }) {
+  const species = TREE_SPECIES[Math.abs(variant) % TREE_SPECIES.length]
   return (
     <>
       {SHADOW}
-      <path d="M28 58l1.5-20h5l1.5 20z" fill="#5a3a20" />
-      <path d="M29.5 58l1-20h1.6l-.6 20z" fill="#7a5230" />
-      <path d="M28 58q-5 0-7 2M36 58q5 0 7 2" stroke="#5a3a20" strokeWidth="2" fill="none" strokeLinecap="round" />
-      <circle cx="32" cy="24" r="18" fill={leaf[0]} />
-      <circle cx="20" cy="31" r="11" fill={leaf[1]} />
-      <circle cx="44" cy="31" r="11" fill={leaf[1]} />
-      <circle cx="32" cy="22" r="14" fill={leaf[2]} />
-      <circle cx="27" cy="15" r="8" fill={leaf[3]} opacity=".85" />
-      <circle cx="42" cy="22" r="4" fill={leaf[3]} opacity=".6" />
+      {species === "spruce" ? <SpruceTree burning={burning} /> : <DeciduousTree c={burning ? BURNT : CANOPY[species]} birch={species === "birch"} />}
       {burning && (
         <g className="hwt-art-flames">
           <path d="M22 26c-6-6-2-14 2-18 0 5 4 6 4 10 2-3 1-6 1-9 6 5 8 12 4 17z" fill="#e0561c" />
@@ -347,12 +479,12 @@ function IcePillarSprite({ brittle }) {
 
 const SPRITES = { tree: TreeSprite, barrel: BarrelSprite, sporepod: SporeSprite, boulder: BoulderSprite, icepillar: IcePillarSprite }
 
-export function ObjectArt({ type, burning = false, brittle = false, className = "hwt-object-art" }) {
+export function ObjectArt({ type, burning = false, brittle = false, variant = 0, className = "hwt-object-art" }) {
   const Sprite = SPRITES[type]
   if (!Sprite) return null
   return (
     <svg className={className} data-art-object={type} viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-      <Sprite burning={burning} brittle={brittle} />
+      <Sprite burning={burning} brittle={brittle} variant={variant} />
     </svg>
   )
 }

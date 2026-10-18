@@ -2600,7 +2600,7 @@
 .hwt-object { display: flex; align-items: center; justify-content: center; translate: 0 -5px; }
 .hwt-object-art { width: 60px; height: 60px; display: block; overflow: visible; }
 .hwt-object[data-object="boulder"] .hwt-object-art { width: 62px; height: 62px; }
-.hwt-object[data-object="tree"] .hwt-object-art { width: 66px; height: 66px; }
+.hwt-object[data-object="tree"] .hwt-object-art { width: 72px; height: 72px; }
 .hwt-object[data-object="barrel"] .hwt-object-art { width: 72px; height: 72px; margin-top: -6px; }
 .hwt-object[data-object="sporepod"] .hwt-object-art { width: 64px; height: 64px; }
 .hwt-cell[data-burning="true"] .hwt-object { filter: drop-shadow(0 0 6px var(--hw-ember)); }
