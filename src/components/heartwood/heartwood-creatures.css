@@ -95,3 +95,26 @@
 @media (prefers-reduced-motion: reduce) {
   .hw-forest-regard-marker { transition: none; }
 }
+
+.hw-root-eater-status {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(168, 160, 137, 0.3);
+  font-size: 0.85em;
+  color: #d9b98a;
+}
+.hw-root-eater-hint {
+  color: var(--hw-muted, #a8a089);
+}
+.hwt-creature-banner[data-creature-banner="rooteater"] {
+  border-color: #b48a5a;
+  background: rgba(90, 62, 34, 0.18);
+}
+.hwt-creature-banner-ate {
+  margin-top: 4px;
+  font-style: italic;
+}
+.hwt-fate-tag[data-creature="rooteater"] {
+  background: #5a3e22;
+  border-color: #d9b98a;
+}

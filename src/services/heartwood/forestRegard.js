@@ -36,7 +36,8 @@ export function countTrees(battle) {
 // After a fight: a clean fight pleases the forest, fallen trees anger it.
 export function regardAfterFight(runState, battle) {
   if (!battle || battle.treesAtStart == null) return runState
-  const lost = Math.max(0, battle.treesAtStart - countTrees(battle))
+  // Trees a Root-Eater ate are the forest's own business, not yours.
+  const lost = Math.max(0, battle.treesAtStart - countTrees(battle) - (battle.creatureTreesEaten || 0))
   if (lost === 0) return adjustRegard(runState, REGARD.cleanFight, "No tree fell in your fight")
   const delta = Math.max(REGARD.maxTreeLoss, REGARD.perTreeLost * lost)
   return adjustRegard(runState, delta, `${lost} tree${lost > 1 ? "s" : ""} fell in your fight`)

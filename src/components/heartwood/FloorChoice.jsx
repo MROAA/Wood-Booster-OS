@@ -1,4 +1,8 @@
 import { ENEMIES } from "../../data/heartwood/enemies"
+import { runeRouteOptions } from "../../services/heartwood/runRunes"
+import { RUNES } from "../../data/heartwood/runes"
+import { riskOf } from "../../services/heartwood/betweenFights"
+import "./heartwood-runes.css"
 import { resolveFormation } from "../../data/heartwood/formations"
 import { CardGlyph } from "./cardArt"
 import { useFreeLayout } from "./useFreeLayout.jsx"
@@ -22,7 +26,7 @@ function optionArt(node) {
   return ENEMIES[firstDefId]?.art || "warden"
 }
 
-export default function FloorChoice({ runState, onChoose, difficultyTier }) {
+export default function FloorChoice({ runState, onChoose, difficultyTier, onRunePath }) {
   // Stage B, screen 3 - re-checked live, same as EventScreen/
   // RelicChoice: plain .hw-intro root, no dedicated class of its own,
   // no CSS rule at all for this screen - standard wrapper pattern, no
@@ -175,6 +179,27 @@ export default function FloorChoice({ runState, onChoose, difficultyTier }) {
           </div>
         )}
       </div>
+      {/* Rune paths (First Song PRD §4): a carried rune opens a way the fork doesn't show. */}
+      {runeRouteOptions(runState).length > 0 && (
+        <div className="hw-rune-paths" data-rune-paths>
+          <div className="hw-rune-paths-title">Your runes open other ways</div>
+          {runeRouteOptions(runState).map((opt) => {
+            const rune = RUNES[opt.rune]
+            const risk = riskOf(opt.node)
+            const f = resolveFormation(opt.node.formationId || opt.node.enemyId)
+            const fightName = f.name || ENEMIES[opt.node.enemyId]?.name || "a fight"
+            return (
+              <button key={opt.rune} type="button" className="hw-rune-path" data-rune-path={opt.rune} style={{ "--hw-rune-colour": rune.color }} onClick={() => onRunePath?.(opt.rune)}>
+                <span className="hw-rune-glyph" aria-hidden="true">{rune.glyph}</span>
+                <span className="hw-rune-path-text">
+                  <strong>Carve {rune.name}: the {risk.name}</strong>
+                  <small>{fightName} - {risk.blurb} Spends the rune.</small>
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
       <RunBuildPanel runState={runState} />
     </div>
   )
