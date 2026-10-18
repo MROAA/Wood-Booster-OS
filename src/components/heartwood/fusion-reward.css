@@ -129,11 +129,11 @@
 }
 
 /* Tier frames on hero cards: Tier 2 silver, Tier 3 gold. */
-.hw-card.hw-card[data-fusion-tier="2"] {
+.hw-card.hw-unit-card[data-fusion-tier="2"] {
   border-color: rgba(201, 210, 220, 0.75);
   box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 8px 14px -6px rgba(0, 0, 0, 0.85), 0 0 12px rgba(201, 210, 220, 0.25);
 }
-.hw-card.hw-card[data-fusion-tier="3"] {
+.hw-card.hw-unit-card[data-fusion-tier="3"] {
   border-color: rgba(231, 194, 122, 0.9);
   box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 8px 14px -6px rgba(0, 0, 0, 0.85), 0 0 18px rgba(231, 194, 122, 0.4);
 }

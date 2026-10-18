@@ -30,14 +30,14 @@
    Folded: level bar, traits, mutations, identity chips, promotion, collar
    line, upgrade chips. (Tags, rarity line, class names and target line
    already fold in heartwood-cards.css.) */
-.hw-card.hw-card:not(.hw-item-card) > :is(.hw-card-level, .hw-card-traits, .hw-card-mutations, .hw-card-identity, .hw-card-promo, .hw-card-collar-line, .hw-card-upgrades) {
+.hw-card.hw-unit-card > :is(.hw-card-level, .hw-card-traits, .hw-card-mutations, .hw-card-identity, .hw-card-promo, .hw-card-collar-line, .hw-card-upgrades) {
   max-height: 0;
   opacity: 0;
   overflow: hidden;
   margin-top: -5px;
   transition: max-height 0.22s ease, opacity 0.18s ease, margin-top 0.2s ease;
 }
-.hw-card.hw-card:not(.hw-item-card):is(:hover, [data-selected="true"]) > :is(.hw-card-level, .hw-card-traits, .hw-card-mutations, .hw-card-identity, .hw-card-promo, .hw-card-collar-line, .hw-card-upgrades) {
+.hw-card.hw-unit-card:is(:hover, [data-selected="true"]) > :is(.hw-card-level, .hw-card-traits, .hw-card-mutations, .hw-card-identity, .hw-card-promo, .hw-card-collar-line, .hw-card-upgrades) {
   max-height: 80px;
   opacity: 1;
   margin-top: 0;
@@ -130,7 +130,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .hw-reveal .hw-reveal-more,
-  .hw-card.hw-card > *,
+  .hw-card.hw-unit-card > *,
   .hwq-root *,
   .hwm-root * {
     transition-duration: 0s !important;
@@ -142,7 +142,7 @@
    a few pixels and sharpens from a soft blur, on an easing that settles
    gently. Closing: quick and all at once, so using it never feels slow.
    (Delays live only on the open state, so closing has none.) */
-.hw-card.hw-card:not(.hw-item-card) > :is(.hw-card-level, .hw-card-traits, .hw-card-mutations, .hw-card-identity, .hw-card-promo, .hw-card-collar-line, .hw-card-upgrades, .hw-card-class, .hw-card-tclass, .hw-card-tags, .hw-card-desc, .hw-card-target-line),
+.hw-card.hw-unit-card > :is(.hw-card-level, .hw-card-traits, .hw-card-mutations, .hw-card-identity, .hw-card-promo, .hw-card-collar-line, .hw-card-upgrades, .hw-card-class, .hw-card-tclass, .hw-card-tags, .hw-card-desc, .hw-card-target-line),
 .hwq-cards > * > :is(.hw-gear-row-wrap, .hw-fusion-progress),
 .hwq-root .hw-commander-cluster > :is(.hw-gear-row-wrap, .hw-retrain-btn),
 .hwq-root .hwm-panel :is(.hw-buildscore-positioning, .hw-buildscore-core, .hw-buildscore-note),
@@ -159,7 +159,7 @@
     margin 0.16s ease-in,
     padding 0.16s ease-in;
 }
-.hw-card.hw-card:not(.hw-item-card):is(:hover, [data-selected="true"]) > :is(.hw-card-level, .hw-card-traits, .hw-card-mutations, .hw-card-identity, .hw-card-promo, .hw-card-collar-line, .hw-card-upgrades, .hw-card-class, .hw-card-tclass, .hw-card-tags, .hw-card-desc, .hw-card-target-line),
+.hw-card.hw-unit-card:is(:hover, [data-selected="true"]) > :is(.hw-card-level, .hw-card-traits, .hw-card-mutations, .hw-card-identity, .hw-card-promo, .hw-card-collar-line, .hw-card-upgrades, .hw-card-class, .hw-card-tclass, .hw-card-tags, .hw-card-desc, .hw-card-target-line),
 .hwq-cards > :is(:hover, :focus-within) > :is(.hw-gear-row-wrap, .hw-fusion-progress),
 .hwq-root[data-equipping] .hwq-cards > * > .hw-gear-row-wrap,
 .hwq-root .hwm-panel:is(:hover, :focus-within) .hw-commander-cluster > :is(.hw-gear-row-wrap, .hw-retrain-btn),
@@ -179,12 +179,12 @@
     padding 0.34s cubic-bezier(.2, .8, .25, 1) var(--reveal-delay, 0ms);
 }
 /* the order the card's story unfolds in */
-.hw-card.hw-card > .hw-card-level { --reveal-delay: 0ms; }
-.hw-card.hw-card > .hw-card-identity { --reveal-delay: 45ms; }
-.hw-card.hw-card > :is(.hw-card-traits, .hw-card-mutations) { --reveal-delay: 80ms; }
-.hw-card.hw-card > :is(.hw-card-promo, .hw-card-collar-line, .hw-card-class, .hw-card-tclass) { --reveal-delay: 115ms; }
-.hw-card.hw-card > :is(.hw-card-tags, .hw-card-target-line) { --reveal-delay: 150ms; }
-.hw-card.hw-card > :is(.hw-card-desc, .hw-card-upgrades) { --reveal-delay: 185ms; }
+.hw-card.hw-unit-card > .hw-card-level { --reveal-delay: 0ms; }
+.hw-card.hw-unit-card > .hw-card-identity { --reveal-delay: 45ms; }
+.hw-card.hw-unit-card > :is(.hw-card-traits, .hw-card-mutations) { --reveal-delay: 80ms; }
+.hw-card.hw-unit-card > :is(.hw-card-promo, .hw-card-collar-line, .hw-card-class, .hw-card-tclass) { --reveal-delay: 115ms; }
+.hw-card.hw-unit-card > :is(.hw-card-tags, .hw-card-target-line) { --reveal-delay: 150ms; }
+.hw-card.hw-unit-card > :is(.hw-card-desc, .hw-card-upgrades) { --reveal-delay: 185ms; }
 .hwq-cards > * > .hw-gear-row-wrap { --reveal-delay: 0ms; }
 .hwq-cards > * > .hw-fusion-progress { --reveal-delay: 60ms; }
 .hwq-root .hw-buildscore-positioning { --reveal-delay: 0ms; }
@@ -192,14 +192,14 @@
 .hwq-root .hw-buildscore-note { --reveal-delay: 100ms; }
 
 @media (prefers-reduced-motion: reduce) {
-  .hw-card.hw-card > *,
+  .hw-card.hw-unit-card > *,
   .hwq-root *,
   .hw-reveal .hw-reveal-more {
     translate: none !important;
     filter: none !important;
   }
 }
-.hw-reduce-motion .hw-card.hw-card > *,
+.hw-reduce-motion .hw-card.hw-unit-card > *,
 .hw-reduce-motion .hwq-root * {
   translate: none !important;
   filter: none !important;
