@@ -26,6 +26,12 @@ export const CINEMATICS = {
     id: "intro",
     fade: "black",
     lines: [
+      { speaker: "The forest", tone: "whisper", line: "Before the world there was silence. Then something sang." },
+      {
+        speaker: "The forest",
+        tone: "whisper",
+        line: "Light, dark, life and death came out of the Song. But its last verse never ended. It took root, and grew, and became me.",
+      },
       { speaker: "The forest", tone: "whisper", line: "Wake up... The roots know you..." },
       {
         speaker: "Spacemonkey",
@@ -33,13 +39,21 @@ export const CINEMATICS = {
       },
       {
         speaker: "Spacemonkey",
+        line: "Everyone here knows a piece of that Song. Nobody knows all of it anymore. Song, Root, Rune, Silence - four old forces, and lately they've stopped keeping to their own sides.",
+      },
+      {
+        speaker: "Spacemonkey",
         line: "Here. Keep this. It's a Seed. It isn't a magic item. It's... a promise.",
       },
       {
         speaker: "Sapling Spirit",
-        line: "You hear us, don't you. The roots aren't ours anymore. Something is spreading up from below. Something is waking.",
+        line: "You hear us, don't you. The roots aren't ours anymore. The Silence is spreading up from below - folk call it the Rot. Something is waking.",
       },
-      { speaker: "The forest", tone: "whisper", line: "Don't let it grow." },
+      {
+        speaker: "Sapling Spirit",
+        line: "Men came here once in longships, looking for the root of all worlds. The forest gave them what they wanted. None of them went home.",
+      },
+      { speaker: "The forest", tone: "whisper", line: "Is the forest a broken world to mend... or a world left unfinished on purpose? Find out. Before it is sung to the end." },
     ],
   },
 
@@ -58,7 +72,11 @@ export const CINEMATICS = {
       },
       {
         speaker: "The forest",
-        line: "The king is gone. The void is sealed. But the crown cannot stay empty.",
+        line: "The king is gone - the last jarl of the longships, who was promised a kingdom that would never die. He tried to sing my last verse himself, to make his kingdom forever. It broke in his mouth, and the Silence came pouring through the crack.",
+      },
+      {
+        speaker: "The forest",
+        line: "The void is sealed. But the verse is still unsung, and the crown cannot stay empty.",
       },
       {
         speaker: "Spacemonkey",
@@ -70,51 +88,53 @@ export const CINEMATICS = {
         tone: "quiet",
         line: "I know this place scares you. It scared me. It scared the Hollow King. But someone needs you now.",
       },
-      { speaker: "The Crownless", line: "You came. Before you choose, I have to see who you are." },
+      { speaker: "The Crownless", line: "I am not a ruler. I am the last verse - the one nobody finished." },
+      { speaker: "The Crownless", line: "You came. Before you choose how I end, I have to see who you are." },
     ],
   },
 
   "ending-rooted": {
     id: "ending-rooted",
-    title: "The Rooted King",
-    subtitle: "Growth. Peace. A return to the roots.",
+    title: "The Song Restored",
+    subtitle: "The old balance returns. Something of this world is changed for good.",
     fade: "green",
     lines: [
-      { speaker: "The forest", tone: "gentle", line: "You chose peace." },
+      { speaker: "The forest", tone: "gentle", line: "You sang the verses back the way they were." },
       {
         speaker: "Heartwood Warden",
-        line: "The roots are strong. The heart beats again. I carry the crown - through your choice.",
+        line: "Song, Root, Rune, Silence - each back on its own side. The heart beats again. I carry the crown - through your choice.",
       },
-      { speaker: "The forest", line: "Growth returns. Peace returns. Thank you." },
+      { speaker: "The forest", line: "The old balance returns. But a restored song is not the same song. Some paths you walked are gone, and will not grow back." },
       { speaker: "Spacemonkey", tone: "quiet", line: "...You gave it back its shape. I never could." },
     ],
   },
 
   "ending-ember": {
     id: "ending-ember",
-    title: "The Ember Sovereign",
-    subtitle: "Power. Change. A new beginning.",
+    title: "The Bound Forest",
+    subtitle: "Runes burned into the roots. Safe, predictable - and less free.",
     fade: "red",
     lines: [
-      { speaker: "The forest", tone: "pulsing", line: "You chose power." },
+      { speaker: "The forest", tone: "pulsing", line: "You chose to bind me." },
       {
         speaker: "Ashlord Reborn",
-        line: "Peace isn't enough. Growth isn't enough. The forest needs fire - so it can be born again.",
+        line: "Peace isn't enough. Growth isn't enough. Burn the runes into every root, and the forest will never break again - because it will never be allowed to.",
       },
-      { speaker: "The forest", line: "Change returns. Power returns. Thank you." },
+      { speaker: "The forest", line: "I am strong now, and I will keep my rules. I will not dream again." },
       { speaker: "Spacemonkey", tone: "quiet", line: "I'd have warned you off this once. Now I think I just watch." },
     ],
   },
 
   "ending-hollow": {
     id: "ending-hollow",
-    title: "The Hollow Crown",
-    subtitle: "Truth. Void. You.",
+    title: "The Silence Accepted",
+    subtitle: "Part of the forest is let go, so the rest can live.",
     fade: "violet",
     lines: [
       { speaker: "The Crownless", line: "You chose truth." },
       { speaker: "You", line: "...What does that mean?" },
-      { speaker: "The Crownless", line: "The void isn't an enemy. It's part of the forest. Part of you." },
+      { speaker: "The Crownless", line: "The Silence isn't an enemy. It is what keeps the Song from growing forever. Part of the forest. Part of you." },
+      { speaker: "The forest", tone: "quiet", line: "Let some of me be forgotten, then. The rest of the world can go on living." },
       { speaker: "The forest", tone: "reverent", line: "You carry the crown." },
       { speaker: "The Crownless", line: "The Heartwood lives - through you." },
       { speaker: "Spacemonkey", tone: "whisper", line: "You did what I didn't dare to." },
@@ -141,6 +161,11 @@ export const CINEMATICS = {
         line: "Where the Veil wore thinnest, a hole is opening. It copies every step you take.",
       },
       { speaker: "Spacemonkey", tone: "whisper", line: "The forest stopped asking to be saved. Now it's asking to be understood." },
+      {
+        speaker: "Spacemonkey",
+        tone: "whisper",
+        line: "You came in looking for the way out. Ever wonder if the forest is the only place a world can exist at all?",
+      },
       { speaker: "The forest", line: "Rest, for now. The Echo will still be there." },
     ],
   },
