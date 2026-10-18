@@ -1,5 +1,6 @@
 import { UNITS } from "../../data/heartwood/units"
 import FightFates from "./FightFates"
+import RunePouch from "./RunePouch"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
@@ -85,7 +86,7 @@ const ELITE_GIMMICK = {
 // gap on ANY elite/miniboss/boss encounter in the game anymore.
 const TACTICS_READY_ENCOUNTER_IDS = new Set(["the-ancient-grove", "the-elder-hollow", "deepwarden", "the-gorging-maw", "wyrmgall", "the-iron-sentinel", "thornmaw", "spacemonkey"])
 
-export default function FormationScreen({ runState, node, onAssign, onClear, onStartBattle, onStartTacticsBattle }) {
+export default function FormationScreen({ runState, node, onAssign, onClear, onStartBattle, onStartTacticsBattle, onCarveRune }) {
   const isBoss = node.type === "boss"
   const isMiniboss = node.type === "miniboss"
   const isElite = node.type === "elite"
@@ -698,6 +699,8 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           real fight too (resolveRealMatchup allows it). */}
       {tacticsMatchup ? (
         <>
+          {/* Runes (First Song PRD §4): carve one into this fight. */}
+          <RunePouch runState={runState} onCarve={onCarveRune} />
           <button className="hw-end-turn hw-tactics-start" onClick={onStartTacticsBattle} style={{ marginTop: 16 }}>
             ⚔ Start Battle
           </button>
