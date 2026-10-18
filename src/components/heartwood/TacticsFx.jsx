@@ -16,6 +16,8 @@
 import { useEffect, useRef, useState } from "react"
 import { FloatingNumber } from "./FloatingNumbers"
 import { play } from "../../services/heartwood/soundManager"
+import { forestReact, feetOfUnit, feetOfTile, RUSTLE_GROUND } from "./forestReactions"
+import { biomeForBattle } from "../../data/heartwood/battleBiomes"
 
 const BEAT_MS = 420
 const IMPACT_DELAY_MS = 200
@@ -227,6 +229,22 @@ function toBeats(events) {
   return beats
 }
 
+// Battlefield piece 4: what the unit diff watches so the ground can answer
+// statuses that arrive without an event of their own.
+const STATUS_REACTION = [
+  ["burn", "fire"],
+  ["chill", "frost"],
+  ["frozen", "frost"],
+  ["root", "root"],
+  ["entangle", "root"],
+  ["poison", "poison"],
+]
+const snapUnit = (u) => {
+  const out = { hp: u.hp, block: u.block, pos: u.pos ? `${u.pos.row}-${u.pos.col}` : null }
+  for (const [k] of STATUS_REACTION) out[k] = u[k] || 0
+  return out
+}
+
 export default function TacticsFx({ battle }) {
   const [popups, setPopups] = useState([])
   // Boss fights: a big "Phase N: name" banner on a phase change.
@@ -252,13 +270,16 @@ export default function TacticsFx({ battle }) {
     // First render (or a reload mid-fight): never replay history.
     if (lastSeqRef.current === null) {
       lastSeqRef.current = battle.eventSeq || 0
-      prevUnitsRef.current = new Map(battle.units.map((u) => [u.id, { hp: u.hp, block: u.block }]))
+      prevUnitsRef.current = new Map(battle.units.map((u) => [u.id, snapUnit(u)]))
       return undefined
     }
     const fresh = (battle.events || []).filter((e) => e.seq > lastSeqRef.current)
     lastSeqRef.current = battle.eventSeq || lastSeqRef.current
     const prevUnits = prevUnitsRef.current || new Map()
-    prevUnitsRef.current = new Map(battle.units.map((u) => [u.id, { hp: u.hp, block: u.block }]))
+    prevUnitsRef.current = new Map(battle.units.map((u) => [u.id, snapUnit(u)]))
+    // Battlefield piece 4: the forest answers (colours from the biome).
+    const colours = biomeForBattle(battle).detail?.colours
+    const react = (kind, at) => forestReact(kind, at, colours)
 
     const pop = (unitId, text, kind, extra = {}) =>
       setPopups((cur) => [...cur, { id: counterRef.current++, unitId, text, kind, offset: 0, ...extra }])
@@ -285,6 +306,9 @@ export default function TacticsFx({ battle }) {
                 pop(ev.targetId, `-${ev.amount}`, "damage", { big })
                 splat(ev.targetId, big)
                 sparks(ev.targetId, ev.fell ? "fell" : "hit", big || ev.fell ? 12 : 7)
+                const feet = feetOfUnit(ev.targetId)
+                react("hit", feet)
+                if (ev.fell) timers.push(setTimeout(() => react("spirit", feet), 260))
               }
               else if (ev.absorbed > 0) pop(ev.targetId, "Blocked", "block")
               if (big) shakeBoard()
@@ -345,6 +369,9 @@ export default function TacticsFx({ battle }) {
           // Destructibles: tile flash + shake/sound (the board shows the callout text).
           timers.push(setTimeout(() => {
             flashTiles(ev.tiles || [ev.pos], `obj-${ev.fx}`)
+            // the ground answers on the changed tiles (a few, not all)
+            const groundKind = { flare: "fire", boom: "fire", burn: "fire", grassfire: "fire", bloom: "heal", crush: "dust", fall: "hit", break: "dust", shatter: "frost", freeze: "frost", chill: "frost", spore: "poison" }[ev.fx]
+            if (groundKind) for (const t of (ev.tiles || [ev.pos]).slice(0, 5)) react(groundKind, feetOfTile(t))
             if (["boom", "fall", "shatter", "spore"].includes(ev.fx)) { shakeBoard(); play("hitBig") }
             else if (ev.fx === "flare") play("hitBig", { gain: 0.7 })
             else if (ev.fx === "bloom") play("heal")
@@ -358,7 +385,7 @@ export default function TacticsFx({ battle }) {
           const kind = ev.label === "breakpoint" ? "mana-bp" : ev.amount < 0 ? "mana-drain" : "mana"
           timers.push(setTimeout(() => pop(ev.unitId, text, kind, { offset: 0.6 }), at + IMPACT_DELAY_MS))
         } else if (ev.kind === "heal") {
-          timers.push(setTimeout(() => { pop(ev.targetId, `+${ev.amount}`, "heal"); sparks(ev.targetId, "heal", 6); play("heal") }, at))
+          timers.push(setTimeout(() => { pop(ev.targetId, `+${ev.amount}`, "heal"); sparks(ev.targetId, "heal", 6); react("heal", feetOfUnit(ev.targetId)); play("heal") }, at))
         }
       }
     })
@@ -375,6 +402,18 @@ export default function TacticsFx({ battle }) {
         timers.push(setTimeout(() => { pop(u.id, dHp > 0 ? `+${dHp}` : `${dHp}`, dHp > 0 ? "heal" : "damage"); if (dHp < 0) restartClass(tokenEl(u.id), "hw-hit-flash", 400) }, tail))
       }
       if (dBlock > 0) timers.push(setTimeout(() => pop(u.id, `+${dBlock}`, "block", { offset: 1 }), tail))
+      // stepping into tall grass / moss / dry leaves rustles it
+      const at = u.pos ? `${u.pos.row}-${u.pos.col}` : null
+      const ground = at && battle.terrain?.[at]
+      if (u.hp > 0 && at && before.pos && at !== before.pos && RUSTLE_GROUND.has(ground)) {
+        timers.push(setTimeout(() => forestReact("rustle", feetOfUnit(u.id), colours, ground), Math.max(0, tail - BEAT_MS) + 120))
+      }
+      // a fresh status lands: the ground under the unit answers (once per kind)
+      if (u.hp > 0) {
+        const kinds = new Set(STATUS_REACTION.filter(([k]) => (u[k] || 0) > (before[k] || 0)).map(([, kind]) => kind))
+        const when = Math.max(0, tail - BEAT_MS) + IMPACT_DELAY_MS + 80
+        for (const kind of kinds) timers.push(setTimeout(() => react(kind, feetOfUnit(u.id)), when))
+      }
     }
     return undefined
   }, [battle])
