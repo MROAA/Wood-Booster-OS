@@ -198,3 +198,23 @@ Headquarters stays calm: if something is a trade, it does not go there.
 - **A check**: extend `.scratch/verify_market_table.mjs` /
   `verify_hq_between_fights.mjs` / `verify_fusion.mjs`.
 
+## 12. Detail on hover — the pop-up way (Headquarters' standing style)
+
+Marc: "piilota lisää tietoa pop up tyylisesti kuten korteissa ... hyvä tapa
+sisällyttää paljon tietoa ilman että siitä tulee sekava" and "tätä tyyliä voi
+käyttää kokonaisvaltaisesti päämajan kehittämisessä".
+
+- **Always visible** = what you need to decide: art, name, tribe, role,
+  attack/health, hurt, and every action button (Upgrade, Rank Up, Opening
+  Strike, Visit the market, Scout, Continue).
+- **Opens on hover / focus** = the details: card level bar, traits,
+  mutations, identity chips, promotion, upgrade chips, tags, class names;
+  a hero's gear slots + fusion progress; the commander's gear and Retrain;
+  the build's reading lines; the merchant's line; the road-ahead list; the
+  Market's next-tier and "+N more" hints.
+- Equipping an item shows every gear row automatically, so you can place it.
+- **One file**: `src/components/heartwood/heartwood-reveal.css`. For anything
+  new, use the pattern in JSX - `<div className="hw-reveal">...<div
+  className="hw-reveal-more">details</div></div>` - or add the piece's class
+  to that file. Don't hide a toggle or an action (it must stay findable).
+

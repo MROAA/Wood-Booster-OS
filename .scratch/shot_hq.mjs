@@ -16,7 +16,7 @@ await page.evaluate(async () => {
   localStorage.setItem("hw-market-view", "table"); localStorage.setItem("hw-layout-tools", "0")
 })
 await page.reload({ waitUntil: "domcontentloaded" })
-await page.waitForSelector(".hwq-root", { timeout: 15000 }); await page.waitForTimeout(600)
+await page.waitForSelector(".hwq-root", { timeout: 15000 }); await page.waitForTimeout(2200); await page.mouse.move(2, 2)
 await page.screenshot({ path: `${OUT}-0-hq-default.png` })
 await page.locator(".hwq-visit").click(); await page.waitForTimeout(500)
 await page.screenshot({ path: `${OUT}-1-arrival.png` })

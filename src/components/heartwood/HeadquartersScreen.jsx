@@ -38,10 +38,11 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
     runState,
     showRetrain,
     visitMarket,
+    selectedItemKey,
   } = kit
 
   return (
-    <div className="hwq-root hw-market-stage" aria-label={marketUiText("hq").name}>
+    <div className="hwq-root hw-market-stage" aria-label={marketUiText("hq").name} data-equipping={selectedItemKey != null || undefined}>
       {piece_overlays()}
       <header className="hwq-top">
         <UiTitle as="h1" className="hwm-title" k="hq" runeInline />

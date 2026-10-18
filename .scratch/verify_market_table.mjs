@@ -30,6 +30,16 @@ c.hqFits = await fits()
 c.cardsTurnedFaceUp = await page.evaluate(() => [...document.querySelectorAll(".hwq-cards > *")].every((el) => getComputedStyle(el, "::after").visibility === "hidden" && getComputedStyle(el).opacity === "1"))
 c.hqContinueInView = await page.evaluate(() => document.querySelector(".hwq-root .hwm-continue").getBoundingClientRect().bottom <= innerHeight)
 c.hqShowsSquad = (await page.locator(".hwq-cards .hw-card").count()) === 3
+// detail on hover: a hero's gear slots + fusion progress stay folded until
+// you hover it (heartwood-reveal.css), then open
+const gearH = () => page.evaluate(() => Math.round(document.querySelector(".hwq-cards > * > .hw-gear-row-wrap").getBoundingClientRect().height))
+await page.mouse.move(2, 2); await page.waitForTimeout(400)
+const folded = await gearH()
+await page.locator(".hwq-cards > *").first().hover(); await page.waitForTimeout(450)
+const opened = await gearH()
+c.detailOnHover = folded === 0 && opened > 20
+if (SHOT) await page.screenshot({ path: `${SHOT}-hq-hover.png` })
+await page.mouse.move(2, 2); await page.waitForTimeout(300)
 c.hqHasCommander = (await page.locator(".hwq-root .hw-commander-cluster").count()) === 1
 // camp cards keep camp actions only - selling/reforging are trades (Market)
 c.hqCardsCampOnly = (await page.locator(".hwq-cards .hw-sell-btn").count()) === 0 && (await page.locator(".hwq-cards .hw-upgrade-btn").count()) === 3
