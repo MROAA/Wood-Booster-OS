@@ -73,7 +73,7 @@ now follow the PRD.
 ### Not done yet (next PRD slices)
 - ~~Rune system as a mechanic~~ — **v1 SHIPPED**: Rune Pouch (3), five runes (Growth ᛒ, Echo ᚨ, Bond ᚷ, Shadow ᛇ, Break ᚺ), each with meaning / effect / cost; start with one, elites + minibosses drop more; carve one on the Formation screen, spent when the fight starts (`data/heartwood/runes.js`, `services/heartwood/runRunes.js`, `tacticsRunes.js`). Still to come for NAR-03: runes that open routes on the run map.
 - ~~Creature ecosystem (NAR-04)~~ — **v1 SHIPPED**: Forest Regard (the forest remembers fallen trees, carved runes, crossroads, events; meter on map + Formation), Forest Wardens (fight beside you at Friendly+, against you at Wary-), Shapeshifters (Act II+, hide as a tree that moves; strike it or it ambushes), Water-Rememberer event (trade a rune / a memory). `data/heartwood/creatures.js`, `forestRegard.js`, `tacticsCreatures.js`. Still to come: Root-Eaters.
-- Expedition camps / burial mounds / heirs as events and places.
+- ~~Expedition camps / burial mounds / heirs~~ — **v1 SHIPPED**: the Lost Expedition chain (events tagged ᛟ): Act I Longship Camp (log → rune) → Act III The Seer's Heir (ally / lore); Act II Shieldmaiden's Barrow (relic + a hunting rival, or boon, or runes) → Act IV The Jarl's Oath-Stone (break the Hollow King's oath with a rune, or swear on it). Rival fates can name their own enemy (`enemy`).
 - Conflicting-myths evidence the player can combine.
 
 ---
