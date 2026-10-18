@@ -1,0 +1,138 @@
+/* Detail on hover - the "pop-up" way of carrying a lot of information
+   without clutter (Marc: "piilota lisää tietoa pop up tyylisesti kuten
+   korteissa nyt on ... hyvä tapa sisällyttää paljon tietoa ilman että
+   siitä tulee sekava" + "tätä tyyliä voi käyttää kokonaisvaltaisesti
+   päämajan kehittämisessä").
+
+   The rule: what you need to DECIDE stays visible (art, name, tribe,
+   role, attack/health, hurt, action buttons); the details open softly
+   when you hover the thing (or tab into it).
+
+   For new features, use the pattern directly in JSX:
+     <div className="hw-reveal"> ...always... <div className="hw-reveal-more">details</div></div>
+   Existing pieces are mapped below by their own classes, so this file is
+   the one place that lists what folds where. */
+
+/* ---------- The pattern ---------- */
+.hw-reveal .hw-reveal-more {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.22s ease, opacity 0.18s ease, margin 0.2s ease;
+}
+.hw-reveal:hover .hw-reveal-more,
+.hw-reveal:focus-within .hw-reveal-more {
+  max-height: 320px;
+  opacity: 1;
+}
+
+/* ---------- Hero cards (every screen) ----------
+   Folded: level bar, traits, mutations, identity chips, promotion, collar
+   line, upgrade chips. (Tags, rarity line, class names and target line
+   already fold in heartwood-cards.css.) */
+.hw-card.hw-card:not(.hw-item-card) > :is(.hw-card-level, .hw-card-traits, .hw-card-mutations, .hw-card-identity, .hw-card-promo, .hw-card-collar-line, .hw-card-upgrades) {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin-top: -5px;
+  transition: max-height 0.22s ease, opacity 0.18s ease, margin-top 0.2s ease;
+}
+.hw-card.hw-card:not(.hw-item-card):is(:hover, [data-selected="true"]) > :is(.hw-card-level, .hw-card-traits, .hw-card-mutations, .hw-card-identity, .hw-card-promo, .hw-card-collar-line, .hw-card-upgrades) {
+  max-height: 80px;
+  opacity: 1;
+  margin-top: 0;
+}
+
+/* ---------- Headquarters ---------- */
+/* A hero's gear slots and fusion progress open when you hover the hero. */
+.hwq-cards > * > :is(.hw-gear-row-wrap, .hw-fusion-progress),
+.hwq-root .hw-commander-cluster > .hw-gear-row-wrap {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-top-width: 0;
+  border-bottom-width: 0;
+  transition: max-height 0.22s ease, opacity 0.18s ease, padding 0.2s ease;
+}
+.hwq-cards > :is(:hover, :focus-within) > :is(.hw-gear-row-wrap, .hw-fusion-progress),
+.hwq-root .hwm-panel:is(:hover, :focus-within) .hw-commander-cluster > .hw-gear-row-wrap,
+/* equipping an item: every gear row shows, so you can place it */
+.hwq-root[data-equipping] .hwq-cards > * > .hw-gear-row-wrap,
+.hwq-root[data-equipping] .hw-commander-cluster > .hw-gear-row-wrap {
+  max-height: 200px;
+  opacity: 1;
+  padding-top: revert;
+  padding-bottom: revert;
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+}
+/* Your build: the bars stay; the reading of them opens on hover. */
+.hwq-root .hwm-panel :is(.hw-buildscore-positioning, .hw-buildscore-core, .hw-buildscore-note) {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.22s ease, opacity 0.18s ease;
+}
+.hwq-root .hwm-panel:is(:hover, :focus-within) :is(.hw-buildscore-positioning, .hw-buildscore-core, .hw-buildscore-note) {
+  max-height: 80px;
+  opacity: 1;
+}
+
+/* Commander: Rank Up and Opening Strike stay; the rarely used Retrain
+   opens on the panel. Market panel: "Visit the market" stays; the
+   merchant's line opens on hover. The road: the Act track and Scout stay;
+   the road-ahead list opens on hover. */
+.hwq-root .hw-commander-cluster > .hw-retrain-btn,
+.hwq-root .hwq-market-entry > :not(.hwm-panel-title):not(.hwq-visit),
+.hwq-root .hwq-road .hw-road-ahead {
+  margin-top: 0;
+  margin-bottom: 0;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-top-width: 0;
+  border-bottom-width: 0;
+  transition: max-height 0.22s ease, opacity 0.18s ease;
+}
+.hwq-root .hwm-panel:is(:hover, :focus-within) .hw-commander-cluster > .hw-retrain-btn,
+.hwq-root .hwq-market-entry:is(:hover, :focus-within) > :not(.hwm-panel-title):not(.hwq-visit),
+.hwq-root .hwq-road:is(:hover, :focus-within) .hw-road-ahead {
+  margin-top: revert;
+  margin-bottom: revert;
+  max-height: 220px;
+  opacity: 1;
+  padding-top: revert;
+  padding-bottom: revert;
+}
+.hwq-root .hwm-panel:is(:hover, :focus-within) .hw-commander-cluster > .hw-retrain-btn {
+  padding: 7px 8px;
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+}
+
+/* ---------- Market ---------- */
+/* "Next tier" and "+N more as the market grows" open on their panel. */
+.hwm-root .hwm-side--left .hwm-panel :is(.hwm-hint, .hw-rail-empty) {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin: 0;
+  transition: max-height 0.22s ease, opacity 0.18s ease;
+}
+.hwm-root .hwm-side--left .hwm-panel:is(:hover, :focus-within) :is(.hwm-hint, .hw-rail-empty) {
+  max-height: 60px;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-reveal .hw-reveal-more,
+  .hw-card.hw-card > *,
+  .hwq-root *,
+  .hwm-root * {
+    transition-duration: 0s !important;
+  }
+}

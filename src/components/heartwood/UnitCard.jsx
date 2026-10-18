@@ -15,6 +15,7 @@ import { signatureAbilityForDef } from "../../services/heartwood/tacticsEngine"
 import { unitStrength } from "../../services/heartwood/unitStrength"
 import { describeAbility, signatureUpgrades, SIGNATURE_SKILL_KEY } from "../../services/heartwood/tacticsAbilities"
 import "./heartwood-cards.css"
+import "./heartwood-reveal.css"
 import "./fusion-reward.css"
 
 

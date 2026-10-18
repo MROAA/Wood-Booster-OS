@@ -1820,7 +1820,7 @@ export default function SquadDraft({
                 </>
               )}
               <button
-                className="hw-move-btn hw-strip-btn"
+                className="hw-move-btn hw-strip-btn hw-retrain-btn"
                 data-active={showRetrain}
                 onClick={() => setShowRetrain((cur) => !cur)}
                 title="Switch to a different Commander for the rest of this run"
