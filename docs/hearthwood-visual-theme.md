@@ -60,8 +60,15 @@ Marc's own words, kept as the compass:
     ("Swap into the fight ⇅"); pressed, each fighter wears a "takes this
     place" veil and the status line asks whose place it is (Esc / Cancel).
     The table always shows heroes in slot order.
-  - **Your build as a verdict**: Strongest / Weakest tiles first, then the
-    seven bars as one magnitude in one hue (moss), numbers in text ink.
+  - **Your build as a verdict**: Strongest / Weakest tiles and the one
+    "Watch" line; the seven bars (one hue), positioning and core open
+    under "Full readout".
+  - **Less on the screen** (round 8, Marc: "sekavan näköinen - vähennä"):
+    empty gear slots, empty Relics & bag and fusion pips below 2/3 stay
+    hidden until they mean something; Reforge / Sell (and the reserve's
+    Upgrade / Gear) come up when you point at the hero; no frames inside
+    frames; the road shows the next three stops, no second heading;
+    the merchant's line lives in the Market, not here.
 
 ### The market
 - A place **your camp arrives at** ("Your camp arrives at the market").

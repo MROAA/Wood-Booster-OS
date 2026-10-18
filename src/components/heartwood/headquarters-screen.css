@@ -954,3 +954,122 @@ html:not(.hw-layout-tools) .hwq-devdesk {
   color: var(--hwm-parch);
   font-variant-numeric: tabular-nums;
 }
+
+
+/* ---------- Less on the screen (graphics round 8) ----------
+   Marc: "päämaja on vielä sekavan näköinen - vähennä tietoa ja asiaa".
+   Nothing is removed from the game; what is not needed right now waits
+   until it is: */
+
+/* fusion pips only once they mean something - two of three owned */
+.hwq-root .hwq-fuse:not([data-count="2"]) {
+  display: none;
+}
+/* empty gear slots stay hidden until the hero has gear or you are
+   equipping something (a bag item picked); the line goes with them */
+.hwq-tray .hwq-tray-gear:not(:has(.hw-gear-slot.is-filled, .hw-gear-row[data-pending], .hwq-fuse[data-count="2"])) {
+  display: none;
+}
+.hwq-tray .hwq-tray-gear:not(:has(.hw-gear-slot.is-filled, .hw-gear-row[data-pending])) .hw-gear-row {
+  display: none;
+}
+.hwq-tray .hwq-tray-gear:not(:has(.hw-gear-slot.is-filled, .hw-gear-row[data-pending])) {
+  justify-content: flex-end;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+/* the commander's empty gear slots likewise; the Gear button stays */
+.hwq-commander .hw-gear-row-wrap:not(:has(.hw-gear-slot.is-filled, .hw-gear-row[data-pending])) .hw-gear-row,
+.hwq-commander .hw-gear-row-wrap:not(:has(.hw-gear-slot.is-filled, .hw-gear-row[data-pending]))::before {
+  display: none;
+}
+/* Reforge / Sell (and Upgrade on a hurt hero) are occasional: they wait,
+   faint, and come up when you point at the hero or tab into it */
+.hwq-tray-minor {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.hwq-hero:hover .hwq-tray-minor,
+.hwq-hero:focus-within .hwq-tray-minor {
+  opacity: 1;
+}
+@media (hover: none) {
+  .hwq-tray-minor { opacity: 1; }
+}
+/* the full build readout behind one quiet line */
+.hw-buildscore-more {
+  margin-top: 4px;
+}
+.hw-buildscore-more > summary {
+  list-style: none;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hwm-ink);
+}
+.hw-buildscore-more > summary::-webkit-details-marker {
+  display: none;
+}
+.hw-buildscore-more > summary::after {
+  content: " ▸";
+}
+.hw-buildscore-more[open] > summary::after {
+  content: " ▾";
+}
+.hw-buildscore-more > summary:hover {
+  color: var(--hwm-parch);
+}
+.hw-buildscore-more[open] > summary {
+  margin-bottom: 8px;
+}
+
+/* fewer boxes inside boxes: the workbench is the buttons themselves */
+.hwq-tray {
+  padding: 2px 0 0;
+  border: 0;
+  background: none;
+}
+.hwq-commander .hw-gear-row-wrap:not(:has(.hw-gear-slot.is-filled, .hw-gear-row[data-pending])) {
+  padding: 0;
+  border: 0;
+  background: none;
+  justify-content: flex-end;
+}
+/* the reserve rests: only "Swap into the fight" / "Join" stays up; its
+   upgrade and gear come up with the pointer, like Reforge / Sell */
+.hwq-reserve .hwq-tray-main {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.hwq-reserve .hwq-hero:hover .hwq-tray-main,
+.hwq-reserve .hwq-hero:focus-within .hwq-tray-main {
+  opacity: 1;
+}
+@media (hover: none) {
+  .hwq-reserve .hwq-tray-main { opacity: 1; }
+}
+/* the road: the panel title already names it, the Act sits in the top
+   bar - so no second heading or Act line, and only the next three stops */
+.hwq-road .hw-run-rail-head,
+.hwq-road .hw-road-ahead-title {
+  display: none;
+}
+.hwq-road .hw-road-ahead-list > li:nth-child(n + 4) {
+  display: none;
+}
+/* the occasional row floats just under the plaque instead of holding an
+   empty band open in the table; the table keeps room for it below */
+.hwq-table .hwq-tray {
+  position: relative;
+}
+.hwq-table .hwq-tray-minor {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 3px;
+  z-index: 2;
+}
+.hwq-table {
+  padding-bottom: 34px;
+}

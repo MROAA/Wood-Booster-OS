@@ -151,22 +151,13 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
             {piece_commanderCluster()}
             {showRetrain && piece_retrain()}
           </section>
-          <section className="hwm-panel hwm-panel--rails">
-            <UiTitle className="hwm-panel-title" k="hqRelics" />
-            {hasBelongings ? (
-              renderOwnedRail(["relics", "items"])
-            ) : (
-              /* empty sockets waiting to be filled - the place shows what it is for */
-              <div className="hwq-sockets" title="Relics are found on the road; gear is bought at a market">
-                <div className="hwq-socket-row">
-                  {[0, 1, 2, 3].map((i) => (
-                    <span key={i} className="hwq-socket" aria-hidden="true">ᛟ</span>
-                  ))}
-                </div>
-                <p className="hwq-sockets-hint">Found on the road · bought at a market</p>
-              </div>
-            )}
-          </section>
+          {/* empty lists hide - the panel appears with the first relic or item */}
+          {hasBelongings && (
+            <section className="hwm-panel hwm-panel--rails">
+              <UiTitle className="hwm-panel-title" k="hqRelics" />
+              {renderOwnedRail(["relics", "items"])}
+            </section>
+          )}
           <section className="hwm-panel">
             <UiTitle className="hwm-panel-title" k="hqBuild" />
             {piece_buildScore("camp")}
@@ -210,7 +201,6 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
           {!onClose && (
             <section className="hwm-panel hwq-market-entry">
               <UiTitle className="hwm-panel-title" k="hqMarket" />
-              {renderCenterSections(["greeting"])}
               <button type="button" className="hwq-visit" onClick={visitMarket}>
                 <span className="hwq-visit-name">{marketUiText("visitMarket").name} →</span>
                 {marketUiText("visitMarket").subtitle && <span className="hwq-visit-sub">{marketUiText("visitMarket").subtitle}</span>}
