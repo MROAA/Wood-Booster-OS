@@ -654,3 +654,180 @@ html body .hw-layout-tools-toggle {
 .hwt-cell[data-art]:is([data-art="tree"], [data-art="forest"], [data-art="rock"], [data-art="boulder"], [data-art="stump"], [data-art="barrel"], [data-art="sporepod"], [data-art="icepillar"]) {
   filter: drop-shadow(0 6px 5px rgba(0, 0, 0, 0.45));
 }
+
+/* ---------- The battlefield, piece 2: the living forest floor ----------
+   (docs/hearthwood-battlefield-plan.md). The battle's biome
+   (src/data/heartwood/battleBiomes.js) tints the floor and sets the
+   textures as custom properties on .hwt-board (ForestFloor.jsx
+   biomeBoardStyle). Layer 1-2 detail is ONE svg (.hwt-forest-floor) drawn
+   before the cells, so units, highlights and telegraphs always paint over
+   it. Layer 3 life (fireflies, drifting leaves, sun shafts) rides
+   .hwt-ambience and stays small, slow and sparse. */
+.hwt-board[data-biome] {
+  background:
+    var(--hwt-moss-blots) 0 0 / 300px 300px content-box,
+    var(--hwt-litter-blots) 40px 20px / 260px 260px content-box,
+    var(--hwt-grain) 0 0 / 120px 120px content-box,
+    radial-gradient(ellipse 80% 70% at 50% 40%, var(--hwt-floor-b), var(--hwt-floor-a) 80%) content-box,
+    repeating-linear-gradient(92deg, transparent 0 7px, rgba(0, 0, 0, 0.16) 7px 9px),
+    linear-gradient(180deg, var(--hwt-walnut), var(--hwt-walnut-dark));
+}
+.hwt-forest-floor {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+/* details are floor-level: a touch muted so they never compete with units */
+.hwt-forest-details { opacity: 0.82; }
+.hwt-forest-roots { opacity: 0.92; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.45)); }
+
+/* golden canopy light follows the biome */
+.hwt-board[data-biome] .hwt-ambience-light {
+  background: radial-gradient(ellipse 45% 60% at 35% 0%, rgba(var(--hwt-biome-light), 0.1), transparent 70%);
+}
+.hwt-sun-shafts {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: screen;
+}
+.hwt-sun-shafts span {
+  position: absolute;
+  top: -20%;
+  height: 140%;
+  width: 70px;
+  background: linear-gradient(180deg, rgba(var(--hwt-biome-light, 255, 214, 140), 0.075), rgba(var(--hwt-biome-light, 255, 214, 140), 0.02) 60%, transparent 85%);
+  filter: blur(8px);
+  transform: rotate(22deg);
+  transform-origin: top center;
+  animation: hwt-gfx-shaft 11s ease-in-out infinite alternate;
+}
+.hwt-sun-shafts span:nth-child(1) { left: 18%; }
+.hwt-sun-shafts span:nth-child(2) { left: 34%; width: 40px; animation-delay: -4s; animation-duration: 13s; }
+.hwt-sun-shafts span:nth-child(3) { left: 62%; width: 90px; animation-delay: -7s; animation-duration: 15s; }
+@keyframes hwt-gfx-shaft {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+.hwt-drift-leaf {
+  position: absolute;
+  top: -12px;
+  width: 9px;
+  height: 6px;
+  border-radius: 0 80% 0 80%;
+  background: #b5602a;
+  box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  animation-name: hwt-gfx-leaf;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.hwt-drift-leaf[data-tone="1"] { background: #c98a2e; }
+.hwt-drift-leaf[data-tone="2"] { background: #8e3f1f; }
+.hwt-drift-leaf[data-tone="3"] { background: #d9a441; width: 7px; height: 5px; }
+@keyframes hwt-gfx-leaf {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  8% { opacity: 0.7; }
+  30% { transform: translate(var(--sway), 220px) rotate(160deg); }
+  60% { transform: translate(calc(var(--sway) * -0.4), 440px) rotate(330deg); }
+  88% { opacity: 0.6; }
+  100% { transform: translate(var(--sway), 720px) rotate(520deg); opacity: 0; }
+}
+.hw-reduce-motion .hwt-drift-leaf { display: none; }
+.hw-reduce-motion .hwt-sun-shafts span { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hwt-drift-leaf { display: none; }
+  .hwt-sun-shafts span { animation: none; }
+}
+
+/* The forest lives while you play: dusk deepens a little each turn
+   (--hwt-dusk 0..1 from BoardAmbience), warm at the edges, never over
+   the middle where the fight is. */
+.hwt-ambience::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 75% 70% at 50% 45%, transparent 55%, rgba(48, 22, 10, calc(0.4 * var(--hwt-dusk, 0))) 100%);
+  transition: background 2.5s ease;
+}
+/* Victory: the light warms and the fireflies glow brighter. */
+.hwt-board[data-phase="won"] .hwt-ambience-light { opacity: 1; filter: brightness(1.9) saturate(1.2); transition: filter 2s ease; }
+.hwt-board[data-phase="won"] .hwt-firefly { box-shadow: 0 0 9px 3px rgba(246, 225, 140, 0.75); }
+/* Defeat: the light dims and a low mist gathers. */
+.hwt-ambience::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(150, 160, 150, 0.28), rgba(150, 160, 150, 0.08) 55%, transparent);
+  opacity: 0;
+  transition: opacity 2.5s ease;
+}
+.hwt-board[data-phase="lost"] .hwt-ambience::after { opacity: 1; }
+.hwt-board[data-phase="lost"] .hwt-ambience-light,
+.hwt-board[data-phase="lost"] .hwt-sun-shafts { opacity: 0.25; transition: opacity 2s ease; }
+
+/* Butterflies keep to the rim of the field (top and bottom bands). */
+.hwt-butterfly {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 14px;
+  height: 10px;
+  display: flex;
+  opacity: 0.9;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.35));
+  animation-name: hwt-gfx-fly-a;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+.hwt-butterfly[data-path="b"] { animation-name: hwt-gfx-fly-b; }
+/* the body between the wings */
+.hwt-butterfly::before {
+  content: "";
+  position: absolute;
+  left: 6.3px;
+  top: 1px;
+  width: 1.4px;
+  height: 8px;
+  border-radius: 1px;
+  background: #2a2016;
+  z-index: 1;
+}
+/* wings: a rounded fore-wing over a smaller hind-wing */
+.hwt-butterfly i {
+  flex: 1;
+  border-radius: 80% 20% 60% 40% / 70% 30% 70% 30%;
+  background: linear-gradient(170deg, #e2c25a 0 55%, #b8862e 56%);
+  transform-origin: right center;
+  animation: hwt-gfx-flap 0.32s ease-in-out infinite alternate;
+}
+.hwt-butterfly i + i {
+  border-radius: 20% 80% 40% 60% / 30% 70% 30% 70%;
+  transform-origin: left center;
+}
+.hwt-butterfly[data-tone="1"] i { background: linear-gradient(170deg, #8fb0e0 0 55%, #5f7fb8 56%); }
+.hwt-butterfly[data-tone="2"] i { background: linear-gradient(170deg, #d0703a 0 55%, #8e3f1f 56%); }
+@keyframes hwt-gfx-flap {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0.25); }
+}
+@keyframes hwt-gfx-fly-a {
+  0% { transform: translate(-30px, 30px); }
+  25% { transform: translate(220px, 8px); }
+  50% { transform: translate(480px, 46px); }
+  75% { transform: translate(760px, 14px); }
+  100% { transform: translate(990px, 38px); }
+}
+@keyframes hwt-gfx-fly-b {
+  0% { transform: translate(990px, 640px); }
+  30% { transform: translate(700px, 676px); }
+  55% { transform: translate(420px, 650px); }
+  80% { transform: translate(160px, 684px); }
+  100% { transform: translate(-30px, 656px); }
+}
+.hw-reduce-motion .hwt-butterfly { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hwt-butterfly { display: none; }
+}
