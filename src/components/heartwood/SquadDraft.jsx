@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react"
 import "./heartwood-market-table.css"
 import MarketScreen from "./MarketScreen"
+import FusionRewardChoice from "./FusionRewardChoice"
 import HeadquartersScreen from "./HeadquartersScreen"
 import { setCountMap } from "../../data/heartwood/buildSets"
 import { UNITS, upgradeCost } from "../../data/heartwood/units"
@@ -50,6 +51,7 @@ import {
   itemSellPrice,
   forgeItem,
   chooseHeroBuild,
+  chooseFusionReward,
 } from "../../services/heartwood/runEngine"
 import { wantedComponents } from "../../services/heartwood/itemForge"
 import GearRow from "./GearRow"
@@ -698,16 +700,19 @@ export default function SquadDraft({
   // the reserve grid, nothing about the card itself.
   function renderBenchCard(entry) {
     const def = UNITS[entry.defId]
-    const canReforge = def?.displayTier !== 2
+    // fused heroes (Tier 2 and Tier 3) are past reforging and upgrading
+    const fusedTier = def?.displayTier || 1
+    const canReforge = fusedTier < 2
     // Upgrade (upgrades.js): branch picks recorded on entry.upgrades;
     // level is its length, capped at UPGRADE_MAX_LEVEL. Fused units
     // can't upgrade (same as reforge).
     const upLevel = (entry.upgrades || []).length
     const upCost = upgradeCost(upLevel)
-    const canUpgrade = def?.displayTier !== 2 && upCost !== null
+    const canUpgrade = fusedTier < 2 && upCost !== null
     // Fusion progress: 3 owned copies of the same base unit merge
     // into a Tier 2 copy automatically (runEngine.js's fuseAll).
-    const copiesOwned = def?.displayTier !== 2 ? runState.bench.filter((e) => e.defId === entry.defId).length : 0
+    // copies toward the next fusion: base -> Tier 2, Tier 2 -> Tier 3 (max)
+    const copiesOwned = fusedTier < 3 ? runState.bench.filter((e) => e.defId === entry.defId).length : 0
     const equippedItems = runState.items.filter((it) => it.equippedTo === entry.key)
     const sellRefund = sellRefundFor(def, effectiveSellMult(runState))
     // Hero Bending (items.js's bendsRoleTo/effectiveRole) - a Bending
@@ -752,19 +757,20 @@ export default function SquadDraft({
             Gear
           </button>
         </div>
-        {def?.displayTier !== 2 && (
+        {fusedTier < 3 && (
           <div
-            className="hw-badge"
+            className="hw-badge hw-fusion-progress"
+            data-next-tier={fusedTier + 1}
             style={{ justifyContent: "center", fontSize: 11, color: "var(--hw-ember)", borderColor: "var(--hw-ember)" }}
-            title="3 owned copies of the same hero fuse automatically into a stronger Tier 2 version"
+            title={`3 owned copies of the same hero fuse automatically into a stronger Tier ${fusedTier + 1} version`}
           >
-            Fusion {copiesOwned}/3
+            {fusedTier === 2 ? "Fusion ★" : "Fusion"} {copiesOwned}/3
           </div>
         )}
         {/* Upgrade — the PRD's "level-up = a strategic choice". Its own
             row above Reforge/Sell so the branch pick reads as the
             unit's identity decision, not a churn action. */}
-        {def?.displayTier !== 2 && (
+        {fusedTier < 2 && (
           <button
             className="hw-move-btn hw-upgrade-btn"
             style={{ fontSize: 11, padding: "4px 6px", width: "100%" }}
@@ -1506,6 +1512,13 @@ export default function SquadDraft({
   function piece_overlays() {
     return (
       <>
+        {/* Fusion reward: pick 1 of 3 after a fusion (docs/hearthwood-fusion-design.md) */}
+        {onRunAction && (runState.pendingFusionRewards || []).length > 0 && (
+          <FusionRewardChoice
+            reward={runState.pendingFusionRewards[0]}
+            onChoose={(rewardId) => onRunAction((rs) => chooseFusionReward(rs, rewardId))}
+          />
+        )}
         {upgradingEntry && (
           <UpgradeChoice
             unit={upgradingEntry}
