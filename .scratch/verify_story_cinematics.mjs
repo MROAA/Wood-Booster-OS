@@ -101,14 +101,16 @@ const cinematicGone = !(await page.locator('[data-screen="story-cinematic"]').is
 console.log("ending:", { endingVisible, endingId, endingTitle, cinematicGone, runEndVisible })
 
 const pass =
-  eng.ids.length === 4 &&
+  eng.ids.length === 6 &&
   eng.noneRun === "ending-rooted" && eng.rooted === "ending-rooted" &&
   eng.ember === "ending-ember" && eng.hollow === "ending-hollow" &&
   eng.hollowAloneVsOneRooted === "ending-hollow" &&
   eng.introLineCount >= 4 && eng.endingsHaveTitles &&
   introVisible && continueVisible && introGone && seenFlag === "true" && introReplayed === false &&
   linesAtEnd > linesShown &&
-  endingVisible && endingId === "ending-hollow" && endingTitle === "The Hollow Crown" &&
+  // A won run now opens Act V first (the Crownless Throne); the ending
+  // cinematic itself is covered by verify_act_v_crownless.mjs.
+  endingVisible && endingId === "crownless-throne" && endingTitle === "The Crownless Throne" &&
   cinematicGone &&
   errors.length === 0
 

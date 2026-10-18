@@ -24,7 +24,7 @@ export const ACT_CROSSROADS = {
     intoAct: "Act II — The Deepening Woods",
     kicker: "The Rootbound Ritual",
     body:
-      'Three roots stand up out of the ground where the path forks, coiled around a break in something very old. A Sapling Spirit watches you from the leaf litter. "The ritual is broken," it says. "You can mend it. You can feed it. Or you can leave it be. Whichever you choose, the forest ahead is shaped by it."',
+      'Three roots stand up out of the ground where the path forks, coiled around a rune-carved standing stone - longship-men cut it, long ago, to bind this crossing. A Sapling Spirit watches you from the leaf litter. "The ritual is broken," it says. "You can mend it. You can feed it. Or you can leave it be. Whichever you choose, the forest ahead is shaped by it."',
     choices: [
       {
         id: "purify",
@@ -61,7 +61,7 @@ export const ACT_CROSSROADS = {
     intoAct: "Act III — The Wounded Hearthwood",
     kicker: "The Elementals' Dispute",
     body:
-      "The forest's own elementals have stopped agreeing with each other, and they have stopped agreeing loudly. Flame, tide and stone each want the deeper woods run their way, and each of them wants your squad's weight behind it. They are all watching you now. You have to pick one.",
+      "The forest's own elementals have stopped agreeing with each other, and they have stopped agreeing loudly. Each sings a different verse of how the forest began - born of fire, risen from the water, raised out of stone - and none of the three can all be true. Flame, tide and stone each want the deeper woods run their way, and each of them wants your squad's weight behind it. They are all watching you now. You have to pick one.",
     choices: [
       {
         id: "ember",
@@ -98,7 +98,7 @@ export const ACT_CROSSROADS = {
     intoAct: "Act IV — The Reckoning",
     kicker: "The Echo Offered",
     body:
-      "Where the Veil has worn thinnest, a piece of it hangs turning in the air, throwing no shadow, and it is offering itself to you. Take its echo into your build and you carry real power the rest of the way - and a hum that never quite lets go. Or turn it down, and go on clean.",
+      "Where the Veil has worn thinnest, a shard of the First Song hangs turning in the air - a verse the roots remember that never happened this way - throwing no shadow, and it is offering itself to you. Take its echo into your build and you carry real power the rest of the way - and a hum that never quite lets go. Or turn it down, and go on clean.",
     choices: [
       {
         id: "take",
@@ -126,7 +126,7 @@ export const ACT_CROSSROADS = {
     intoAct: "Act V — The Crownless",
     kicker: "The Hollow Crown",
     body:
-      "The ground is barely ground here. The last fight is close, and the void offers you the shape of a crown - accept it and you go into the end with its power, and its cost. Or resist it, and go in as what you were when you started walking.",
+      "The ground is barely ground here - this is the second layer of the forest, where the Silence lives. The last fight is close, and the Silence offers you the shape of a crown - accept it and you go into the end with its power, and its cost. Or resist it, and go in as what you were when you started walking.",
     choices: [
       {
         id: "accept",
