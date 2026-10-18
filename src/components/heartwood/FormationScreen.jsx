@@ -1,6 +1,7 @@
 import { UNITS } from "../../data/heartwood/units"
 import FightFates from "./FightFates"
 import RunePouch from "./RunePouch"
+import ForestRegard from "./ForestRegard"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
@@ -699,6 +700,8 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           real fight too (resolveRealMatchup allows it). */}
       {tacticsMatchup ? (
         <>
+          {/* Forest creatures: how the forest sees you (its Wardens act on it). */}
+          <ForestRegard runState={runState} />
           {/* Runes (First Song PRD §4): carve one into this fight. */}
           <RunePouch runState={runState} onCarve={onCarveRune} />
           <button className="hw-end-turn hw-tactics-start" onClick={onStartTacticsBattle} style={{ marginTop: 16 }}>
