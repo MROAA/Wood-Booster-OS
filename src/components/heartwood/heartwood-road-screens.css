@@ -15,7 +15,8 @@
 .hw-road-panel,
 .hw-intro.hw-event,
 .hw-intro.hw-camp,
-.hw-intro.hw-route-screen {
+.hw-intro.hw-route-screen,
+.hw-intro.hw-formation-screen {
   --road-gold: var(--hw-ui-accent, #cdb47a);
   --road-moss: var(--hw-ui-leaf, #8fb07a);
   --road-text: var(--hw-ui-text, #e8e2c8);
@@ -408,4 +409,60 @@
 .hw-intro.hw-route-screen .hw-select-grid {
   display: flex;
   flex-wrap: wrap;
+}
+
+/* ---------- Piece 4: before the battle ---------- */
+.hw-intro.hw-formation-screen {
+  margin-top: 10px;
+  padding: 22px 28px 24px;
+}
+/* the two callouts: the enemy's threat (ember) and the arena (moss) */
+.hw-intro.hw-formation-screen .hw-threat-preview,
+.hw-intro.hw-formation-screen .hw-arena-banner {
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--callout) 35%, transparent);
+  border-left: 3px solid var(--callout);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--callout) 10%, transparent), transparent 70%), rgba(8, 11, 6, 0.6);
+  box-shadow: none;
+}
+.hw-intro.hw-formation-screen .hw-threat-preview { --callout: #e0894f; }
+.hw-intro.hw-formation-screen .hw-arena-banner { --callout: var(--road-moss); }
+/* your own heroes have no price here */
+.hw-intro.hw-formation-screen .hw-unit-card .hw-card-cost {
+  display: none;
+}
+/* the build's reading lines open on hover, as in Headquarters */
+.hw-intro.hw-formation-screen .hw-buildscore :is(.hw-buildscore-positioning, .hw-buildscore-core, .hw-buildscore-note) {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.22s ease, opacity 0.18s ease;
+}
+.hw-intro.hw-formation-screen .hw-buildscore:is(:hover, :focus-within) :is(.hw-buildscore-positioning, .hw-buildscore-core, .hw-buildscore-note) {
+  max-height: 80px;
+  opacity: 1;
+}
+/* Start Battle - the screen's one main action - stays in view at the
+   bottom while you read and place heroes */
+.hw-intro.hw-formation-screen .hw-end-turn.hw-tactics-start {
+  position: sticky;
+  bottom: 14px;
+  z-index: 15;
+  display: block;
+  width: min(420px, 100%);
+  margin: 16px auto 0 !important;
+  padding: 14px 24px;
+  border-radius: 999px;
+  font-family: var(--hw-font-display);
+  font-size: 21px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 14px 30px -8px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 22px color-mix(in srgb, var(--road-gold) 25%, transparent);
+}
+.hw-intro.hw-formation-screen .hw-auto-battle-btn {
+  display: block;
+  margin: 8px auto 0 !important;
+}
+/* room under the last row so it can scroll clear of the sticky Start */
+.hw-intro.hw-formation-screen {
+  padding-bottom: 96px;
 }
