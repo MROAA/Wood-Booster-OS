@@ -213,6 +213,10 @@ käyttää kokonaisvaltaisesti päämajan kehittämisessä".
   the build's reading lines; the merchant's line; the road-ahead list; the
   Market's next-tier and "+N more" hints.
 - Equipping an item shows every gear row automatically, so you can place it.
+- **How it opens**: the details unfold one row after another (card: level →
+  identity → traits → class → tags → rarity), each sliding a few pixels and
+  sharpening from a soft blur on a gently settling ease; closing is quick and
+  all at once. Delays are `--reveal-delay` per piece in heartwood-reveal.css.
 - **One file**: `src/components/heartwood/heartwood-reveal.css`. For anything
   new, use the pattern in JSX - `<div className="hw-reveal">...<div
   className="hw-reveal-more">details</div></div>` - or add the piece's class
