@@ -71,7 +71,7 @@ now follow the PRD.
 | `watch` | The Unfinished Song | smaller ending: the forest left unfinished on purpose |
 
 ### Not done yet (next PRD slices)
-- **Rune system as a mechanic** (meaning / effect / cost; NAR-03).
+- ~~Rune system as a mechanic~~ — **v1 SHIPPED**: Rune Pouch (3), five runes (Growth ᛒ, Echo ᚨ, Bond ᚷ, Shadow ᛇ, Break ᚺ), each with meaning / effect / cost; start with one, elites + minibosses drop more; carve one on the Formation screen, spent when the fight starts (`data/heartwood/runes.js`, `services/heartwood/runRunes.js`, `tacticsRunes.js`). Still to come for NAR-03: runes that open routes on the run map.
 - Creature ecosystem reacting to the player (NAR-04): Forest Wardens,
   Water-Rememberers, Shapeshifters, Root-Eaters.
 - Expedition camps / burial mounds / heirs as events and places.

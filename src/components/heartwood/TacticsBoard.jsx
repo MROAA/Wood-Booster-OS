@@ -181,6 +181,7 @@ import { ItemActions, KitBadges, CounterPanel } from "./TacticsItemsUi"
 import { EnemyTalentsLine } from "./TalentNeutralUi"
 import { hushedNow, talentSkillNote } from "../../services/heartwood/tacticsTalents"
 import { activeDef, itemActiveTargets, castItemActive } from "../../services/heartwood/tacticsItems"
+import "./heartwood-runes.css"
 import "./heartwood-reveal.css"
 
 // Ranged rework: tile skills that hit a 3x3 area (blast preview on hover).
@@ -1589,6 +1590,11 @@ export default function TacticsBoard({
                 )}
                 <ElementBadges unit={unit} />
                 <KitBadges unit={unit} />
+                {unit.runeMark && (
+                  <span className="hwt-rune-mark" data-rune-mark title="Touched by the carved rune">
+                    {unit.runeMark}
+                  </span>
+                )}
                 {unit.side === "enemy" && factionInfo(unit.faction) && (
                   <span className="hwt-faction-badge" data-faction={unit.faction} title={`${factionInfo(unit.faction).tag}${unit.skirmisher ? " - strikes, then fades up to 2 tiles back" : ""}${unit.echo ? " - an echo of your own hero" : ""}`}>
                     {factionInfo(unit.faction).icon}
@@ -1775,6 +1781,15 @@ export default function TacticsBoard({
           <ThreatPanel battle={battle} />
           <CounterPanel battle={battle} />
           <ManaFeedPanel battle={battle} />
+          {battle.rune && (
+            <div className="hwt-rune-banner" data-rune-banner={battle.rune.id} style={{ "--hw-rune-colour": battle.rune.color }}>
+              <div className="hwt-rune-banner-title">
+                <span className="hw-rune-glyph">{battle.rune.glyph}</span> {battle.rune.name} rune carved
+              </div>
+              <div className="hw-rune-line" data-tone="good">✦ {battle.rune.effect}</div>
+              <div className="hw-rune-line" data-tone="bad">✕ {battle.rune.cost}</div>
+            </div>
+          )}
           {factionView && (
             <div className="hwt-faction-banner" data-faction={factionView.id}>
               <div className="hwt-faction-title">
