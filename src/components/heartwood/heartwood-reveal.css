@@ -205,3 +205,32 @@
   filter: none !important;
   transition-duration: 0s !important;
 }
+
+/* ---------- Relics, bag and the Ledger (Marc: "relics ja bag osio ei
+   vielä toimi pop up tyylisesti") ----------
+   Each chip shows its name; what it does unfolds beneath it when you
+   hover the chip - on the Market, in Headquarters and on the classic
+   layout alike. */
+.hw-rail-chip .hw-rail-chip-more {
+  flex: 1 1 100%;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  translate: 0 -4px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--hw-ui-text, #e8e2c8) 72%, transparent);
+  transition: max-height 0.16s ease-in, opacity 0.12s ease-in, translate 0.14s ease-in;
+}
+.hw-rail-chip:is(:hover, :focus-within) .hw-rail-chip-more {
+  max-height: 90px;
+  opacity: 1;
+  translate: 0 0;
+  transition: max-height 0.32s cubic-bezier(.2, .8, .25, 1), opacity 0.28s ease-out 40ms, translate 0.32s cubic-bezier(.2, .9, .3, 1.15) 40ms;
+}
+.hw-rail-chip:is(:hover, :focus-within) {
+  border-color: color-mix(in srgb, var(--hw-ui-accent, #cdb47a) 55%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-rail-chip .hw-rail-chip-more { transition: none; translate: none; }
+}

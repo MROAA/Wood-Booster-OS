@@ -498,9 +498,9 @@ const readRun = () => page.evaluate(() => JSON.parse(localStorage.getItem("heart
     await page.screenshot({ path: `${SHOTS}/gear_row_adjacency.png`, clip })
   }
   // Recipe by clicks: pick the Herb Pouch from the bag, slot 4; Empty Flask, slot 5 -> fuse.
-  await page.locator(".hw-rail-chip--item", { hasText: "Herb Pouch" }).click()
+  await page.locator(".hw-rail-chip--item").filter({ has: page.locator(".hw-rail-chip-name", { hasText: "Herb Pouch" }) }).click()
   await row.locator('[data-gear-slot="3"]').click()
-  await page.locator(".hw-rail-chip--item", { hasText: "Empty Flask" }).click()
+  await page.locator(".hw-rail-chip--item").filter({ has: page.locator(".hw-rail-chip-name", { hasText: "Empty Flask" }) }).click()
   await row.locator('[data-gear-slot="4"]').click()
   await page.locator('[data-gear-forged="healing-draught"]').waitFor({ timeout: 4000 })
   ui.forged = await page.locator("[data-gear-forged]").innerText()
