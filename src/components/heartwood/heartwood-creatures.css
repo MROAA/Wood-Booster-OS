@@ -118,3 +118,28 @@
   background: #5a3e22;
   border-color: #d9b98a;
 }
+
+/* New Game+ */
+.hw-forest-memory {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(168, 160, 137, 0.3);
+  font-size: 0.85em;
+  color: #e0c97a;
+}
+.hw-forest-memory-truths {
+  color: var(--hw-muted, #a8a089);
+}
+.hw-forest-choice-path[data-locked] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: saturate(0.6);
+}
+.hw-forest-choice-locked {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--hw-muted, #a8a089);
+}
+.hw-forest-choice-path[data-path="newverse"]:not([data-locked]) {
+  box-shadow: 0 0 22px -6px var(--hw-goldleaf, #e0b04a);
+}

@@ -4,6 +4,7 @@
 import { regardBand, REGARD_MIN, REGARD_MAX } from "../../data/heartwood/creatures"
 import { regardOf } from "../../services/heartwood/forestRegard"
 import { rootEaterOf } from "../../services/heartwood/rootEater"
+import { cycleOf, rememberedTexts } from "../../services/heartwood/forestMemory"
 import { ROOT_EATER } from "../../data/heartwood/creatures"
 import "./heartwood-creatures.css"
 
@@ -24,6 +25,15 @@ export default function ForestRegard({ runState, compact = false }) {
         <span className="hw-forest-regard-marker" style={{ left: `${pct}%` }} />
       </div>
       {!compact && <div className="hw-forest-regard-text">{band.text}</div>}
+      {/* New Game+: what the forest remembers from earlier journeys. */}
+      {(cycleOf(runState) > 0 || rememberedTexts(runState).length > 0) && (
+        <div className="hw-forest-memory" data-forest-memory={cycleOf(runState)}>
+          🌀 {cycleOf(runState) > 0 ? `Return journey ${cycleOf(runState) + 1}` : "The forest has met you before"}
+          {rememberedTexts(runState).length > 0 && !compact && (
+            <span className="hw-forest-memory-truths"> - it remembers: {rememberedTexts(runState).join(", ")}.</span>
+          )}
+        </div>
+      )}
       {/* The Root-Eater, while it is coming. */}
       {rootEaterOf(runState)?.state === "approaching" && (
         <div className="hw-root-eater-status" data-root-eater={rootEaterOf(runState).distance}>

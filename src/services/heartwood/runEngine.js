@@ -72,6 +72,8 @@ import { startingRunes, runeDrop, carvedRuneId, spendCarvedRune, runePouch, rune
 // Forest creatures (First Song PRD §6): how the forest sees you.
 import { adjustRegard, regardAfterFight, countTrees } from "./forestRegard"
 import { wakeRootEater, tickRootEater, rootEaterArrivesNow, devourBond } from "./rootEater"
+// New Game+: the forest remembers you between runs.
+import { withForestMemory, gateFlags, newVerseStatus } from "./forestMemory"
 import { REGARD } from "../../data/heartwood/creatures"
 import { RUNES, RUNE_IDS, RUNE_POUCH_MAX } from "../../data/heartwood/runes"
 import { applyRuneCarving } from "./tacticsRunes"
@@ -1326,7 +1328,8 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     }
   }
 
-  return rs
+  // New Game+ (forestMemory.js): cycle, remembered truths, carried regard, extra runes.
+  return withForestMemory(rs, meta?.forestMemory)
 }
 
 function withHearthStart(rs, hs) {
@@ -2097,7 +2100,8 @@ export function leaveShop(runState) {
 // invariant depends on it).
 export function eventForNode(runState) {
   const act = actIndexForNode(runState.nodeIndex, RUN_PATH.length)
-  return pickEvent(runState.nodeIndex, act, runState.seenEvents || [], runState.storyFlags || {})
+  // New Game+: remembered truths open story gates (forestMemory.gateFlags).
+  return pickEvent(runState.nodeIndex, act, runState.seenEvents || [], gateFlags(runState))
 }
 
 function randomFromList(list, rng = Math.random) {
@@ -3426,6 +3430,8 @@ export function endCrownlessBattle(runState) {
 // The player's final call on the Forest's Choice screen - overrides the
 // cinematics.suggestedEndingId tally.
 export function chooseForestPath(runState, endingId) {
+  // New Game+: The New Verse only for a return journey that knows enough.
+  if (endingId === "ending-newverse" && !newVerseStatus(runState).open) return runState
   return { ...runState, actFive: "done", chosenEnding: endingId }
 }
 

@@ -153,6 +153,7 @@ for (let i = 0; i < 60; i++) {
 }
 await page.screenshot({ path: `${SHOT_DIR}/forest_choice.png` })
 const pathCount = await page.locator(".hw-forest-choice-path").count()
+const lockedCount = await page.locator(".hw-forest-choice-path[data-locked]").count()
 const suggestedLean = await page.locator('.hw-forest-choice-path[data-suggested] .hw-forest-choice-path-name').textContent().catch(() => null)
 
 // choose Rooted (override the hollow suggestion)
@@ -182,10 +183,11 @@ const pass =
   eng.advances && eng.endWin && eng.endLoss &&
   eng.chose && eng.markEpilogue &&
   eng.suggest.none === "ending-rooted" && eng.suggest.ember === "ending-ember" && eng.suggest.hollow === "ending-hollow" && eng.suggest.isAlias &&
-  eng.forestPaths.join(",") === "ending-ember,ending-hollow,ending-rooted" &&
+  // New Game+ added a 4th path (The New Verse), shown locked on a first journey.
+  eng.forestPaths.join(",") === "ending-ember,ending-hollow,ending-newverse,ending-rooted" &&
   eng.cinematicsPresent &&
   Object.values(eng.roundTrips).every(Boolean) && eng.legacyLoads &&
-  throneVisible && battleVisible && introLine && choiceReached && pathCount === 3 &&
+  throneVisible && battleVisible && introLine && choiceReached && pathCount === 4 && lockedCount === 1 &&
   suggestedLean === "The Hollow Path" &&
   overlayReached && sawEpilogue.chosenEnding === "ending-rooted" && sawEpilogue.echoEpilogueSeen === true &&
   errors.length === 0
