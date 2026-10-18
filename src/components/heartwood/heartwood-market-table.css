@@ -1136,3 +1136,226 @@
 .hwm-inspector .hw-card .hw-card-cost {
   display: none !important;
 }
+
+
+/* ---------- Market, brought level with Headquarters (graphics round 7) ----------
+   The same camp-at-a-glance line in the top bar, your camp in view while
+   you buy, fusion pips on what you already own, what you carry beside
+   the gear for sale, and one clear hierarchy in the shop's buttons. */
+
+/* top bar: title | chips | the camp at a glance | Headquarters | essence */
+.hwm-root .hwm-top {
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+}
+.hwm-root .hwm-top .hwq-status {
+  justify-self: center;
+}
+
+/* Reroll is the shop's one gold plaque; Freeze / Gamble / Antidote stay quiet */
+.hwm-root.hw-market-stage .hwm-table-head .hwm-actions .hw-move-btn.hw-move-btn {
+  background: none;
+  border-color: var(--hwm-line);
+  box-shadow: none;
+  color: var(--hwm-ink);
+  font-weight: 500;
+}
+.hwm-root.hw-market-stage .hwm-table-head .hwm-actions .hw-move-btn.hw-move-btn:not(:disabled):hover {
+  color: var(--hwm-parch);
+  border-color: color-mix(in srgb, var(--hwm-gold) 50%, transparent);
+  background: rgba(205, 180, 122, 0.06);
+  translate: none;
+}
+.hwm-root.hw-market-stage .hwm-table-head .hwm-actions .hw-move-btn.hw-move-btn:first-child {
+  border-color: color-mix(in srgb, var(--hwm-gold) 60%, transparent);
+  background: linear-gradient(180deg, rgba(44, 42, 26, 0.95), rgba(22, 22, 13, 0.95));
+  box-shadow: inset 0 1px 0 rgba(232, 226, 200, 0.08);
+  color: var(--hwm-parch);
+  font-weight: 600;
+}
+.hwm-root.hw-market-stage .hwm-table-head .hwm-actions .hw-move-btn.hw-move-btn[data-active="true"] {
+  border-color: #7fb3d5;
+  color: #cfe6f5;
+}
+
+/* gear for sale: a common piece wears a moss hairline, not a white frame
+   (the rarity word still names it); finer pieces keep their colour */
+.hwm-gear-offers .hw-item-card[data-rarity="common"] {
+  --hw-rarity: color-mix(in srgb, var(--hwm-moss) 35%, transparent);
+  border-color: color-mix(in srgb, var(--hwm-moss) 35%, transparent) !important;
+}
+.hwm-gear-offers .hw-item-card {
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 30%, rgba(205, 180, 122, 0.05), transparent 70%),
+    linear-gradient(180deg, rgba(22, 20, 14, 0.96), rgba(12, 11, 8, 0.96));
+}
+
+/* already in your camp: fusion pips on the offer, ember when it completes one */
+.hwm-offer-slot {
+  position: relative;
+}
+.hwm-offer-owned {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--hwm-line);
+  background: rgba(8, 10, 6, 0.88);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--hwm-parch);
+  pointer-events: none;
+}
+.hwm-offer-owned[data-fuses] {
+  border-color: var(--hw-ember, #e0784a);
+  box-shadow: 0 0 10px -2px color-mix(in srgb, var(--hw-ember, #e0784a) 60%, transparent);
+}
+
+/* ---------- Your camp, in view while you buy ---------- */
+.hwm-camp {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 14px;
+  border-radius: var(--hwm-radius);
+  border: 1px solid var(--hwm-line);
+  background: var(--hwm-wood);
+  position: relative;
+}
+/* the Sámi ribbon along its top edge, as on the old squad strip */
+.hwm-camp::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: -1px;
+  height: 3px;
+  opacity: 0.5;
+  background: linear-gradient(90deg, #9b4436 0 25%, #c4a14a 25% 50%, rgba(60, 96, 150, 0.9) 50% 75%, rgba(82, 128, 76, 0.9) 75%);
+  border-radius: 2px;
+}
+.hwm-camp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding-bottom: 2px;
+}
+.hwm-camp-tile {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 66px;
+  padding: 4px 3px 3px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--hwm-parch);
+  transition: border-color 0.12s ease, background 0.12s ease, translate 0.12s ease;
+}
+button.hwm-camp-tile:hover {
+  border-color: color-mix(in srgb, var(--hwm-gold) 40%, transparent);
+  background: rgba(205, 180, 122, 0.05);
+  translate: 0 -2px;
+}
+.hwm-camp > .hwm-panel-title {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.hwm-camp-row {
+  flex: 1 1 auto;
+}
+.hwm-camp-portrait {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--hwm-gold) 45%, transparent);
+  box-shadow: 0 0 0 3px rgba(8, 10, 6, 0.9), 0 6px 10px -4px rgba(0, 0, 0, 0.9);
+  background: radial-gradient(circle, rgba(34, 30, 19, 0.95), rgba(12, 11, 7, 0.98));
+  font-size: 20px;
+  color: color-mix(in srgb, var(--hwm-gold) 28%, transparent);
+}
+.hwm-camp-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hwm-camp-glyph {
+  width: 26px;
+  height: 26px;
+  color: var(--hwm-gold);
+}
+.hwm-camp-tile[data-hurt] .hwm-camp-portrait {
+  border-color: #d0654a;
+  box-shadow: 0 0 0 3px rgba(8, 10, 6, 0.9), 0 0 10px -1px rgba(208, 101, 74, 0.7);
+}
+.hwm-camp-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.hwm-camp-tile--empty .hwm-camp-portrait {
+  border-style: dashed;
+  box-shadow: none;
+  background: rgba(6, 8, 5, 0.5);
+}
+.hwm-camp-divider {
+  flex: 0 0 1px;
+  align-self: stretch;
+  margin: 4px 6px;
+  background: var(--hwm-line);
+}
+.hwm-camp-label {
+  flex: 0 0 auto;
+  writing-mode: vertical-rl;
+  rotate: 180deg;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--hwm-ink);
+}
+.hwm-camp-row .hwq-fuse i {
+  width: 6px;
+  height: 6px;
+}
+
+.hwm-way-act {
+  align-self: flex-start;
+}
+/* every price reads ✦ on gold - gear wears the same coin as the heroes */
+.hwm-gear-offers .hw-item-card .hw-card-cost {
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid #f2dc9c;
+  background: radial-gradient(circle at 35% 30%, #f3d98e, #b88a32 60%, #6e4f17);
+  color: #fffdf4;
+  font-weight: 700;
+  -webkit-text-stroke: 3px rgba(20, 12, 4, 0.9);
+  paint-order: stroke fill;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+.hwm-gear-offers .hw-item-card .hw-card-cost::before {
+  content: "✦ ";
+  font-size: 0.8em;
+}
+.hwm-camp > .hwm-panel-title {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.hwm-camp-tile {
+  width: 76px;
+}
