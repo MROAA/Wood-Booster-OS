@@ -133,10 +133,9 @@ Tree backdrop. All titles/runes/meanings live in
    number (`unitStrength.js` → `attackFromMovePattern`); a hurt hero shows
    what it has left.
 6. Everything else folds away and opens on hover.
-7. **Tarot frame**: a double frame (border + fine inner line), four small
-   corner ornaments, and for the Major Arcana heroes their numeral in a
-   cartouche at the top (`data/heartwood/arcana.js`: The Fool 0 … The World
-   XXI; fused copies keep theirs). Tier 2 silver / Tier 3 gold tint the frame.
+7. **Tarot frame**: a double frame (border + fine inner line) and four small
+   corner ornaments; Tier 2 silver / Tier 3 gold tint the frame. No numerals
+   (Major Arcana numerals were tried and removed - Marc: "turha").
 
 ## 9. Animation — the feel of handling cards
 

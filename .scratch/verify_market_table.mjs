@@ -33,8 +33,6 @@ c.hqShowsSquad = (await page.locator(".hwq-cards .hw-card").count()) === 3
 c.hqHasCommander = (await page.locator(".hwq-root .hw-commander-cluster").count()) === 1
 // camp cards keep camp actions only - selling/reforging are trades (Market)
 c.hqCardsCampOnly = (await page.locator(".hwq-cards .hw-sell-btn").count()) === 0 && (await page.locator(".hwq-cards .hw-upgrade-btn").count()) === 3
-// tarot: arcana heroes carry their Major Arcana numeral (fool 0, magician I, chariot VII)
-c.tarotNumerals = JSON.stringify(await page.evaluate(() => [...document.querySelectorAll(".hwq-cards .hw-card")].map((c) => c.querySelector(".hw-card-arcana")?.textContent).sort())) === JSON.stringify(["0", "I", "VII"])
 c.hqHidesOwnedPrice = await page.evaluate(() => [...document.querySelectorAll(".hwq-cards .hw-card-cost")].every((e) => getComputedStyle(e).display === "none"))
 // cards: exactly one attack gem, and it is the battle's own attack number
 c.cardAttackIsBattleAttack = await page.evaluate(async () => {
