@@ -16,6 +16,8 @@
 // encounter (a multi-piece formation OR a single enemy) resolves through
 // one call. This module never imports saveRunSave or anything else that
 // could write - there is no path from here back into the real run.
+import { withRuneArrivals } from "./tacticsRunes"
+import { carvedRuneId } from "./runRunes"
 import { loadRunSave } from "./runSaveState"
 import { deserializeRun, RUN_PATH, actIndexForNode, DIFFICULTY_TIERS } from "./runEngine"
 import { applyDifficulty, difficultySpec } from "./tacticsDifficulty"
@@ -308,7 +310,9 @@ export function buildRunTacticsBattle(runState, start) {
   // before mana, so escorts get their bars too.
   // Between-fights: a fated ally / rival joins (before the threat tier, so
   // the rival is scaled and smart like the rest).
-  const fated = built ? withFateArrivals(built, runState, start.difficultyFactor) : built
+  const fated0 = built ? withFateArrivals(built, runState, start.difficultyFactor) : built
+  // Runes: a carved rune's cost can bring a unit (Growth's beast, Echo's echo) - before the threat tier too.
+  const fated = fated0 ? withRuneArrivals(fated0, carvedRuneId(runState)) : fated0
   const threatened = fated ? applyDifficulty(fated, difficultyForRunNode(runState, runState.nodeIndex, start.difficultyFactor)) : fated
   // Combat depth sprint: stances, combos, reactions, Delay/Stagger on.
   // Between-fights mana: build-set tiers, camp Commune, mana-tide fates.
