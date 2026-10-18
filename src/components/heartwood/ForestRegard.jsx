@@ -3,6 +3,8 @@
 // forest's creatures do about it. Rules: services/heartwood/forestRegard.js.
 import { regardBand, REGARD_MIN, REGARD_MAX } from "../../data/heartwood/creatures"
 import { regardOf } from "../../services/heartwood/forestRegard"
+import { rootEaterOf } from "../../services/heartwood/rootEater"
+import { ROOT_EATER } from "../../data/heartwood/creatures"
 import "./heartwood-creatures.css"
 
 export default function ForestRegard({ runState, compact = false }) {
@@ -22,6 +24,13 @@ export default function ForestRegard({ runState, compact = false }) {
         <span className="hw-forest-regard-marker" style={{ left: `${pct}%` }} />
       </div>
       {!compact && <div className="hw-forest-regard-text">{band.text}</div>}
+      {/* The Root-Eater, while it is coming. */}
+      {rootEaterOf(runState)?.state === "approaching" && (
+        <div className="hw-root-eater-status" data-root-eater={rootEaterOf(runState).distance}>
+          🪱 {rootEaterOf(runState).distance <= 0 ? `The ${ROOT_EATER.name} surfaces in your next fight.` : `A ${ROOT_EATER.name} is coming: ${rootEaterOf(runState).distance} fight${rootEaterOf(runState).distance > 1 ? "s" : ""} away.`}{" "}
+          <span className="hw-root-eater-hint">{(Number(runState?.regard) || 0) >= 0 ? "The forest likes you: it will eat your oldest curse." : "The forest is wary: it will eat your newest blessing."}</span>
+        </div>
+      )}
       {!compact && last?.why && (
         <div className="hw-forest-regard-last">
           Last: {last.why} ({last.delta > 0 ? `+${last.delta}` : last.delta})
