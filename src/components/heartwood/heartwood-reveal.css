@@ -234,3 +234,38 @@
 @media (prefers-reduced-motion: reduce) {
   .hw-rail-chip .hw-rail-chip-more { transition: none; translate: none; }
 }
+
+/* ---------- Battle side panel: the selected hero ----------
+   Visible: portrait, name, role, class, the stat line, the resource
+   bar with its number, the signature's name + count. Opens when you
+   hover the hero's panel card: what the role means, the resource
+   breakpoints / current bonus / rules, the signature's text and combo,
+   identity chips. */
+.hwt-selected-card :is(.hwt-selected-role-what, .hwt-res-bps, .hwt-res-now, .hwt-res-rules, .hwt-sig-info-text, .hwt-sig-info-combo, .hwt-sig-info-legend, .hwt-identity-info) {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin-top: 0;
+  margin-bottom: 0;
+  translate: 0 -5px;
+  filter: blur(2px);
+  transition: max-height 0.16s ease-in, opacity 0.12s ease-in, translate 0.14s ease-in, filter 0.12s ease-in, margin 0.16s ease-in;
+}
+.hwt-selected-card:is(:hover, :focus-within) :is(.hwt-selected-role-what, .hwt-res-bps, .hwt-res-now, .hwt-res-rules, .hwt-sig-info-text, .hwt-sig-info-combo, .hwt-sig-info-legend, .hwt-identity-info) {
+  max-height: 240px;
+  opacity: 1;
+  margin-top: revert;
+  margin-bottom: revert;
+  translate: 0 0;
+  filter: blur(0);
+  transition: max-height 0.34s cubic-bezier(.2, .8, .25, 1) var(--reveal-delay, 0ms), opacity 0.3s ease-out calc(var(--reveal-delay, 0ms) + 40ms), translate 0.34s cubic-bezier(.2, .9, .3, 1.15) calc(var(--reveal-delay, 0ms) + 40ms), filter 0.3s ease-out calc(var(--reveal-delay, 0ms) + 40ms), margin 0.34s ease var(--reveal-delay, 0ms);
+}
+.hwt-selected-card .hwt-selected-role-what { --reveal-delay: 0ms; }
+.hwt-selected-card :is(.hwt-res-bps, .hwt-res-now) { --reveal-delay: 50ms; }
+.hwt-selected-card .hwt-res-rules { --reveal-delay: 90ms; }
+.hwt-selected-card :is(.hwt-sig-info-text, .hwt-sig-info-combo, .hwt-sig-info-legend) { --reveal-delay: 120ms; }
+.hwt-selected-card .hwt-identity-info { --reveal-delay: 160ms; }
+@media (prefers-reduced-motion: reduce) {
+  .hwt-selected-card * { translate: none !important; filter: none !important; transition-duration: 0s !important; }
+}
+.hw-reduce-motion .hwt-selected-card * { translate: none !important; filter: none !important; transition-duration: 0s !important; }

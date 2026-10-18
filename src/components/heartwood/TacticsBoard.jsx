@@ -177,6 +177,7 @@ import { ItemActions, KitBadges, CounterPanel } from "./TacticsItemsUi"
 import { EnemyTalentsLine } from "./TalentNeutralUi"
 import { hushedNow, talentSkillNote } from "../../services/heartwood/tacticsTalents"
 import { activeDef, itemActiveTargets, castItemActive } from "../../services/heartwood/tacticsItems"
+import "./heartwood-reveal.css"
 
 // Ranged rework: tile skills that hit a 3x3 area (blast preview on hover).
 const AREA_TILE_SKILLS = { "piercing-beam": "grenade", "smoke-screen": "smoke", "explosive-charge": "grenade" }
