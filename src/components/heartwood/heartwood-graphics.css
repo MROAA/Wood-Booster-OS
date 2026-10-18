@@ -634,3 +634,23 @@ html body .hw-root *:not(input):not(textarea):not([contenteditable="true"]),
 html body .hw-layout-tools-toggle {
   cursor: default !important;
 }
+
+/* ---------- The battlefield, piece 1: terrain belongs to the ground ----------
+   (Marc: "taistelulaudan pitää olla graafisesti hieno koska se on se
+   alusta missä peli toteutuu"). Things that stand ON the forest floor -
+   trees, bushes, rocks, stumps, logs, pods, barrels - lose the tile box:
+   their art sits straight on the painted floor over a soft ground patch
+   (TerrainArt.jsx). Ground that IS a surface - water, bridges, lava,
+   ice, high ground, ash, fire - stays a full tile with feathered edges. */
+.hwt-cell[data-art]:not([data-art="water"], [data-art="bridge"], [data-art="lava"], [data-art="ice"], [data-art="high"], [data-art="ash"], [data-art="fire"]) {
+  /* no tile colour under the art (the terrain's own --hwt-tile was an
+     opaque box) - the forest floor shows through around the feature */
+  --hwt-tile: linear-gradient(transparent, transparent);
+  border-color: transparent;
+  box-shadow: var(--hwt-ring);
+  background-color: transparent;
+}
+/* a feature reads as standing in the world: a soft contact shadow under it */
+.hwt-cell[data-art]:is([data-art="tree"], [data-art="forest"], [data-art="rock"], [data-art="boulder"], [data-art="stump"], [data-art="barrel"], [data-art="sporepod"], [data-art="icepillar"]) {
+  filter: drop-shadow(0 6px 5px rgba(0, 0, 0, 0.45));
+}
