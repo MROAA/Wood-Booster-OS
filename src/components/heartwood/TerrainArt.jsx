@@ -391,6 +391,14 @@ const CANOPY = {
   birch: { dark: "#7d5f1e", mid: "#b8902e", light: "#e2bd52", glint: "#f4dc8a", bark: "#e6e0d0", barkDark: "#1d1a16" },
   // haapa - copper-red autumn aspen
   aspen: { dark: "#5e2414", mid: "#9a3d1e", light: "#cc6a2e", glint: "#eba05a", bark: "#8d8a72", barkDark: "#3f3d31" },
+  // suopaju - a dark mire willow (Mirefall)
+  willow: { dark: "#1c3326", mid: "#2f5240", light: "#4f7a5e", glint: "#8fc0a4", bark: "#5a5444", barkDark: "#22201a" },
+  // kuurainen koivu - a frosted winter birch (Frostroot)
+  "birch-frost": { dark: "#6d7d88", mid: "#a4b4be", light: "#dbe6ee", glint: "#ffffff", bark: "#eef2f4", barkDark: "#1d1f22" },
+  // a bright golden birch (Sunspire)
+  "birch-sun": { dark: "#8a7a24", mid: "#c8b23c", light: "#ecd968", glint: "#fff3b0", bark: "#efe8d6", barkDark: "#1d1a16" },
+  // a violet echo tree (The Echo)
+  echo: { dark: "#2a1e44", mid: "#4a3a7a", light: "#7a62b8", glint: "#c8b0ff", bark: "#6a6080", barkDark: "#1a1624" },
 }
 const BURNT = { dark: "#2a1c12", mid: "#3a2616", light: "#57341a", glint: "#6e4020", bark: "#3a2a1c", barkDark: "#140d08" }
 
@@ -457,7 +465,7 @@ const SPRUCE_TIERS = [
 ]
 const tierPath = (cy, w, h) => `M32 ${cy - h}L${32 + w} ${cy}L${32 + w * 0.6} ${cy - 1.6}L${32 + w * 0.3} ${cy + 0.6}L32 ${cy - 1}L${32 - w * 0.3} ${cy + 0.6}L${32 - w * 0.6} ${cy - 1.6}L${32 - w} ${cy}Z`
 const tierLit = (cy, w, h) => `M32 ${cy - h}L${32 - w} ${cy}L${32 - w * 0.6} ${cy - 1.6}L${32 - w * 0.3} ${cy + 0.6}L32 ${cy - 1}Z`
-function SpruceTree({ burning }) {
+function SpruceTree({ burning, snow = false }) {
   const col = burning ? ["#2a1c12", "#3a2616", "#57341a"] : ["#16261a", "#24402a", "#3d6238"]
   return (
     <>
@@ -467,6 +475,7 @@ function SpruceTree({ burning }) {
           <path d={tierPath(cy, w, h)} fill={col[0]} />
           <path d={tierPath(cy - 1, w - 1.5, h - 1.5)} fill={col[1]} />
           <path d={tierLit(cy - 1, w - 1.5, h - 1.5)} fill={col[2]} opacity=".85" />
+          {snow && !burning && <path d={`M32 ${cy - h + 1}L${32 - w * 0.62} ${cy - h * 0.38}Q32 ${cy - h * 0.5} ${32 + w * 0.62} ${cy - h * 0.38}Z`} fill="#eef5fa" opacity=".92" />}
         </g>
       ))}
       <path d="M32 3l1.2 3h-2.4z" fill={col[2]} />
@@ -474,12 +483,35 @@ function SpruceTree({ burning }) {
   )
 }
 
-function TreeSprite({ burning, variant = 0 }) {
-  const species = TREE_SPECIES[Math.abs(variant) % TREE_SPECIES.length]
+// A dead, leafless tree (Wounded Grove): grey branches only.
+function DeadTree({ burning }) {
+  const bark = burning ? "#3a2a1c" : "#6e6860"
+  const hi = burning ? "#57341a" : "#9a948a"
+  return (
+    <>
+      <path d="M28.6 58C29.6 48 29 40 30.4 30h3.2C35 40 34.4 48 35.4 58Z" fill={bark} />
+      <g stroke={bark} strokeWidth="2.6" fill="none" strokeLinecap="round">
+        <path d="M31 40C26 34 22 30 16 27M31 36C28 28 27 22 23 14M33 34C37 26 40 22 46 18M33 42C38 38 43 36 50 35M31 30C31 22 33 16 31 8" />
+      </g>
+      <g stroke={hi} strokeWidth="1" fill="none" strokeLinecap="round" opacity=".7">
+        <path d="M16 27l-4-4M23 14l-1-6M46 18l5-3M50 35l5 1M31 8l-3-3M20 29l-2 5M44 20l2 5" />
+      </g>
+    </>
+  )
+}
+
+function TreeSprite({ burning, variant = 0, species = null }) {
+  const kind = species || TREE_SPECIES[Math.abs(variant) % TREE_SPECIES.length]
   return (
     <>
       {SHADOW}
-      {species === "spruce" ? <SpruceTree burning={burning} /> : <DeciduousTree c={burning ? BURNT : CANOPY[species]} birch={species === "birch"} />}
+      {kind === "dead" ? (
+        <DeadTree burning={burning} />
+      ) : kind === "spruce" || kind === "spruce-snow" ? (
+        <SpruceTree burning={burning} snow={kind === "spruce-snow"} />
+      ) : (
+        <DeciduousTree c={burning ? BURNT : CANOPY[kind] || CANOPY.birch} birch={kind.startsWith("birch")} />
+      )}
       {burning && (
         <g className="hwt-art-flames">
           <path d="M22 26c-6-6-2-14 2-18 0 5 4 6 4 10 2-3 1-6 1-9 6 5 8 12 4 17z" fill="#e0561c" />
@@ -638,12 +670,12 @@ function GlowcapSprite() {
 
 const SPRITES = { tree: TreeSprite, barrel: BarrelSprite, sporepod: SporeSprite, boulder: BoulderSprite, icepillar: IcePillarSprite, stone: StoneSprite, glowcap: GlowcapSprite }
 
-export function ObjectArt({ type, burning = false, brittle = false, variant = 0, className = "hwt-object-art" }) {
+export function ObjectArt({ type, burning = false, brittle = false, variant = 0, species = null, className = "hwt-object-art" }) {
   const Sprite = SPRITES[type]
   if (!Sprite) return null
   return (
-    <svg className={className} data-art-object={type} viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-      <Sprite burning={burning} brittle={brittle} variant={variant} />
+    <svg className={className} data-art-object={type} data-species={type === "tree" && species ? species : undefined} viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <Sprite burning={burning} brittle={brittle} variant={variant} species={species} />
     </svg>
   )
 }
