@@ -40,6 +40,9 @@ export default function MarketScreen({ kit }) {
     runState,
     setHqOpen,
     tierPreview,
+    deployedEntries,
+    reserveEntries,
+    renderTradeRow,
   } = kit
 
   // HQ status board: is the squad ready to set out?
@@ -161,7 +164,14 @@ export default function MarketScreen({ kit }) {
             <UiTitle className="hwm-panel-title" k="merchant" />
             {renderCenterSections(["greeting"])}
           </section>
-          <div className="hwm-side-spacer" aria-hidden="true" />
+          <section className="hwm-panel hwm-trade" aria-label="Trade your heroes">
+            <UiTitle className="hwm-panel-title" k="trade" />
+            {runState.bench.length === 0 ? (
+              <p className="hwm-hint">No heroes to trade yet.</p>
+            ) : (
+              <div className="hwm-trade-list">{[...deployedEntries, ...reserveEntries].map((e) => renderTradeRow(e))}</div>
+            )}
+          </section>
           <section className="hwm-panel hwm-way">
             <UiTitle className="hwm-panel-title" k="road" />
             <p className="hwm-hint">

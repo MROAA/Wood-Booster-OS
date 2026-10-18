@@ -90,12 +90,12 @@ export default function HeadquartersScreen({ kit, onClose = null }) {
           <DevDesk heroDefIds={runState.bench.map((e) => e.defId)} />
           <section className="hwm-panel">
             <UiTitle className="hwm-panel-title" k="hqFight" extra={` ${deployedCount}/${DEPLOY_SLOTS}`} />
-            <div className="hwq-cards">{deployedEntries.map((e) => renderBenchCard(e))}</div>
+            <div className="hwq-cards">{deployedEntries.map((e) => renderBenchCard(e, { place: "camp" }))}</div>
           </section>
           {reserveEntries.length > 0 && (
             <section className="hwm-panel">
               <UiTitle className="hwm-panel-title" k="hqReserve" extra={` ${reserveCount}/${RESERVE_CAP + (runState.benchCapBonus || 0)}`} />
-              <div className="hwq-cards">{reserveEntries.map((e) => renderBenchCard(e))}</div>
+              <div className="hwq-cards">{reserveEntries.map((e) => renderBenchCard(e, { place: "camp" }))}</div>
             </section>
           )}
         </main>
