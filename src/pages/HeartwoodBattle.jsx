@@ -87,6 +87,7 @@ import { crossroadsForAct } from "../data/heartwood/crossroads"
 import { crownlessIntroLine } from "../data/heartwood/crownless"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
 import { loadMeta, saveMeta } from "../services/heartwood/metaState"
+import { recordForestMemory } from "../services/heartwood/forestMemory"
 import {
   loadHearth, saveHearth, hearthStartFor, harvestRun, upgradeRoom, buyFurniture, recruitAtHome, retireUnit,
   releaseUnit, setPermadeath, breedHeroes, togglePacked, discardStashed, craftRecipe, takePackedGear,
@@ -476,6 +477,8 @@ function HeartwoodBattleScreens() {
             ...m,
             acorns: m.acorns + earned,
             depth: unlockedNext ? (m.depth || 0) + 1 : m.depth || 0,
+            // New Game+: the forest remembers this run (truths, ending, regard).
+            forestMemory: recordForestMemory(m.forestMemory, runState, won),
             stats: {
               runs: (m.stats?.runs || 0) + 1,
               wins: (m.stats?.wins || 0) + (won ? 1 : 0),
@@ -1207,6 +1210,7 @@ function HeartwoodBattleScreens() {
     return (
       <ForestChoiceScreen
         suggested={suggestedEndingId(runState)}
+        runState={runState}
         onChoose={(endingId) => {
           setRunState((rs) => chooseForestPath(rs, endingId))
           setEndingCinematic(endingId)
