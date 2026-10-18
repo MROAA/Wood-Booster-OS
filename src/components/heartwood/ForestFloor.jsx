@@ -15,7 +15,7 @@
 //
 // Pure presentation: no game rules, no game RNG streams touched.
 import { memo, useMemo } from "react"
-import { PAD, CELL, GAP, floorDetailLayout } from "./forestFloorLayout"
+import { PAD, CELL, GAP, STEP, floorDetailLayout, hashString } from "./forestFloorLayout"
 
 // --- the detail sprites (centred on 0,0, roughly 8-18px) ----------------------
 const pickOne = (rng, list) => list[Math.floor(rng() * list.length) % list.length]
@@ -173,6 +173,131 @@ function Detail({ d, colours }) {
   )
 }
 
+// --- raised ground: high ground tiles become rounded mounds -----------------------
+// Plan: docs/hearthwood-battlefield-plan.md (Marc: "high ground rumasti...
+// kumpuja", "3D-mäinen mutta 2D", "korkeuserot"). Each high tile is a round
+// hump; neighbouring humps are bridged, so a group of tiles reads as one
+// lumpy hill. Height = the classic 2.5D extrusion: the same silhouette drawn
+// lower in earth colours shows as the hill's south face, with a soft shadow
+// beyond it. The top is lit from the top-left (like the sun shafts) and
+// darkens down its slopes. Colours: biome.palette.hill. Drawn under the
+// cells - units, highlights and telegraphs stay on top.
+export const HILL_HEIGHT = 14 // px of visible earth face = how high it reads
+
+// Joined high tiles = one hill (4-neighbour components).
+function hillComponents(tiles, isHigh) {
+  const seen = new Set()
+  const out = []
+  for (const [r0, c0] of tiles) {
+    if (seen.has(`${r0}-${c0}`)) continue
+    const comp = []
+    const q = [[r0, c0]]
+    seen.add(`${r0}-${c0}`)
+    while (q.length) {
+      const [r, c] = q.shift()
+      comp.push([r, c])
+      for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const k = `${r + dr}-${c + dc}`
+        if (!seen.has(k) && isHigh(r + dr, c + dc)) {
+          seen.add(k)
+          q.push([r + dr, c + dc])
+        }
+      }
+    }
+    out.push(comp)
+  }
+  return out
+}
+
+// The silhouette of one hill: a hump per tile + bridges to high neighbours.
+// Flat list of shapes (a <clipPath> ignores <g> children).
+function HillShape({ comp, isHigh }) {
+  const parts = []
+  for (const [r, c] of comp) {
+    const cx = PAD + c * STEP + CELL / 2
+    const cy = PAD + r * STEP + CELL / 2 - HILL_HEIGHT / 2
+    const wob = (hashString(`${r}-${c}-hump`) % 100) / 100
+    parts.push(<ellipse key={`e${r}-${c}`} cx={cx} cy={cy} rx={CELL * (0.5 + wob * 0.04)} ry={CELL * (0.46 + wob * 0.03)} />)
+    if (isHigh(r, c + 1)) parts.push(<rect key={`h${r}-${c}`} x={cx} y={cy - CELL * 0.43} width={STEP} height={CELL * 0.86} />)
+    if (isHigh(r + 1, c)) parts.push(<rect key={`v${r}-${c}`} x={cx - CELL * 0.47} y={cy} width={CELL * 0.94} height={STEP} />)
+    if (isHigh(r, c + 1) && isHigh(r + 1, c) && isHigh(r + 1, c + 1)) parts.push(<rect key={`q${r}-${c}`} x={cx} y={cy} width={STEP} height={STEP} />)
+  }
+  return parts
+}
+
+function HillLayer({ terrain, grid, hill }) {
+  const isHigh = (r, c) => terrain?.[`${r}-${c}`] === "high"
+  const tiles = []
+  for (let r = 0; r < grid.rows; r++) for (let c = 0; c < grid.cols; c++) if (isHigh(r, c)) tiles.push([r, c])
+  if (!tiles.length || !hill) return null
+  const comps = hillComponents(tiles, isHigh)
+  return (
+    <g className="hwt-forest-hills" data-hills={tiles.length}>
+      {comps.map((comp, ci) => {
+        const xs = comp.map(([, c]) => PAD + c * STEP)
+        const ys = comp.map(([r]) => PAD + r * STEP)
+        const bx = Math.min(...xs) - 6
+        const by = Math.min(...ys) - HILL_HEIGHT - 6
+        const bw = Math.max(...xs) + CELL - bx + 12
+        const bh = Math.max(...ys) + CELL - by + HILL_HEIGHT + 12
+        const id = `hwt-hill-${ci}`
+        return (
+          <g key={id} data-hill-group={comp.length}>
+            <defs>
+              <clipPath id={`${id}-top`}>
+                <HillShape comp={comp} isHigh={isHigh} />
+              </clipPath>
+              <radialGradient id={`${id}-dome`} gradientUnits="userSpaceOnUse" cx={bx + bw * 0.4} cy={by + bh * 0.34} r={Math.max(bw, bh) * 0.6}>
+                <stop offset="0" stopColor={hill.lit} stopOpacity=".5" />
+                <stop offset=".5" stopColor={hill.top[0]} stopOpacity="0" />
+                <stop offset="1" stopColor={hill.shade} stopOpacity=".7" />
+              </radialGradient>
+              <linearGradient id={`${id}-face`} gradientUnits="userSpaceOnUse" x1="0" y1={by} x2="0" y2={by + bh}>
+                <stop offset="0" stopColor={hill.cliff[0]} />
+                <stop offset="1" stopColor={hill.cliff[1]} />
+              </linearGradient>
+            </defs>
+            {/* shadow on the floor, then the earth face, then the lit top */}
+            <g transform={`translate(8 ${HILL_HEIGHT + 7})`} fill="#000" opacity=".3">
+              <HillShape comp={comp} isHigh={isHigh} />
+            </g>
+            <g transform={`translate(0 ${HILL_HEIGHT})`} fill={`url(#${id}-face)`}>
+              <HillShape comp={comp} isHigh={isHigh} />
+            </g>
+            <g transform={`translate(0 ${HILL_HEIGHT})`} fill="none" stroke={hill.strata} strokeWidth="1" opacity=".5" clipPath={`url(#${id}-top)`}>
+              <HillShape comp={comp} isHigh={isHigh} />
+            </g>
+            <g clipPath={`url(#${id}-top)`}>
+              <rect x={bx} y={by} width={bw} height={bh} fill={hill.top[1]} />
+              <rect x={bx} y={by} width={bw} height={bh} fill={`url(#${id}-dome)`} />
+            </g>
+            {/* lit lip along the top edge's south rim (where top meets face) */}
+            {comp.map(([r, c]) => {
+              const x = PAD + c * STEP
+              const y = PAD + r * STEP - HILL_HEIGHT / 2
+              const rnd = (n) => (hashString(`${r}-${c}-${n}`) % 1000) / 1000
+              return (
+                <g key={`d${r}-${c}`} data-hill={`${r}-${c}`}>
+                  {[0, 1, 2].map((i) => {
+                    const tx = x + 18 + rnd(i + 10) * (CELL - 36)
+                    const ty = y + 18 + rnd(i + 20) * (CELL - 36)
+                    return <path key={i} d={`M${tx} ${ty}l-2-6M${tx} ${ty}l1-7M${tx} ${ty}l3-5`} stroke={hill.lit} strokeWidth="1.2" opacity=".6" strokeLinecap="round" />
+                  })}
+                  {rnd(30) > 0.5 && <ellipse cx={x + 22 + rnd(31) * 32} cy={y + 22 + rnd(32) * 22} rx="4" ry="2.8" fill="#77726a" stroke="#3d3a33" strokeWidth=".6" />}
+                  {!isHigh(r + 1, c) &&
+                    [0.3, 0.62].map((f, i) => (
+                      <path key={f} d={`M${x + CELL * f} ${y + CELL * 0.9 + 2}q${rnd(i) * 4 - 2} 5 ${rnd(i + 3) * 3 - 1} ${6 + rnd(i + 6) * 4}`} stroke="#2b1c0f" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity=".8" />
+                    ))}
+                </g>
+              )
+            })}
+          </g>
+        )
+      })}
+    </g>
+  )
+}
+
 // --- the frame: old roots creeping in from the four corners -------------------
 // Drawn for the top-left corner, mirrored to the others.
 const ROOTS = [
@@ -235,6 +360,7 @@ function ForestFloorImpl({ biome, grid, terrain, salt }) {
             <Patch key={d.key} d={d} />
           ))}
       </g>
+      <HillLayer terrain={terrain} grid={grid} hill={biome.palette?.hill} />
       <g className="hwt-forest-details">
         {details
           .filter((d) => d.kind !== "patch")

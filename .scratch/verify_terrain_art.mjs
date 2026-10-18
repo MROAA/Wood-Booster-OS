@@ -82,7 +82,13 @@ const art = await p.evaluate((types) => {
     res[t] = {
       n: cells.length,
       art: c?.getAttribute("data-art"),
-      svgBg: !!c && getComputedStyle(c).backgroundImage.includes("data:image/svg+xml"),
+      // Raised ground: high ground is drawn as a mound in the forest floor
+      // layer (ForestFloor HillLayer) under its own tile, not as tile art.
+      svgBg:
+        !!c &&
+        (t === "high"
+          ? cells.every((x) => !!document.querySelector(`.hwt-forest-hills [data-hill="${x.dataset.cell}"]`))
+          : getComputedStyle(c).backgroundImage.includes("data:image/svg+xml")),
       animated: !!c && getComputedStyle(c).backgroundImage.includes("animate"),
       sprite: !!c?.querySelector(`.hwt-object svg[data-art-object="${t}"]`),
       emoji: c?.querySelector(".hwt-object")?.textContent || "",

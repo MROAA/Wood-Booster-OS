@@ -144,18 +144,18 @@ const TERRAIN_SVG = {
         `<rect x="1" y="1" width="62" height="62" rx="4" fill="none" stroke="#dff3fb" stroke-width="1.5" opacity=".3"/>`,
       `<linearGradient id="i" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8db4c7"/><stop offset="1" stop-color="#4a6e80"/></linearGradient>`,
     ),
+  // Battlefield: on the board, high ground is drawn as one continuous mound
+  // by ForestFloor.jsx HillLayer (the tile itself stays clear). This art is
+  // the legend icon: a small grassy mound with its cliff and shadow.
   high: () =>
     svg(
-      `<rect width="64" height="44" fill="url(#h)"/>` +
-        `<g fill="none" stroke="#f0d9a8" opacity=".22"><ellipse cx="32" cy="22" rx="22" ry="13"/><ellipse cx="32" cy="22" rx="12" ry="6"/></g>` +
-        `<g stroke="#6f8d3a" stroke-width="1.4" stroke-linecap="round" opacity=".8"><path d="M8 10l-1-4M9 10l1-4M52 34l-1-4M53 34l1-4M46 8l-1-3M47 8l1-3"/></g>` +
-        `<rect y="44" width="64" height="20" fill="#4a3320"/>` +
-        `<g stroke="#2e1f13" stroke-width="1.2"><path d="M0 51h64M0 58h64"/><path d="M12 44v7M30 51v7M46 44v7M20 58v6M54 58v6M5 51v7" /></g>` +
-        `<rect y="60" width="64" height="4" fill="#1b120b" opacity=".7"/>` +
-        `<rect y="42.5" width="64" height="2.5" fill="#f0d9a8" opacity=".8"/>` +
-        `<rect y="0" width="64" height="1.5" fill="#f0d9a8" opacity=".35"/>` +
-        `<path d="M32 16l6 7h-4v6h-4v-6h-4z" fill="#f0d9a8" opacity=".38"/>`,
-      `<linearGradient id="h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a88455"/><stop offset="1" stop-color="#836340"/></linearGradient>`,
+      `<ellipse cx="34" cy="52" rx="27" ry="8" fill="#000" opacity=".35"/>` +
+        `<path d="M6 44C8 26 20 14 32 14C44 14 56 26 58 44Z" fill="#5d6c31"/>` +
+        `<path d="M6 44C8 26 20 14 32 14C24 18 16 28 15 44Z" fill="#7d8c45" opacity=".7"/>` +
+        `<path d="M58 44C56 30 48 20 40 16C46 24 49 34 49 44Z" fill="#26311a" opacity=".55"/>` +
+        `<path d="M6 44H58L56 52H8Z" fill="#5c4228"/><path d="M8 48H56" stroke="#24180d" stroke-width=".9" opacity=".6"/>` +
+        `<path d="M7 44.6H57" stroke="#a3b263" stroke-width="1.4" opacity=".6"/>` +
+        `<g stroke="#a3b263" stroke-width="1.2" stroke-linecap="round" opacity=".75"><path d="M26 28l-2-5M26 28l1-6M40 32l-1-5M40 32l2-4"/></g>`,
     ),
   rock: () =>
     svg(
