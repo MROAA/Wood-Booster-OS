@@ -5,6 +5,7 @@ import { DIALOGUES } from "../../data/heartwood/dialogues"
 import DialogueScreen from "./DialogueScreen"
 import EditInStudioLink from "./EditInStudioLink"
 import { useFreeLayout } from "./useFreeLayout.jsx"
+import "./heartwood-road-screens.css"
 
 // A map event (events.js) - Slay the Spire's "?" node. Marc, more than
 // once: "pelaaja kulkee mappia ja vastaan tulee eventtejä" - the player
@@ -114,11 +115,14 @@ export default function EventScreen({ event, onResolve, previewLines }) {
               {event.choices.map((c, i) => (
                 <button
                   key={i}
-                  className="hw-move-btn"
+                  className="hw-move-btn hw-event-choice"
                   style={{ textAlign: "left", padding: "12px 16px", lineHeight: 1.4 }}
                   onClick={() => setChosen(i)}
                 >
-                  {c.label}
+                  <span className="hw-event-choice-num" aria-hidden="true">
+                    {i + 1}
+                  </span>
+                  <span className="hw-event-choice-label">{c.label}</span>
                 </button>
               ))}
             </div>
@@ -148,7 +152,7 @@ export default function EventScreen({ event, onResolve, previewLines }) {
                 </p>
               ))}
               <button
-                className="hw-move-btn"
+                className="hw-move-btn hw-event-continue"
                 style={{ marginTop: 18 }}
                 onClick={() => onResolve(chosen)}
               >

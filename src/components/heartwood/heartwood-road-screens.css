@@ -1,0 +1,143 @@
+/* The road between fights - event, camp and path-choice screens in the
+   Nordic forest theme (docs/hearthwood-visual-theme.md).
+
+   Marc: "jatkaa käyttöliittymän kehittämistä selkeämmäksi ja hienommaksi
+   ... hyvin polished ja selkeä käyttää" + "loogisesti pala palalta".
+   Same language as Headquarters and the Market: a calm forest-floor
+   reading panel over the art, lichen text, one gold accent, plaques for
+   choices. Built piece by piece - piece 1: the event screen. */
+
+.hw-road-panel,
+.hw-intro.hw-event {
+  --road-gold: var(--hw-ui-accent, #cdb47a);
+  --road-moss: var(--hw-ui-leaf, #8fb07a);
+  --road-text: var(--hw-ui-text, #e8e2c8);
+  --road-panel: var(--hw-ui-panel, #0f130c);
+  box-sizing: border-box;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--road-moss) 28%, transparent);
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, var(--road-gold) 7%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--road-panel) 92%, transparent), color-mix(in srgb, var(--road-panel) 96%, transparent));
+  box-shadow: inset 0 1px 0 rgba(232, 226, 200, 0.06), 0 24px 60px -24px rgba(0, 0, 0, 0.9);
+  color: var(--road-text);
+}
+
+/* ---------- Piece 1: the event ---------- */
+.hw-intro.hw-event {
+  max-width: 760px;
+  margin: 28px auto 0;
+  padding: 26px 34px 30px;
+}
+/* the "An Event" eyebrow and the title */
+.hw-intro.hw-event h1 {
+  font-family: var(--hw-font-display);
+  font-size: 32px !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 4px 0 14px !important;
+  color: #f2ead0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+.hw-intro.hw-event .hw-flavor {
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+  color: color-mix(in srgb, var(--road-text) 86%, transparent);
+  max-width: none !important;
+}
+
+/* choices: dark plaques with a number stone; hover lifts, turns gold
+   and shows an arrow */
+.hw-intro.hw-event .hw-move-btn.hw-event-choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: none;
+  padding: 13px 44px 13px 14px !important;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--road-gold) 28%, transparent);
+  background:
+    linear-gradient(180deg, rgba(232, 226, 200, 0.05), transparent 55%),
+    rgba(10, 13, 8, 0.92);
+  color: var(--road-text);
+  font-size: 15px;
+  font-weight: 500;
+  text-shadow: none;
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 8px 16px -8px rgba(0, 0, 0, 0.8);
+  transition: translate 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.hw-intro.hw-event .hw-move-btn.hw-event-choice::after {
+  content: "→";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  translate: -6px -50%;
+  opacity: 0;
+  color: var(--road-gold);
+  font-size: 18px;
+  transition: translate 0.15s ease, opacity 0.15s ease;
+}
+.hw-intro.hw-event .hw-move-btn.hw-event-choice:hover,
+.hw-intro.hw-event .hw-move-btn.hw-event-choice:focus-visible {
+  translate: 0 -2px;
+  border-color: var(--road-gold);
+  background:
+    radial-gradient(ellipse 60% 120% at 0% 50%, color-mix(in srgb, var(--road-gold) 12%, transparent), transparent 70%),
+    rgba(14, 18, 11, 0.95);
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 14px 22px -10px rgba(0, 0, 0, 0.85), 0 0 14px color-mix(in srgb, var(--road-gold) 22%, transparent);
+}
+.hw-intro.hw-event .hw-move-btn.hw-event-choice:hover::after,
+.hw-intro.hw-event .hw-move-btn.hw-event-choice:focus-visible::after {
+  translate: 0 -50%;
+  opacity: 1;
+}
+.hw-event-choice-num {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f3d98e, #b88a32 60%, #6e4f17);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  font-family: var(--hw-font-body, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff8e6;
+  text-shadow: 0 1px 2px #1a0e04;
+}
+.hw-event-choice-label {
+  line-height: 1.4;
+}
+
+/* the outcome: moss rule on the left, then a gold-edged Continue */
+.hw-intro.hw-event .hw-event-mutation {
+  color: color-mix(in srgb, var(--road-moss) 90%, #fff);
+}
+.hw-intro.hw-event .hw-move-btn.hw-event-continue {
+  padding: 11px 26px !important;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--road-gold) 60%, transparent);
+  background: linear-gradient(180deg, rgba(40, 46, 26, 0.95), rgba(20, 24, 13, 0.95));
+  color: #f2ead0;
+  font-family: var(--hw-font-display);
+  font-size: 17px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 8px 18px -8px rgba(0, 0, 0, 0.85);
+  transition: translate 0.15s ease, border-color 0.15s ease;
+}
+.hw-intro.hw-event .hw-move-btn.hw-event-continue:hover {
+  translate: 0 -2px;
+  border-color: var(--road-gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-intro.hw-event .hw-move-btn { transition: none; }
+}
+/* choices and outcome use the panel's full width (the old inline 620px cap) */
+.hw-intro.hw-event div:has(> .hw-event-choice),
+.hw-intro.hw-event div:has(> .hw-event-continue) {
+  max-width: none !important;
+}
