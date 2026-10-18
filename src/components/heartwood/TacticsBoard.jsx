@@ -16,6 +16,7 @@ import { runModifierById } from "../../data/heartwood/boons"
 import { auraTiles, AURA_LABEL } from "../../services/heartwood/gear"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
+import HeroToken, { heroIdOfUnit } from "./HeroToken"
 import { ElementBadges, ElementHelp } from "./TacticsElementsUi"
 // Combat depth sprint: round timeline, stances, reactions, combos.
 import { TurnTimeline, DepthActions, DepthTokenChips, IntentReactionMarks, DepthHelp } from "./TacticsDepthUi"
@@ -250,7 +251,10 @@ function portraitOf(unit) {
 
 // Portrait (or glyph fallback) - shared by the live token, the fading
 // fallen-unit ghost and the panel's selected-unit card.
-function TokenArt({ unit }) {
+function TokenArt({ unit, battle, speak = false }) {
+  // Drawn Commanders (heroes.js) react and speak - see HeroToken.jsx.
+  const heroId = heroIdOfUnit(unit)
+  if (heroId) return <HeroToken unit={unit} heroId={heroId} battle={battle} speak={speak} />
   const src = portraitOf(unit)
   return (
     <div className="hwt-token-art" data-has-image={!!src}>
@@ -1385,7 +1389,7 @@ export default function TacticsBoard({
               data-burrowed={(unit.burrowed > 0 && !(unit.revealed > 0)) || undefined}
               title={roleTitle(unit)}
             >
-              <TokenArt unit={unit} />
+              <TokenArt unit={unit} battle={battle} speak />
               <DepthTokenChips unit={unit} battle={battle} />
               <ManaTokenMarks unit={unit} />
               {/* Hero identity: the class signature chip + signature marks. */}
@@ -1780,7 +1784,7 @@ export default function TacticsBoard({
             <div className="hwt-unit-panel" data-unit-panel={panelUnit.id} data-side={panelUnit.side} data-role={roleOf(panelUnit)} data-mode={panelMode}>
               <div className="hwt-up-main">
                 <div className="hwt-up-portrait">
-                  <TokenArt unit={panelUnit} />
+                  <TokenArt unit={panelUnit} battle={battle} />
                 </div>
                 <div className="hwt-up-id">
                   <span className="hwt-up-name">

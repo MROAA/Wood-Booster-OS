@@ -101,6 +101,7 @@ import BattleSound from "../components/heartwood/BattleSound"
 import { almanacCounts, recordAlmanac } from "../data/heartwood/almanac"
 import { initAudioFromStorage, installClickSound, setMusicMode, play as playSfx } from "../services/heartwood/soundManager"
 import CommanderSelect from "../components/heartwood/CommanderSelect"
+import { unlockHeroSkin, chooseHeroSkin, setActiveHeroSkins } from "../services/heartwood/heroSkins"
 import GuildHallScreen from "../components/heartwood/GuildHallScreen"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
@@ -343,6 +344,31 @@ function HeartwoodBattleScreens() {
       return next
     })
   }
+
+  // Hero looks (heroSkins.js): a rare look is bought once with Acorns and
+  // then worn or swapped freely on Commander Select.
+  function handleUnlockHeroSkin(heroId, skinId) {
+    setMeta((m) => {
+      const next = unlockHeroSkin(m, heroId, skinId)
+      if (!next) return m
+      saveMeta(next)
+      return next
+    })
+  }
+
+  function handleChooseHeroSkin(heroId, skinId) {
+    setMeta((m) => {
+      const next = chooseHeroSkin(m, heroId, skinId)
+      if (!next) return m
+      saveMeta(next)
+      return next
+    })
+  }
+
+  // The battle board reads the worn look from heroSkins.js's module state.
+  useEffect(() => {
+    setActiveHeroSkins(meta.heroSkins)
+  }, [meta.heroSkins])
 
   function handleUnlockCommander(id) {
     setMeta((m) => {
@@ -1094,6 +1120,9 @@ function HeartwoodBattleScreens() {
           unlockedIds={meta.unlockedCommanders || []}
           acorns={meta.acorns}
           onUnlock={handleUnlockCommander}
+          heroSkins={meta.heroSkins}
+          onUnlockSkin={handleUnlockHeroSkin}
+          onChooseSkin={handleChooseHeroSkin}
           depthLevel={Math.max(0, Math.min(meta.depth || 0, meta.selectedDepth || 0))}
         />
         {hearthPicks.length > 0 && (
