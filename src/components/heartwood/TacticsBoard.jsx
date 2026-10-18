@@ -17,6 +17,7 @@ import { auraTiles, AURA_LABEL } from "../../services/heartwood/gear"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
 import HeroToken, { heroIdOfUnit } from "./HeroToken"
+import { commanderShowsImage } from "./CommanderArt"
 import { ElementBadges, ElementHelp } from "./TacticsElementsUi"
 // Combat depth sprint: round timeline, stances, reactions, combos.
 import { TurnTimeline, DepthActions, DepthTokenChips, IntentReactionMarks, DepthHelp } from "./TacticsDepthUi"
@@ -253,8 +254,11 @@ function portraitOf(unit) {
 // fallen-unit ghost and the panel's selected-unit card.
 function TokenArt({ unit, battle, speak = false }) {
   // Drawn Commanders (heroes.js) react and speak - see HeroToken.jsx.
+  // Marc's own painting (characters.js `image`) wins in the default look,
+  // the same rule CommanderArt uses everywhere else ("the animated one is
+  // not Tommy - use the painting").
   const heroId = heroIdOfUnit(unit)
-  if (heroId) return <HeroToken unit={unit} heroId={heroId} battle={battle} speak={speak} />
+  if (heroId && !commanderShowsImage({ image: unit.image, art: unit.art })) return <HeroToken unit={unit} heroId={heroId} battle={battle} speak={speak} />
   const src = portraitOf(unit)
   return (
     <div className="hwt-token-art" data-has-image={!!src}>
@@ -312,7 +316,13 @@ const BUTTERFLIES = [
 function BoardAmbience({ biome, turn }) {
   const amb = biome?.ambient || {}
   return (
-    <div className="hwt-ambience" aria-hidden="true" style={{ "--hwt-dusk": duskFor(turn) }}>
+    <div className="hwt-ambience" aria-hidden="true" data-drift={amb.drift || "leaf"} style={{ "--hwt-dusk": duskFor(turn), "--hwt-firefly-rgb": amb.fireflyColour || "246, 225, 140" }}>
+      {amb.mist && (
+        <div className="hwt-ambience-mist">
+          <span />
+          <span />
+        </div>
+      )}
       <div className="hwt-ambience-light" />
       {amb.shafts && (
         <div className="hwt-sun-shafts">
@@ -329,7 +339,14 @@ function BoardAmbience({ biome, turn }) {
           key={`l${i}`}
           className="hwt-drift-leaf"
           data-tone={l.tone}
-          style={{ left: `${l.left}%`, animationDelay: `${l.delay}s`, animationDuration: `${l.dur}s`, "--sway": `${l.sway}px` }}
+          data-kind={amb.drift || "leaf"}
+          style={{
+            left: `${l.left}%`,
+            animationDelay: `${l.delay}s`,
+            animationDuration: `${l.dur * (amb.drift === "snow" || amb.drift === "ash" ? 1.3 : 1)}s`,
+            "--sway": `${l.sway}px`,
+            ...(amb.driftColours?.length ? { background: amb.driftColours[l.tone % amb.driftColours.length], color: amb.driftColours[l.tone % amb.driftColours.length] } : {}),
+          }}
         />
       ))}
       {BUTTERFLIES.slice(0, amb.butterflies || 0).map((b, i) => (
@@ -966,6 +983,8 @@ export default function TacticsBoard({
   // one battle's forest floor the same all fight (its line-up of unit ids).
   const biome = biomeForBattle(battle)
   const biomeStyle = useMemo(() => biomeBoardStyle(biome), [biome])
+  // the biome's tree species, stable per tile (birch / spruce-snow / dead ...)
+  const treeSpecies = (row, col) => (biome.trees?.length ? biome.trees[treeVariant(row, col) % biome.trees.length] : null)
   const unitSignature = battle.units.map((u) => u.id).join("|")
   const floorSalt = useMemo(() => hashString(`${biome.id}|${unitSignature}`), [biome.id, unitSignature])
   const targetHere = (row, col) => targets.find((t) => t.pos.row === row && t.pos.col === col)
@@ -1311,7 +1330,7 @@ export default function TacticsBoard({
           )}
           {OBJECTS[terrain] && (
             <span className="hwt-object" data-object={terrain} aria-hidden="true">
-              <ObjectArt type={terrain} variant={treeVariant(row, col)} burning={isBurning(battle, { row, col })} brittle={terrain === "icepillar" && isChilled(battle, { row, col })} />
+              <ObjectArt type={terrain} variant={treeVariant(row, col)} species={treeSpecies(row, col)} burning={isBurning(battle, { row, col })} brittle={terrain === "icepillar" && isChilled(battle, { row, col })} />
             </span>
           )}
           {OBJECTS[terrain] && objectMaxHp(terrain) > 1 && (
@@ -1335,7 +1354,7 @@ export default function TacticsBoard({
               <span key={`o${fx.id}`}>
                 {fx.fx === "fall" && (
                   <span className="hwt-obj-falling" style={{ "--fall-x": fx.dir?.col || 0, "--fall-y": fx.dir?.row || 0 }}>
-                    <ObjectArt type="tree" variant={treeVariant(row, col)} />
+                    <ObjectArt type="tree" variant={treeVariant(row, col)} species={treeSpecies(row, col)} />
                   </span>
                 )}
                 <span className="hwt-wall-fx hwt-obj-fx" data-kind={fx.fx}>

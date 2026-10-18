@@ -1012,3 +1012,55 @@ html body .hw-layout-tools-toggle {
   background: radial-gradient(rgba(0, 0, 0, 0.5), transparent 70%);
   pointer-events: none;
 }
+
+/* ---------- Biomes per Act: ambient variants ----------
+   battleBiomes.js ambient.drift / driftColours / fireflyColour / mist. */
+.hwt-firefly {
+  background: rgb(var(--hwt-firefly-rgb, 246, 225, 140));
+  box-shadow: 0 0 6px 2px rgba(var(--hwt-firefly-rgb, 246, 225, 140), 0.55);
+}
+.hwt-drift-leaf[data-kind="snow"] {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.7);
+}
+.hwt-drift-leaf[data-kind="ash"] {
+  width: 5px;
+  height: 4px;
+  border-radius: 40% 60% 50% 30%;
+  box-shadow: none;
+}
+.hwt-drift-leaf:is([data-kind="spore"], [data-kind="mote"]) {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  box-shadow: 0 0 6px 2px currentColor;
+  color: inherit;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
+}
+/* slow low mist (Mirefall, The Echo) */
+.hwt-ambience-mist {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hwt-ambience-mist span {
+  position: absolute;
+  left: -30%;
+  width: 160%;
+  height: 34%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 50%, rgba(var(--hwt-biome-light, 200, 220, 210), 0.09), transparent 70%);
+  animation: hwt-gfx-mist 38s ease-in-out infinite alternate;
+}
+.hwt-ambience-mist span:nth-child(1) { top: 48%; }
+.hwt-ambience-mist span:nth-child(2) { top: 8%; animation-duration: 47s; animation-delay: -20s; opacity: 0.7; }
+@keyframes hwt-gfx-mist {
+  from { translate: -8% 0; }
+  to { translate: 8% 2%; }
+}
+.hw-reduce-motion .hwt-ambience-mist span { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hwt-ambience-mist span { animation: none; }
+}

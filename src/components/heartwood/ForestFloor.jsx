@@ -150,6 +150,102 @@ const DETAIL_ART = {
       <circle cx="-2.6" cy="-.6" r=".8" fill="#9fc068" opacity=".4" />
     </>
   ),
+  // ---- biome details (Mirefall, Wounded Grove, Frostroot, Sunspire, Echo) ----
+  // kaislat - reeds with cattail heads
+  reeds: () => (
+    <>
+      {shade(6, 2, 7)}
+      {[-3.5, 0, 3.5].map((x, i) => (
+        <g key={x}>
+          <path d={`M${x} 7Q${x + (i - 1) * 1.5} -1 ${x + (i - 1) * 2} -8`} stroke="#4a6a3a" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+          {i !== 1 && <ellipse cx={x + (i - 1) * 2} cy={-6} rx="1.3" ry="3" fill="#5a3a22" />}
+        </g>
+      ))}
+    </>
+  ),
+  // lumme - a lily pad with a pale flower
+  lily: ({ c }) => (
+    <>
+      <path d="M0 0L7 -2A7.2 5 0 1 1 6.6 1.6Z" fill="#3c6a44" stroke="#24452c" strokeWidth=".6" />
+      <path d="M-4 0q4-2 8 0" stroke="#5a8a5a" strokeWidth=".5" fill="none" />
+      {c.r1() > 0.5 && (
+        <g transform="translate(-2 -1)">
+          {[0, 72, 144, 216, 288].map((a) => (
+            <ellipse key={a} cx="0" cy="-1.6" rx="1" ry="1.8" fill={pickOne(c.r2, c.flower)} transform={`rotate(${a})`} />
+          ))}
+          <circle r=".8" fill="#e2c25a" />
+        </g>
+      )}
+    </>
+  ),
+  // a dead grey twig
+  deadtwig: () => (
+    <>
+      <path d="M-9 3Q-2 1 9-2M-1 1.6l-2.6-4M4 .2l2.2 3M-5 2.4l-1 3" stroke="#6e6a62" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+      <path d="M-8 2.4Q-2 .6 8-2.4" stroke="#9a958a" strokeWidth=".4" fill="none" />
+    </>
+  ),
+  // tuhka - ash specks
+  ash: () => (
+    <g fill="#7a756c">
+      <ellipse cx="0" cy="0" rx="6" ry="3" opacity=".35" />
+      <circle cx="-3" cy="0" r="1.2" opacity=".7" />
+      <circle cx="2" cy="-1" r="1" opacity=".6" />
+      <circle cx="4" cy="1.4" r=".8" fill="#a39a8e" opacity=".7" />
+      <circle cx="-1" cy="1.8" r=".7" fill="#4a4640" />
+    </g>
+  ),
+  // hiillos - a few coals still glowing
+  ember: () => (
+    <>
+      <ellipse cx="0" cy="1" rx="5" ry="2.2" fill="#2a1c14" />
+      <circle cx="-2" cy="0" r="1.4" fill="#e0661c" />
+      <circle cx="1.6" cy=".6" r="1.1" fill="#ff9a3a" />
+      <circle cx="0" cy="-1" r=".7" fill="#ffd27a" />
+      <circle cx="0" cy="0" r="4.5" fill="#ff7a2a" opacity=".18" />
+    </>
+  ),
+  // lumikinos - a snow patch
+  snowtuft: () => (
+    <>
+      <ellipse cx="0" cy="1.2" rx="8" ry="3.6" fill="#9fb0bc" opacity=".55" />
+      <ellipse cx="-2" cy="0" rx="6" ry="3" fill="#e8f0f5" />
+      <ellipse cx="3" cy="0.6" rx="4" ry="2.4" fill="#f4f9fc" />
+      <ellipse cx="-3" cy="-.8" rx="2.4" ry="1" fill="#ffffff" opacity=".8" />
+    </>
+  ),
+  // jääkide - a small ice crystal cluster
+  icecrystal: () => (
+    <>
+      {shade(5, 1.6, 4)}
+      <path d="M0 4L-2-6 0-9 2-6Z" fill="#cfeefa" stroke="#7fb8d0" strokeWidth=".5" />
+      <path d="M-1 4L-6-2 -6-5 -3-1Z" fill="#a8d8ec" stroke="#7fb8d0" strokeWidth=".5" />
+      <path d="M1 4L5-3 6-1 3 3Z" fill="#b8e2f2" stroke="#7fb8d0" strokeWidth=".5" />
+      <path d="M0-8L0.6-6" stroke="#ffffff" strokeWidth=".6" />
+    </>
+  ),
+  // a violet crystal shard (Echo)
+  shard: () => (
+    <>
+      <ellipse cx="0" cy="3" rx="5" ry="1.6" fill="#000" opacity=".3" />
+      <ellipse cx="0" cy="-1" rx="7" ry="6" fill="#9a7ae8" opacity=".14" />
+      <path d="M-1 4L-3-5 0-9 2-4Z" fill="#a88af0" stroke="#5a3e9a" strokeWidth=".5" />
+      <path d="M1 4L4-2 6 0 3 4Z" fill="#7fc8e8" stroke="#3e6a9a" strokeWidth=".5" />
+      <path d="M-2-4L-.6-8" stroke="#efe6ff" strokeWidth=".6" />
+    </>
+  ),
+  // glowing motes hovering just above the ground
+  glowmote: ({ c }) => {
+    const col = pickOne(c.r1, c.flower)
+    return (
+      <>
+        <circle cx="-3" cy="0" r="3.6" fill={col} opacity=".16" />
+        <circle cx="-3" cy="0" r="1.2" fill={col} />
+        <circle cx="3" cy="-3" r="2.6" fill={col} opacity=".14" />
+        <circle cx="3" cy="-3" r=".9" fill={col} />
+      </>
+    )
+  },
 }
 // A soft ground patch (moss or copper leaf litter) - irregular, feathered.
 function Patch({ d }) {
@@ -162,12 +258,18 @@ function Patch({ d }) {
   )
 }
 
+// Things that stand or lie flat on the ground keep upright (only a small
+// tilt) - snow, mushrooms, reeds, crystals; loose things (leaves, twigs,
+// cones) may lie any way round.
+const UPRIGHT = new Set(["toadstool", "chanterelle", "reeds", "icecrystal", "shard", "snowtuft", "ember", "glowmote", "lily", "ash", "pebbles", "mosstuft", "berries"])
+
 function Detail({ d, colours }) {
   const Art = DETAIL_ART[d.kind]
   if (!Art) return null
   const c = { ...colours, r1: () => d.tone, r2: () => d.tone2 }
+  const rot = UPRIGHT.has(d.kind) ? (d.rot % 16) - 8 : d.rot
   return (
-    <g transform={`translate(${d.x.toFixed(1)} ${d.y.toFixed(1)}) rotate(${d.rot}) scale(${d.scale.toFixed(2)})`} data-detail={d.kind}>
+    <g transform={`translate(${d.x.toFixed(1)} ${d.y.toFixed(1)}) rotate(${rot}) scale(${d.scale.toFixed(2)})`} data-detail={d.kind}>
       <Art c={c} />
     </g>
   )

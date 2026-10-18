@@ -116,9 +116,11 @@ rolls stay byte-identical. Path-across is always guaranteed.
 | Biome | Palette | Character | Status |
 |---|---|---|---|
 | **Autumnwood** | copper · moss green · amber | fallen leaves, red caps, golden evening light | MVP (piece 2) |
-| Frostroot | ice blue · bone white · dark spruce | frosted roots, ice crystals, snowy moss | piece 5 |
-| Sunspire | gold · pale green · cream | tall grass, golden flowers, sun shafts | piece 5 |
-| Mirefall | deep green · turquoise · dim violet | pools, mushrooms, slow mist | piece 5 |
+| Frostroot | ice blue · bone white · dark spruce | frosted roots, ice crystals, snowy moss | ✅ Act IV |
+| Sunspire | gold · pale green · cream | tall grass, golden flowers, sun shafts | ✅ Act V |
+| Mirefall | deep green · turquoise · dim violet | pools, mushrooms, slow mist | ✅ Act II |
+| Wounded Grove | ash grey · ember · dead wood | ash, embers, dead trees | ✅ Act III |
+| The Echo | violet · crystal blue | crystal shards, echo trees, mist | ✅ Acts VI-VII |
 
 Until a biome exists for an Act, the Act uses Autumnwood.
 
@@ -206,7 +208,14 @@ comes before the new rules.
    join into one hill, extruded 14px (earth face on the south side) with a
    cast shadow and a dome light from the top-left. A hero on a hill stands
    7px higher with a ground shadow. Colours: `biome.palette.hill`.
-5. Frostroot, Sunspire, Mirefall as data + their unique pieces.
+5. ✅ **Biomes per story Act** (`battleBiomes.js` `BIOME_FOR_ACT`): Autumnwood
+   (I), Mirefall (II: mist, reeds, lilies, willows, spores), Wounded Grove
+   (III: ash, embers, dead trees), Frostroot (IV: snow, ice crystals, snowy
+   spruce, frosted birch), Sunspire (V: golden flowers and birches, court
+   stones, golden motes), The Echo (VI-VII: violet crystals, echo trees,
+   mist). Each biome = palette + hill colours + floor details + trees +
+   ambient + its own strategic forest pieces (`dressing`). Set on the battle
+   in `buildRunTacticsBattle`. Suite `.scratch/verify_act_biomes.mjs`.
 6. Forest-shaping class skills (manipulation part 2).
 7. Readability + performance pass with a full board (many units, many FX).
 
