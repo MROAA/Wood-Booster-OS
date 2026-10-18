@@ -15,9 +15,11 @@ const loop = (attr, values, dur, begin = "0s") =>
   `<animate attributeName="${attr}" values="${values}" dur="${dur}" begin="${begin}" repeatCount="indefinite"/>`
 
 // Shared ground plates (muted, dark - the tavern board).
-const EARTH = `<rect width="64" height="64" fill="#29231b"/><circle cx="14" cy="18" r="1.4" fill="#3a3127"/><circle cx="46" cy="12" r="1" fill="#3a3127"/><circle cx="52" cy="46" r="1.3" fill="#1d1812"/><circle cx="20" cy="50" r="1" fill="#3a3127"/>`
-const MOSS = `<rect width="64" height="64" fill="#1f2818"/><circle cx="12" cy="14" r="5" fill="#263220"/><circle cx="50" cy="20" r="6" fill="#243019"/><circle cx="24" cy="50" r="7" fill="#243019"/><circle cx="54" cy="52" r="3" fill="#2a3722"/>`
-const FROST = `<rect width="64" height="64" fill="#26323a"/><circle cx="16" cy="20" r="6" fill="#2e3d46"/><circle cx="48" cy="46" r="8" fill="#2c3a43"/>`
+// Battlefield pass: features sit ON the painted forest floor - their
+// ground is a soft patch fading to nothing at the edges, not a solid box.
+const EARTH = `<ellipse cx="32" cy="34" rx="31" ry="29" fill="#29231b" opacity=".28"/><ellipse cx="32" cy="34" rx="25" ry="23" fill="#29231b" opacity=".35"/><ellipse cx="32" cy="35" rx="18" ry="16" fill="#29231b" opacity=".45"/><circle cx="14" cy="18" r="1.4" fill="#3a3127"/><circle cx="46" cy="12" r="1" fill="#3a3127"/><circle cx="52" cy="46" r="1.3" fill="#1d1812"/><circle cx="20" cy="50" r="1" fill="#3a3127"/>`
+const MOSS = `<ellipse cx="32" cy="34" rx="31" ry="29" fill="#1f2818" opacity=".28"/><ellipse cx="32" cy="34" rx="25" ry="23" fill="#1f2818" opacity=".35"/><ellipse cx="32" cy="35" rx="18" ry="16" fill="#1f2818" opacity=".45"/><circle cx="12" cy="14" r="5" fill="#263220"/><circle cx="50" cy="20" r="6" fill="#243019"/><circle cx="24" cy="50" r="7" fill="#243019"/><circle cx="54" cy="52" r="3" fill="#2a3722"/>`
+const FROST = `<ellipse cx="32" cy="34" rx="31" ry="29" fill="#26323a" opacity=".28"/><ellipse cx="32" cy="34" rx="25" ry="23" fill="#26323a" opacity=".35"/><ellipse cx="32" cy="35" rx="18" ry="16" fill="#26323a" opacity=".45"/><circle cx="16" cy="20" r="6" fill="#2e3d46"/><circle cx="48" cy="46" r="8" fill="#2c3a43"/>`
 
 const WAVE = (y) => `<path d="M-16 ${y}q4-3 8 0t8 0t8 0t8 0t8 0t8 0t8 0t8 0t8 0t8 0t8 0"/>`
 const waterBase = (a, glints = true) =>
@@ -83,7 +85,7 @@ const TERRAIN_SVG = {
     ),
   bush: () =>
     svg(
-      `<rect width="64" height="64" fill="#1c2615"/>` +
+      MOSS +
         `<g fill="none" stroke-width="1.8" stroke-linecap="round">` +
         [[12, 22, 12], [34, 18, 13], [55, 24, 12], [22, 38, 14], [46, 40, 14], [8, 56, 13], [32, 58, 15], [56, 60, 13]]
           .map(([x, y, h], i) => tuft(x, y, h, "#2c4419") + tuft(x + 3, y + 1, h - 2, i % 2 ? "#4f7430" : "#5a8036"))
