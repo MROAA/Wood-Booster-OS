@@ -52,6 +52,7 @@ import {
   serializeRun,
   deserializeRun,
   chooseFloorEncounter,
+  chooseRuneRoute,
   eventForNode,
   resolveEventChoice,
   previewEventMutations,
@@ -1425,6 +1426,7 @@ function HeartwoodBattleScreens() {
         <FloorChoice
           runState={runState}
           onChoose={handleChooseFloorEncounter}
+          onRunePath={(id) => setRunState((current) => chooseRuneRoute(current, id))}
           difficultyTier={difficultyTierForNode(runState.nodeIndex, RUN_PATH.length)}
         />
       </div>

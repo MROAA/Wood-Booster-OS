@@ -84,6 +84,35 @@ export const RISK_LEVELS = {
   },
 }
 
+// Rune paths (First Song PRD §4, runRunes.js runeRouteOptions): a carried
+// rune can open a path the fork doesn't show. Spending it takes that path.
+RISK_LEVELS.overgrown = {
+  id: "overgrown",
+  name: "Overgrown path",
+  short: "Overgrown",
+  icon: "leaf",
+  color: "#7fb069",
+  threat: -10,
+  hpMult: 0.88,
+  essence: 0,
+  loot: null,
+  rune: "growth",
+  blurb: "Growth opens a green way: the quiet fight, with weaker enemies (-12% health, a lower threat tier). The forest likes it.",
+}
+RISK_LEVELS.hidden = {
+  id: "hidden",
+  name: "Hidden path",
+  short: "Hidden",
+  icon: "moonGlyph",
+  color: "#9b7fc7",
+  threat: 0,
+  hpMult: 1,
+  essence: 60,
+  loot: "item",
+  rune: "shadow",
+  blurb: "Shadow reveals a secret way: the most dangerous fight on offer, but at Quiet strength (no extra threat) - and it still pays the Hunted reward (+60 Essence and gear).",
+}
+
 export function riskOf(node) {
   return RISK_LEVELS[node?.risk] || RISK_LEVELS.safe
 }
