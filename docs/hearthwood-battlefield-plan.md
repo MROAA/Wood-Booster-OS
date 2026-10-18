@@ -193,8 +193,13 @@ comes before the new rules.
    tooltips, `.scratch/verify_forest_rules.mjs`.
    Rule: **one blow = one break-down step** (a quake never fells a tree AND
    crushes its stump in the same hit).
-4. Combat FX per PRD §6 (hit dust/leaves, heal flowers, root magic, frost,
-   fire), unit shadows and target rings, victory/defeat mood.
+4. ✅ **The forest answers the fight** (`forestReactions.js`): leaves + dust
+   from blows, flowers under heals, roots rising for root magic, rime for
+   frost, embers for fire, spores for poison, a forest spirit rising from a
+   fallen unit, grass/moss/leaves rustling where heroes step. Drawn in the
+   board BETWEEN the floor and the cards, so they bloom around a card and
+   never cover its numbers; only rising things float above. Capped, short,
+   off under reduced motion.
 5. Frostroot, Sunspire, Mirefall as data + their unique pieces.
 6. Forest-shaping class skills (manipulation part 2).
 7. Readability + performance pass with a full board (many units, many FX).
