@@ -12,6 +12,7 @@
 // for a real fight). This component only decides WHAT to render and WHICH
 // pure tacticsEngine.js function a click should call - it dispatches the
 // result via `onBattleChange`, never holds the battle itself.
+import { runModifierById } from "../../data/heartwood/boons"
 import { auraTiles, AURA_LABEL } from "../../services/heartwood/gear"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
@@ -337,6 +338,24 @@ function BoardAmbience({ biome, turn }) {
   )
 }
 
+// Unit panel: the statuses shown as chips (field on the unit, icon, label).
+const UNIT_STATUS_CHIPS = [
+  ["ward", "✧", "Ward"],
+  ["poison", "☠", "Poison"],
+  ["burn", "🔥", "Burn"],
+  ["chill", "❄", "Chill"],
+  ["frozen", "🧊", "Frozen"],
+  ["root", "🌿", "Rooted"],
+  ["slow", "🐌", "Slowed"],
+  ["weak", "↓", "Weak"],
+  ["vulnerable", "✕", "Vulnerable"],
+  ["stun", "✦", "Stunned"],
+  ["taunt", "⚑", "Taunting"],
+  ["strength", "↑", "Strength"],
+  ["overwatch", "👁", "Overwatch"],
+  ["hunkered", "⛊", "Hunkered"],
+]
+
 // Graphics pass: a stable per-tile ground variant (0-3) so the forest
 // floor reads as one painted surface, not a repeated stamp.
 const groundVariant = (row, col) => (row * 7 + col * 13 + ((row * col) % 5)) % 4
@@ -574,6 +593,24 @@ export default function TacticsBoard({
   children,
 }) {
   const selected = battle.units.find((u) => u.id === selectedId) || null
+  // Unit panel (under the battlefield): which unit it shows. A hovered unit
+  // peeks in only while no hero is selected (so a selected hero's actions
+  // never jump away while aiming); a clicked unit that can't act (an enemy,
+  // a hero that already acted) is inspected; otherwise the selected hero,
+  // the last one selected, or the first hero - the panel is never empty.
+  const [peekId, setPeekId] = useState(null)
+  const [inspectId, setInspectId] = useState(null)
+  const lastSelectedRef = useRef(null)
+  if (selected) lastSelectedRef.current = selected.id
+  const liveUnit = (id) => (id ? battle.units.find((u) => u.id === id && u.hp > 0) : null)
+  const panelUnit =
+    (!selected && liveUnit(peekId)) ||
+    (!selected && liveUnit(inspectId)) ||
+    selected ||
+    liveUnit(lastSelectedRef.current) ||
+    battle.units.find((u) => u.side === "player" && !u.npc && !u.structure && u.hp > 0) ||
+    null
+  const panelMode = panelUnit && panelUnit === selected ? "selected" : panelUnit && panelUnit.id === peekId ? "peek" : panelUnit && panelUnit.id === inspectId ? "inspect" : "auto"
   // Class system: abilityMode is "heal"/"burst" for the signature ability,
   // "ally@<skillId>"/"enemy@<skillId>" for an armed class skill.
   const armedSkillId = abilityMode && abilityMode.includes("@") ? abilityMode.slice(abilityMode.indexOf("@") + 1) : null
@@ -932,6 +969,18 @@ export default function TacticsBoard({
 
   function handleDeployClick(row, col) {
     const occupant = cellUnit(row, col)
+    // Marc: clicking a unit switches to that unit - the selected hero never
+    // walks onto (swaps with) another unit's spot.
+    if (occupant && occupant.hp > 0 && (!selected || occupant.id !== selected.id)) {
+      if (occupant.side === "player" && !occupant.npc) {
+        setInspectId(null)
+        onSelectedIdChange(occupant.id)
+      } else {
+        onSelectedIdChange(null)
+        setInspectId(occupant.id)
+      }
+      return
+    }
     if (selected && selected.side === "player") {
       if (occupant && occupant.id === selected.id) {
         onSelectedIdChange(null)
@@ -1010,10 +1059,13 @@ export default function TacticsBoard({
       return
     }
     const occupant = cellUnit(row, col)
-    if (occupant && occupant.hp > 0 && occupant.side === "player" && occupant.ap > 0) {
+    if (occupant && occupant.hp > 0 && occupant.side === "player" && !occupant.npc && occupant.ap > 0) {
+      setInspectId(null)
       onSelectedIdChange(occupant.id)
     } else {
       onSelectedIdChange(null)
+      // an enemy / a hero that already acted: show it in the unit panel
+      setInspectId(occupant && occupant.hp > 0 ? occupant.id : null)
     }
     onAbilityModeChange(null)
   }
@@ -1306,6 +1358,8 @@ export default function TacticsBoard({
               layoutId={unit.id}
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
               className="hwt-token"
+              onPointerEnter={() => setPeekId(unit.id)}
+              onPointerLeave={() => setPeekId((p) => (p === unit.id ? null : p))}
               data-side={unit.side}
               data-selectable={unit.side === "player" && !unit.npc && unit.hp > 0 && (battle.phase === "player" || deploying)}
               data-npc={!!unit.npc}
@@ -1718,46 +1772,213 @@ export default function TacticsBoard({
             <BondOverlay battle={battle} />
             <BoardAmbience biome={biome} turn={battle.turn} />
           </div>
-          {/* Marc: the selected unit's details live UNDER the battlefield,
-              all of them visible at once (not hidden behind a hover). */}
-          {selected && selected.side === "player" && (
-            <div className="hwt-unit-info-below" data-unit-info={selected.id} data-role={roleOf(selected)}>
-              <div className="hwt-selected-card hwt-unit-info-main" data-role={roleOf(selected)}>
-              <TokenArt unit={selected} />
-              <div className="hwt-selected-info">
-                <span className="hwt-selected-name">{selected.name}</span>
-                <span className="hwt-selected-role" data-role={roleOf(selected)}>
-                  <span className="hwt-selected-role-icon">{BATTLE_ROLES[roleOf(selected)].icon}</span>
-                  <strong>{BATTLE_ROLES[roleOf(selected)].label}</strong>
-                  <span className="hwt-selected-role-what">{BATTLE_ROLES[roleOf(selected)].what}</span>
-                </span>
-                {classInfoFor(selected) && (
-                  <span className="hwt-class-badge" data-class-id={selected.classId} title={`${classInfoFor(selected).passive.name}: ${classInfoFor(selected).passive.text}`}>
-                    <span className="hwt-class-icon">{classInfoFor(selected).icon}</span> {classInfoFor(selected).name}
-                    {archetypeOf(selected) && <span className="hwt-class-archetype"> · {archetypeOf(selected).name}</span>}
+          {/* Unit panel (Marc: "taistelukentän alapuolelle osio... aina se
+              valittu yksikkö ja sen tiedot... tästä voidaan käyttää skillejä
+              tai manaa"): always there, always showing a unit - specs at a
+              glance, and the selected hero's skills and signature to use. */}
+          {panelUnit && (
+            <div className="hwt-unit-panel" data-unit-panel={panelUnit.id} data-side={panelUnit.side} data-role={roleOf(panelUnit)} data-mode={panelMode}>
+              <div className="hwt-up-main">
+                <div className="hwt-up-portrait">
+                  <TokenArt unit={panelUnit} />
+                </div>
+                <div className="hwt-up-id">
+                  <span className="hwt-up-name">
+                    {panelUnit.name}
+                    <span className="hwt-up-side" data-side={panelUnit.side}>{panelUnit.side === "player" ? (panelUnit.npc ? "Ally" : "Hero") : "Enemy"}</span>
+                    {panelMode !== "selected" && panelUnit.side === "player" && !panelUnit.npc && panelUnit.ap > 0 && battle.phase === "player" && <span className="hwt-up-hint">click to act</span>}
                   </span>
-                )}
-                <span className="hwt-selected-stats">
-                  <span data-stat="atk" title="Attack">⚔ {selected.attack}</span>
-                  <span data-stat="hp" title="Health">♥ {selected.hp}/{selected.maxHp}</span>
-                  <span data-stat="move" title="Movement">➤ {selected.move}</span>
-                  <span data-stat="range" title={rangeAt(battle, selected) > selected.range ? "Attack range (+1 from high ground)" : "Attack range"}>
-                    ◎ {rangeAt(battle, selected)}
+                  <span className="hwt-selected-role" data-role={roleOf(panelUnit)}>
+                    <span className="hwt-selected-role-icon">{BATTLE_ROLES[roleOf(panelUnit)].icon}</span>
+                    <strong>{BATTLE_ROLES[roleOf(panelUnit)].label}</strong>
+                    <span className="hwt-selected-role-what">{BATTLE_ROLES[roleOf(panelUnit)].what}</span>
                   </span>
-                  {hasMana(selected) && (
-                    <span data-stat="mana" data-res={profileOf(selected).id} title={`${manaSummary(selected, battle)}. ${profileOf(selected).text}${selected.overcharge > 0 ? ` Overcharge: the next skill gets +${surgeFor(selected)}.` : ""}`}>
-                      {profileOf(selected).icon} {selected.mana}/{selected.manaMax}
-                      {selected.overcharge > 0 && <b className="hwt-stat-over"> +{selected.overcharge}</b>}
+                  {classInfoFor(panelUnit) && (
+                    <span className="hwt-class-badge" data-class-id={panelUnit.classId} title={`${classInfoFor(panelUnit).passive.name}: ${classInfoFor(panelUnit).passive.text}`}>
+                      <span className="hwt-class-icon">{classInfoFor(panelUnit).icon}</span> {classInfoFor(panelUnit).name}
+                      {archetypeOf(panelUnit) && <span className="hwt-class-archetype"> · {archetypeOf(panelUnit).name}</span>}
                     </span>
                   )}
-                </span>
+                  <span className="hwt-up-statuses">
+                    {UNIT_STATUS_CHIPS.filter(([k]) => (panelUnit[k] || 0) > 0).map(([k, icon, label]) => (
+                      <span key={k} className="hwt-up-status" data-status={k} title={label}>
+                        {icon} {label} {typeof panelUnit[k] === "number" && panelUnit[k] > 1 ? panelUnit[k] : ""}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+                <div className="hwt-up-stats hwt-selected-stats">
+                  <span className="hwt-up-stat" data-stat="atk" title="Attack">
+                    <i>⚔</i>
+                    <b>{panelUnit.attack}</b>
+                    <small>Attack</small>
+                  </span>
+                  <span className="hwt-up-stat hwt-up-stat-hp" data-stat="hp" title="Health">
+                    <i>♥</i>
+                    <b>
+                      {panelUnit.hp}
+                      <em>/{panelUnit.maxHp}</em>
+                    </b>
+                    <small>Health</small>
+                    <span className="hwt-up-hpbar">
+                      <span style={{ width: `${Math.round((panelUnit.hp / Math.max(1, panelUnit.maxHp)) * 100)}%` }} />
+                    </span>
+                  </span>
+                  <span className="hwt-up-stat" data-stat="move" title="Movement">
+                    <i>➤</i>
+                    <b>{panelUnit.move}</b>
+                    <small>Move</small>
+                  </span>
+                  <span className="hwt-up-stat" data-stat="range" title={rangeAt(battle, panelUnit) > panelUnit.range ? "Attack range (+1 from high ground)" : "Attack range"}>
+                    <i>◎</i>
+                    <b>{rangeAt(battle, panelUnit)}</b>
+                    <small>Range</small>
+                  </span>
+                  <span className="hwt-up-stat" data-stat="block" title="Block soaks damage until your next turn">
+                    <i>⛨</i>
+                    <b>{panelUnit.block || 0}</b>
+                    <small>Block</small>
+                  </span>
+                  {panelUnit.side === "player" && (
+                    <span className="hwt-up-stat" data-stat="ap" title="Action points left this turn">
+                      <i>●</i>
+                      <b>
+                        {panelUnit.ap}
+                        <em>/{panelUnit.apMax}</em>
+                      </b>
+                      <small>Actions</small>
+                    </span>
+                  )}
+                  {hasMana(panelUnit) && (
+                    <span className="hwt-up-stat hwt-up-stat-mana" data-stat="mana" data-res={profileOf(panelUnit).id} title={`${manaSummary(panelUnit, battle)}. ${profileOf(panelUnit).text}${panelUnit.overcharge > 0 ? ` Overcharge: the next skill gets +${surgeFor(panelUnit)}.` : ""}`}>
+                      <i>{profileOf(panelUnit).icon}</i>
+                      <b>
+                        {panelUnit.mana}
+                        <em>/{panelUnit.manaMax}</em>
+                        {panelUnit.overcharge > 0 && <b className="hwt-stat-over"> +{panelUnit.overcharge}</b>}
+                      </b>
+                      <small>{profileOf(panelUnit).name}</small>
+                      <ManaBar unit={panelUnit} battle={battle} className="hwt-up-manabar" />
+                      {/* pop-up: breakpoints, current bonus and rules on hover */}
+                      <span className="hwt-up-pop">
+                        <ResourceInfo unit={panelUnit} battle={battle} />
+                      </span>
+                    </span>
+                  )}
+                </div>
               </div>
-              </div>
-              <div className="hwt-unit-info-side">
-                {hasMana(selected) && <ResourceInfo unit={selected} battle={battle} />}
-                <SignatureInfo battle={battle} unit={selected} />
-                <IdentityInfo battle={battle} unit={selected} />
-              </div>
+              {panelMode === "selected" && (
+                <div className="hwt-up-actions">
+                {selected && selected.side === "player" && classInfoFor(selected) && battle.phase === "player" && (
+                  <div className="hwt-skill-bar" data-count={(selected.ability ? 1 : 0) + (selected.classSkills || []).length}>
+                    <div className="hwt-skill-bar-head">
+                      <span className="hwt-skill-bar-class">
+                        {classInfoFor(selected).icon} {classInfoFor(selected).name}
+                        {selected.promoId && !selected.promoDormant && (
+                          <span className="hwt-skill-bar-promo" data-promo={selected.promoId}>
+                            {" "}→ {selected.promoIcon} {selected.promoName}
+                          </span>
+                        )}
+                      </span>
+                      {archetypeOf(selected) && (
+                        <span className="hwt-archetype" data-archetype={archetypeOf(selected).id} title={`${archetypeOf(selected).name}: ${archetypeOf(selected).what}`}>
+                          {archetypeOf(selected).icon} {archetypeOf(selected).name}
+                        </span>
+                      )}
+                      <span className="hwt-skill-bar-passive" title={classInfoFor(selected).passive.text}>
+                        Passive: {classInfoFor(selected).passive.name}
+                      </span>
+                    </div>
+                    {hushedNow(battle, selected) && (
+                      <p className="hwt-hush-hint" data-hushed>
+                        🔇 Hushed by {hushedNow(battle, selected).name}: no skills within 2 tiles of it. Attacks and item actives still work - or step away.
+                      </p>
+                    )}
+                    <ManaColourPanel battle={battle} selected={selected} onBattleChange={onBattleChange} />
+                    <div className="hwt-skill-row">
+                      {(selected.classSkills || []).map((sk, i) => {
+                        const ready = classSkillUsable(battle, selected, sk)
+                        const key = (selected.ability ? 2 : 1) + i
+                        return (
+                          <button
+                            key={sk.id}
+                            className="hwt-skill-btn"
+                            data-skill-id={sk.id}
+                            data-active={armedSkillId === sk.id}
+                            data-upgraded={sk.upgrade ? sk.upgrade.branch : undefined}
+                            data-promo={sk.promo ? sk.promoId : undefined}
+                            data-talent={sk.talentMarks?.length ? sk.talentMarks.length : undefined}
+                            data-charges={sk.charges > 1 ? sk.charges - ((selected.chargesUsed || {})[sk.id] || 0) : undefined}
+                            data-no-mana={!!manaBlockReason(selected, sk) || undefined}
+                            disabled={!ready}
+                            onClick={() => handleSkillClick(sk)}
+                            title={`${sk.name} (${sk.cost} AP${hasMana(selected) ? `, ${skillCostText(selected, sk)}` : ""}, recharge ${sk.cooldown}) - ${sk.text}${manaBlockReason(selected, sk) ? `\nNot enough ${resourceLabel(selected)}: ${manaBlockReason(selected, sk)}.` : ""}${sk.upgrade ? `\n★ ${sk.upgrade.name} (${sk.upgrade.branch}): ${sk.upgrade.text}` : ""}${sk.talentMarks?.length ? `\n✦ Talent: ${talentSkillNote(sk)}${sk.charges > 1 ? ` (${sk.charges} charges)` : ""}` : ""}${key <= 4 ? ` [key ${key}]` : ""}`}
+                          >
+                            <span className="hwt-skill-icon">{sk.icon}</span>
+                            <span className="hwt-skill-name">{sk.name}</span>
+                            {sk.upgrade && (
+                              <span className="hwt-skill-upgrade">
+                                ★ {sk.upgrade.name}
+                              </span>
+                            )}
+                            {sk.talentMarks?.length > 0 && (
+                              <span className="hwt-skill-talent" title={talentSkillNote(sk)}>
+                                ✦ {sk.charges > 1 ? `×${sk.charges - ((selected.chargesUsed || {})[sk.id] || 0)}` : talentSkillNote(sk)}
+                              </span>
+                            )}
+                            <span className="hwt-skill-cost">{classSkillStatus(selected, sk)}</span>
+                            <SkillColourPip battle={battle} unit={selected} skill={sk} />
+                            {hasMana(selected) && (
+                              <span className="hwt-skill-mana" data-res={profileOf(selected).id} data-mode={sk.spend || undefined} data-short={!!manaBlockReason(selected, sk) || undefined} title={skillCostText(selected, sk)}>
+                                {skillCostText(selected, sk)}
+                              </span>
+                            )}
+                            {hitPreview && hitPreview.rolls && sk.target === "enemy" && (
+                              <span className="hwt-skill-hit" title={`Chance to hit ${hitPreview.targetName} (a miss grazes for half)`}>
+                                {hitPreview.chance}%
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {armedSkill && <p className="hwt-skill-hint">{armedSkill.target === "ally" ? `Choose an ally for ${armedSkill.name}.` : armedSkill.target === "tile" ? `Choose a tile for ${armedSkill.name}.` : `Choose an enemy for ${armedSkill.name}.`} {armedSkill.text}</p>}
+                    {!armedSkill && <p className="hwt-skill-passive-text">{classInfoFor(selected).passive.text}</p>}
+                  </div>
+                )}
+                {selected && selected.side === "player" && selected.ability && battle.phase === "player" && (
+                  <div className="hwt-ability-panel">
+                    <button
+                      className="hwt-ability-btn"
+                      data-upgraded={selected.ability.upgrade ? selected.ability.upgrade.branch : undefined}
+                      data-active={abilityMode === "heal" || abilityMode === "burst"}
+                      data-no-mana={!!manaBlockReason(selected, selected.ability) || undefined}
+                      disabled={selected.ap < selected.ability.cost || selected.cooldownRemaining > 0 || !canAfford(selected, selected.ability)}
+                      onClick={handleAbilityClick}
+                      title={`${describeAbility(selected.ability)}${hasMana(selected) ? ` Costs ${selected.ability.cost} AP + ${skillCostText(selected, selected.ability)}.` : ""}${manaBlockReason(selected, selected.ability) ? ` Not enough ${resourceLabel(selected)}: ${manaBlockReason(selected, selected.ability)}.` : ""}`}
+                    >
+                      {selected.ability.upgrade ? "★ " : ""}
+                      {selected.cooldownRemaining > 0
+                        ? `${selected.ability.name} · Recharging (${selected.cooldownRemaining})`
+                        : manaBlockReason(selected, selected.ability)
+                          ? `${selected.ability.name} · ${manaBlockReason(selected, selected.ability).replace(/ \(has \d+\)$/, "")}`
+                          : `${selected.ability.name} · ${selected.ability.cost} AP${hasMana(selected) ? ` · ${skillCostText(selected, selected.ability)}` : ""}`}
+                      {selected.ability.upgrade && <span className="hwt-skill-upgrade"> {selected.ability.upgrade.name}</span>}
+                      <SkillColourPip battle={battle} unit={selected} skill={selected.ability} />
+                      {hitPreview && hitPreview.rolls && abilityTargetSide(selected.ability) === "enemy" && <span className="hwt-skill-hit"> {hitPreview.chance}%</span>}
+                    </button>
+                    <p className="hwt-ability-hint">{abilityMode === "heal" || abilityMode === "burst" ? abilityHint(selected.ability) : describeAbility(selected.ability)}</p>
+                    {describeAbilityElement(selected) && <p className="hwt-ability-element">{describeAbilityElement(selected)}</p>}
+                  </div>
+                )}
+                </div>
+              )}
+              {panelUnit.side === "player" && !panelUnit.npc && (
+                <div className="hwt-up-details hwt-unit-info-side">
+                  <SignatureInfo battle={battle} unit={panelUnit} />
+                  <IdentityInfo battle={battle} unit={panelUnit} />
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1782,6 +2003,14 @@ export default function TacticsBoard({
           <ThreatPanel battle={battle} />
           <CounterPanel battle={battle} />
           <ManaFeedPanel battle={battle} />
+          {/* Forest creatures: a Root-Eater surfaced in this fight. */}
+          {battle.rootEaterArrived && (
+            <div className="hwt-creature-banner" data-creature-banner="rooteater">
+              <div className="hwt-creature-banner-title">🪱 A Root-Eater surfaced</div>
+              It eats wood and roots next to it every enemy turn and heals on them - fight it in the open.
+              {battle.rootEaterAte && <div className="hwt-creature-banner-ate">It fed on an old bond: {runModifierById(battle.rootEaterAte)?.name || battle.rootEaterAte} is gone.</div>}
+            </div>
+          )}
           {/* Forest creatures: a Shapeshifter still hiding among the trees. */}
           {battle.creatureHint && Object.keys(battle.mimics || {}).length > 0 && (
             <div className="hwt-creature-banner" data-creature-banner="shapeshifter">
@@ -1998,108 +2227,6 @@ export default function TacticsBoard({
               </div>
             )
           })()}
-          {selected && selected.side === "player" && classInfoFor(selected) && battle.phase === "player" && (
-            <div className="hwt-skill-bar" data-count={(selected.ability ? 1 : 0) + (selected.classSkills || []).length}>
-              <div className="hwt-skill-bar-head">
-                <span className="hwt-skill-bar-class">
-                  {classInfoFor(selected).icon} {classInfoFor(selected).name}
-                  {selected.promoId && !selected.promoDormant && (
-                    <span className="hwt-skill-bar-promo" data-promo={selected.promoId}>
-                      {" "}→ {selected.promoIcon} {selected.promoName}
-                    </span>
-                  )}
-                </span>
-                {archetypeOf(selected) && (
-                  <span className="hwt-archetype" data-archetype={archetypeOf(selected).id} title={`${archetypeOf(selected).name}: ${archetypeOf(selected).what}`}>
-                    {archetypeOf(selected).icon} {archetypeOf(selected).name}
-                  </span>
-                )}
-                <span className="hwt-skill-bar-passive" title={classInfoFor(selected).passive.text}>
-                  Passive: {classInfoFor(selected).passive.name}
-                </span>
-              </div>
-              {hushedNow(battle, selected) && (
-                <p className="hwt-hush-hint" data-hushed>
-                  🔇 Hushed by {hushedNow(battle, selected).name}: no skills within 2 tiles of it. Attacks and item actives still work - or step away.
-                </p>
-              )}
-              <ManaColourPanel battle={battle} selected={selected} onBattleChange={onBattleChange} />
-              <div className="hwt-skill-row">
-                {(selected.classSkills || []).map((sk, i) => {
-                  const ready = classSkillUsable(battle, selected, sk)
-                  const key = (selected.ability ? 2 : 1) + i
-                  return (
-                    <button
-                      key={sk.id}
-                      className="hwt-skill-btn"
-                      data-skill-id={sk.id}
-                      data-active={armedSkillId === sk.id}
-                      data-upgraded={sk.upgrade ? sk.upgrade.branch : undefined}
-                      data-promo={sk.promo ? sk.promoId : undefined}
-                      data-talent={sk.talentMarks?.length ? sk.talentMarks.length : undefined}
-                      data-charges={sk.charges > 1 ? sk.charges - ((selected.chargesUsed || {})[sk.id] || 0) : undefined}
-                      data-no-mana={!!manaBlockReason(selected, sk) || undefined}
-                      disabled={!ready}
-                      onClick={() => handleSkillClick(sk)}
-                      title={`${sk.name} (${sk.cost} AP${hasMana(selected) ? `, ${skillCostText(selected, sk)}` : ""}, recharge ${sk.cooldown}) - ${sk.text}${manaBlockReason(selected, sk) ? `\nNot enough ${resourceLabel(selected)}: ${manaBlockReason(selected, sk)}.` : ""}${sk.upgrade ? `\n★ ${sk.upgrade.name} (${sk.upgrade.branch}): ${sk.upgrade.text}` : ""}${sk.talentMarks?.length ? `\n✦ Talent: ${talentSkillNote(sk)}${sk.charges > 1 ? ` (${sk.charges} charges)` : ""}` : ""}${key <= 4 ? ` [key ${key}]` : ""}`}
-                    >
-                      <span className="hwt-skill-icon">{sk.icon}</span>
-                      <span className="hwt-skill-name">{sk.name}</span>
-                      {sk.upgrade && (
-                        <span className="hwt-skill-upgrade">
-                          ★ {sk.upgrade.name}
-                        </span>
-                      )}
-                      {sk.talentMarks?.length > 0 && (
-                        <span className="hwt-skill-talent" title={talentSkillNote(sk)}>
-                          ✦ {sk.charges > 1 ? `×${sk.charges - ((selected.chargesUsed || {})[sk.id] || 0)}` : talentSkillNote(sk)}
-                        </span>
-                      )}
-                      <span className="hwt-skill-cost">{classSkillStatus(selected, sk)}</span>
-                      <SkillColourPip battle={battle} unit={selected} skill={sk} />
-                      {hasMana(selected) && (
-                        <span className="hwt-skill-mana" data-res={profileOf(selected).id} data-mode={sk.spend || undefined} data-short={!!manaBlockReason(selected, sk) || undefined} title={skillCostText(selected, sk)}>
-                          {skillCostText(selected, sk)}
-                        </span>
-                      )}
-                      {hitPreview && hitPreview.rolls && sk.target === "enemy" && (
-                        <span className="hwt-skill-hit" title={`Chance to hit ${hitPreview.targetName} (a miss grazes for half)`}>
-                          {hitPreview.chance}%
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-              {armedSkill && <p className="hwt-skill-hint">{armedSkill.target === "ally" ? `Choose an ally for ${armedSkill.name}.` : armedSkill.target === "tile" ? `Choose a tile for ${armedSkill.name}.` : `Choose an enemy for ${armedSkill.name}.`} {armedSkill.text}</p>}
-              {!armedSkill && <p className="hwt-skill-passive-text">{classInfoFor(selected).passive.text}</p>}
-            </div>
-          )}
-          {selected && selected.side === "player" && selected.ability && battle.phase === "player" && (
-            <div className="hwt-ability-panel">
-              <button
-                className="hwt-ability-btn"
-                data-upgraded={selected.ability.upgrade ? selected.ability.upgrade.branch : undefined}
-                data-active={abilityMode === "heal" || abilityMode === "burst"}
-                data-no-mana={!!manaBlockReason(selected, selected.ability) || undefined}
-                disabled={selected.ap < selected.ability.cost || selected.cooldownRemaining > 0 || !canAfford(selected, selected.ability)}
-                onClick={handleAbilityClick}
-                title={`${describeAbility(selected.ability)}${hasMana(selected) ? ` Costs ${selected.ability.cost} AP + ${skillCostText(selected, selected.ability)}.` : ""}${manaBlockReason(selected, selected.ability) ? ` Not enough ${resourceLabel(selected)}: ${manaBlockReason(selected, selected.ability)}.` : ""}`}
-              >
-                {selected.ability.upgrade ? "★ " : ""}
-                {selected.cooldownRemaining > 0
-                  ? `${selected.ability.name} · Recharging (${selected.cooldownRemaining})`
-                  : manaBlockReason(selected, selected.ability)
-                    ? `${selected.ability.name} · ${manaBlockReason(selected, selected.ability).replace(/ \(has \d+\)$/, "")}`
-                    : `${selected.ability.name} · ${selected.ability.cost} AP${hasMana(selected) ? ` · ${skillCostText(selected, selected.ability)}` : ""}`}
-                {selected.ability.upgrade && <span className="hwt-skill-upgrade"> {selected.ability.upgrade.name}</span>}
-                <SkillColourPip battle={battle} unit={selected} skill={selected.ability} />
-                {hitPreview && hitPreview.rolls && abilityTargetSide(selected.ability) === "enemy" && <span className="hwt-skill-hit"> {hitPreview.chance}%</span>}
-              </button>
-              <p className="hwt-ability-hint">{abilityMode === "heal" || abilityMode === "burst" ? abilityHint(selected.ability) : describeAbility(selected.ability)}</p>
-              {describeAbilityElement(selected) && <p className="hwt-ability-element">{describeAbilityElement(selected)}</p>}
-            </div>
-          )}
           <ElementHelp />
           <ManaColoursHelp />
           <DepthHelp battle={battle} />

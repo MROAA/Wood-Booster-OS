@@ -140,3 +140,50 @@
   .hw-rune-stone[data-carved],
   .hwt-rune-banner .hw-rune-glyph { animation: none; }
 }
+
+/* Rune paths on the fork screen. */
+.hw-rune-paths {
+  max-width: 900px;
+  margin: 14px auto 0;
+  display: grid;
+  gap: 8px;
+}
+.hw-rune-paths-title {
+  font-size: 0.85em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hw-muted, #a8a089);
+}
+.hw-rune-path {
+  --hw-rune-colour: var(--hw-rune);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  text-align: left;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--hw-rune-colour) 50%, var(--hw-border, #4a4232));
+  background: color-mix(in srgb, var(--hw-rune-colour) 8%, #1a1814);
+  color: var(--hw-text, #e8dfc8);
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 220ms ease;
+}
+.hw-rune-path:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 16px -4px var(--hw-rune-colour);
+}
+.hw-rune-path .hw-rune-glyph {
+  font-size: 1.8em;
+  animation: hw-rune-pulse 2.8s ease-in-out infinite;
+}
+.hw-rune-path-text {
+  display: grid;
+  gap: 2px;
+}
+.hw-rune-path-text small {
+  color: var(--hw-muted, #a8a089);
+  line-height: 1.35;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-rune-path .hw-rune-glyph { animation: none; }
+}

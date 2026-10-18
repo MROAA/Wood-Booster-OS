@@ -63,3 +63,27 @@ export function spendCarvedRune(runState) {
   const at = pouch.indexOf(id)
   return { ...runState, runes: [...pouch.slice(0, at), ...pouch.slice(at + 1)], carvedRune: null, runesCarved: (runState.runesCarved || 0) + 1 }
 }
+
+// ---- Rune paths on the run map (PRD §4: runes open routes) -------------------------
+// At a fork, Growth opens an Overgrown path (the Quiet fight, gentler) and
+// Shadow a Hidden path (the most dangerous fight on offer, at Quiet threat
+// with the Hunted reward). Taking one spends the rune.
+export const RUNE_ROUTES = { growth: "overgrown", shadow: "hidden" }
+
+const RISK_ORDER = { safe: 0, risky: 1, cursed: 2 }
+
+export function runeRouteOptions(runState) {
+  const options = runState?.floorChoices || []
+  if (runState?.phase !== "choice" || !options.length) return []
+  const pouch = runePouch(runState)
+  const out = []
+  if (pouch.includes("growth")) out.push({ rune: "growth", risk: RUNE_ROUTES.growth, baseIndex: 0 })
+  if (pouch.includes("shadow")) {
+    let best = 0
+    options.forEach((o, i) => {
+      if ((RISK_ORDER[o.risk] || 0) > (RISK_ORDER[options[best].risk] || 0)) best = i
+    })
+    out.push({ rune: "shadow", risk: RUNE_ROUTES.shadow, baseIndex: best })
+  }
+  return out.map((r) => ({ ...r, node: { ...options[r.baseIndex], risk: r.risk, closes: undefined } }))
+}

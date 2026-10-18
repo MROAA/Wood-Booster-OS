@@ -68,9 +68,10 @@ import {
 } from "./betweenFights"
 import { setBonusEffects, setEssenceBonus, activeSetTierKeys, startedSetIds, setOfItem } from "../../data/heartwood/buildSets"
 // Runes (First Song PRD §4): the Rune Pouch rules + the carved rune in a fight.
-import { startingRunes, runeDrop, carvedRuneId, spendCarvedRune, runePouch } from "./runRunes"
+import { startingRunes, runeDrop, carvedRuneId, spendCarvedRune, runePouch, runeRouteOptions } from "./runRunes"
 // Forest creatures (First Song PRD §6): how the forest sees you.
 import { adjustRegard, regardAfterFight, countTrees } from "./forestRegard"
+import { wakeRootEater, tickRootEater, rootEaterArrivesNow, devourBond } from "./rootEater"
 import { REGARD } from "../../data/heartwood/creatures"
 import { RUNES, RUNE_IDS, RUNE_POUCH_MAX } from "../../data/heartwood/runes"
 import { applyRuneCarving } from "./tacticsRunes"
@@ -641,6 +642,19 @@ function advanceToNextNode(runState) {
 // FRONT of `battlePool` so it's offered again at the next battle
 // position rather than lost, keeping every RUN_PATH battle guaranteed
 // to happen exactly once somewhere in the run.
+// Rune paths: take the path a carried rune opened (runRunes.runeRouteOptions).
+// The rune is spent; the path replaces the fork option it was built from.
+export function chooseRuneRoute(runState, runeId) {
+  const opt = runeRouteOptions(runState).find((o) => o.rune === runeId)
+  if (!opt) return runState
+  const floorChoices = runState.floorChoices.map((o, i) => (i === opt.baseIndex ? opt.node : o))
+  const chosen = chooseFloorEncounter({ ...runState, floorChoices }, opt.baseIndex)
+  const pouch = runePouch(chosen)
+  const at = pouch.indexOf(runeId)
+  const spent = { ...chosen, runes: [...pouch.slice(0, at), ...pouch.slice(at + 1)], carvedRune: chosen.carvedRune === runeId && pouch.filter((r) => r === runeId).length < 2 ? null : chosen.carvedRune, runePaths: (chosen.runePaths || 0) + 1 }
+  return runeId === "growth" ? adjustRegard(spent, 3, "You took the Overgrown path") : spent
+}
+
 export function chooseFloorEncounter(runState, choiceIndex) {
   if (runState.phase !== "choice" || !runState.floorChoices) return runState
   const chosen = runState.floorChoices[choiceIndex]
@@ -3046,13 +3060,16 @@ export function startTacticsFormationBattle(runState0, buildTacticsBattle) {
   // applied LAST so carried HP / gear / mana can't overwrite it, then spent.
   const runeId = carvedRuneId(runState)
   // Forest Regard: remember the living trees, so the forest can judge the fight.
+  // A Root-Eater surfacing in this fight feeds on one of your old bonds.
+  const devoured = rootEaterArrivesNow(runState) ? devourBond(runState) : null
+  const fed = devoured ? devoured.runState : runState
   const finish = (battle) => {
     const b = runeId ? applyRuneCarving(battle, runeId) : battle
-    return b ? { ...b, treesAtStart: countTrees(b) } : b
+    return b ? { ...b, treesAtStart: countTrees(b), ...(devoured ? { rootEaterAte: devoured.eaten } : {}) } : b
   }
   const carveRegard = runeId && REGARD.carve[runeId] ? REGARD.carve[runeId] : 0
   return {
-    ...adjustRegard(spendCarvedRune(runState), carveRegard, runeId ? `You carved ${RUNES[runeId]?.name}` : null),
+    ...adjustRegard(spendCarvedRune(fed), carveRegard, runeId ? `You carved ${RUNES[runeId]?.name}` : null),
     phase: "battle",
     // Unit levels (unitLevels.js): perks + XP tracking fields.
     // Gear sprint (gear.js): the gear rows - item fx, row adjacency, board
@@ -3600,7 +3617,8 @@ export function resolveBattleOutcome(runState) {
     // Hero identity: minibosses (always) / elites (sometimes) drop a signature legendary.
     // Dota depth 2: a neutral item drop (elites / minibosses most of all).
     // Runes: elites / minibosses drop a rune into the Rune Pouch.
-    const rs0 = regardAfterFight(runeDrop(neutralDrop(signatureDrop(collarDrop(evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs, node), node), node, actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length)), node), battle)
+    // Root-Eaters: from Act III one may wake; it creeps a fight closer per win.
+    const rs0 = tickRootEater(wakeRootEater(regardAfterFight(runeDrop(neutralDrop(signatureDrop(collarDrop(evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs, node), node), node, actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length)), node), battle), actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length)), battle)
     // Between-fights: a Hunted / Cursed path pays its promised loot; Fates
     // tick (allies leave, rivals pay their bounty, curses wear off).
     // Interest + the win payout below still read the pre-fate balance.

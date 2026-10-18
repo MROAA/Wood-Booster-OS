@@ -11,7 +11,7 @@
 // (burning trees), objChill { key: 1 } (chilled ice pillars),
 // tileTimers { key: { turns, revert } } (fire/poison tiles that fade).
 // Forest creatures: a Shapeshifter hides as a tree (tacticsCreatures.js).
-import { revealShapeshifter, shapeshifterTurnEnd } from "./tacticsCreatures"
+import { revealShapeshifter, creaturesTurnEnd } from "./tacticsCreatures"
 import { isOnBoard, samePos, kingAdjacent } from "./targeting"
 import { TERRAIN, terrainAt, WALL_MAX_HP } from "./tacticsTerrain"
 import { coverAgainst } from "./tacticsCover"
@@ -244,8 +244,9 @@ export function forestTurnEnd(state, side) {
     const heal = Math.min(u.maxHp - u.hp, MOSS_HEAL)
     next = emit(addLog(setUnit(next, u.id, { hp: u.hp + heal }), `${u.name} rests on the moss (+${heal}).`), { kind: "heal", actorId: u.id, targetId: u.id, amount: heal })
   }
-  // Hidden Shapeshifters creep a step closer (or burst out) after the enemy turn.
-  return side === "enemy" ? shapeshifterTurnEnd(next) : next
+  // The forest's creatures act after the enemy turn: hidden Shapeshifters
+  // creep (or burst out), Root-Eaters feed.
+  return side === "enemy" ? creaturesTurnEnd(next) : next
 }
 
 // Spells strike the forest (tacticsForest FOREST_SPELLS): objects in the

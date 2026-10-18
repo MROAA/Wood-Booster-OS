@@ -16,7 +16,7 @@
 //   revealShapeshifter(state, key, why) - also called when its "tree" is
 //     struck (tacticsObjects.damageObject).
 // Pure and deterministic (seeded by the run seed + node).
-import { CREATURES, WARDEN_THRESHOLD } from "../../data/heartwood/creatures"
+import { CREATURES, WARDEN_THRESHOLD, ROOT_EATER } from "../../data/heartwood/creatures"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { UNITS } from "../../data/heartwood/units"
 import { streamRng } from "../../data/heartwood/seed"
@@ -160,4 +160,65 @@ export function shapeshifterTurnEnd(state) {
     next = emit(next, { kind: "object", fx: "roll", pos: best.p, label: "Rustle...", tiles: [pos, best.p] })
   }
   return next
+}
+
+// ---- Root-Eaters ------------------------------------------------------------------
+// The run says it arrives in this fight (rootEater.js rootEaterArrivesNow).
+// It surfaces beside the enemy line and chews up the ground around it.
+function eatAround(state, pos, limit) {
+  const terrain = { ...(state.terrain || {}) }
+  let trees = 0
+  let eaten = 0
+  for (const dr of [-1, 0, 1]) for (const dc of [-1, 0, 1]) {
+    if (eaten >= limit) break
+    const p = { row: pos.row + dr, col: pos.col + dc }
+    if (p.row < 0 || p.col < 0 || p.row >= state.grid.rows || p.col >= state.grid.cols) continue
+    const k = keyOf(p)
+    if ((state.mimics || {})[k]) continue
+    const t = terrain[k]
+    const into = ROOT_EATER.eats[t]
+    if (!into) continue
+    if (t === "tree") trees++
+    terrain[k] = into
+    eaten++
+  }
+  return { state: { ...state, terrain, creatureTreesEaten: (state.creatureTreesEaten || 0) + trees }, eaten }
+}
+
+export function withRootEater(battle) {
+  if (!battle?.units || battle.boss || !ENEMIES[ROOT_EATER.enemy]) return battle
+  const foe = battle.units.find((u) => u.side === "enemy" && u.hp > 0)
+  const origin = foe?.pos || { row: Math.floor(battle.grid.rows / 2), col: 1 }
+  const [pos] = freeCellsNear(battle, origin, 1)
+  if (!pos) return battle
+  const base = deriveTacticsUnit(ROOT_EATER.enemy, "enemy", pos, "creature-root-eater")
+  const maxHp = Math.max(1, Math.round(base.maxHp * ROOT_EATER.hpMult))
+  const unit = { ...base, name: ROOT_EATER.name, maxHp, hp: maxHp, facing: "E", creature: "rooteater", creatureTag: ROOT_EATER.name }
+  const eaten = eatAround({ ...battle, units: [...battle.units, unit], rootEaterArrived: true }, pos, 9).state
+  return log(eaten, `🪱 ${ROOT_EATER.surface}`)
+}
+
+// Enemy turn end: each Root-Eater eats one tile of wood or roots next to it
+// and heals on it. Eaten trees don't count against you (the forest knows).
+export function rootEaterTurnEnd(state) {
+  const eaters = (state?.units || []).filter((u) => u.creature === "rooteater" && u.hp > 0)
+  let next = state
+  for (const u of eaters) {
+    const before = next.terrain || {}
+    const res = eatAround(next, u.pos, 1)
+    if (!res.eaten) continue
+    const changed = Object.keys(res.state.terrain).find((k) => res.state.terrain[k] !== before[k])
+    const live = res.state.units.find((x) => x.id === u.id)
+    const hp = Math.min(live.maxHp, live.hp + ROOT_EATER.feedHeal)
+    next = { ...res.state, units: res.state.units.map((x) => (x.id === u.id ? { ...x, hp } : x)) }
+    next = log(next, `🪱 The ${ROOT_EATER.name} chews through the roots (+${hp - live.hp} HP).`)
+    if (changed) next = emit(next, { kind: "object", fx: "crush", pos: posOf(changed), label: "Crunch!", tiles: [posOf(changed)] })
+    next = emit(next, { kind: "reaction", unitId: u.id, label: "Crunch!" })
+  }
+  return next
+}
+
+// Everything the forest's creatures do after the enemy turn.
+export function creaturesTurnEnd(state) {
+  return rootEaterTurnEnd(shapeshifterTurnEnd(state))
 }
