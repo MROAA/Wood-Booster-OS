@@ -189,8 +189,8 @@ export default function CommanderSelect({
                   >
                     <span
                       className="hw-commander-portrait"
-                      data-has-image={commanderShowsImage(character, wornSkin) ? "true" : undefined}
-                      data-hero-art={hero && !commanderShowsImage(character, wornSkin) ? "true" : undefined}
+                      data-has-image={commanderShowsImage(character) ? "true" : undefined}
+                      data-hero-art={hero && !commanderShowsImage(character) ? "true" : undefined}
                     >
                       <CommanderArt character={character} variant="round" mood={mood} skin={wornSkin} className="hw-commander-glyph" imgClassName="hw-commander-portrait-img" />
                     </span>
@@ -220,7 +220,7 @@ export default function CommanderSelect({
                           : "Lead the squad"}
                     </span>
                   </button>
-                  {hero && !isLocked && (
+                  {hero && !isLocked && !character.image && (
                     <div className="hw-commander-looks" aria-label={`${character.name}'s looks`}>
                       {Object.entries(hero.skins).map(([skinId, skin]) => {
                         const owned = isSkinUnlocked(skins, character.id, skinId)

@@ -13,6 +13,7 @@
 import { useEffect, useRef, useState } from "react"
 import HeroAvatar from "./HeroAvatar"
 import { heroIdForArt, heroLine } from "../../data/heartwood/heroes"
+import { CHARACTERS } from "../../data/heartwood/characters"
 import { chosenSkinOf } from "../../services/heartwood/heroSkins"
 
 const REACT_MS = 1100
@@ -90,17 +91,21 @@ export default function HeroToken({ unit, heroId, battle, speak = false }) {
     return () => clearTimeout(t)
   }, [bubble])
 
-  // Marc's own painting (characters.js `image`) wins in the default look;
-  // the reactions then play on the painting (hero-avatars.css .hwh-painted).
+  // Marc's own painting always wins over the drawn hero. Read from
+  // characters.js, not the unit: a battle saved before the painting existed
+  // carries a unit without `image`. On the board (`speak`) the whole cut-out
+  // figure stands in the tile; small portraits use the face crop.
+  const painting = CHARACTERS[heroId]
+  const paintedSrc = painting?.image ? (speak && painting.figure ? painting.figure : painting.image) : null
+  const figure = !!(speak && painting?.figure && paintedSrc === painting.figure)
   const skin = chosenSkinOf(heroId)
-  const paintedSrc = unit.image && skin === "default" ? unit.image : null
   const base = baseMood(unit, battle)
   const mood = base === "victory" || base === "defeat" ? base : flash || base
   return (
     <>
       {paintedSrc ? (
-        <div className="hwt-token-art" data-has-image="true" data-hero-mood={mood}>
-          <img className="hwt-token-img hwh-painted" src={paintedSrc} alt="" draggable={false} data-mood={mood} />
+        <div className="hwt-token-art" data-has-image={figure ? "figure" : "true"} data-hero-mood={mood}>
+          <img className={figure ? "hwh-figure-img hwh-painted" : "hwt-token-img hwh-painted"} src={paintedSrc} alt="" draggable={false} data-mood={mood} data-hero-figure={figure ? heroId : undefined} />
         </div>
       ) : (
         <div className="hwt-token-art" data-has-image="hero" data-hero-mood={mood}>
