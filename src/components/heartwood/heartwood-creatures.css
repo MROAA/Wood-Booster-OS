@@ -1,0 +1,97 @@
+/* Hearthwood - the forest's creatures (First Song PRD §6): the "The forest"
+   regard meter and the creature marks on the tactics board. Muted, mossy. */
+
+.hw-forest-regard {
+  --hw-regard-colour: #a8a089;
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--hw-regard-colour) 35%, var(--hw-border, #4a4232));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--hw-regard-colour) 6%, transparent);
+}
+.hw-forest-regard-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.hw-forest-regard-title {
+  font-weight: 600;
+}
+.hw-forest-regard-band {
+  color: var(--hw-regard-colour);
+  font-weight: 600;
+}
+.hw-forest-regard-num {
+  margin-left: auto;
+  color: var(--hw-muted, #a8a089);
+  font-variant-numeric: tabular-nums;
+}
+.hw-forest-regard-bar {
+  position: relative;
+  height: 6px;
+  margin: 6px 0 4px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #6e2f24, #4a4232 38%, #4a4232 62%, #2f5a34);
+}
+.hw-forest-regard-mid {
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.25);
+}
+.hw-forest-regard-marker {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  translate: -50% -50%;
+  background: var(--hw-regard-colour);
+  box-shadow: 0 0 8px var(--hw-regard-colour);
+  transition: left 0.6s cubic-bezier(.2, .8, .25, 1);
+}
+.hw-forest-regard-text,
+.hw-forest-regard-last {
+  font-size: 0.82em;
+  line-height: 1.4;
+  color: var(--hw-muted, #a8a089);
+}
+.hw-forest-regard-last {
+  opacity: 0.8;
+}
+
+/* ---- the board ---- */
+.hwt-creature-banner {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px dashed color-mix(in srgb, #8fbf6a 45%, var(--hw-border, #4a4232));
+  border-radius: 8px;
+  background: rgba(47, 90, 52, 0.12);
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+.hwt-creature-banner-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.hwt-fate-tag[data-creature="warden"] {
+  background: #2f5a34;
+  border-color: #6fcf8a;
+}
+.hwt-fate-tag[data-creature="shapeshifter"] {
+  background: #4a3a22;
+  border-color: #d79a5a;
+}
+.hw-event-choice[data-blocked] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.hw-event-choice-blocked {
+  color: var(--hw-muted, #a8a089);
+  font-style: italic;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-forest-regard-marker { transition: none; }
+}

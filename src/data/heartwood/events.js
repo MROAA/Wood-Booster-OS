@@ -44,6 +44,10 @@
 //                               Essence-per-win %. `boon`/`bane` are the
 //                               same channel; the modifier def's `kind`
 //                               says which. Ignored if already held.
+//   { regard: N }            - the forest's regard shifts (creatures.js)
+//   { rune: "random"|id }    - gain a rune, pouch permitting (runes.js)
+//   { loseRune: "oldest" }   - give the oldest rune away; a choice with
+//                               `needsRune: true` is locked with no runes
 //   { fate: "id" }           - plant a lasting consequence (fates.js): a
 //                               curse, an ally who joins a later fight, a
 //                               rival who hunts you, a market mood, a debt,
@@ -190,6 +194,37 @@ export const EVENTS = [
   },
 
   // --- Act II -------------------------------------------------------
+  // Forest creatures (First Song PRD §6): a Water-Rememberer. It keeps
+  // memories, and will trade for things you would rather not lose.
+  {
+    id: "the-rememberer",
+    act: 2,
+    title: "The Rememberer in the Tarn",
+    body: "The tarn is black and perfectly still. Then something under the surface opens its eyes - two pale lamps, wider apart than any fish's. A voice comes up through the water like a bubble: \"I keep what the forest forgets. A longship's songs. A jarl's last promise. I will keep something of yours too - if you will trade.\"",
+    choices: [
+      {
+        label: "Give it a rune (your oldest).",
+        needsRune: true,
+        result: "You drop the rune-stone into the tarn. The verse on it glows all the way down. \"Safe,\" says the water. \"I will sing it back to the forest.\" Coins rise to the surface, green with age, and the woods around you breathe easier.",
+        effects: [{ loseRune: "oldest" }, { essence: 90 }, { regard: 8 }],
+      },
+      {
+        label: "Let it drink one of your heroes' memories.",
+        result: "A hero kneels and lets the cold water touch their brow. Something leaves them - a habit, a fear, a scar of the mind - and a rune-stone bobs up where it sank.",
+        effects: [{ loseTrait: "random" }, { rune: "random" }],
+      },
+      {
+        label: "Ask what it remembers.",
+        result: "\"The longships came up the river singing,\" it says. \"They asked the forest for a kingdom that would never die. The forest said yes. That was the cruelty.\" The eyes close. The forest seems to listen to you a little more kindly for having listened.",
+        effects: [{ flag: "heard_the_rememberer" }, { regard: 5 }],
+      },
+      {
+        label: "Walk on. Some things should stay forgotten.",
+        result: "You leave the tarn to its memories. Behind you, the water does not ripple at all.",
+        effects: [],
+      },
+    ],
+  },
   {
     id: "spacemonkey-warning",
     act: 2,
