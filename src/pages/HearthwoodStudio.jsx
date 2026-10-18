@@ -47,7 +47,9 @@ function deepLinkFromUrl() {
   const type = params.get("type")
   const id = params.get("id")
 
-  return type && id ? { type, id } : null
+  // `type` alone opens that type's list (the in-game dev desk links to
+  // whole categories, e.g. "all relics"); `type` + `id` opens one entry.
+  return type ? { type, id: id || null } : null
 }
 
 function HearthwoodStudio() {
@@ -56,6 +58,8 @@ function HearthwoodStudio() {
   const [viewMode, setViewMode] = useState(() => {
     const view = new URLSearchParams(window.location.search).get("view")
     if (view === "resources" || view === "mutations" || view === "gear" || view === "traits" || view === "promotions" || view === "identity") return view
+    // the in-game dev desk deep-links straight to these too
+    if (view === "theme" || view === "sheet" || view === "dashboard") return view
     return deepLink ? "single" : "dashboard"
   })
   // `browsingType` drives what the LEFT panel shows; `entityType` drives

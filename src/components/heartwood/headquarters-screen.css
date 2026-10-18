@@ -1,0 +1,1075 @@
+/* Headquarters ("Päämaja") - HeadquartersScreen.jsx.
+
+   The player's camp and the default stance at a market stop: the
+   commander, the whole squad, relics and build on one calm screen, the
+   market one click away. Shares the Nordic forest panels, titles and
+   runes with the Market (heartwood-market-table.css); only what is
+   particular to the camp lives here. */
+
+
+/* ---------- Päämaja screen ---------- */
+.hwq-root {
+  /* a page of its own (the market isn't drawn underneath), so the
+     page's utility buttons - Help, How to Play... - stay reachable */
+  position: relative;
+  height: 100vh;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px 16px 12px;
+  color: var(--hwm-parch, #e8e2c8);
+  background:
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(232, 140, 60, 0.12), transparent 70%),
+    radial-gradient(ellipse 70% 60% at 50% 30%, rgba(30, 40, 22, 0.55), rgba(4, 6, 3, 0.96)),
+    #070906;
+  animation: hwq-open 0.28s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes hwq-open {
+  from { opacity: 0; scale: 0.985; }
+  to { opacity: 1; scale: 1; }
+}
+.hwq-top {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding-right: 450px;
+  min-height: 48px;
+}
+.hwq-top::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 5px;
+  opacity: 0.55;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 0 1px, #9b4436 1px 2px, transparent 2px 3px, #c4a14a 3px 4px, transparent 4px),
+    repeating-linear-gradient(90deg, transparent 0 14px, rgba(60, 96, 150, 0.9) 14px 18px, transparent 18px 32px, rgba(82, 128, 76, 0.9) 32px 36px);
+  background-size: 100% 100%, 100% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 0, 0 4px;
+}
+.hwq-back {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(205, 180, 122, 0.5);
+  background: rgba(14, 18, 11, 0.9);
+  color: var(--hwm-parch, #e8e2c8);
+  font-size: 13px;
+  cursor: pointer;
+}
+.hwq-back:hover {
+  border-color: var(--hwm-gold, #cdb47a);
+}
+.hwq-main {
+  display: grid;
+  grid-template-columns: var(--hw-ui-left-width, 300px) minmax(0, 1fr) var(--hw-ui-left-width, 300px);
+  gap: 14px;
+  min-height: 0;
+}
+.hwq-squad {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding: 8px 4px 4px;
+}
+.hwq-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 18px 14px;
+  padding: 6px 2px 10px;
+}
+.hwq-cards .hw-card {
+  width: 100%;
+  min-width: 0;
+  --card-art-h: 120px;
+}
+.hwq-root .hwm-map {
+  overflow: visible;
+}
+/* Päämaja sits above every market layer (tutorial hints included). */
+
+
+/* The market nearby: the merchant's line and the way over there. */
+.hwq-market-entry > *:not(.hwm-panel-title):not(.hwq-visit) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--hwm-ink);
+}
+.hwq-visit {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--hwm-gold) 55%, transparent);
+  background:
+    radial-gradient(ellipse 80% 120% at 100% 50%, color-mix(in srgb, var(--hwm-gold) 14%, transparent), transparent 70%),
+    linear-gradient(180deg, rgba(40, 46, 26, 0.95), rgba(20, 24, 13, 0.95));
+  color: var(--hwm-parch);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(232, 226, 200, 0.08);
+  transition: border-color 0.15s ease, translate 0.15s ease, box-shadow 0.15s ease;
+}
+.hwq-visit:hover {
+  border-color: var(--hwm-gold);
+  translate: 0 -2px;
+  box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.85), 0 0 14px color-mix(in srgb, var(--hwm-gold) 30%, transparent);
+}
+.hwq-visit-name {
+  font-family: var(--hw-font-display);
+  font-size: 18px;
+  letter-spacing: 0.03em;
+}
+.hwq-visit-sub {
+  font-size: 11.5px;
+  color: var(--hwm-ink);
+}
+/* The road fills the space; Continue anchors the bottom of the column. */
+.hwq-road {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+.hwq-root .hwm-side {
+  min-height: 0;
+  overflow-y: auto;
+}
+.hwq-root .hwm-launch {
+  flex: 0 0 auto;
+}
+/* breathing room under the Continue plaque (the shared panel rule's
+   padding otherwise wins here) */
+.hwq-root.hw-market-stage {
+  padding-bottom: 16px;
+}
+
+/* ---------- The dev desk (DevDesk.jsx) - Marc's doorway into every
+   editor. Dev builds only, and only while the "✎ Studio" switch is on. */
+html:not(.hw-layout-tools) .hwq-devdesk {
+  display: none;
+}
+.hwq-devdesk {
+  flex: 0 0 auto;
+  gap: 8px;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--hwm-moss) 45%, transparent);
+  background: color-mix(in srgb, var(--hwm-wood) 70%, transparent);
+}
+.hwq-devdesk-title small {
+  margin-left: auto;
+  font-family: var(--hw-font-body, system-ui, sans-serif);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hwm-ink);
+}
+.hwq-devdesk-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+.hwq-devdesk-label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hwm-ink);
+  min-width: 110px;
+}
+.hwq-devdesk-toggle {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.hwq-devdesk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.hwq-devdesk-chip {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--hwm-gold) 40%, transparent);
+  background: rgba(10, 13, 8, 0.8);
+  color: var(--hwm-parch);
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+.hwq-devdesk-chip:hover {
+  border-color: var(--hwm-gold);
+}
+.hwq-devdesk-cat {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 14px;
+}
+.hwq-devdesk-cat-name {
+  font-size: 11px;
+  color: var(--hwm-gold);
+}
+.hwq-devdesk-open {
+  flex: 1 1 100%;
+  padding-left: 14px;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--hwm-moss) 90%, #fff);
+}
+.hwq-devdesk-count {
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hwm-moss) 22%, transparent);
+  color: color-mix(in srgb, var(--hwm-moss) 85%, #fff);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+/* "Back to the road" sits exactly where Continue does at a market stop. */
+.hwq-return {
+  flex: 0 0 auto;
+  align-items: center;
+  text-align: center;
+}
+
+
+/* ---------- The camp as a place (graphics round 6) ----------
+   Headquarters should read as somewhere you stand, not a menu: a spruce
+   treeline around the clearing, the fighters laid out on the war table,
+   the reserve resting smaller beside it, and each hero's actions on one
+   carved workbench under its card. */
+
+/* the treeline - dark spruce silhouettes behind everything, firelit from below */
+.hwq-root::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 210px;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 120' preserveAspectRatio='none'%3E%3Cpath fill='%23050704' d='M0 120V78l8-14 4 8 7-30 6 22 5-12 8 26 6-40 7 30 5-14 7 22 9-46 8 36 5-10 6 18 8-34 7 28 6-16 7 20 10-50 9 40 5-12 6 20 7-28 6 20 8-38 7 30 6-12 7 18 9-42 8 34 5-10 7 24 8-30 6 22V120z'/%3E%3C/svg%3E") bottom / 720px 100% repeat-x;
+  -webkit-mask: linear-gradient(90deg, #000, transparent 30%, transparent 70%, #000);
+  mask: linear-gradient(90deg, #000, transparent 30%, transparent 70%, #000);
+}
+.hwq-top,
+.hwq-main {
+  position: relative;
+  z-index: 1;
+}
+
+/* the war table - where the four who fight are laid out */
+.hwq-table {
+  position: relative;
+  background:
+    radial-gradient(ellipse 60% 70% at 50% 115%, color-mix(in srgb, #e88c3c 13%, transparent), transparent 70%),
+    repeating-radial-gradient(ellipse 120% 90% at 50% 140%, transparent 0 22px, rgba(205, 180, 122, 0.035) 22px 23px),
+    linear-gradient(180deg, rgba(30, 26, 17, 0.96), rgba(17, 15, 10, 0.97));
+  border-color: color-mix(in srgb, var(--hwm-gold) 30%, transparent);
+  box-shadow: inset 0 1px 0 rgba(232, 226, 200, 0.06), 0 18px 30px -18px rgba(0, 0, 0, 0.9);
+}
+.hwq-table .hwq-cards {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* the reserve rests by the fire - the same cards, smaller */
+.hwq-reserve .hwq-cards {
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 12px 16px;
+}
+
+/* one hero: the card, then its workbench */
+.hwq-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.hwq-tray {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--hwm-line);
+  background: linear-gradient(180deg, rgba(14, 17, 10, 0.92), rgba(9, 11, 7, 0.92));
+}
+.hwq-tray .hwq-tray-gear {
+  margin: 0;
+  padding: 0 0 6px;
+  border: 0;
+  border-bottom: 1px solid var(--hwm-line);
+  border-radius: 0;
+  background: none;
+}
+.hwq-tray-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hwq-tray-minor {
+  display: flex;
+  gap: 4px;
+}
+
+/* the actions: Upgrade/Mend is the one gold plaque, the rest stay quiet */
+.hwq-root.hw-market-stage .hwq-tray .hwq-act.hw-move-btn.hw-move-btn {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 4px 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--hwm-ink);
+  box-shadow: none;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.hwq-root.hw-market-stage .hwq-tray .hwq-act.hw-move-btn.hw-move-btn:hover:not(:disabled) {
+  color: var(--hwm-parch);
+  border-color: color-mix(in srgb, var(--hwm-gold) 45%, transparent);
+  background: rgba(205, 180, 122, 0.06);
+}
+.hwq-root.hw-market-stage .hwq-tray .hwq-act--main.hw-move-btn.hw-move-btn {
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-family: var(--hw-font-display);
+  font-size: 13.5px;
+  letter-spacing: 0.03em;
+  color: var(--hwm-parch);
+  border-color: color-mix(in srgb, var(--hwm-gold) 55%, transparent);
+  background: linear-gradient(180deg, rgba(44, 42, 26, 0.95), rgba(22, 22, 13, 0.95));
+  box-shadow: inset 0 1px 0 rgba(232, 226, 200, 0.08);
+}
+.hwq-root.hw-market-stage .hwq-tray .hwq-act--main.hw-move-btn.hw-move-btn:hover:not(:disabled) {
+  border-color: var(--hwm-gold);
+  background: linear-gradient(180deg, rgba(56, 52, 30, 0.95), rgba(28, 27, 15, 0.95));
+}
+.hwq-root.hw-market-stage .hwq-tray .hwq-act.hw-move-btn.hw-move-btn:disabled {
+  opacity: 0.45;
+}
+.hwq-act .hw-cost-inline {
+  font-family: var(--hw-font-body, system-ui, sans-serif);
+  font-size: 11.5px;
+  color: var(--hwm-gold);
+  font-variant-numeric: tabular-nums;
+}
+.hwq-gain {
+  color: var(--hwm-moss);
+  font-variant-numeric: tabular-nums;
+}
+.hwq-act.hw-mend-btn.hwq-act--main {
+  border-color: color-mix(in srgb, #d0654a 60%, transparent);
+}
+
+/* fusion - three pips, lit by each copy you own (3 fuse into Tier 2) */
+.hwq-fuse {
+  flex: 0 0 auto;
+  display: inline-flex;
+  gap: 4px;
+  padding: 0 2px;
+}
+.hwq-fuse i {
+  width: 7px;
+  height: 7px;
+  rotate: 45deg;
+  border: 1px solid color-mix(in srgb, var(--hw-ember, #e0784a) 55%, transparent);
+  border-radius: 1px;
+}
+.hwq-fuse i[data-on] {
+  background: var(--hw-ember, #e0784a);
+  border-color: var(--hw-ember, #e0784a);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--hw-ember, #e0784a) 60%, transparent);
+}
+.hwq-fuse[data-count="2"] i[data-on] {
+  animation: hwq-fuse-near 2.4s ease-in-out infinite;
+}
+@keyframes hwq-fuse-near {
+  50% { box-shadow: 0 0 10px var(--hw-ember, #e0784a); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwq-fuse i[data-on] { animation: none; }
+}
+
+/* fit the whole camp on Marc's 1536x864 screen: a slimmer art arch, the
+   gear row on one line, and the trays lined up along the table edge even
+   when a hurt hero's card carries its extra health line */
+.hwq-root .hwq-cards .hw-card {
+  --card-art-h: 104px;
+}
+.hwq-hero > :first-child {
+  flex: 1 1 auto;
+}
+.hwq-hero > :first-child > .hw-card {
+  height: 100%;
+}
+.hwq-tray .hwq-tray-gear {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+.hwq-tray .hwq-tray-gear::before {
+  display: none;
+}
+.hwq-tray .hw-gear-row {
+  gap: 3px;
+  min-width: 0;
+}
+.hwq-tray .hw-gear-row--small .hw-gear-slot {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+}
+.hwq-tray .hw-gear-row--small .hw-gear-slot .hw-intent-glyph {
+  width: 16px;
+  height: 16px;
+}
+.hwq-tray .hwq-tray-gear {
+  justify-content: space-between;
+}
+/* Gear sits beside the gold plaque: same height, quiet hairline */
+.hwq-root.hw-market-stage .hwq-tray .hwq-gear-btn.hw-move-btn.hw-move-btn {
+  flex: 0 0 auto;
+  align-self: stretch;
+  padding: 0 10px;
+  font-size: 11.5px;
+  border-color: var(--hwm-line);
+}
+.hwq-tray-minor {
+  flex-wrap: wrap;
+}
+
+/* the reserve's resting tiles: a small card (art, tribe, name, numbers)
+   with its workbench beside it - everything else is on the hero
+   inspector and returns when the hero joins the fight */
+.hwq-reserve .hwq-hero {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 8px;
+}
+.hwq-reserve .hwq-hero > :first-child {
+  flex: 0 0 140px;
+}
+.hwq-reserve .hwq-cards .hw-card {
+  --card-art-h: 64px;
+}
+.hwq-reserve .hw-card .hw-card-level,
+.hwq-reserve .hw-card .hw-card-identity,
+.hwq-reserve .hw-card .hw-card-role-line,
+.hwq-reserve .hw-card .hw-card-tags,
+.hwq-reserve .hw-card .hw-card-tclass {
+  display: none;
+}
+.hwq-reserve .hwq-tray {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+/* the quiet row keeps to its words: no stretching, no overlap */
+.hwq-tray-minor {
+  justify-content: space-between;
+  gap: 2px 4px;
+}
+.hwq-root.hw-market-stage .hwq-tray-minor .hwq-act.hw-move-btn.hw-move-btn {
+  flex: 0 1 auto;
+  padding: 3px 5px;
+  gap: 3px;
+}
+.hwq-tray-minor .hw-cost-inline .hw-intent-glyph {
+  width: 9px;
+  height: 9px;
+}
+/* a little more air for the reserve row on Marc's screen */
+.hwq-root {
+  gap: 10px;
+  padding-top: 12px;
+}
+.hwq-squad {
+  gap: 10px;
+  padding-top: 4px;
+}
+.hwq-reserve .hwq-cards .hw-card {
+  --card-art-h: 52px;
+}
+
+/* ---------- The commander's crest ----------
+   A carved medallion with the commander's mark, the name in the display
+   face and the tagline beneath - the camp's leader reads as a person.
+   The cluster's own name chip would repeat it, so it steps aside here. */
+.hwq-crest {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.hwq-crest-medallion {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--hwm-gold) 60%, transparent);
+  background:
+    radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--hwm-gold) 18%, transparent), transparent 65%),
+    radial-gradient(circle, rgba(34, 30, 19, 0.95), rgba(12, 11, 7, 0.98));
+  box-shadow:
+    0 0 0 4px rgba(10, 12, 7, 0.9),
+    0 0 0 5px color-mix(in srgb, var(--hwm-gold) 25%, transparent),
+    0 8px 16px -6px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(232, 226, 200, 0.1);
+}
+/* tiwaz, the warrior's rune, faint behind the mark */
+.hwq-crest-medallion::before {
+  content: "ᛏ";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 46px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--hwm-gold) 10%, transparent);
+  pointer-events: none;
+}
+.hwq-crest-glyph {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  color: var(--hwm-gold);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--hwm-gold) 35%, transparent));
+}
+.hwq-crest-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.hwq-crest-name {
+  font-family: var(--hw-font-display);
+  font-size: 21px;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  color: var(--hwm-parch);
+}
+.hwq-crest-rank {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--hwm-gold);
+}
+.hwq-crest-tagline {
+  margin-top: 3px;
+  font-size: 11.5px;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--hwm-ink);
+}
+.hwq-commander .hw-commander-cluster > .hw-badge:first-child {
+  display: none;
+}
+
+/* ---------- Setting out: the Continue plaque ----------
+   The camp's one big decision, in the game's own button language: a
+   carved dark plaque, gold hairline, ember light inside, raido (the
+   journey) at its side. Replaces the old vine plaque art here, whose
+   baked lettering peeked out from behind the label. */
+.hwq-root .hw-end-turn.hw-shop-confirm-btn.hwm-continue {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--hwm-gold) 70%, transparent);
+  background:
+    radial-gradient(ellipse 70% 120% at 50% 120%, rgba(232, 140, 60, 0.38), transparent 70%),
+    linear-gradient(180deg, #3a1a0c, #1c0b05);
+  box-shadow:
+    0 0 0 3px rgba(8, 9, 5, 0.9),
+    0 0 0 4px color-mix(in srgb, var(--hwm-gold) 28%, transparent),
+    0 14px 26px -12px rgba(0, 0, 0, 0.95),
+    0 0 26px -6px rgba(232, 140, 60, 0.35),
+    inset 0 1px 0 rgba(255, 230, 168, 0.14);
+  font-size: 23px;
+  color: #ffe6a8;
+  transition: box-shadow 0.18s ease, translate 0.18s ease, border-color 0.18s ease;
+}
+.hwq-root .hw-end-turn.hw-shop-confirm-btn.hwm-continue::before {
+  content: "ᚱ";
+  font-size: 20px;
+  color: color-mix(in srgb, var(--hwm-gold) 85%, #fff);
+  text-shadow: 0 0 10px var(--hw-ui-rune-glow, rgba(205, 180, 122, 0.6));
+}
+.hwq-root .hw-end-turn.hw-shop-confirm-btn.hwm-continue::after {
+  content: "→";
+  font-family: var(--hw-font-body, system-ui, sans-serif);
+  font-size: 18px;
+  opacity: 0.8;
+  transition: translate 0.18s ease;
+}
+.hwq-root .hw-end-turn.hw-shop-confirm-btn.hwm-continue:not(:disabled):hover {
+  translate: 0 -2px;
+  border-color: var(--hwm-gold);
+  box-shadow:
+    0 0 0 3px rgba(8, 9, 5, 0.9),
+    0 0 0 4px color-mix(in srgb, var(--hwm-gold) 45%, transparent),
+    0 18px 30px -12px rgba(0, 0, 0, 0.95),
+    0 0 34px -4px rgba(232, 140, 60, 0.55),
+    inset 0 1px 0 rgba(255, 230, 168, 0.2);
+}
+.hwq-root .hw-end-turn.hw-shop-confirm-btn.hwm-continue:not(:disabled):hover::after {
+  translate: 4px 0;
+}
+.hwq-root .hwm-launch {
+  padding: 4px 4px 2px;
+}
+
+/* ---------- The camp at a glance (top bar) ----------
+   One carved line in the middle of the bar: the single thing to know
+   before setting out. Moss when ready, ember when someone is hurt, gold
+   when a place in the fight stands empty. */
+.hwq-top {
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+}
+.hwq-status {
+  --st: var(--hwm-moss);
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 6px 8px 6px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--st) 45%, transparent);
+  background:
+    radial-gradient(ellipse 60% 140% at 0% 50%, color-mix(in srgb, var(--st) 14%, transparent), transparent 70%),
+    rgba(10, 13, 8, 0.82);
+  box-shadow: inset 0 1px 0 rgba(232, 226, 200, 0.05);
+}
+.hwq-status[data-state="hurt"] {
+  --st: #d0654a;
+}
+.hwq-status[data-state="warn"] {
+  --st: var(--hwm-gold);
+}
+.hwq-status-rune {
+  font-size: 16px;
+  line-height: 1;
+  color: var(--st);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--st) 55%, transparent);
+}
+.hwq-status-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--hwm-parch);
+}
+.hwq-status-squad {
+  flex: 0 0 auto;
+  padding: 2px 9px;
+  border-radius: 7px;
+  border-left: 1px solid var(--hwm-line);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hwm-ink);
+}
+.hwq-status-squad b {
+  font-weight: 600;
+  color: var(--hwm-parch);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Relics & bag, still empty: sockets waiting ---------- */
+.hwq-sockets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hwq-socket-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.hwq-socket {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  max-height: 46px;
+  border-radius: 10px;
+  border: 1px dashed color-mix(in srgb, var(--hwm-gold) 28%, transparent);
+  background: radial-gradient(circle, rgba(205, 180, 122, 0.05), transparent 70%), rgba(8, 10, 6, 0.6);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+  font-size: 16px;
+  color: color-mix(in srgb, var(--hwm-gold) 22%, transparent);
+}
+.hwq-sockets-hint {
+  margin: 0;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--hwm-ink);
+  text-align: center;
+}
+
+/* the hurt hero's Mend plaque breathes ember, answering the status line */
+.hwq-root.hw-market-stage .hwq-tray .hw-mend-btn.hwq-act--main.hw-move-btn:not(:disabled) {
+  animation: hwq-mend-breathe 2.8s ease-in-out infinite;
+}
+@keyframes hwq-mend-breathe {
+  50% { box-shadow: inset 0 1px 0 rgba(232, 226, 200, 0.08), 0 0 12px -2px rgba(208, 101, 74, 0.55); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwq-root.hw-market-stage .hwq-tray .hw-mend-btn.hwq-act--main.hw-move-btn { animation: none; }
+}
+
+/* ---------- An empty place at the war table ----------
+   Card-sized, dashed, mannaz (the people) faint inside - the table shows
+   where a hero is missing instead of leaving a gap. */
+.hwq-empty-place {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 240px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1.5px dashed color-mix(in srgb, var(--hwm-gold) 35%, transparent);
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 45%, rgba(205, 180, 122, 0.06), transparent 70%),
+    rgba(6, 8, 5, 0.45);
+  text-align: center;
+}
+.hwq-empty-rune {
+  font-size: 44px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--hwm-gold) 30%, transparent);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--hwm-gold) 20%, transparent);
+}
+.hwq-empty-name {
+  font-family: var(--hw-font-display);
+  font-size: 16px;
+  color: var(--hwm-parch);
+}
+.hwq-empty-hint {
+  font-size: 11.5px;
+  color: var(--hwm-ink);
+}
+/* Join the fight: the reserve's moss plaque while a place stands empty */
+.hwq-root.hw-market-stage .hwq-tray .hwq-join.hwq-act--main.hw-move-btn.hw-move-btn {
+  flex: 0 0 auto;
+  justify-content: center;
+  gap: 8px;
+  border-color: color-mix(in srgb, var(--hwm-moss) 70%, transparent);
+  background:
+    radial-gradient(ellipse 80% 140% at 50% 120%, color-mix(in srgb, var(--hwm-moss) 22%, transparent), transparent 70%),
+    linear-gradient(180deg, rgba(30, 40, 22, 0.95), rgba(16, 22, 12, 0.95));
+  color: color-mix(in srgb, var(--hwm-moss) 35%, var(--hwm-parch));
+}
+.hwq-root.hw-market-stage .hwq-tray .hwq-join.hwq-act--main.hw-move-btn.hw-move-btn:hover {
+  border-color: var(--hwm-moss);
+  box-shadow: 0 0 12px -2px color-mix(in srgb, var(--hwm-moss) 50%, transparent);
+}
+
+/* ---------- Swapping a reserve hero into the fight ----------
+   With the table full the reserve plaque turns quiet ("Swap into the
+   fight"); pressed, the four who fight each wear a "takes this place"
+   veil, and the status line asks whose place it is. Esc / Cancel ends it. */
+.hwq-root.hw-market-stage .hwq-tray .hwq-join[data-mode="swap"].hwq-act--main.hw-move-btn.hw-move-btn {
+  background: none;
+  border-color: color-mix(in srgb, var(--hwm-moss) 35%, transparent);
+  font-size: 12.5px;
+  color: color-mix(in srgb, var(--hwm-moss) 55%, var(--hwm-parch));
+}
+.hwq-root.hw-market-stage .hwq-tray .hwq-join[data-active].hwq-act--main.hw-move-btn.hw-move-btn {
+  border-color: var(--hwm-moss);
+  background: color-mix(in srgb, var(--hwm-moss) 16%, transparent);
+  color: var(--hwm-parch);
+  box-shadow: 0 0 14px -3px color-mix(in srgb, var(--hwm-moss) 60%, transparent);
+}
+.hwq-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.hwq-slot > .hwq-hero {
+  flex: 1 1 auto;
+}
+.hwq-take {
+  position: absolute;
+  inset: -4px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1.5px dashed color-mix(in srgb, var(--hwm-moss) 70%, transparent);
+  background: rgba(6, 9, 5, 0.8);
+  backdrop-filter: blur(3px) saturate(0.6);
+  color: var(--hwm-parch);
+  text-align: center;
+  opacity: 0.88;
+  animation: hwq-take-in 0.2s ease-out both;
+  transition: opacity 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.hwq-take:hover,
+.hwq-take:focus-visible {
+  opacity: 1;
+  border-style: solid;
+  border-color: var(--hwm-moss);
+  background: rgba(12, 20, 9, 0.72);
+  box-shadow: 0 0 22px -6px color-mix(in srgb, var(--hwm-moss) 70%, transparent);
+}
+.hwq-take-name {
+  font-family: var(--hw-font-display);
+  font-size: 16px;
+  line-height: 1.2;
+}
+.hwq-take-sub {
+  font-size: 11.5px;
+  color: var(--hwm-ink);
+}
+@keyframes hwq-take-in {
+  from { opacity: 0; }
+}
+.hwq-status[data-state="pick"] {
+  --st: var(--hwm-moss);
+}
+.hwq-status-cancel {
+  flex: 0 0 auto;
+  padding: 2px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--hwm-line);
+  background: none;
+  color: var(--hwm-parch);
+  font-size: 11.5px;
+}
+.hwq-status-cancel:hover {
+  border-color: var(--hwm-gold);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwq-take { animation: none; }
+}
+
+/* ---------- Your build, as a verdict (BuildScore variant="camp") ----------
+   Strongest and weakest first, then the seven bars as one magnitude in
+   one hue - the labels already name each row, so colour doesn't have to.
+   Numbers stay in the text ink. The panel title already says "Your
+   build", so the component's own label steps aside. */
+.hwq-root .hw-buildscore > .hw-section-label {
+  display: none;
+}
+.hw-buildscore-verdict {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.hw-buildscore-tile {
+  --tile: var(--hwm-moss);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 7px 9px;
+  border-radius: 9px;
+  border: 1px solid var(--hwm-line);
+  border-left: 3px solid var(--tile);
+  background: rgba(8, 10, 6, 0.6);
+}
+.hw-buildscore-tile[data-kind="weak"] {
+  --tile: #d0654a;
+}
+.hw-buildscore-tile-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--hwm-ink);
+}
+.hw-buildscore-tile-value {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--hwm-parch);
+  white-space: nowrap;
+}
+.hw-buildscore-tile-value .hw-intent-glyph {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  color: var(--tile);
+}
+.hw-buildscore-tile-value b {
+  margin-left: auto;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.hw-buildscore-bars[data-variant="camp"] .hw-buildscore-track {
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(232, 226, 200, 0.07);
+}
+.hw-buildscore-bars[data-variant="camp"] .hw-buildscore-fill {
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--hwm-moss) 85%, var(--hwm-parch));
+}
+.hw-buildscore-bars[data-variant="camp"] .hw-buildscore-name .hw-intent-glyph {
+  color: var(--hwm-ink);
+}
+.hw-buildscore-bars[data-variant="camp"] .hw-buildscore-num {
+  color: var(--hwm-parch);
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ---------- Less on the screen (graphics round 8) ----------
+   Marc: "päämaja on vielä sekavan näköinen - vähennä tietoa ja asiaa".
+   Nothing is removed from the game; what is not needed right now waits
+   until it is: */
+
+/* fusion pips only once they mean something - two of three owned */
+.hwq-root .hwq-fuse:not([data-count="2"]) {
+  display: none;
+}
+/* empty gear slots stay hidden until the hero has gear or you are
+   equipping something (a bag item picked); the line goes with them */
+.hwq-tray .hwq-tray-gear:not(:has(.hw-gear-slot.is-filled, .hw-gear-row[data-pending], .hwq-fuse[data-count="2"])) {
+  display: none;
+}
+.hwq-tray .hwq-tray-gear:not(:has(.hw-gear-slot.is-filled, .hw-gear-row[data-pending])) .hw-gear-row {
+  display: none;
+}
+.hwq-tray .hwq-tray-gear:not(:has(.hw-gear-slot.is-filled, .hw-gear-row[data-pending])) {
+  justify-content: flex-end;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+/* the commander's empty gear slots likewise; the Gear button stays */
+.hwq-commander .hw-gear-row-wrap:not(:has(.hw-gear-slot.is-filled, .hw-gear-row[data-pending])) .hw-gear-row,
+.hwq-commander .hw-gear-row-wrap:not(:has(.hw-gear-slot.is-filled, .hw-gear-row[data-pending]))::before {
+  display: none;
+}
+/* Reforge / Sell (and Upgrade on a hurt hero) are occasional: they wait,
+   faint, and come up when you point at the hero or tab into it */
+.hwq-tray-minor {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.hwq-hero:hover .hwq-tray-minor,
+.hwq-hero:focus-within .hwq-tray-minor {
+  opacity: 1;
+}
+@media (hover: none) {
+  .hwq-tray-minor { opacity: 1; }
+}
+/* the full build readout behind one quiet line */
+.hw-buildscore-more {
+  margin-top: 4px;
+}
+.hw-buildscore-more > summary {
+  list-style: none;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hwm-ink);
+}
+.hw-buildscore-more > summary::-webkit-details-marker {
+  display: none;
+}
+.hw-buildscore-more > summary::after {
+  content: " ▸";
+}
+.hw-buildscore-more[open] > summary::after {
+  content: " ▾";
+}
+.hw-buildscore-more > summary:hover {
+  color: var(--hwm-parch);
+}
+.hw-buildscore-more[open] > summary {
+  margin-bottom: 8px;
+}
+
+/* fewer boxes inside boxes: the workbench is the buttons themselves */
+.hwq-tray {
+  padding: 2px 0 0;
+  border: 0;
+  background: none;
+}
+.hwq-commander .hw-gear-row-wrap:not(:has(.hw-gear-slot.is-filled, .hw-gear-row[data-pending])) {
+  padding: 0;
+  border: 0;
+  background: none;
+  justify-content: flex-end;
+}
+/* the reserve rests: only "Swap into the fight" / "Join" stays up; its
+   upgrade and gear come up with the pointer, like Reforge / Sell */
+.hwq-reserve .hwq-tray-main {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.hwq-reserve .hwq-hero:hover .hwq-tray-main,
+.hwq-reserve .hwq-hero:focus-within .hwq-tray-main {
+  opacity: 1;
+}
+@media (hover: none) {
+  .hwq-reserve .hwq-tray-main { opacity: 1; }
+}
+/* the road: the panel title already names it, the Act sits in the top
+   bar - so no second heading or Act line, and only the next three stops */
+.hwq-road .hw-run-rail-head,
+.hwq-road .hw-road-ahead-title {
+  display: none;
+}
+.hwq-road .hw-road-ahead-list > li:nth-child(n + 4) {
+  display: none;
+}
+/* the occasional row floats just under the plaque instead of holding an
+   empty band open in the table; the table keeps room for it below */
+.hwq-table .hwq-tray {
+  position: relative;
+}
+.hwq-table .hwq-tray-minor {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 3px;
+  z-index: 2;
+}
+.hwq-table {
+  padding-bottom: 34px;
+}

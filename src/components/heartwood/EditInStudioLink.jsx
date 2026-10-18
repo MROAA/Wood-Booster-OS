@@ -27,6 +27,7 @@ export default function EditInStudioLink({ type, id, label }) {
     <>
       <button
         type="button"
+        className="hw-studio-edit-link"
         onClick={event => {
           // Some screens (StoryCinematic's click-to-advance) read a
           // click anywhere on the root as "next line" - stop it here so
