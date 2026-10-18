@@ -141,3 +141,158 @@
 .hw-intro.hw-event div:has(> .hw-event-continue) {
   max-width: none !important;
 }
+
+/* ---------- Piece 2: the camp ---------- */
+.hw-intro.hw-camp {
+  --road-gold: var(--hw-ui-accent, #cdb47a);
+  --road-moss: var(--hw-ui-leaf, #8fb07a);
+  --road-text: var(--hw-ui-text, #e8e2c8);
+  --road-panel: var(--hw-ui-panel, #0f130c);
+  box-sizing: border-box;
+  max-width: 1160px;
+  margin: 24px auto 0;
+  padding: 24px 30px 26px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--road-moss) 28%, transparent);
+  background:
+    radial-gradient(ellipse 50% 60% at 50% 110%, rgba(232, 140, 60, 0.12), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--road-panel) 92%, transparent), color-mix(in srgb, var(--road-panel) 96%, transparent));
+  box-shadow: inset 0 1px 0 rgba(232, 226, 200, 0.06), 0 24px 60px -24px rgba(0, 0, 0, 0.9);
+  color: var(--road-text);
+}
+.hw-intro.hw-camp .hw-camp-head {
+  align-items: center;
+  margin-bottom: 18px;
+}
+.hw-intro.hw-camp .hw-camp-fire {
+  width: 42px;
+  height: 42px;
+  color: #f0a060;
+  filter: drop-shadow(0 0 10px rgba(240, 140, 60, 0.7));
+  animation: hw-camp-flicker 2.6s ease-in-out infinite alternate;
+}
+@keyframes hw-camp-flicker {
+  0% { opacity: 0.85; scale: 1; }
+  45% { opacity: 1; scale: 1.05; }
+  100% { opacity: 0.92; scale: 0.98; }
+}
+.hw-intro.hw-camp .hw-camp-title {
+  font-family: var(--hw-font-display);
+  font-size: 32px;
+  margin: 0;
+  color: #f2ead0;
+}
+.hw-intro.hw-camp .hw-camp-flavor {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--road-text) 82%, transparent);
+}
+.hw-intro.hw-camp .hw-camp-counter-pip {
+  border-color: var(--road-gold);
+}
+.hw-intro.hw-camp .hw-camp-counter-pip[data-on] {
+  background: radial-gradient(circle at 35% 30%, #f3d98e, #b88a32 70%);
+  box-shadow: 0 0 6px rgba(231, 194, 122, 0.6);
+}
+.hw-intro.hw-camp .hw-camp-counter-text {
+  color: var(--road-gold);
+}
+
+/* the five things you can do by the fire: plaques with an icon stone */
+.hw-intro.hw-camp .hw-camp-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+.hw-intro.hw-camp .hw-card.hw-camp-card {
+  align-items: center;
+  gap: 8px;
+  padding: 18px 14px 16px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--road-gold) 26%, transparent);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(232, 226, 200, 0.05), transparent 70%),
+    rgba(10, 13, 8, 0.92);
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 10px 18px -8px rgba(0, 0, 0, 0.85);
+  text-align: center;
+  transition: translate 0.15s ease, border-color 0.15s ease, opacity 0.2s ease;
+}
+.hw-intro.hw-camp .hw-card.hw-camp-card:not([data-done]):not([data-disabled]):hover {
+  translate: 0 -3px;
+  border-color: var(--road-gold);
+}
+.hw-intro.hw-camp .hw-camp-card-glyph {
+  width: 30px;
+  height: 30px;
+  padding: 12px;
+  border-radius: 50%;
+  color: #fff3d6;
+  background: radial-gradient(circle at 35% 30%, rgba(231, 194, 122, 0.55), rgba(110, 79, 23, 0.6) 65%, rgba(30, 22, 8, 0.8));
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.hw-intro.hw-camp .hw-camp-card .hw-card-name {
+  font-family: var(--hw-font-display);
+  font-size: 18px;
+  color: #f2ead0;
+}
+.hw-intro.hw-camp .hw-camp-card .hw-card-desc {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--road-text) 72%, transparent);
+}
+.hw-intro.hw-camp .hw-camp-status {
+  font-size: 11.5px;
+  color: color-mix(in srgb, var(--road-moss) 90%, #fff);
+}
+.hw-intro.hw-camp .hw-camp-card[data-done] {
+  opacity: 0.6;
+  border-color: color-mix(in srgb, var(--road-moss) 45%, transparent);
+}
+.hw-intro.hw-camp .hw-camp-card[data-disabled]:not([data-done]) {
+  opacity: 0.45;
+}
+.hw-intro.hw-camp .hw-camp-do {
+  margin-top: auto;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--road-gold) 55%, transparent);
+  background: linear-gradient(180deg, rgba(40, 46, 26, 0.95), rgba(20, 24, 13, 0.95));
+  color: #f2ead0;
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 0.15s ease, translate 0.15s ease;
+}
+.hw-intro.hw-camp .hw-camp-do:not(:disabled):hover {
+  border-color: var(--road-gold);
+  translate: 0 -1px;
+}
+.hw-intro.hw-camp .hw-camp-log {
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border-left: 2px solid var(--road-moss);
+  background: rgba(8, 11, 6, 0.6);
+  font-size: 13px;
+  color: color-mix(in srgb, var(--road-text) 85%, transparent);
+}
+.hw-intro.hw-camp .hw-camp-foot {
+  margin-top: 18px;
+  align-items: center;
+}
+.hw-intro.hw-camp .hw-end-turn.hw-camp-leave {
+  padding: 11px 26px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--road-gold) 60%, transparent);
+  background: linear-gradient(180deg, rgba(40, 46, 26, 0.95), rgba(20, 24, 13, 0.95));
+  color: #f2ead0;
+  font-family: var(--hw-font-display);
+  font-size: 17px;
+  text-shadow: none;
+}
+.hw-intro.hw-camp .hw-camp-commander {
+  font-style: italic;
+  color: color-mix(in srgb, var(--road-text) 60%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-intro.hw-camp .hw-camp-fire { animation: none; }
+}
+.hw-reduce-motion .hw-intro.hw-camp .hw-camp-fire { animation: none; }
