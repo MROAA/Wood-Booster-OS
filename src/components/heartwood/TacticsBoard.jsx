@@ -167,7 +167,7 @@ const mutationTitle = (unit) =>
     .map((m) => `${m.icon} ${m.name}: ${m.text}`)
     .join("\n")
 import { describeBoss, bossWarningTiles } from "../../services/heartwood/tacticsBosses"
-import { OBJECTS, objectHpAt, objectMaxHp, isAttackableTile, describeObjectTile, isBurning, isChilled } from "../../services/heartwood/tacticsObjects"
+import { OBJECTS, objectHpAt, objectMaxHp, isAttackableTile, describeObjectTile, isBurning, isChilled, fireSpreadTargets } from "../../services/heartwood/tacticsObjects"
 import { describeFaction, blightPreviewKeys, isBlighted, factionInfo, BLIGHT_ATTACK_BONUS } from "../../services/heartwood/tacticsFactions"
 import { terrainArtStyle, ObjectArt, TerrainIcon, BlightIcon, BLIGHT_ART_URL, SmokeArt } from "./TerrainArt"
 import { ForestFloor } from "./ForestFloor"
@@ -659,8 +659,10 @@ export default function TacticsBoard({
       const [r, c] = key.split("-").map(Number)
       for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) if (dr || dc) keys.add(`${r + dr}-${c + dc}`)
     }
+    // Battlefield piece 3: flames spread into dry forest ground too.
+    for (const key of fireSpreadTargets(battle)) keys.add(key)
     return keys
-  }, [battle.objFire])
+  }, [battle])
   const reachable = useMemo(
     () => (selected && selected.ap > 0 && !abilityMode && battle.phase === "player" ? reachableTilesFor(battle, selected.id) : []),
     [battle, selected, abilityMode],

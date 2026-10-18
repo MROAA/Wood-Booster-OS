@@ -33,6 +33,14 @@ export const TERRAIN = {
   spikes: { cost: 1, burn: 2, spikes: true },
   // Difficulty + mana sprint 2: a contested Mana Well (tacticsUltimates.js).
   manawell: { cost: 1, well: true },
+  // Battlefield piece 3 - the living forest (rules in tacticsForest.js).
+  moss: { cost: 1, moss: true },
+  leaves: { cost: 1 },
+  roots: { cost: 2, snag: true },
+  branches: { cost: 1 },
+  gravel: { cost: 1 },
+  stone: { cost: Infinity, obj: true },
+  glowcap: { cost: Infinity, obj: true },
 }
 
 export const WALL_MAX_HP = 8
@@ -62,6 +70,13 @@ export const TERRAIN_INFO = {
   fire: { name: "Flames", text: "Burning ground - ending your turn here burns for 2. Dies down in a couple of turns. Spreads into tall grass." },
   spikes: { name: "Spikes", text: "Iron spikes - ending your turn here hurts for 2, and anyone KNOCKED onto them takes 3." },
   manawell: { name: "Mana Well", text: "Start your turn standing here: +12 of your resource. An enemy charging an ultimate here charges +15 faster - fight for it!" },
+  moss: { name: "Moss", text: "Soft, damp moss - end your turn here to recover 1 HP. Fire next to it doesn't spread in (a firebreak); only direct fire burns it. Heavy impacts tear it up." },
+  leaves: { name: "Dry leaves", text: "Tinder: any fire FLARES across all connected dry leaves at once - 2 damage to whoever stands in them. A trap to lure enemies into. Heavy impacts scatter them." },
+  roots: { name: "Roots", text: "Old roots - cost 2 movement to cross, and ending a move here snags you: no more moving until your next turn. Fire burns them away." },
+  branches: { name: "Branches", text: "What's left of a splintered log - walkable, HALF cover for a hero next to it. Burns easily." },
+  gravel: { name: "Gravel", text: "Crushed stone - walkable, no cover." },
+  stone: { name: "Runestone", text: "An old mossy standing stone - blocks movement, FULL cover for a hero next to it. Very tough (10 HP); cracks into rubble." },
+  glowcap: { name: "Glowcap", text: "Glowing mushrooms. Any hit pops them: healing spores restore 4 HP to EVERY unit around them - yours and theirs. Pop them at the right moment." },
 }
 
 export function terrainAt(state, pos) {

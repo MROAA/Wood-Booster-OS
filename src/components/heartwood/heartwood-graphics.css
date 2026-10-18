@@ -651,7 +651,7 @@ html body .hw-layout-tools-toggle {
   background-color: transparent;
 }
 /* a feature reads as standing in the world: a soft contact shadow under it */
-.hwt-cell[data-art]:is([data-art="tree"], [data-art="forest"], [data-art="rock"], [data-art="boulder"], [data-art="stump"], [data-art="barrel"], [data-art="sporepod"], [data-art="icepillar"]) {
+.hwt-cell[data-art]:is([data-art="tree"], [data-art="forest"], [data-art="rock"], [data-art="boulder"], [data-art="stump"], [data-art="barrel"], [data-art="sporepod"], [data-art="icepillar"], [data-art="stone"], [data-art="glowcap"]) {
   filter: drop-shadow(0 6px 5px rgba(0, 0, 0, 0.45));
 }
 
@@ -830,4 +830,32 @@ html body .hw-layout-tools-toggle {
 .hw-reduce-motion .hwt-butterfly { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .hwt-butterfly { display: none; }
+}
+
+/* ---------- The battlefield, piece 3: the living forest rules ----------
+   Runestone rune and glowcaps breathe softly; the forest's reactions
+   flash on the tiles they change (TacticsFx flashTiles "obj-<fx>"). */
+.hwt-object[data-object="stone"] .hwt-object-art { width: 66px; height: 66px; }
+.hwt-object[data-object="glowcap"] .hwt-object-art { width: 62px; height: 62px; }
+.hwt-art-rune { animation: hwt-gfx-rune 4.5s ease-in-out infinite; filter: drop-shadow(0 0 3px rgba(143, 240, 212, 0.8)); }
+@keyframes hwt-gfx-rune {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.95; }
+}
+.hwt-art-glow { animation: hwt-gfx-glow 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes hwt-gfx-glow {
+  0%, 100% { opacity: 0.6; transform: scale(0.94); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-flare"]::after { background: radial-gradient(circle, rgba(255, 170, 60, 0.9), rgba(220, 80, 20, 0.35) 55%, transparent 78%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-bloom"]::after { background: radial-gradient(circle, rgba(170, 255, 225, 0.85), rgba(240, 220, 140, 0.3) 55%, transparent 78%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-crush"]::after { background: radial-gradient(circle, rgba(190, 170, 140, 0.7), transparent 72%); }
+.hwt-obj-fx[data-kind="flare"] { color: #ffc070; border-color: var(--hw-ember); }
+.hwt-obj-fx[data-kind="bloom"] { color: #b8ffe8; border-color: #5fc9b0; }
+.hwt-obj-fx[data-kind="crush"] { color: #d8c8a8; border-color: #8a7a5a; }
+.hw-reduce-motion .hwt-art-rune,
+.hw-reduce-motion .hwt-art-glow { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hwt-art-rune,
+  .hwt-art-glow { animation: none; }
 }

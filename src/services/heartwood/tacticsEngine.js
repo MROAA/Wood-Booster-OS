@@ -31,6 +31,7 @@ import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw }
 import * as relicFx from "./tacticsRelics"
 import * as elements from "./tacticsElements"
 import * as objects from "./tacticsObjects"
+import { forestSpell } from "./tacticsForest"
 import { objectiveVerdict, objectiveEnemyPhaseStart, objectiveNewTurn } from "./tacticsObjectives"
 import { bossVerdict, bossEnemyPhaseStart, bossImmuneHit, bossAfterDamage, bossTilePenalty, bossQa } from "./tacticsBosses"
 import { deriveAbilityForDef, abilityTargetSide, HAND_ABILITIES, signatureAbilityForDef } from "./tacticsAbilities"
@@ -1697,6 +1698,13 @@ export function moveUnit(state, unitId, targetPos) {
     next = setUnit(next, unitId, { poison: arrived.poison + grant })
     next = { ...next, log: [...next.log, `${unit.name} wades into the poison and starts coughing (+${grant}).`] }
   }
+  // Battlefield piece 3: old roots snag whoever ends a move in them - no
+  // more moving until that unit's next turn (root decays at its turn start).
+  if (TERRAIN[terrainAt(next, targetPos)].snag) {
+    const arrived = getUnit(next, unitId)
+    next = setUnit(next, unitId, { root: Math.max(arrived.root || 0, 1) })
+    next = emit({ ...next, log: [...next.log, `${unit.name} is snagged in the roots.`] }, { kind: "reaction", unitId, label: "Snagged!" })
+  }
   const opposingSide = unit.side === "player" ? "enemy" : "player"
   // Fear Zone round: a unit that just moved from OUTSIDE an opposing
   // Fear Zone to a cell INSIDE one - the same "approaching from clean
@@ -2549,7 +2557,26 @@ const SUPPORT_KINDS = new Set(["heal", "aura-block", "shield-ally", "rally", "ta
 export function castAbility(state, actorId, targetId, skillId) {
   const who = getUnit(state, actorId)
   const skill = who ? (skillId ? classFx.classSkillById(who, skillId) : null) || who.ability : null
-  return colourFx.castWithColours(state, actorId, targetId, skill, (s) => talentFx.castWithTalents(s, actorId, targetId, skillId, castAbilityBase))
+  const out = colourFx.castWithColours(state, actorId, targetId, skill, (s) => talentFx.castWithTalents(s, actorId, targetId, skillId, castAbilityBase))
+  return out === state ? out : forestAfterCast(state, out, actorId, targetId, skill)
+}
+
+// Battlefield piece 3: an area spell strikes the forest too (tacticsForest
+// FOREST_SPELLS) - centred on the caster or on the target / chosen tile.
+function forestAfterCast(before, after, actorId, targetId, skill) {
+  const spec = forestSpell(skill?.id)
+  if (!spec || spec.delayed || after.phase === "won" || after.phase === "lost") return after
+  const caster = getUnit(after, actorId) || getUnit(before, actorId)
+  let center = caster?.pos
+  if (spec.shape === "target") {
+    const unit = targetId ? getUnit(before, targetId) : null
+    if (unit) center = unit.pos
+    else if (typeof targetId === "string" && /^\d+-\d+$/.test(targetId)) {
+      const [row, col] = targetId.split("-").map(Number)
+      center = { row, col }
+    } else if (targetId && typeof targetId === "object") center = { row: targetId.row, col: targetId.col }
+  }
+  return objects.forestSpellStrike(after, skill.id, center, caster?.pos, skill.radius)
 }
 
 function castAbilityBase(state, actorId, targetId, skillId) {
@@ -3051,7 +3078,7 @@ function enemyPhaseStart(state) {
   // unlike the two ticks below.
   // Combat depth: Defensive / Focus stances pay out as the turn ends.
   // Hero identity: Bulwark, Held Breath, Braced, Ethereal, Forage settle here.
-  const lavaBurned = applyLavaBurn(sigFx.sigPlayerTurnEnd(classFx.classPlayerTurnEnd(depth.playerTurnEnd(objTicked))), "player")
+  const lavaBurned = objects.forestTurnEnd(applyLavaBurn(sigFx.sigPlayerTurnEnd(classFx.classPlayerTurnEnd(depth.playerTurnEnd(objTicked))), "player"), "player")
   if (lavaBurned.phase !== "player") return lavaBurned
   const covened = applyCovenTick(relicFx.relicTurnEnd(lavaBurned, "player"))
   const mended = applyRotMendTick(covened)
@@ -4190,7 +4217,7 @@ export function runEnemyTurn(state) {
     next = begun.skip ? begun.state : decideAndActEnemy(begun.state, enemyId)
   }
   if (next.phase !== "enemy") return next
-  next = applyLavaBurn(next, "enemy")
+  next = objects.forestTurnEnd(applyLavaBurn(next, "enemy"), "enemy")
   if (next.phase !== "enemy") return next
   // Player AP AND Block reset exactly here - Block granted during a player
   // turn must survive through the FOLLOWING enemy turn (that's when it

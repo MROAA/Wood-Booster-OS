@@ -29,6 +29,8 @@ import { hasMana, profileOf, manaRole, gainExternal, burnMana, scaleAmount, reso
 import { roleOf } from "./tacticsRoles"
 import { enemySkillsFor } from "./tacticsEnemyAbilities"
 import { applyElement } from "./tacticsElements"
+import { forestSpellStrike } from "./tacticsObjects"
+import { forestSpell } from "./tacticsForest"
 
 export const ULT_MAX = 100
 // A hit this big (share of max HP) staggers a channeling enemy.
@@ -434,6 +436,11 @@ export function castHeroUltimate(state, unitId, targetId = null) {
       tiles.push(a.pos)
       if (heal > 0) next = emit(next, { kind: "heal", actorId: unitId, targetId: a.id, amount: heal })
     }
+  }
+  // Battlefield piece 3: earth-shaking / fiery ultimates strike the forest.
+  if (forestSpell(info.id) && !over(next)) {
+    const center = forestSpell(info.id).shape === "target" ? getUnit(state, targetId)?.pos : u.pos
+    next = forestSpellStrike(next, info.id, center, u.pos, info.radius)
   }
   const live = getUnit(next, unitId)
   if (live) {

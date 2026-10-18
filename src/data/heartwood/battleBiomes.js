@@ -12,7 +12,8 @@
 // toadstool, chanterelle, pebbles, fern, twig, berries, cone, mosstuft.
 // Colours are hex strings; weights are relative (0 = never).
 //
-// Pure presentation data - no game rules live here.
+// Mostly presentation data; `dressing` says WHICH forest pieces a fight's
+// field gets - their rules live in tacticsForest.js.
 
 export const BIOMES = {
   autumnwood: {
@@ -54,6 +55,18 @@ export const BIOMES = {
         moss: ["#4f6b2e", "#5d7d34", "#3f5a26"],
       },
     },
+    // Living forest pieces the battlefield generator scatters on open
+    // middle tiles (rules: tacticsForest.js; generator:
+    // tacticsRealMatchup.generateForestDressing). clumps = how many groups,
+    // size = tiles per group (orthogonal neighbours, so dry leaves flare
+    // across a whole clump). Blocking pieces never cut every route across.
+    dressing: [
+      { type: "leaves", clumps: [2, 3], size: [2, 3] },
+      { type: "moss", clumps: [1, 2], size: [2, 3] },
+      { type: "roots", clumps: [1, 2], size: [2, 2] },
+      { type: "stone", clumps: [1, 1], size: [1, 1] },
+      { type: "glowcap", clumps: [1, 2], size: [1, 1] },
+    ],
     ambient: {
       leaves: 6, // drifting leaves over the field
       fireflies: 14,
