@@ -6,8 +6,9 @@
 //   healed       -> joy face + line     Active Power fired this turn -> joy
 //   low HP       -> hurt face           won / lost -> victory / defeat
 //
-// Lines are rate-limited so a long fight never turns into chatter; victory
-// and defeat always get their line.
+// A Commander with Marc's painting shows the painting (default look) and
+// the same reactions play on it as CSS. Lines are rate-limited so a long
+// fight never turns into chatter; victory and defeat always get their line.
 
 import { useEffect, useRef, useState } from "react"
 import HeroAvatar from "./HeroAvatar"
@@ -89,13 +90,23 @@ export default function HeroToken({ unit, heroId, battle, speak = false }) {
     return () => clearTimeout(t)
   }, [bubble])
 
+  // Marc's own painting (characters.js `image`) wins in the default look;
+  // the reactions then play on the painting (hero-avatars.css .hwh-painted).
+  const skin = chosenSkinOf(heroId)
+  const paintedSrc = unit.image && skin === "default" ? unit.image : null
   const base = baseMood(unit, battle)
   const mood = base === "victory" || base === "defeat" ? base : flash || base
   return (
     <>
-      <div className="hwt-token-art" data-has-image="hero" data-hero-mood={mood}>
-        <HeroAvatar heroId={heroId} variant="battle" mood={mood} skin={chosenSkinOf(heroId)} />
-      </div>
+      {paintedSrc ? (
+        <div className="hwt-token-art" data-has-image="true" data-hero-mood={mood}>
+          <img className="hwt-token-img hwh-painted" src={paintedSrc} alt="" draggable={false} data-mood={mood} />
+        </div>
+      ) : (
+        <div className="hwt-token-art" data-has-image="hero" data-hero-mood={mood}>
+          <HeroAvatar heroId={heroId} variant="battle" mood={mood} skin={skin} />
+        </div>
+      )}
       {bubble && (
         <span key={bubble.key} className="hwh-bubble" data-moment={bubble.moment} data-hero-line={heroId}>
           {bubble.text}

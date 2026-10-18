@@ -21,7 +21,7 @@ import "./heartwood-road-screens.css"
 // "result line + Continue" - it hands off to DialogueScreen instead,
 // and THAT screen's own accumulated effects/summary flow back through
 // onResolve's optional 2nd/3rd arguments once the conversation ends.
-export default function EventScreen({ event, onResolve, previewLines }) {
+export default function EventScreen({ event, onResolve, previewLines, blockedReason }) {
   const [chosen, setChosen] = useState(null)
   // Stage B of the free-positioning initiative (the Market screen's
   // own round is fully complete) - re-checked live before assuming the
@@ -95,7 +95,8 @@ export default function EventScreen({ event, onResolve, previewLines }) {
                 marginBottom: 6,
               }}
             >
-              An Event
+              {/* A story thread names itself (e.g. the Lost Expedition). */}
+              {event.tag || "An Event"}
             </div>
 
             <EditInStudioLink type="events" id={event.id} />
@@ -112,19 +113,29 @@ export default function EventScreen({ event, onResolve, previewLines }) {
           "choiceArea",
           chosen == null ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20, maxWidth: 620 }}>
-              {event.choices.map((c, i) => (
-                <button
-                  key={i}
-                  className="hw-move-btn hw-event-choice"
-                  style={{ textAlign: "left", padding: "12px 16px", lineHeight: 1.4 }}
-                  onClick={() => setChosen(i)}
-                >
-                  <span className="hw-event-choice-num" aria-hidden="true">
-                    {i + 1}
-                  </span>
-                  <span className="hw-event-choice-label">{c.label}</span>
-                </button>
-              ))}
+              {event.choices.map((c, i) => {
+                // A choice can be locked (e.g. trading a rune you don't carry).
+                const blocked = blockedReason?.(c) || null
+                return (
+                  <button
+                    key={i}
+                    className="hw-move-btn hw-event-choice"
+                    style={{ textAlign: "left", padding: "12px 16px", lineHeight: 1.4 }}
+                    onClick={() => setChosen(i)}
+                    disabled={!!blocked}
+                    data-blocked={blocked ? "true" : undefined}
+                    title={blocked || undefined}
+                  >
+                    <span className="hw-event-choice-num" aria-hidden="true">
+                      {i + 1}
+                    </span>
+                    <span className="hw-event-choice-label">
+                      {c.label}
+                      {blocked && <small className="hw-event-choice-blocked"> - {blocked}</small>}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           ) : (
             <motion.div

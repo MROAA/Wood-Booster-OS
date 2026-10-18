@@ -248,3 +248,29 @@ svg.hwh-avatar.hwh-avatar { stroke: none; color: inherit; }
   width: 100%;
   height: 100%;
 }
+
+/* Marc's own Commander paintings react too (HeroToken / CommanderArt). */
+img.hw-commander-look-art { border-radius: 50%; object-fit: cover; display: block; }
+img[data-commander-image][data-mood="joy"],
+img[data-commander-image][data-mood="victory"],
+.hwh-painted[data-mood="joy"],
+.hwh-painted[data-mood="victory"] {
+  animation: hwh-hop 0.6s ease-out 1;
+  filter: brightness(1.12) saturate(1.1);
+}
+.hwh-painted[data-mood="hurt"] {
+  animation: hwh-shake 0.45s ease-in-out 1;
+  filter: sepia(0.35) hue-rotate(-25deg) saturate(1.6);
+}
+img[data-commander-image][data-mood="defeat"],
+.hwh-painted[data-mood="defeat"] {
+  filter: grayscale(0.85) brightness(0.75);
+}
+.hw-reduce-motion .hwh-painted, .hw-reduce-motion img[data-commander-image] { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .hwh-painted, img[data-commander-image] { animation: none !important; }
+}
+/* Marc's paintings get the same gold medallion ring as the drawn heroes. */
+.hw-commander-select .hw-commander-portrait[data-has-image] {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hw-goldleaf, #d8b25a) 70%, transparent), 0 4px 12px rgba(0, 0, 0, 0.55);
+}

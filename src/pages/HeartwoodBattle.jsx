@@ -104,7 +104,7 @@ import { unlockHeroSkin, chooseHeroSkin, setActiveHeroSkins } from "../services/
 import GuildHallScreen from "../components/heartwood/GuildHallScreen"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
-import { carveRune } from "../services/heartwood/runRunes"
+import { carveRune, runePouch } from "../services/heartwood/runRunes"
 import AutoBattleView from "../components/heartwood/AutoBattleView"
 import RelicChoice from "../components/heartwood/RelicChoice"
 import FloorChoice from "../components/heartwood/FloorChoice"
@@ -1494,7 +1494,12 @@ function HeartwoodBattleScreens() {
       <div className="hw-root hw-screen-fade" style={rootStyle} key="event">
         {changeCharacterBar}
         {neutralBanner}
-        <EventScreen event={eventForNode(runState)} onResolve={handleResolveEvent} previewLines={(i) => previewEventMutations(runState, i)} />
+        <EventScreen
+          event={eventForNode(runState)}
+          onResolve={handleResolveEvent}
+          previewLines={(i) => previewEventMutations(runState, i)}
+          blockedReason={(c) => (c.needsRune && !runePouch(runState).length ? "you carry no runes" : null)}
+        />
       </div>
     )
   }

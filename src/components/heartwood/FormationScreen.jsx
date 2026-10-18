@@ -1,6 +1,7 @@
 import { UNITS } from "../../data/heartwood/units"
 import FightFates from "./FightFates"
 import RunePouch from "./RunePouch"
+import ForestRegard from "./ForestRegard"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { CHARACTERS } from "../../data/heartwood/characters"
 import { resolveFormation } from "../../data/heartwood/formations"
@@ -242,7 +243,7 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
         // assigns/reorders, so it's shown but never clickable.
         const commander = CHARACTERS[runState.characterId]
         const previewCommander = { id: "commander-preview", name: commander?.name, hp: Math.max(1, Math.round((commander?.maxHp || 0) * commanderHpPct(runState))), maxHp: commander?.maxHp, block: 0, intent: null, powers: {} }
-        content = <EnemyPieceCard enemy={previewCommander} art={commander?.art} side="player" />
+        content = <EnemyPieceCard enemy={previewCommander} art={commander?.art} image={commander?.image} side="player" />
       } else if (slotIndex !== -1) {
         const benchKey = runState.deployed[slotIndex]
         const entry = benchKey !== null ? runState.bench.find((e) => e.key === benchKey) : null
@@ -699,6 +700,8 @@ export default function FormationScreen({ runState, node, onAssign, onClear, onS
           real fight too (resolveRealMatchup allows it). */}
       {tacticsMatchup ? (
         <>
+          {/* Forest creatures: how the forest sees you (its Wardens act on it). */}
+          <ForestRegard runState={runState} />
           {/* Runes (First Song PRD §4): carve one into this fight. */}
           <RunePouch runState={runState} onCarve={onCarveRune} />
           <button className="hw-end-turn hw-tactics-start" onClick={onStartTacticsBattle} style={{ marginTop: 16 }}>

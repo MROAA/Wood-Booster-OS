@@ -146,6 +146,28 @@ export const FATES = {
     wait: 0,
     resolvedText: "The tide goes back out.",
   },
+  // Lost Expedition (First Song PRD §5).
+  "barrow-wight-rival": {
+    id: "barrow-wight-rival",
+    kind: "rival",
+    title: "The Shieldmaiden Wakes",
+    text: "She was promised enemies forever, and you opened her barrow. On your second fight from here, she comes for you. Beat her for 180 Essence.",
+    rivalName: "the Barrow Shieldmaiden",
+    enemy: "bonewarden",
+    wait: 1,
+    bounty: 180,
+    resolvedText: "She lies down at last. Her promise is kept: she had her enemy.",
+  },
+  "seers-heir-ally": {
+    id: "seers-heir-ally",
+    kind: "ally",
+    title: "The Seer's Heir",
+    text: "On your next fight, the seers' heir stands with you.",
+    unit: "the-magician",
+    allyName: "Seer's Heir",
+    wait: 0,
+    resolvedText: "She saw what she came to see, and went back into the trees.",
+  },
   "lantern-thread": {
     id: "lantern-thread",
     kind: "thread",

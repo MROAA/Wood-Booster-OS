@@ -63,15 +63,18 @@ const sel = await page.evaluate(() => {
   const cards = [...document.querySelectorAll(".hw-commander-card")]
   return {
     n: cards.length,
-    heroes: cards.map((c) => c.querySelector(".hw-commander-portrait .hwh-avatar")?.dataset.hero || null),
+    heroes: cards.map((c) => c.querySelector(".hw-commander-portrait .hwh-avatar")?.dataset.hero || c.querySelector(".hw-commander-portrait img[data-commander-image]")?.dataset.commanderImage || null),
+    painted: cards.map((c) => c.querySelector(".hw-commander-portrait img[data-commander-image]")?.dataset.commanderImage).filter(Boolean),
+    tommyDefaultThumb: !!document.querySelector('.hw-commander-look[data-skin-id="default"] img[data-commander-image="tommy"]'),
     roles: cards.map((c) => c.querySelector(".hw-commander-role")?.textContent || ""),
     traits: cards.filter((c) => c.querySelector(".hw-commander-traits")).length,
     looks: document.querySelectorAll(".hw-commander-looks").length,
-    size: (() => { const r = cards[0].querySelector(".hwh-avatar").getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] })(),
+    size: (() => { const r = cards[1].querySelector(".hwh-avatar").getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] })(),
     nested: document.querySelectorAll(".hw-commander-card button").length,
   }
 })
-ok("7 Commander cards, each with its drawn hero", sel.n === 7 && sel.heroes.every(Boolean) && new Set(sel.heroes).size === 7, JSON.stringify(sel.heroes))
+ok("7 Commander cards, each with its hero art", sel.n === 7 && sel.heroes.every(Boolean) && new Set(sel.heroes).size === 7, JSON.stringify(sel.heroes))
+ok("Marc's own Tommy painting wins in the default look (card + looks thumbnail)", sel.painted.length === 1 && sel.painted[0] === "tommy" && sel.tommyDefaultThumb, JSON.stringify(sel.painted))
 ok("role + energy chip and traits on every card", sel.roles.every((r) => r.includes("·")) && sel.traits === 7, JSON.stringify(sel.roles))
 ok("hero portrait fills the 89px medallion", sel.size[0] >= 85 && sel.size[1] >= 85, JSON.stringify(sel.size))
 ok("a looks row under every card, no button nested in a button", sel.looks === 7 && sel.nested === 0, `looks=${sel.looks} nested=${sel.nested}`)
@@ -79,17 +82,17 @@ await page.screenshot({ path: ".scratch/shots/hero_select.png" })
 const tommyCard = page.locator(".hw-commander-card").filter({ hasText: "Tommy" })
 await tommyCard.hover()
 await page.waitForTimeout(250)
-const hov = await tommyCard.evaluate((c) => ({ mood: c.querySelector(".hwh-avatar").dataset.mood, quote: c.querySelector(".hw-commander-tagline").textContent }))
+const hov = await tommyCard.evaluate((c) => ({ mood: c.querySelector(".hw-commander-portrait [data-mood]").dataset.mood, quote: c.querySelector(".hw-commander-tagline").textContent }))
 ok("hover: Tommy smiles and speaks his own line", hov.mood === "joy" && hov.quote.includes("weak spots"), JSON.stringify(hov))
 await page.screenshot({ path: ".scratch/shots/hero_select_hover.png", clip: { x: 0, y: 0, width: 1536, height: 864 } })
 const tommySlot = page.locator(".hw-commander-slot").filter({ hasText: "Tommy" })
 await tommySlot.locator('.hw-commander-look[data-skin-id="ember"]').click()
 await page.waitForTimeout(300)
-const bought = await page.evaluate(() => ({ meta: JSON.parse(localStorage.getItem("heartwood-meta-v1")), worn: document.querySelector('.hw-commander-slot .hw-commander-look[data-worn]')?.dataset.skinId, portraitSkin: document.querySelector(".hw-commander-portrait .hwh-avatar").dataset.skin }))
+const bought = await page.evaluate(() => ({ meta: JSON.parse(localStorage.getItem("heartwood-meta-v1")), worn: document.querySelector('.hw-commander-slot .hw-commander-look[data-worn]')?.dataset.skinId, portraitSkin: document.querySelector(".hw-commander-portrait .hwh-avatar")?.dataset.skin }))
 ok("buying Emberwhisker: -40 Acorns, saved, worn on the card", bought.meta.acorns === 60 && bought.meta.heroSkins?.chosen?.tommy === "ember" && bought.portraitSkin === "ember", JSON.stringify({ a: bought.meta.acorns, hs: bought.meta.heroSkins, p: bought.portraitSkin }))
 await page.reload()
 await page.waitForSelector(".hw-commander-card")
-const persisted = await page.evaluate(() => document.querySelector(".hw-commander-portrait .hwh-avatar").dataset.skin)
+const persisted = await page.evaluate(() => document.querySelector(".hw-commander-portrait .hwh-avatar")?.dataset.skin)
 ok("the chosen look survives a reload", persisted === "ember", persisted)
 
 // 3. Battle: Commander token is the drawn hero, speaks at the start.
@@ -122,6 +125,28 @@ ok("battle: Tommy says his opening line", bt.bubble && bt.bubble.includes("weak 
 ok("battle: the drawn hero fills the token (>=40px)", bt.size && bt.size[0] >= 40, JSON.stringify(bt.size))
 ok("battle: squad heroes keep their own art (only the Commander is drawn)", bt.others === 0)
 await page.screenshot({ path: ".scratch/shots/hero_battle.png" })
+// Back to the default look: the board shows Marc's painting, still speaking.
+await page.evaluate(async () => {
+  const E = await import("/src/services/heartwood/runEngine.js")
+  const bench = ["the-fool", "the-magician", "the-chariot"].map((defId, i) => ({ key: i, defId, upgradeLevel: 0, upgrades: [] }))
+  const rs = E.chooseFloorEncounter(E.leaveShop({ ...E.startRun("tommy", null, { forcedSeed: 424243 }), bench, deployed: [0, 1, 2, null], benchKeyCounter: 3 }), 0)
+  localStorage.setItem("heartwood-run-save-v1", JSON.stringify(E.serializeRun(rs)))
+  const m = JSON.parse(localStorage.getItem("heartwood-meta-v1"))
+  m.heroSkins.chosen.tommy = "default"
+  localStorage.setItem("heartwood-meta-v1", JSON.stringify(m))
+})
+await page.reload()
+await page.waitForTimeout(1500)
+await page.locator(".hw-tactics-start").click()
+await page.waitForTimeout(1200)
+if (await page.locator(".hwt-begin-battle").count()) await page.locator(".hwt-begin-battle").click()
+await page.waitForTimeout(700)
+const painted = await page.evaluate(() => {
+  const tok = document.querySelector('.hwt-token[data-unit-id="player-commander"]')
+  return { img: !!tok?.querySelector("img.hwh-painted"), drawn: !!tok?.querySelector(".hwh-avatar"), bubble: tok?.querySelector(".hwh-bubble")?.textContent || null }
+})
+ok("battle, default look: Marc's Tommy painting on the board, and Tommy still speaks", painted.img && !painted.drawn && painted.bubble && painted.bubble.includes("weak spots"), JSON.stringify(painted))
+await page.screenshot({ path: ".scratch/shots/hero_battle_painted.png" })
 const moods = await page.evaluate(async () => {
   const T = await import("/src/components/heartwood/HeroToken.jsx")
   const u = { hp: 50, maxHp: 60, side: "player", id: "player-commander", art: "fox" }

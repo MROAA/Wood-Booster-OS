@@ -1751,7 +1751,7 @@ export default function SquadDraft({
                Market Level widget above. */
             <div className="hw-commander-cluster">
               <span className="hw-badge" title={commander?.description}>
-                <CommanderArt character={commander} className="hw-intent-glyph" />
+                <CommanderArt character={commander} className="hw-intent-glyph" imgClassName="hw-commander-badge-img" />
                 {commander?.name} · Rank {commanderRank}
               </span>
               <span

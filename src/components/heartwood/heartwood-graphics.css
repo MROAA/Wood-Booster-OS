@@ -981,3 +981,34 @@ html body .hw-layout-tools-toggle {
   transform: translate(-50%, -100%);
   transform-origin: 50% 100%;
 }
+
+/* ---------- Raised ground (high ground as mounds) ----------
+   The mound itself is drawn under the cells by ForestFloor.jsx HillLayer
+   (continuous across tile gaps). The tile stays clear so the hill shows,
+   and a hero standing on it is lifted - height reads at a glance. */
+.hwt-board .hwt-cell[data-art="high"],
+.hwt-board .hwt-cell[data-terrain="high"] {
+  --hwt-tile: linear-gradient(transparent, transparent);
+  --hwt-tile-pattern: linear-gradient(transparent, transparent);
+  --hwt-mark: "";
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: var(--hwt-ring);
+  z-index: auto;
+}
+.hwt-board .hwt-cell[data-terrain="high"] > .hwt-token {
+  /* lifted 7px (the token is absolutely placed with inset 3px; moving the
+     box, not translate - the strike animation owns translate) */
+  inset: -4px 3px 10px 3px;
+}
+.hwt-board .hwt-cell[data-terrain="high"] > .hwt-token::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -13px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(rgba(0, 0, 0, 0.5), transparent 70%);
+  pointer-events: none;
+}

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import CommanderArt from "./CommanderArt"
-import HeroAvatar from "./HeroAvatar"
+import CommanderArt, { commanderShowsImage } from "./CommanderArt"
 import { HEROES, HERO_SKIN_COST } from "../../data/heartwood/heroes"
 import { isSkinUnlocked, normalizeHeroSkins } from "../../services/heartwood/heroSkins"
 import { MEMORY_ESSENCE_BONUS } from "../../services/heartwood/runEngine"
@@ -188,8 +187,12 @@ export default function CommanderSelect({
                       handlePick(character.id)
                     }}
                   >
-                    <span className="hw-commander-portrait" data-hero-art={hero ? "true" : undefined}>
-                      <CommanderArt character={character} variant="round" mood={mood} skin={wornSkin} className="hw-commander-glyph" />
+                    <span
+                      className="hw-commander-portrait"
+                      data-has-image={commanderShowsImage(character, wornSkin) ? "true" : undefined}
+                      data-hero-art={hero && !commanderShowsImage(character, wornSkin) ? "true" : undefined}
+                    >
+                      <CommanderArt character={character} variant="round" mood={mood} skin={wornSkin} className="hw-commander-glyph" imgClassName="hw-commander-portrait-img" />
                     </span>
                     <strong className="hw-commander-name">{character.name}</strong>
                     {hero && (
@@ -238,7 +241,7 @@ export default function CommanderSelect({
                             }
                             onClick={() => (owned ? onChooseSkin?.(character.id, skinId) : onUnlockSkin?.(character.id, skinId))}
                           >
-                            <HeroAvatar heroId={character.id} skin={skinId} variant="round" className="hw-commander-look-art" />
+                            <CommanderArt character={character} skin={skinId} variant="round" className="hw-commander-look-art" />
                             {!owned && <span className="hw-commander-look-price">{HERO_SKIN_COST} {"\u{1F33F}"}</span>}
                           </button>
                         )

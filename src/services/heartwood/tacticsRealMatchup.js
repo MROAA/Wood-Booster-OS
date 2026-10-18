@@ -17,6 +17,7 @@
 // one call. This module never imports saveRunSave or anything else that
 // could write - there is no path from here back into the real run.
 import { withRuneArrivals } from "./tacticsRunes"
+import { withForestWardens, withShapeshifter } from "./tacticsCreatures"
 import { carvedRuneId } from "./runRunes"
 import { loadRunSave } from "./runSaveState"
 import { deserializeRun, RUN_PATH, actIndexForNode, DIFFICULTY_TIERS } from "./runEngine"
@@ -312,7 +313,17 @@ export function buildRunTacticsBattle(runState, start) {
   // the rival is scaled and smart like the rest).
   const fated0 = built ? withFateArrivals(built, runState, start.difficultyFactor) : built
   // Runes: a carved rune's cost can bring a unit (Growth's beast, Echo's echo) - before the threat tier too.
-  const fated = fated0 ? withRuneArrivals(fated0, carvedRuneId(runState)) : fated0
+  const runed = fated0 ? withRuneArrivals(fated0, carvedRuneId(runState)) : fated0
+  // Forest creatures (First Song PRD §6): Wardens answer the forest's regard;
+  // from Act II a Shapeshifter may hide among the trees.
+  const fated = runed
+    ? withShapeshifter(withForestWardens(runed, runState.regard), {
+        seed: runState.seed,
+        nodeIndex: runState.nodeIndex,
+        act: actIndexForNode(runState.nodeIndex, RUN_PATH.length),
+        kind: node?.type || "battle",
+      })
+    : runed
   const threatened = fated ? applyDifficulty(fated, difficultyForRunNode(runState, runState.nodeIndex, start.difficultyFactor)) : fated
   // Combat depth sprint: stances, combos, reactions, Delay/Stagger on.
   // Between-fights mana: build-set tiers, camp Commune, mana-tide fates.

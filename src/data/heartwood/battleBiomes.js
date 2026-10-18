@@ -28,6 +28,8 @@ export const BIOMES = {
       moss: [0.24, 0.32, 0.15], // rgb 0-1 of the moss blots
       litter: [0.42, 0.24, 0.1], // rgb 0-1 of the copper leaf-litter blots
       light: "255, 214, 140", // rgb of the canopy light / sun shafts
+      // raised ground (high ground tiles) - ForestFloor.jsx HillLayer
+      hill: { top: ["#5c6a38", "#46522c"], lit: "#b3bf7a", shade: "#141b0e", cliff: ["#6a4a2c", "#33241a"], strata: "#24180d" },
     },
     detail: {
       density: 0.78, // share of empty tiles that get at least one detail
