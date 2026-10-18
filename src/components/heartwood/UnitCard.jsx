@@ -13,7 +13,6 @@ import HeroIdentityRow from "./HeroIdentityRow"
 import { CLASS_GROUPS, classById } from "../../data/heartwood/classes"
 import { signatureAbilityForDef } from "../../services/heartwood/tacticsEngine"
 import { unitStrength } from "../../services/heartwood/unitStrength"
-import { arcanaNumeral } from "../../data/heartwood/arcana"
 import { describeAbility, signatureUpgrades, SIGNATURE_SKILL_KEY } from "../../services/heartwood/tacticsAbilities"
 import "./heartwood-cards.css"
 import "./fusion-reward.css"
@@ -311,13 +310,6 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
         <img src={def.image} alt="" className="hw-card-portrait" />
       ) : (
         <CardGlyph name={def.art} className="hw-card-art" />
-      )}
-      {/* Tarot: the Major Arcana numeral in a small cartouche at the top
-          (data/heartwood/arcana.js) - only arcana heroes carry one. */}
-      {arcanaNumeral(def) != null && (
-        <span className="hw-card-arcana" title={`Major Arcana ${arcanaNumeral(def)}`}>
-          {arcanaNumeral(def)}
-        </span>
       )}
       <div className="hw-card-name">
         {def.name}

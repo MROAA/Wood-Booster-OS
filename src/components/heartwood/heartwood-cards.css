@@ -532,7 +532,7 @@
    What makes a card read as tarot, kept calm:
    - a double frame: the card's border + a fine inner hairline
    - four small corner ornaments (lichen-gold diamonds)
-   - the Major Arcana numeral in a cartouche at the top (arcana.js)
+   (Major Arcana numerals were tried and removed - Marc: "turha")
    Tier 2 / Tier 3 keep their silver / gold border; the inner line and
    ornaments follow it. */
 .hw-card.hw-card:not(.hw-item-card) {
@@ -553,29 +553,6 @@
 .hw-card.hw-card[data-fusion-tier="2"] { --tarot-line: rgba(201, 210, 220, 0.5); }
 .hw-card.hw-card[data-fusion-tier="3"] { --tarot-line: rgba(231, 194, 122, 0.65); }
 
-/* the numeral's cartouche, on the top edge of the art */
-.hw-card-arcana {
-  order: -3;
-  position: absolute;
-  top: 1px;
-  left: 50%;
-  translate: -50% 0;
-  z-index: 2;
-  min-width: 26px;
-  padding: 1px 9px 2px;
-  border-radius: 0 0 9px 9px;
-  border: 1px solid var(--tarot-line, rgba(205, 180, 122, 0.4));
-  border-top: 0;
-  background: linear-gradient(180deg, #1d2316, #12160d);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
-  font-family: var(--hw-font-display);
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  font-variant-numeric: lining-nums; /* "0" (The Fool) as a figure, not an "o" */
-  text-align: center;
-  color: #e9d9a6;
-  text-shadow: 0 0 6px rgba(231, 194, 122, 0.4);
-}
 
 /* ---------- Turning the cards (Marc: "esteettisesti hienot ja hyvin
    animoidut tarot inspiroidut kortit jotka tuntuvat kuin korteilta") ----------
