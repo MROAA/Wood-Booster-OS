@@ -195,6 +195,11 @@ Headquarters stays calm: if something is a trade, it does not go there.
   and draw it with `<UiTitle k="..." />` — editable in Studio.
 - **A colour / size / speed**: add a `--hw-ui-*` / `--hw-card-*` token on
   `.hw-root` (heartwood.css) and a slider/swatch in Studio's ThemePanel.
+- **A between-fight screen** (event, camp, path choice, rest...): give its
+  root the class `hw-road-panel` (or add it to the shared selector list at the
+  top of `heartwood-road-screens.css`) - it gets the road tokens and the calm
+  forest reading panel in one go; its own block sets only size, spacing and
+  what is particular to it. Never copy the panel styles.
 - **A check**: extend `.scratch/verify_market_table.mjs` /
   `verify_hq_between_fights.mjs` / `verify_fusion.mjs`.
 
@@ -213,6 +218,10 @@ käyttää kokonaisvaltaisesti päämajan kehittämisessä".
   the build's reading lines; the merchant's line; the road-ahead list; the
   Market's next-tier and "+N more" hints.
 - Equipping an item shows every gear row automatically, so you can place it.
+- **How it opens**: the details unfold one row after another (card: level →
+  identity → traits → class → tags → rarity), each sliding a few pixels and
+  sharpening from a soft blur on a gently settling ease; closing is quick and
+  all at once. Delays are `--reveal-delay` per piece in heartwood-reveal.css.
 - **One file**: `src/components/heartwood/heartwood-reveal.css`. For anything
   new, use the pattern in JSX - `<div className="hw-reveal">...<div
   className="hw-reveal-more">details</div></div>` - or add the piece's class

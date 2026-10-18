@@ -183,7 +183,7 @@ export default function UnitCard({ def, selected, disabled, onClick, role, bent,
 
   return (
     <motion.div
-      className={`hw-card hw-card--${(primaryRole && primaryRole.card) || ROLE_ACCENT[effectiveRole] || "skill"}`}
+      className={`hw-card hw-unit-card hw-card--${(primaryRole && primaryRole.card) || ROLE_ACCENT[effectiveRole] || "skill"}`}
       data-disabled={!!disabled}
       data-selected={!!selected}
       data-portrait={!!def.image}

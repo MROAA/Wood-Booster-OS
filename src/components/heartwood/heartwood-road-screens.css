@@ -1,0 +1,411 @@
+/* The road between fights - event, camp and path-choice screens in the
+   Nordic forest theme (docs/hearthwood-visual-theme.md).
+
+   Marc: "jatkaa käyttöliittymän kehittämistä selkeämmäksi ja hienommaksi
+   ... hyvin polished ja selkeä käyttää" + "loogisesti pala palalta".
+   Same language as Headquarters and the Market: a calm forest-floor
+   reading panel over the art, lichen text, one gold accent, plaques for
+   choices. Built piece by piece - piece 1: the event screen. */
+
+/* ---------- The shared road panel: ONE definition ----------
+   Every between-fight screen joins this list (or uses class
+   "hw-road-panel" on its root) and gets the tokens + the calm forest
+   reading panel. A screen's own block below only sets its size/spacing
+   and what is particular to it. */
+.hw-road-panel,
+.hw-intro.hw-event,
+.hw-intro.hw-camp,
+.hw-intro.hw-route-screen {
+  --road-gold: var(--hw-ui-accent, #cdb47a);
+  --road-moss: var(--hw-ui-leaf, #8fb07a);
+  --road-text: var(--hw-ui-text, #e8e2c8);
+  --road-panel: var(--hw-ui-panel, #0f130c);
+  box-sizing: border-box;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--road-moss) 28%, transparent);
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, var(--road-gold) 7%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--road-panel) 92%, transparent), color-mix(in srgb, var(--road-panel) 96%, transparent));
+  box-shadow: inset 0 1px 0 rgba(232, 226, 200, 0.06), 0 24px 60px -24px rgba(0, 0, 0, 0.9);
+  color: var(--road-text);
+}
+
+/* ---------- Piece 1: the event ---------- */
+.hw-intro.hw-event {
+  max-width: 760px;
+  margin: 28px auto 0;
+  padding: 26px 34px 30px;
+}
+/* the "An Event" eyebrow and the title */
+.hw-intro.hw-event h1 {
+  font-family: var(--hw-font-display);
+  font-size: 32px !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 4px 0 14px !important;
+  color: #f2ead0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+.hw-intro.hw-event .hw-flavor {
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+  color: color-mix(in srgb, var(--road-text) 86%, transparent);
+  max-width: none !important;
+}
+
+/* choices: dark plaques with a number stone; hover lifts, turns gold
+   and shows an arrow */
+.hw-intro.hw-event .hw-move-btn.hw-event-choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: none;
+  padding: 13px 44px 13px 14px !important;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--road-gold) 28%, transparent);
+  background:
+    linear-gradient(180deg, rgba(232, 226, 200, 0.05), transparent 55%),
+    rgba(10, 13, 8, 0.92);
+  color: var(--road-text);
+  font-size: 15px;
+  font-weight: 500;
+  text-shadow: none;
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 8px 16px -8px rgba(0, 0, 0, 0.8);
+  transition: translate 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.hw-intro.hw-event .hw-move-btn.hw-event-choice::after {
+  content: "→";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  translate: -6px -50%;
+  opacity: 0;
+  color: var(--road-gold);
+  font-size: 18px;
+  transition: translate 0.15s ease, opacity 0.15s ease;
+}
+.hw-intro.hw-event .hw-move-btn.hw-event-choice:hover,
+.hw-intro.hw-event .hw-move-btn.hw-event-choice:focus-visible {
+  translate: 0 -2px;
+  border-color: var(--road-gold);
+  background:
+    radial-gradient(ellipse 60% 120% at 0% 50%, color-mix(in srgb, var(--road-gold) 12%, transparent), transparent 70%),
+    rgba(14, 18, 11, 0.95);
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 14px 22px -10px rgba(0, 0, 0, 0.85), 0 0 14px color-mix(in srgb, var(--road-gold) 22%, transparent);
+}
+.hw-intro.hw-event .hw-move-btn.hw-event-choice:hover::after,
+.hw-intro.hw-event .hw-move-btn.hw-event-choice:focus-visible::after {
+  translate: 0 -50%;
+  opacity: 1;
+}
+.hw-event-choice-num {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f3d98e, #b88a32 60%, #6e4f17);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  font-family: var(--hw-font-body, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff8e6;
+  text-shadow: 0 1px 2px #1a0e04;
+}
+.hw-event-choice-label {
+  line-height: 1.4;
+}
+
+/* the outcome: moss rule on the left, then a gold-edged Continue */
+.hw-intro.hw-event .hw-event-mutation {
+  color: color-mix(in srgb, var(--road-moss) 90%, #fff);
+}
+.hw-intro.hw-event .hw-move-btn.hw-event-continue {
+  padding: 11px 26px !important;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--road-gold) 60%, transparent);
+  background: linear-gradient(180deg, rgba(40, 46, 26, 0.95), rgba(20, 24, 13, 0.95));
+  color: #f2ead0;
+  font-family: var(--hw-font-display);
+  font-size: 17px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 8px 18px -8px rgba(0, 0, 0, 0.85);
+  transition: translate 0.15s ease, border-color 0.15s ease;
+}
+.hw-intro.hw-event .hw-move-btn.hw-event-continue:hover {
+  translate: 0 -2px;
+  border-color: var(--road-gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-intro.hw-event .hw-move-btn { transition: none; }
+}
+/* choices and outcome use the panel's full width (the old inline 620px cap) */
+.hw-intro.hw-event div:has(> .hw-event-choice),
+.hw-intro.hw-event div:has(> .hw-event-continue) {
+  max-width: none !important;
+}
+
+/* ---------- Piece 2: the camp ---------- */
+.hw-intro.hw-camp {
+  max-width: 1160px;
+  margin: 24px auto 0;
+  padding: 24px 30px 26px;
+  background:
+    radial-gradient(ellipse 50% 60% at 50% 110%, rgba(232, 140, 60, 0.12), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--road-panel) 92%, transparent), color-mix(in srgb, var(--road-panel) 96%, transparent));
+}
+.hw-intro.hw-camp .hw-camp-head {
+  align-items: center;
+  margin-bottom: 18px;
+}
+.hw-intro.hw-camp .hw-camp-fire {
+  width: 42px;
+  height: 42px;
+  color: #f0a060;
+  filter: drop-shadow(0 0 10px rgba(240, 140, 60, 0.7));
+  animation: hw-camp-flicker 2.6s ease-in-out infinite alternate;
+}
+@keyframes hw-camp-flicker {
+  0% { opacity: 0.85; scale: 1; }
+  45% { opacity: 1; scale: 1.05; }
+  100% { opacity: 0.92; scale: 0.98; }
+}
+.hw-intro.hw-camp .hw-camp-title {
+  font-family: var(--hw-font-display);
+  font-size: 32px;
+  margin: 0;
+  color: #f2ead0;
+}
+.hw-intro.hw-camp .hw-camp-flavor {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--road-text) 82%, transparent);
+}
+.hw-intro.hw-camp .hw-camp-counter-pip {
+  border-color: var(--road-gold);
+}
+.hw-intro.hw-camp .hw-camp-counter-pip[data-on] {
+  background: radial-gradient(circle at 35% 30%, #f3d98e, #b88a32 70%);
+  box-shadow: 0 0 6px rgba(231, 194, 122, 0.6);
+}
+.hw-intro.hw-camp .hw-camp-counter-text {
+  color: var(--road-gold);
+}
+
+/* the five things you can do by the fire: plaques with an icon stone */
+.hw-intro.hw-camp .hw-camp-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+.hw-intro.hw-camp .hw-card.hw-camp-card {
+  align-items: center;
+  gap: 8px;
+  padding: 18px 14px 16px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--road-gold) 26%, transparent);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(232, 226, 200, 0.05), transparent 70%),
+    rgba(10, 13, 8, 0.92);
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 10px 18px -8px rgba(0, 0, 0, 0.85);
+  text-align: center;
+  transition: translate 0.15s ease, border-color 0.15s ease, opacity 0.2s ease;
+}
+.hw-intro.hw-camp .hw-card.hw-camp-card:not([data-done]):not([data-disabled]):hover {
+  translate: 0 -3px;
+  border-color: var(--road-gold);
+}
+.hw-intro.hw-camp .hw-camp-card-glyph {
+  width: 30px;
+  height: 30px;
+  padding: 12px;
+  border-radius: 50%;
+  color: #fff3d6;
+  background: radial-gradient(circle at 35% 30%, rgba(231, 194, 122, 0.55), rgba(110, 79, 23, 0.6) 65%, rgba(30, 22, 8, 0.8));
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.hw-intro.hw-camp .hw-camp-card .hw-card-name {
+  font-family: var(--hw-font-display);
+  font-size: 18px;
+  color: #f2ead0;
+}
+.hw-intro.hw-camp .hw-camp-card .hw-card-desc {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--road-text) 72%, transparent);
+}
+.hw-intro.hw-camp .hw-camp-status {
+  font-size: 11.5px;
+  color: color-mix(in srgb, var(--road-moss) 90%, #fff);
+}
+.hw-intro.hw-camp .hw-camp-card[data-done] {
+  opacity: 0.6;
+  border-color: color-mix(in srgb, var(--road-moss) 45%, transparent);
+}
+.hw-intro.hw-camp .hw-camp-card[data-disabled]:not([data-done]) {
+  opacity: 0.45;
+}
+.hw-intro.hw-camp .hw-camp-do {
+  margin-top: auto;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--road-gold) 55%, transparent);
+  background: linear-gradient(180deg, rgba(40, 46, 26, 0.95), rgba(20, 24, 13, 0.95));
+  color: #f2ead0;
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 0.15s ease, translate 0.15s ease;
+}
+.hw-intro.hw-camp .hw-camp-do:not(:disabled):hover {
+  border-color: var(--road-gold);
+  translate: 0 -1px;
+}
+.hw-intro.hw-camp .hw-camp-log {
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border-left: 2px solid var(--road-moss);
+  background: rgba(8, 11, 6, 0.6);
+  font-size: 13px;
+  color: color-mix(in srgb, var(--road-text) 85%, transparent);
+}
+.hw-intro.hw-camp .hw-camp-foot {
+  margin-top: 18px;
+  align-items: center;
+}
+.hw-intro.hw-camp .hw-end-turn.hw-camp-leave {
+  padding: 11px 26px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--road-gold) 60%, transparent);
+  background: linear-gradient(180deg, rgba(40, 46, 26, 0.95), rgba(20, 24, 13, 0.95));
+  color: #f2ead0;
+  font-family: var(--hw-font-display);
+  font-size: 17px;
+  text-shadow: none;
+}
+.hw-intro.hw-camp .hw-camp-commander {
+  font-style: italic;
+  color: color-mix(in srgb, var(--road-text) 60%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-intro.hw-camp .hw-camp-fire { animation: none; }
+}
+.hw-reduce-motion .hw-intro.hw-camp .hw-camp-fire { animation: none; }
+
+/* ---------- Piece 3: choosing the path ---------- */
+.hw-intro.hw-route-screen {
+  max-width: 1000px;
+  margin: 22px auto 0;
+  padding: 24px 32px 28px;
+}
+.hw-intro.hw-route-screen h1 {
+  font-family: var(--hw-font-display);
+  font-size: 30px !important;
+  font-weight: 600;
+  color: #f2ead0;
+  text-align: center;
+}
+/* the Act's lore: a quiet quote, not a heavy box */
+.hw-intro.hw-route-screen div:has(> .hw-screen-eyebrow) {
+  border: 0 !important;
+  border-left: 2px solid color-mix(in srgb, var(--road-moss) 70%, transparent) !important;
+  border-radius: 0 !important;
+  background: none !important;
+  padding: 2px 0 2px 16px !important;
+  margin: 14px auto 0 !important;
+  max-width: 760px;
+}
+.hw-intro.hw-route-screen div:has(> .hw-screen-eyebrow) > div:not(.hw-screen-eyebrow) {
+  font-size: 14px !important;
+  line-height: 1.65 !important;
+  font-style: italic;
+  color: color-mix(in srgb, var(--road-text) 80%, transparent);
+}
+.hw-intro.hw-route-screen > * .hw-flavor,
+.hw-intro.hw-route-screen .hw-flavor {
+  text-align: center;
+  font-size: 13.5px;
+  color: color-mix(in srgb, var(--road-text) 62%, transparent);
+}
+.hw-intro.hw-route-screen .hw-select-grid {
+  justify-content: center;
+  gap: 22px;
+  margin-top: 8px;
+}
+
+/* the paths: big plaques; the top edge says the risk */
+.hw-intro.hw-route-screen .hw-card.hw-route-card {
+  --risk: var(--road-moss);
+  width: 280px;
+  min-width: 280px;
+  padding: 0 0 18px;
+  gap: 10px;
+  align-items: center;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--risk) 40%, transparent);
+  border-top: 3px solid var(--risk);
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%, color-mix(in srgb, var(--risk) 14%, transparent), transparent 70%),
+    rgba(10, 13, 8, 0.94);
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 14px 26px -12px rgba(0, 0, 0, 0.9);
+  text-align: center;
+  transition: translate 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.hw-intro.hw-route-screen .hw-card.hw-route-card[data-risk="risky"] { --risk: #e0894f; }
+.hw-intro.hw-route-screen .hw-card.hw-route-card[data-risk="cursed"] { --risk: #a98ad6; }
+.hw-intro.hw-route-screen .hw-card.hw-route-card:hover {
+  translate: 0 -4px;
+  border-color: var(--risk);
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 22px 32px -12px rgba(0, 0, 0, 0.9), 0 0 18px color-mix(in srgb, var(--risk) 30%, transparent);
+}
+.hw-intro.hw-route-screen .hw-route-risk {
+  align-self: stretch;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 13px 13px 0 0;
+  background: color-mix(in srgb, var(--risk) 12%, transparent);
+  color: var(--risk);
+  font-family: var(--hw-font-display);
+  font-size: 18px;
+}
+.hw-intro.hw-route-screen .hw-route-card .hw-card-glyph {
+  width: 40px;
+  height: 40px;
+  padding: 12px;
+  border-radius: 50%;
+  color: #e8e2c8;
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--risk) 30%, #1a2014), #0a0d07 75%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--risk) 45%, transparent), 0 6px 14px rgba(0, 0, 0, 0.7);
+}
+.hw-intro.hw-route-screen .hw-route-card .hw-card-name {
+  font-family: var(--hw-font-display);
+  font-size: 19px;
+  color: #f2ead0;
+}
+.hw-intro.hw-route-screen .hw-route-card .hw-card-desc {
+  padding: 0 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--road-text) 72%, transparent);
+}
+.hw-intro.hw-route-screen .hw-route-reward {
+  font-family: var(--hw-font-display);
+  font-size: 22px;
+  color: #f3d98e;
+  text-shadow: 0 0 10px rgba(231, 194, 122, 0.35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-intro.hw-route-screen .hw-card.hw-route-card { transition: none; }
+}
+
+/* paths sit side by side at their own width (the old grid's 150px
+   columns made the wider plaques overlap) */
+.hw-intro.hw-route-screen .hw-select-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
