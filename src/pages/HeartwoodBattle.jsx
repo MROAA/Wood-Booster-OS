@@ -940,7 +940,7 @@ function HeartwoodBattleScreens() {
       ids.push("market-tier")
       if (runState.marketEvent) ids.push("market-event")
       if (bankInterestFor(runState) > 0) ids.push("interest")
-      if ((runState.bench || []).some((e) => UNITS[e.defId]?.displayTier !== 2 && runState.essence >= 150)) ids.push("upgrade")
+      if ((runState.bench || []).some((e) => (UNITS[e.defId]?.displayTier || 1) < 2 && runState.essence >= 150)) ids.push("upgrade")
       ids.push("ledger")
       if ((runState.bench || []).some((e) => UNITS[e.defId]?.economyRole)) ids.push("economy-crew")
       if ((runState.bench || []).length >= 2 && (runState.nodeIndex || 0) >= 2) ids.push("playstyle")
