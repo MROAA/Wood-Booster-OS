@@ -6,6 +6,7 @@ import { TRIBES } from "../../data/heartwood/synergies"
 import { benchTribeCounts } from "../../services/heartwood/runEngine"
 import { CardGlyph } from "./cardArt"
 import { useFreeLayout } from "./useFreeLayout.jsx"
+import "./heartwood-road-screens.css"
 
 // The relic-pick beat: same "3 choices or skip" shape as the old
 // RewardScreen.jsx, but relics aren't units - no HP/attack numbers, so
@@ -45,7 +46,7 @@ export default function RelicChoice({ runState, onChoose, onReroll }) {
   }, [runState.essence])
 
   return (
-    <div className="hw-intro">
+    <div className="hw-intro hw-relic-screen">
       {import.meta.env.DEV && (
         <div className="hw-free-layout-toolbar">
           {!layout.editingLayout ? (
@@ -101,7 +102,7 @@ export default function RelicChoice({ runState, onChoose, onReroll }) {
               return (
                 <div
                   key={relic.id}
-                  className="hw-card hw-card--power"
+                  className="hw-card hw-card--power hw-relic-card"
                   data-disabled={disabled}
                   data-tribe-match={tribeMatch}
                   // Rarity glow (relics.js's own tier reclassification pass,
@@ -155,11 +156,15 @@ export default function RelicChoice({ runState, onChoose, onReroll }) {
         {layout.renderSection(
           "actions",
           <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-            <button className="hw-move-btn" onClick={() => onChoose(null)}>
+            <button className="hw-move-btn hw-relic-skip" onClick={() => onChoose(null)}>
               Skip
             </button>
-            <button className="hw-move-btn" disabled={runState.essence < RELIC_REROLL_COST} onClick={onReroll}>
-              Reroll ({RELIC_REROLL_COST} Essence)
+            <button className="hw-move-btn hw-relic-reroll" disabled={runState.essence < RELIC_REROLL_COST} onClick={onReroll}>
+              Reroll{" "}
+              <span className="hw-cost-inline">
+                <CardGlyph name="spark" className="hw-intent-glyph" />
+                {RELIC_REROLL_COST}
+              </span>
             </button>
           </div>
         )}
