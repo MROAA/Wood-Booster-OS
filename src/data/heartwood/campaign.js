@@ -73,12 +73,12 @@ export const THREAT_FALLEN = 100
 // this region's fights are; x/y = position on the map (0-100).
 export const CAMPAIGN_REGIONS = [
   { id: "hearthstead", name: "The Hearthstead", short: "Hearthstead", offset: 0, ley: false, home: true, x: 50, y: 72, threatMult: 0.4, blurb: "Home. If it falls, everything falls." },
-  { id: "outer-grove", name: "The Outer Grove", short: "Outer Grove", offset: 0, ley: false, x: 24, y: 62, threatMult: 1, blurb: "Old trees, sick roots. The first to feel the Rot." },
+  { id: "outer-grove", name: "The Outer Grove", short: "Outer Grove", offset: 0, ley: false, x: 24, y: 62, threatMult: 1, blurb: "Old trees, sick roots, longship runestones. The first to feel the Rot." },
   { id: "mistfen", name: "Mistfen Ley", short: "Mistfen", offset: 0, ley: true, x: 14, y: 34, threatMult: 1, blurb: "A ley marsh. Mana pools in the water here." },
-  { id: "deepening", name: "The Deepening Woods", short: "Deepening", offset: 1, ley: false, x: 44, y: 44, threatMult: 1, blurb: "Gold light that won't hold still." },
+  { id: "deepening", name: "The Deepening Woods", short: "Deepening", offset: 1, ley: false, x: 44, y: 44, threatMult: 1, blurb: "Gold light that won't hold still. The lost peoples tell their own tales here." },
   { id: "emberwrack", name: "Emberwrack Ridge", short: "Emberwrack", offset: 1, ley: false, x: 78, y: 58, threatMult: 1, blurb: "Smoke over the ridge, day and night." },
-  { id: "hollow-ley", name: "The Hollow Ley", short: "Hollow Ley", offset: 2, ley: true, x: 72, y: 24, threatMult: 1, blurb: "A ley-line wound. Mana-rich, and watched." },
-  { id: "crownless", name: "The Crownless Reach", short: "Crownless", offset: 2, ley: false, x: 40, y: 12, threatMult: 1, blurb: "Where the Rot began. The road ends here." },
+  { id: "hollow-ley", name: "The Hollow Ley", short: "Hollow Ley", offset: 2, ley: true, x: 72, y: 24, threatMult: 1, blurb: "A wound in the veins of the First Song. Mana-rich, and watched." },
+  { id: "crownless", name: "The Crownless Reach", short: "Crownless", offset: 2, ley: false, x: 40, y: 12, threatMult: 1, blurb: "Where the Song broke off and the Rot began. The road ends here." },
 ]
 
 // Roads drawn between regions (also: a fallen region pushes threat into its neighbours).
@@ -156,7 +156,7 @@ export const STORY_CHAPTERS = [
   { chapter: 4, title: "The Reckoning", line: "The guardian at the centre never wanted this. Neither did you." },
   { chapter: 5, title: "The Empty Throne", line: "The crown is still warm. Someone must take it from the dark." },
   { chapter: 6, title: "The Echo Rift", line: "The forest remembers you too hard. Break the echo." },
-  { chapter: 7, title: "The Last Root", line: "The end of the road. Win, and the Hearthwood lives." },
+  { chapter: 7, title: "The Last Root", line: "The end of the road, and the last verse. Win, and decide how the Song ends." },
 ]
 export const MAX_CHAPTER = 7
 // Wins inside a chapter before its story mission appears.
