@@ -36,6 +36,7 @@ export const FLAG_LABELS = {
   kept_the_custom: { act: 1, text: "You scratched a name from the first milestone, the old custom." },
   cleared_the_snares: { act: 1, text: "You cut down every snare on the old hunting line." },
   heard_the_name: { act: 2, text: "Spacemonkey told you the name: the Hollow King." },
+  heard_the_rememberer: { act: 2, text: "The Rememberer in the Tarn told you what the longships asked for." },
   spoke_to_the_grove: { act: 2, text: "You spoke your name and your purpose to the listening grove." },
   heard_the_grove_voice: { act: 2, text: "You heard the one word the listening grove was straining toward." },
   freed_the_chained: { act: 3, text: "You cut the chained figure loose and it joined your squad." },

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import ForestRegard from "./ForestRegard"
 import { setProgress, SET_TIERS } from "../../data/heartwood/buildSets"
 import { FATE_KINDS, FATES } from "../../data/heartwood/fates"
 import { CardGlyph } from "./cardArt"
@@ -74,7 +75,7 @@ export default function RunBuildPanel({ runState, compact = false }) {
   const [open, setOpen] = useState(true)
   const hasSets = setProgress(runState).length > 0
   const hasFates = (runState?.fates || []).length > 0
-  if (!hasSets && !hasFates) return null
+  if (!runState) return null
   return (
     <section className="hw-build-panel" data-compact={compact || undefined} data-open={open || undefined}>
       <button type="button" className="hw-build-panel-head" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
@@ -83,6 +84,8 @@ export default function RunBuildPanel({ runState, compact = false }) {
       </button>
       {open && (
         <>
+          {/* Forest creatures: how the forest sees you. */}
+          <ForestRegard runState={runState} compact={compact} />
           {hasSets && <div className="hw-build-panel-label">Sets</div>}
           <SetProgressList runState={runState} compact={compact} />
           {hasFates && <div className="hw-build-panel-label">Fates</div>}
