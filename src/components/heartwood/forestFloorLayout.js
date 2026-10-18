@@ -152,7 +152,7 @@ export function biomeBoardStyle(biome) {
     "--hwt-floor-b": p.floorB,
     "--hwt-floor-c": p.floorC,
     "--hwt-moss-blots": noise(p.moss, 0.012, 7, -0.52, 300),
-    "--hwt-litter-blots": noise(p.litter, 0.02, 23, -0.5, 260),
+    "--hwt-litter-blots": noise(p.litter, 0.02, 23, p.litterAlpha ?? -0.5, 260),
     "--hwt-biome-light": p.light,
   }
 }

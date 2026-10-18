@@ -333,7 +333,10 @@ export function buildRunTacticsBattle(runState, start) {
         withLeyColours(withStartCharge(withCommunePools(enableMana(withBredClasses(threatened, runState), runState.relics || [], betweenFightsMana(runState)), runState), runState), runState),
       )
     : threatened
-  return done?.campaignOps ? finishCampaignOps(done) : done
+  const finished = done?.campaignOps ? finishCampaignOps(done) : done
+  // Biomes per Act: the battlefield is drawn in the story Act's biome
+  // (battleBiomes.js BIOME_FOR_ACT) unless something already chose one.
+  return finished && !finished.biome ? { ...finished, biome: biomeForAct(actIndexForNode(runState.nodeIndex, RUN_PATH.length)).id } : finished
 }
 
 // The DifficultyEngine spec for a run node: its Act, how deep into the Act
