@@ -1349,9 +1349,11 @@ export default function SquadDraft({
                 .map(([id, inv]) => {
                   const owned = investmentOwned(runState, id)
                   return (
-                    <div key={id} className="hw-rail-chip" title={inv.desc} data-owned={owned || undefined}>
+                    <div key={id} className="hw-rail-chip" data-owned={owned || undefined}>
                       <CardGlyph name="rune" className="hw-intent-glyph" />
                       <span className="hw-rail-chip-name">{inv.name}</span>
+                      {/* the description opens on hover (heartwood-reveal.css) */}
+                      <span className="hw-rail-chip-more">{inv.desc}</span>
                       {owned ? (
                         <span className="hw-rail-chip-max">✓</span>
                       ) : (
@@ -1423,7 +1425,7 @@ export default function SquadDraft({
                 const level = (runState.relicLevels || {})[id] || 0
                 const cost = upgradeCost(level)
                 return (
-                  <div key={id} className="hw-rail-chip" title={def?.description}>
+                  <div key={id} className="hw-rail-chip">
                     {def?.image ? (
                       <img src={def.image} alt="" className="hw-intent-glyph" />
                     ) : (
@@ -1433,6 +1435,8 @@ export default function SquadDraft({
                       {def?.name}
                       {level > 0 ? ` +${level}` : ""}
                     </span>
+                    {/* the description opens on hover (heartwood-reveal.css) */}
+                    <span className="hw-rail-chip-more">{def?.description}</span>
                     {cost === null ? (
                       <span className="hw-rail-chip-max">MAX</span>
                     ) : (
@@ -1479,7 +1483,6 @@ export default function SquadDraft({
                     className={`hw-rail-chip hw-rail-chip--item${selectable ? " hw-rail-chip--selectable" : ""}${
                       isSelected ? " hw-rail-chip--selected" : ""
                     }`}
-                    title={def?.description}
                     onClick={selectable ? () => handleBagItemClick(it.key) : undefined}
                   >
                     {def?.image ? (
@@ -1488,6 +1491,8 @@ export default function SquadDraft({
                       <CardGlyph name={def?.icon} className="hw-intent-glyph" />
                     )}
                     <span className="hw-rail-chip-name">{def?.name}</span>
+                    {/* the description opens on hover (heartwood-reveal.css) */}
+                    <span className="hw-rail-chip-more">{def?.description}</span>
                     {def?.bendsRoleTo && (
                       <span className="hw-badge hw-badge--bent hw-rail-chip-tag" title={`Bends the wearer toward ${def.bendsRoleTo}`}>
                         Bends
