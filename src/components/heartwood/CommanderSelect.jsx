@@ -173,8 +173,12 @@ export default function CommanderSelect({
                     handlePick(character.id)
                   }}
                 >
-                  <span className="hw-commander-portrait">
-                    <CardGlyph name={character.art} className="hw-commander-glyph" />
+                  <span className="hw-commander-portrait" data-has-image={character.image ? "true" : undefined}>
+                    {character.image ? (
+                      <img className="hw-commander-portrait-img" src={character.image} alt={character.name} draggable={false} />
+                    ) : (
+                      <CardGlyph name={character.art} className="hw-commander-glyph" />
+                    )}
                   </span>
                   <strong className="hw-commander-name">{character.name}</strong>
                   <p className="hw-commander-tagline">{character.tagline}</p>

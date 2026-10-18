@@ -103,8 +103,12 @@ export default function GuildHallScreen({ character, pendingMemory, bannerSrc, b
         {layout.renderSection(
           "commanderStrip",
           <div className="hw-guildhall-commander-strip">
-            <span className="hw-commander-portrait hw-guildhall-commander-portrait">
-              <CardGlyph name={character?.art} className="hw-commander-glyph" />
+            <span className="hw-commander-portrait hw-guildhall-commander-portrait" data-has-image={character?.image ? "true" : undefined}>
+              {character?.image ? (
+                <img className="hw-commander-portrait-img" src={character.image} alt={character.name} draggable={false} />
+              ) : (
+                <CardGlyph name={character?.art} className="hw-commander-glyph" />
+              )}
             </span>
             <div>
               <strong className="hw-commander-name">{character?.name}</strong>

@@ -15,11 +15,18 @@ import { scaleEffect } from "./units"
 // small universal damage buff for his "always looking for the fast
 // opening" identity. `startEffects` is kept as-is, unused, in case the
 // turn-based engine is ever revived.
+// Commander portraits (Marc's own art). `image` = the face crop every small
+// portrait / board token uses; `splash` = the whole painting.
+import tommyFaceImg from "../../assets/heartwood/commanders/tommy-face.webp"
+import tommySplashImg from "../../assets/heartwood/commanders/tommy.webp"
+
 export const CHARACTERS = {
   tommy: {
     id: "tommy",
     name: "Tommy",
     art: "cat",
+    image: tommyFaceImg,
+    splash: tommySplashImg,
     maxHp: 60,
     tagline: "Agile and quick - always looking for the fast opening.",
     description: "Cat's Reflexes: every hero in the squad strikes a little harder, lands on its feet, and leaves what it hits swinging softer.",
