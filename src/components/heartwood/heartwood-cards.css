@@ -526,3 +526,112 @@
   color: #fff8e6;
   text-shadow: 0 1px 2px #000;
 }
+
+/* ---------- Tarot frame (Marc: "kortit on kuin tarot kortteja joissa on
+   tietoa yksiköistä") ----------
+   What makes a card read as tarot, kept calm:
+   - a double frame: the card's border + a fine inner hairline
+   - four small corner ornaments (lichen-gold diamonds)
+   (Major Arcana numerals were tried and removed - Marc: "turha")
+   Tier 2 / Tier 3 keep their silver / gold border; the inner line and
+   ornaments follow it. */
+.hw-card.hw-card:not(.hw-item-card) {
+  --tarot-line: rgba(205, 180, 122, 0.32);
+  outline: 1px solid var(--tarot-line);
+  outline-offset: -5px;
+  background-image:
+    radial-gradient(circle at 9px 9px, var(--tarot-line) 0 2px, transparent 2.5px),
+    radial-gradient(circle at calc(100% - 9px) 9px, var(--tarot-line) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 9px calc(100% - 9px), var(--tarot-line) 0 2px, transparent 2.5px),
+    radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), var(--tarot-line) 0 2px, transparent 2.5px),
+    linear-gradient(180deg, rgba(232, 226, 200, 0.04), transparent 35%),
+    linear-gradient(rgba(14, 18, 11, 0.94), rgba(10, 12, 8, 0.96)),
+    url("../../assets/heartwood/ui-bg-panel.png");
+  background-size: auto, auto, auto, auto, auto, auto, cover;
+  background-repeat: no-repeat;
+}
+.hw-card.hw-card[data-fusion-tier="2"] { --tarot-line: rgba(201, 210, 220, 0.5); }
+.hw-card.hw-card[data-fusion-tier="3"] { --tarot-line: rgba(231, 194, 122, 0.65); }
+
+
+/* ---------- Turning the cards (Marc: "esteettisesti hienot ja hyvin
+   animoidut tarot inspiroidut kortit jotka tuntuvat kuin korteilta") ----------
+   Tarot cards arrive face DOWN and are turned over. A hero card slides in
+   showing its back, lands, turns edge-on and opens face up - one after
+   another (the existing deal delays are kept: only the motion changes,
+   written as separate properties so the delay rules still apply).
+   The back: dark forest green, a gold double frame, faint sun rays and the
+   Algiz rune ᛉ - the World Tree's shape - glowing at its heart. */
+.hwm-offers > .hwm-offer-slot,
+.hwq-cards > * {
+  position: relative;
+  animation-name: hw-card-turn;
+  animation-duration: calc(var(--hw-card-deal-speed, 460ms) * 1.9);
+  animation-timing-function: cubic-bezier(.25, .7, .3, 1);
+  animation-fill-mode: both;
+}
+.hwq-cards > * {
+  animation-delay: calc(var(--hq-deal, 0) * var(--hw-card-deal-stagger, 80ms));
+}
+.hwq-cards > :nth-child(2) { --hq-deal: 1; }
+.hwq-cards > :nth-child(3) { --hq-deal: 2; }
+.hwq-cards > :nth-child(4) { --hq-deal: 3; }
+.hwq-cards > :nth-child(5) { --hq-deal: 4; }
+.hwq-cards > :nth-child(6) { --hq-deal: 5; }
+.hwq-cards > :nth-child(n + 7) { --hq-deal: 6; }
+@keyframes hw-card-turn {
+  0% { opacity: 0; translate: var(--hw-card-deal-distance, 140px) -30px; rotate: 9deg; scale: 0.82; }
+  42% { opacity: 1; translate: 0 0; rotate: 0deg; scale: 1; }
+  62% { scale: 0.02 1; }
+  82% { scale: 1.04 1; }
+  100% { opacity: 1; translate: 0 0; rotate: 0deg; scale: 1; }
+}
+/* the card back - shown until the card turns edge-on, then gone */
+.hwm-offers > .hwm-offer-slot::after,
+.hwq-cards > *::after {
+  content: "ᛉ";
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  pointer-events: none;
+  font-family: "Noto Sans Runic", "Segoe UI Historic", serif;
+  font-size: 46px;
+  color: #e7c27a;
+  text-shadow: 0 0 14px rgba(231, 170, 80, 0.8), 0 0 30px rgba(231, 150, 60, 0.4);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(231, 194, 122, 0.18) 0 34px, transparent 35px),
+    repeating-conic-gradient(from 0deg at 50% 50%, rgba(231, 194, 122, 0.07) 0 6deg, transparent 6deg 15deg),
+    radial-gradient(ellipse at 50% 50%, #233019, #0c1108 75%);
+  box-shadow:
+    inset 0 0 0 1px rgba(231, 194, 122, 0.7),
+    inset 0 0 0 5px #0c1108,
+    inset 0 0 0 6px rgba(231, 194, 122, 0.4),
+    0 8px 18px -8px rgba(0, 0, 0, 0.85);
+  animation-name: hw-card-back;
+  animation-duration: inherit;
+  animation-delay: inherit;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+@keyframes hw-card-back {
+  0%, 61.9% { opacity: 1; }
+  62%, 100% { opacity: 0; visibility: hidden; }
+}
+
+.hw-reduce-motion .hwm-offers > .hwm-offer-slot,
+.hw-reduce-motion .hwq-cards > * {
+  animation: none;
+}
+.hw-reduce-motion .hwm-offers > .hwm-offer-slot::after,
+.hw-reduce-motion .hwq-cards > *::after {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwm-offers > .hwm-offer-slot,
+  .hwq-cards > * { animation: none; }
+  .hwm-offers > .hwm-offer-slot::after,
+  .hwq-cards > *::after { display: none; }
+}

@@ -32,9 +32,8 @@ for (const phase of ["event", "relic", "camp", "formation"]) {
   c[`${phase}:fits`] = await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1 && document.querySelector(".hwq-return").getBoundingClientRect().bottom <= innerHeight)
   if (phase === "event") {
     if (SHOT) await page.screenshot({ path: `${SHOT}-hq-from-event.png` })
-    const e0 = await essence()
-    await page.locator(".hwq-cards .hw-sell-btn").first().click(); await page.waitForTimeout(500)
-    c["event:sellWorksHere"] = (await essence()) > e0 && (await page.locator(".hwq-cards .hw-card").count()) === 2
+    // no merchant here: camp actions only, no selling/reforging
+    c["event:campActionsOnly"] = (await page.locator(".hwq-cards .hw-sell-btn").count()) === 0 && (await page.locator(".hwq-cards .hw-upgrade-btn").count()) === 3
   }
   await page.locator(".hwq-return").click(); await page.waitForTimeout(600)
   c[`${phase}:backToSameScreen`] = (await page.locator(".hwq-root").count()) === 0 && (await page.evaluate(async () => JSON.parse(localStorage.getItem("heartwood-run-save-v1")).run.phase)) === phase

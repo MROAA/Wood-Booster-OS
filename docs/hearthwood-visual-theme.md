@@ -133,11 +133,18 @@ Tree backdrop. All titles/runes/meanings live in
    number (`unitStrength.js` → `attackFromMovePattern`); a hurt hero shows
    what it has left.
 6. Everything else folds away and opens on hover.
+7. **Tarot frame**: a double frame (border + fine inner line) and four small
+   corner ornaments; Tier 2 silver / Tier 3 gold tint the frame. No numerals
+   (Major Arcana numerals were tried and removed - Marc: "turha").
 
 ## 9. Animation — the feel of handling cards
 
 - **Lift & tilt** on hover; shadow grows as the card rises.
 - **Sheen** follows the pointer like lamplight on lacquer.
+- **Turning the cards**: hero cards arrive face DOWN (forest-green back, gold
+  double frame, sun rays, the glowing ᛉ Algiz rune - the World Tree) and turn
+  face up one after another - in the Market and when Headquarters opens.
+  Gear still just slides in (items aren't tarot).
 - **Dealing**: offers slide in from the deck, one after another.
 - **To your hand**: a bought hero's card flies down into the squad strip and
   the new chip pops in with a glow.
@@ -162,3 +169,52 @@ speed; colours, rune & hearth glow, column widths, arrival banner).
 | Battle art direction | `heartwood-graphics.css`, `TacticsFx.jsx` |
 | Theme tokens | `.hw-root` in `heartwood.css` |
 | Market engine (logic, shared pieces) | `SquadDraft.jsx` |
+
+## 11. Where things go (Market vs Headquarters vs the road)
+
+Marc: "asiat on eroteltu niille sivuille mihin ne kuuluu loogisesti" — every
+feature lives on the page it logically belongs to. Ask **who you do it with**:
+
+| Who with | Place | Examples |
+|---|---|---|
+| the merchant (a trade) | **Market** (`MarketScreen.jsx`) | buy heroes/gear, Reroll, Freeze, Gamble, Antidote, Market level/Tier, Ledger, buy back, **sell, reforge** |
+| your own squad / camp | **Headquarters** (`HeadquartersScreen.jsx`) | commander (Rank Up, Retrain, Opening Strike), hero gear, fusion progress, **upgrade, mend**, relics & bag, build, dev desk |
+| the journey | the road (map, Continue / Back to the road) | the run map, setting out |
+
+Headquarters stays calm: if something is a trade, it does not go there.
+
+### Adding something new — the system
+- **A hero action** (a button on a hero): add one line to
+  `src/data/heartwood/squadActions.js` (`places: ["camp"]` or `["market"]`),
+  then draw it behind `actionShownAt(action, place)` in `renderBenchCard`
+  (camp cards) or `renderTradeRow` (Market rows). Never hard-code the place.
+- **A panel / piece** on the Market or Headquarters: build it as a `piece_*`
+  or `render*` function in `SquadDraft.jsx` (the engine), add it to
+  `marketKit`, and place it in `MarketScreen.jsx` or `HeadquartersScreen.jsx`.
+- **A title / rune / subtitle**: add an entry to `src/data/heartwood/marketUi.js`
+  and draw it with `<UiTitle k="..." />` — editable in Studio.
+- **A colour / size / speed**: add a `--hw-ui-*` / `--hw-card-*` token on
+  `.hw-root` (heartwood.css) and a slider/swatch in Studio's ThemePanel.
+- **A check**: extend `.scratch/verify_market_table.mjs` /
+  `verify_hq_between_fights.mjs` / `verify_fusion.mjs`.
+
+## 12. Detail on hover — the pop-up way (Headquarters' standing style)
+
+Marc: "piilota lisää tietoa pop up tyylisesti kuten korteissa ... hyvä tapa
+sisällyttää paljon tietoa ilman että siitä tulee sekava" and "tätä tyyliä voi
+käyttää kokonaisvaltaisesti päämajan kehittämisessä".
+
+- **Always visible** = what you need to decide: art, name, tribe, role,
+  attack/health, hurt, and every action button (Upgrade, Rank Up, Opening
+  Strike, Visit the market, Scout, Continue).
+- **Opens on hover / focus** = the details: card level bar, traits,
+  mutations, identity chips, promotion, upgrade chips, tags, class names;
+  a hero's gear slots + fusion progress; the commander's gear and Retrain;
+  the build's reading lines; the merchant's line; the road-ahead list; the
+  Market's next-tier and "+N more" hints.
+- Equipping an item shows every gear row automatically, so you can place it.
+- **One file**: `src/components/heartwood/heartwood-reveal.css`. For anything
+  new, use the pattern in JSX - `<div className="hw-reveal">...<div
+  className="hw-reveal-more">details</div></div>` - or add the piece's class
+  to that file. Don't hide a toggle or an action (it must stay findable).
+
