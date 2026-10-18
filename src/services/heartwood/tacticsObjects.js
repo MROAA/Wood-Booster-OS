@@ -10,6 +10,8 @@
 // State: objHp { key: hp } (missing = full), objFire { key: turnsLeft }
 // (burning trees), objChill { key: 1 } (chilled ice pillars),
 // tileTimers { key: { turns, revert } } (fire/poison tiles that fade).
+// Forest creatures: a Shapeshifter hides as a tree (tacticsCreatures.js).
+import { revealShapeshifter, shapeshifterTurnEnd } from "./tacticsCreatures"
 import { isOnBoard, samePos, kingAdjacent } from "./targeting"
 import { TERRAIN, terrainAt, WALL_MAX_HP } from "./tacticsTerrain"
 import { coverAgainst } from "./tacticsCover"
@@ -242,7 +244,8 @@ export function forestTurnEnd(state, side) {
     const heal = Math.min(u.maxHp - u.hp, MOSS_HEAL)
     next = emit(addLog(setUnit(next, u.id, { hp: u.hp + heal }), `${u.name} rests on the moss (+${heal}).`), { kind: "heal", actorId: u.id, targetId: u.id, amount: heal })
   }
-  return next
+  // Hidden Shapeshifters creep a step closer (or burst out) after the enemy turn.
+  return side === "enemy" ? shapeshifterTurnEnd(next) : next
 }
 
 // Spells strike the forest (tacticsForest FOREST_SPELLS): objects in the
@@ -293,6 +296,8 @@ export function damageObject(state, pos, amount, dir = null, opts = {}) {
   if (!isOnBoard(pos, state.grid) || ended(state)) return state
   const type = terrainAt(state, pos)
   const key = k(pos)
+  // A Shapeshifter's "tree": striking it drags the creature out.
+  if (state.mimics?.[key]) return revealShapeshifter(state, key, "struck")
   if (type === "wall") {
     const hp = Math.max(0, objectHpAt(state, pos) - amount)
     const wallHp = { ...(state.wallHp || {}) }

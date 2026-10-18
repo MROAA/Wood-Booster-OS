@@ -182,6 +182,7 @@ import { EnemyTalentsLine } from "./TalentNeutralUi"
 import { hushedNow, talentSkillNote } from "../../services/heartwood/tacticsTalents"
 import { activeDef, itemActiveTargets, castItemActive } from "../../services/heartwood/tacticsItems"
 import "./heartwood-runes.css"
+import "./heartwood-creatures.css"
 import "./heartwood-reveal.css"
 
 // Ranged rework: tile skills that hit a 3x3 area (blast preview on hover).
@@ -1668,9 +1669,9 @@ export default function TacticsBoard({
                 )}
               </div>
               <span className="hwt-token-name">{unit.name}</span>
-              {(unit.fateAlly || unit.fateRival) && (
-                <span className="hwt-fate-tag" data-fate={unit.fateAlly ? "ally" : "rival"} title={unit.fateTitle}>
-                  {unit.fateAlly ? "Ally" : "Rival"}
+              {(unit.fateAlly || unit.fateRival || unit.creature) && (
+                <span className="hwt-fate-tag" data-fate={unit.fateAlly ? "ally" : "rival"} data-creature={unit.creature || undefined} title={unit.fateTitle || (unit.creature === "shapeshifter" ? "A Shapeshifter - it was hiding as a tree" : undefined)}>
+                  {unit.creatureTag || (unit.fateAlly ? "Ally" : "Rival")}
                 </span>
               )}
               <div className="hwt-hp-track">
@@ -1781,6 +1782,13 @@ export default function TacticsBoard({
           <ThreatPanel battle={battle} />
           <CounterPanel battle={battle} />
           <ManaFeedPanel battle={battle} />
+          {/* Forest creatures: a Shapeshifter still hiding among the trees. */}
+          {battle.creatureHint && Object.keys(battle.mimics || {}).length > 0 && (
+            <div className="hwt-creature-banner" data-creature-banner="shapeshifter">
+              <div className="hwt-creature-banner-title">🌲 Something in the treeline is watching</div>
+              {battle.creatureHint}
+            </div>
+          )}
           {battle.rune && (
             <div className="hwt-rune-banner" data-rune-banner={battle.rune.id} style={{ "--hw-rune-colour": battle.rune.color }}>
               <div className="hwt-rune-banner-title">

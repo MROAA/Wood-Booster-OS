@@ -68,7 +68,11 @@ import {
 } from "./betweenFights"
 import { setBonusEffects, setEssenceBonus, activeSetTierKeys, startedSetIds, setOfItem } from "../../data/heartwood/buildSets"
 // Runes (First Song PRD §4): the Rune Pouch rules + the carved rune in a fight.
-import { startingRunes, runeDrop, carvedRuneId, spendCarvedRune } from "./runRunes"
+import { startingRunes, runeDrop, carvedRuneId, spendCarvedRune, runePouch } from "./runRunes"
+// Forest creatures (First Song PRD §6): how the forest sees you.
+import { adjustRegard, regardAfterFight, countTrees } from "./forestRegard"
+import { REGARD } from "../../data/heartwood/creatures"
+import { RUNES, RUNE_IDS, RUNE_POUCH_MAX } from "../../data/heartwood/runes"
 import { applyRuneCarving } from "./tacticsRunes"
 // A new hero rolls its traits AND its personality quirks the moment it joins.
 const withRolledTraits = (rs) => withHeroIdentity(rollTraitsOnly(rs))
@@ -1088,6 +1092,8 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     // marked on the Formation screen for the next fight.
     runes: startingRunes(seed),
     carvedRune: null,
+    // Forest Regard (-100..100): the forest's creatures react to it.
+    regard: 0,
     essence: START_ESSENCE + (carriedMemory ? MEMORY_ESSENCE_BONUS : 0),
     honoredMemory: carriedMemory || null,
     // Branching path (see advanceToNextNode's own comment above): path
@@ -2155,6 +2161,24 @@ function applyEventEffect(runState, eff, effIndex = 0) {
   if (eff.classSwap) return eventClassSwap(runState, eff, rng)
   // `{ xp: N, who: "random" | "all" }` - heroes gain XP (may set off a level-up / promotion).
   if (typeof eff.xp === "number") return eventXp(runState, eff, rng)
+  // Forest creatures: `{ regard: N }` - the forest's regard shifts.
+  if (typeof eff.regard === "number") return adjustRegard(runState, eff.regard, "An event")
+  // Runes: `{ rune: "random" | <id> }` gains one (pouch permitting);
+  // `{ loseRune: "oldest" }` gives the oldest one away.
+  if (eff.rune) {
+    const pouch = runePouch(runState)
+    if (pouch.length >= RUNE_POUCH_MAX) return runState
+    const fresh = RUNE_IDS.filter((id) => !pouch.includes(id))
+    const id = eff.rune === "random" ? randomFromList(fresh.length ? fresh : RUNE_IDS, rng) : eff.rune
+    if (!RUNES[id]) return runState
+    return { ...runState, runes: [...pouch, id], lastRuneFound: id }
+  }
+  if (eff.loseRune) {
+    const pouch = runePouch(runState)
+    if (!pouch.length) return runState
+    const rest = pouch.slice(1)
+    return { ...runState, runes: rest, carvedRune: rest.includes(runState.carvedRune) ? runState.carvedRune : null }
+  }
   if (eff.flag) {
     return { ...runState, storyFlags: { ...runState.storyFlags, [eff.flag]: true } }
   }
@@ -2244,6 +2268,8 @@ export function resolveEventChoice(runState, choiceIndex, extraEffects = [], ext
   const event = eventForNode(runState)
   const choice = event?.choices?.[choiceIndex]
   if (!choice) return runState
+  // A choice that trades a rune is locked while the pouch is empty.
+  if (choice.needsRune && !runePouch(runState).length) return runState
   let next = { ...runState, lastMutations: [] }
   ;[...(choice.effects || []), ...extraEffects].forEach((eff, i) => {
     next = applyEventEffect(next, eff, i)
@@ -2286,8 +2312,9 @@ export function resolveActCrossroads(runState, actIndex, choiceId) {
   const runModifiers =
     choice.allegiance && !held.includes(choice.allegiance) ? [...held, choice.allegiance] : held
   const forestState = choice.forestState || runState.forestState || "restless"
+  const regardDelta = REGARD.crossroads[choice.forestState] || 0
   return {
-    ...runState,
+    ...adjustRegard(runState, regardDelta, regardDelta ? `Your choice at the crossroads (${choice.forestState})` : null),
     runModifiers,
     allegiances: { ...(runState.allegiances || {}), [actIndex]: choiceId },
     forestState,
@@ -3018,9 +3045,14 @@ export function startTacticsFormationBattle(runState0, buildTacticsBattle) {
   // Runes: the carved rune (its arrivals were added inside the build) is
   // applied LAST so carried HP / gear / mana can't overwrite it, then spent.
   const runeId = carvedRuneId(runState)
-  const finish = (battle) => (runeId ? applyRuneCarving(battle, runeId) : battle)
+  // Forest Regard: remember the living trees, so the forest can judge the fight.
+  const finish = (battle) => {
+    const b = runeId ? applyRuneCarving(battle, runeId) : battle
+    return b ? { ...b, treesAtStart: countTrees(b) } : b
+  }
+  const carveRegard = runeId && REGARD.carve[runeId] ? REGARD.carve[runeId] : 0
   return {
-    ...spendCarvedRune(runState),
+    ...adjustRegard(spendCarvedRune(runState), carveRegard, runeId ? `You carved ${RUNES[runeId]?.name}` : null),
     phase: "battle",
     // Unit levels (unitLevels.js): perks + XP tracking fields.
     // Gear sprint (gear.js): the gear rows - item fx, row adjacency, board
@@ -3568,7 +3600,7 @@ export function resolveBattleOutcome(runState) {
     // Hero identity: minibosses (always) / elites (sometimes) drop a signature legendary.
     // Dota depth 2: a neutral item drop (elites / minibosses most of all).
     // Runes: elites / minibosses drop a rune into the Rune Pouch.
-    const rs0 = runeDrop(neutralDrop(signatureDrop(collarDrop(evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs, node), node), node, actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length)), node)
+    const rs0 = regardAfterFight(runeDrop(neutralDrop(signatureDrop(collarDrop(evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs, node), node), node, actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length)), node), battle)
     // Between-fights: a Hunted / Cursed path pays its promised loot; Fates
     // tick (allies leave, rivals pay their bounty, curses wear off).
     // Interest + the win payout below still read the pre-fate balance.
