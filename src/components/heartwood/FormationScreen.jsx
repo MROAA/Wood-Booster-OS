@@ -27,6 +27,7 @@ import { CardGlyph } from "./cardArt"
 import { resolveRealMatchup, objectiveForRunNode, difficultyForRunNode } from "../../services/heartwood/tacticsRealMatchup"
 import { objectiveSummary } from "../../services/heartwood/tacticsObjectives"
 import { factionInfo } from "../../services/heartwood/tacticsFactions"
+import "./heartwood-road-screens.css"
 
 // Same 4 positions autoBattleEngine.js deploys units to - kept in sync
 // by hand since the engine doesn't export it, but both only ever

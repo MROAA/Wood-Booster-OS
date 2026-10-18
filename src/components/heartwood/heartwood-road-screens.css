@@ -15,7 +15,9 @@
 .hw-road-panel,
 .hw-intro.hw-event,
 .hw-intro.hw-camp,
-.hw-intro.hw-route-screen {
+.hw-intro.hw-route-screen,
+.hw-intro.hw-formation-screen,
+.hw-intro.hw-relic-screen {
   --road-gold: var(--hw-ui-accent, #cdb47a);
   --road-moss: var(--hw-ui-leaf, #8fb07a);
   --road-text: var(--hw-ui-text, #e8e2c8);
@@ -408,4 +410,168 @@
 .hw-intro.hw-route-screen .hw-select-grid {
   display: flex;
   flex-wrap: wrap;
+}
+
+/* ---------- Piece 4: before the battle ---------- */
+.hw-intro.hw-formation-screen {
+  margin-top: 10px;
+  padding: 22px 28px 24px;
+}
+/* the two callouts: the enemy's threat (ember) and the arena (moss) */
+.hw-intro.hw-formation-screen .hw-threat-preview,
+.hw-intro.hw-formation-screen .hw-arena-banner {
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--callout) 35%, transparent);
+  border-left: 3px solid var(--callout);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--callout) 10%, transparent), transparent 70%), rgba(8, 11, 6, 0.6);
+  box-shadow: none;
+}
+.hw-intro.hw-formation-screen .hw-threat-preview { --callout: #e0894f; }
+.hw-intro.hw-formation-screen .hw-arena-banner { --callout: var(--road-moss); }
+/* your own heroes have no price here */
+.hw-intro.hw-formation-screen .hw-unit-card .hw-card-cost {
+  display: none;
+}
+/* the build's reading lines open on hover, as in Headquarters */
+.hw-intro.hw-formation-screen .hw-buildscore :is(.hw-buildscore-positioning, .hw-buildscore-core, .hw-buildscore-note) {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.22s ease, opacity 0.18s ease;
+}
+.hw-intro.hw-formation-screen .hw-buildscore:is(:hover, :focus-within) :is(.hw-buildscore-positioning, .hw-buildscore-core, .hw-buildscore-note) {
+  max-height: 80px;
+  opacity: 1;
+}
+/* Start Battle - the screen's one main action - stays in view at the
+   bottom while you read and place heroes */
+.hw-intro.hw-formation-screen .hw-end-turn.hw-tactics-start {
+  position: sticky;
+  bottom: 14px;
+  z-index: 15;
+  display: block;
+  width: min(420px, 100%);
+  margin: 16px auto 0 !important;
+  padding: 14px 24px;
+  border-radius: 999px;
+  font-family: var(--hw-font-display);
+  font-size: 21px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 14px 30px -8px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 22px color-mix(in srgb, var(--road-gold) 25%, transparent);
+}
+.hw-intro.hw-formation-screen .hw-auto-battle-btn {
+  display: block;
+  margin: 8px auto 0 !important;
+}
+/* room under the last row so it can scroll clear of the sticky Start */
+.hw-intro.hw-formation-screen {
+  padding-bottom: 96px;
+}
+
+/* ---------- Piece 5: a relic in the roots ---------- */
+.hw-intro.hw-relic-screen {
+  max-width: 1000px;
+  margin: 22px auto 0;
+  padding: 24px 32px 28px;
+  text-align: center;
+}
+.hw-intro.hw-relic-screen h1 {
+  font-family: var(--hw-font-display);
+  font-size: 30px !important;
+  color: #f2ead0;
+}
+.hw-intro.hw-relic-screen .hw-flavor {
+  color: color-mix(in srgb, var(--road-text) 70%, transparent);
+}
+.hw-intro.hw-relic-screen .hw-select-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 22px;
+  margin-top: 14px;
+}
+/* each relic: a reliquary plaque - the relic's art in a glowing niche */
+.hw-intro.hw-relic-screen .hw-card.hw-relic-card {
+  --rel: var(--road-gold);
+  position: relative;
+  width: 230px;
+  min-width: 230px;
+  align-items: center;
+  gap: 10px;
+  padding: 26px 18px 18px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--rel) 38%, transparent);
+  background:
+    radial-gradient(circle at 50% 70px, color-mix(in srgb, var(--rel) 18%, transparent) 0 46px, transparent 90px),
+    rgba(10, 13, 8, 0.94);
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 14px 26px -12px rgba(0, 0, 0, 0.9);
+  text-align: center;
+  transition: translate 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.hw-intro.hw-relic-screen .hw-card.hw-relic-card[data-tier="rare"] { --rel: #8fb7e0; }
+.hw-intro.hw-relic-screen .hw-card.hw-relic-card[data-tier="legendary"],
+.hw-intro.hw-relic-screen .hw-card.hw-relic-card[data-tier="epic"] { --rel: #e7c27a; }
+.hw-intro.hw-relic-screen .hw-card.hw-relic-card:not([data-disabled="true"]):hover {
+  translate: 0 -4px;
+  border-color: var(--rel);
+  box-shadow: 0 1px 0 #2a2418, 0 2px 0 #1b170f, 0 22px 32px -12px rgba(0, 0, 0, 0.9), 0 0 20px color-mix(in srgb, var(--rel) 30%, transparent);
+}
+.hw-intro.hw-relic-screen .hw-relic-card .hw-card-head {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+}
+.hw-intro.hw-relic-screen .hw-relic-card .hw-card-cost {
+  min-width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid #f2dc9c;
+  background: radial-gradient(circle at 35% 30%, #f3d98e, #b88a32 60%, #6e4f17);
+  color: #fff8e6;
+  font-weight: 800;
+  text-shadow: 0 1px 2px #1a0e04;
+}
+.hw-intro.hw-relic-screen .hw-relic-card .hw-card-glyph {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--rel) 55%, transparent));
+}
+.hw-intro.hw-relic-screen .hw-relic-card .hw-card-name {
+  font-family: var(--hw-font-display);
+  font-size: 19px;
+  color: #f2ead0;
+}
+.hw-intro.hw-relic-screen .hw-relic-card .hw-card-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--road-text) 75%, transparent);
+}
+/* Skip and Reroll: quiet pill plaques, centred under the relics */
+.hw-intro.hw-relic-screen div:has(> .hw-relic-skip) {
+  justify-content: center;
+  margin-top: 22px !important;
+}
+.hw-intro.hw-relic-screen .hw-move-btn:is(.hw-relic-skip, .hw-relic-reroll) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 22px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--road-gold) 45%, transparent);
+  background: linear-gradient(180deg, rgba(40, 46, 26, 0.95), rgba(20, 24, 13, 0.95));
+  color: #f2ead0;
+  font-size: 14px;
+  font-weight: 600;
+  transition: translate 0.15s ease, border-color 0.15s ease;
+}
+.hw-intro.hw-relic-screen .hw-move-btn:is(.hw-relic-skip, .hw-relic-reroll):not(:disabled):hover {
+  translate: 0 -1px;
+  border-color: var(--road-gold);
+}
+.hw-intro.hw-relic-screen .hw-relic-reroll .hw-cost-inline {
+  color: #e7c27a;
+}
+.hw-intro.hw-relic-screen .hw-move-btn:disabled {
+  opacity: 0.45;
 }
