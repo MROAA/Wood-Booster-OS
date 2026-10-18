@@ -7,6 +7,7 @@ import { difficultyForRunNode } from "../../services/heartwood/tacticsRealMatchu
 import { routePreview, routeScouted } from "../../services/heartwood/betweenFights"
 import { objectiveForNode, objectiveSummary } from "../../services/heartwood/tacticsObjectives"
 import RunBuildPanel from "./RunBuildPanel"
+import "./heartwood-road-screens.css"
 
 // The branching-path pick (Marc, direct: "haluan tarinankerronnan kuin
 // slay the spiressä... eri tapahtumia ja vihollisia" - storytelling
@@ -30,7 +31,7 @@ export default function FloorChoice({ runState, onChoose, difficultyTier }) {
   const options = runState.floorChoices || []
 
   return (
-    <div className="hw-intro">
+    <div className="hw-intro hw-route-screen">
       {import.meta.env.DEV && (
         <div className="hw-free-layout-toolbar">
           {!layout.editingLayout ? (

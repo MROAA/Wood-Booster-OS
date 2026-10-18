@@ -195,6 +195,11 @@ Headquarters stays calm: if something is a trade, it does not go there.
   and draw it with `<UiTitle k="..." />` — editable in Studio.
 - **A colour / size / speed**: add a `--hw-ui-*` / `--hw-card-*` token on
   `.hw-root` (heartwood.css) and a slider/swatch in Studio's ThemePanel.
+- **A between-fight screen** (event, camp, path choice, rest...): give its
+  root the class `hw-road-panel` (or add it to the shared selector list at the
+  top of `heartwood-road-screens.css`) - it gets the road tokens and the calm
+  forest reading panel in one go; its own block sets only size, spacing and
+  what is particular to it. Never copy the panel styles.
 - **A check**: extend `.scratch/verify_market_table.mjs` /
   `verify_hq_between_fights.mjs` / `verify_fusion.mjs`.
 
