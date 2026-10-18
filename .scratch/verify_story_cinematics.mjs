@@ -101,7 +101,7 @@ const cinematicGone = !(await page.locator('[data-screen="story-cinematic"]').is
 console.log("ending:", { endingVisible, endingId, endingTitle, cinematicGone, runEndVisible })
 
 const pass =
-  eng.ids.length === 6 &&
+  eng.ids.length === 7 && // + The New Verse (New Game+)
   eng.noneRun === "ending-rooted" && eng.rooted === "ending-rooted" &&
   eng.ember === "ending-ember" && eng.hollow === "ending-hollow" &&
   eng.hollowAloneVsOneRooted === "ending-hollow" &&

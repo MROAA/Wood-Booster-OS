@@ -59,6 +59,32 @@
 export const EVENTS = [
 
   // --- Act I ----------------------------------------------------------
+  // New Game+ (forestMemory.js): only a returning traveller finds this.
+  {
+    id: "the-cairn-you-built",
+    act: 1,
+    requiresFlag: "remembers_the_forest",
+    tag: "🌀 The forest remembers",
+    title: "The Cairn You Built",
+    body: "At the first fork there is a cairn of river stones that was not here the first time - or was it? The top stone is scratched with runes in a hand you know. Your own. Some of what it says has not happened yet.",
+    choices: [
+      {
+        label: "Read what you wrote.",
+        result: "The runes tell you where the path bends and what waits at the bend. You remember it before you see it. Under the top stone, a rune-stone you must have left for yourself.",
+        effects: [{ rune: "random" }, { regard: 5 }],
+      },
+      {
+        label: "Add a stone to it.",
+        result: "You set one more stone on the pile. The forest seems to settle around you, the way a house settles around someone who lives there.",
+        effects: [{ boon: "rootblessed" }],
+      },
+      {
+        label: "Kick it down. You don't trust it.",
+        result: "The stones scatter. Coins roll out of the gaps - your own, left for a worse day. The trees go quiet in a way you remember too.",
+        effects: [{ essence: 70 }, { regard: -5 }],
+      },
+    ],
+  },
   // Lost Expedition (First Song PRD §5): the longship expedition that came
   // looking for the root of all worlds. A chain across Acts I-IV - camp ->
   // (log) -> the seer's heir; barrow -> (runes) -> the jarl's oath-stone.

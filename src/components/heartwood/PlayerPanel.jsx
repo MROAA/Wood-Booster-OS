@@ -1,5 +1,6 @@
 import { CHARACTERS } from "../../data/heartwood/characters"
-import { CardGlyph, formatPowerLabel } from "./cardArt"
+import { formatPowerLabel } from "./cardArt"
+import CommanderArt from "./CommanderArt"
 
 export default function PlayerPanel({ player, energy }) {
   const hpPct = Math.max(0, Math.round((player.hp / player.maxHp) * 100))
@@ -9,7 +10,7 @@ export default function PlayerPanel({ player, energy }) {
   return (
     <div className="hw-panel" style={{ minWidth: 220 }} data-unit-id="player">
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        {character && <CardGlyph name={character.art} className="hw-piece-glyph" style={{ color: "var(--hw-ember)" }} />}
+        {character && <CommanderArt character={character} mood={player.hp <= 0 ? "defeat" : player.hp / player.maxHp <= 0.35 ? "hurt" : "neutral"} className="hw-piece-glyph" style={{ color: "var(--hw-ember)" }} />}
         <div style={{ flex: 1, display: "flex", justifyContent: "space-between" }}>
           <strong>{player.name}</strong>
           {player.block > 0 && <span className="hw-badge hw-badge--block">Block {player.block}</span>}

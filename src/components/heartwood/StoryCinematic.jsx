@@ -19,6 +19,8 @@ const FADE_BG = {
   green: "#0c140c",
   red: "#160c0a",
   violet: "#120c16",
+  // New Game+: The New Verse.
+  gold: "#15120a",
 }
 
 export default function StoryCinematic({ cinematic, onDone }) {

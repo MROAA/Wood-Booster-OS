@@ -16,7 +16,6 @@ import { nextPendingLevelUp, levelOffers, nextPendingPromotion, promotionOffers 
 import LevelUpChoice, { PromotionCeremony } from "../LevelUpChoice"
 import TacticsBoard from "../TacticsBoard"
 import BattleSound from "../BattleSound"
-import { CardGlyph } from "../cardArt"
 import CampaignMap from "./CampaignMap"
 import CampaignSquad from "./CampaignSquad"
 import CampaignHearth from "./CampaignHearth"
@@ -24,6 +23,7 @@ import CampaignAftermath from "./CampaignAftermath"
 import CampaignStoryScene, { CampaignStoryResult, CampaignEpilogue } from "./CampaignStoryScene"
 import { CampaignOpsPanel } from "./CampaignContentUi"
 import "./campaign.css"
+import CommanderArt from "../CommanderArt"
 
 // The Long Campaign (campaignEngine.js) - the screen host. Owns the
 // campaign state + its own save (heartwood-campaign-save-v1, separate
@@ -244,7 +244,7 @@ function CampaignStart({ onBegin, onExit, metaUnlocked }) {
             return (
               <button key={id} className="hwc-commander" data-picked={commanderId === id || undefined} data-campaign-commander={id} onClick={() => setCommanderId(id)}>
                 <span className="hwc-commander-portrait">
-                  <CardGlyph name={ch.art} className="hw-commander-glyph" />
+                  <CommanderArt character={ch} className="hw-commander-glyph" />
                 </span>
                 <strong>{ch.name}</strong>
                 <span className="hwc-muted">{ch.tagline}</span>

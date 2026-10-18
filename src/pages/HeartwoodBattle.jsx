@@ -87,6 +87,7 @@ import { crossroadsForAct } from "../data/heartwood/crossroads"
 import { crownlessIntroLine } from "../data/heartwood/crownless"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
 import { loadMeta, saveMeta } from "../services/heartwood/metaState"
+import { recordForestMemory } from "../services/heartwood/forestMemory"
 import {
   loadHearth, saveHearth, hearthStartFor, harvestRun, upgradeRoom, buyFurniture, recruitAtHome, retireUnit,
   releaseUnit, setPermadeath, breedHeroes, togglePacked, discardStashed, craftRecipe, takePackedGear,
@@ -101,6 +102,7 @@ import BattleSound from "../components/heartwood/BattleSound"
 import { almanacCounts, recordAlmanac } from "../data/heartwood/almanac"
 import { initAudioFromStorage, installClickSound, setMusicMode, play as playSfx } from "../services/heartwood/soundManager"
 import CommanderSelect from "../components/heartwood/CommanderSelect"
+import { unlockHeroSkin, chooseHeroSkin, setActiveHeroSkins } from "../services/heartwood/heroSkins"
 import GuildHallScreen from "../components/heartwood/GuildHallScreen"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
@@ -344,6 +346,31 @@ function HeartwoodBattleScreens() {
     })
   }
 
+  // Hero looks (heroSkins.js): a rare look is bought once with Acorns and
+  // then worn or swapped freely on Commander Select.
+  function handleUnlockHeroSkin(heroId, skinId) {
+    setMeta((m) => {
+      const next = unlockHeroSkin(m, heroId, skinId)
+      if (!next) return m
+      saveMeta(next)
+      return next
+    })
+  }
+
+  function handleChooseHeroSkin(heroId, skinId) {
+    setMeta((m) => {
+      const next = chooseHeroSkin(m, heroId, skinId)
+      if (!next) return m
+      saveMeta(next)
+      return next
+    })
+  }
+
+  // The battle board reads the worn look from heroSkins.js's module state.
+  useEffect(() => {
+    setActiveHeroSkins(meta.heroSkins)
+  }, [meta.heroSkins])
+
   function handleUnlockCommander(id) {
     setMeta((m) => {
       const c = CHARACTERS[id]
@@ -450,6 +477,8 @@ function HeartwoodBattleScreens() {
             ...m,
             acorns: m.acorns + earned,
             depth: unlockedNext ? (m.depth || 0) + 1 : m.depth || 0,
+            // New Game+: the forest remembers this run (truths, ending, regard).
+            forestMemory: recordForestMemory(m.forestMemory, runState, won),
             stats: {
               runs: (m.stats?.runs || 0) + 1,
               wins: (m.stats?.wins || 0) + (won ? 1 : 0),
@@ -1094,6 +1123,9 @@ function HeartwoodBattleScreens() {
           unlockedIds={meta.unlockedCommanders || []}
           acorns={meta.acorns}
           onUnlock={handleUnlockCommander}
+          heroSkins={meta.heroSkins}
+          onUnlockSkin={handleUnlockHeroSkin}
+          onChooseSkin={handleChooseHeroSkin}
           depthLevel={Math.max(0, Math.min(meta.depth || 0, meta.selectedDepth || 0))}
         />
         {hearthPicks.length > 0 && (
@@ -1178,6 +1210,7 @@ function HeartwoodBattleScreens() {
     return (
       <ForestChoiceScreen
         suggested={suggestedEndingId(runState)}
+        runState={runState}
         onChoose={(endingId) => {
           setRunState((rs) => chooseForestPath(rs, endingId))
           setEndingCinematic(endingId)
