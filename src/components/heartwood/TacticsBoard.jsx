@@ -171,6 +171,7 @@ import { OBJECTS, objectHpAt, objectMaxHp, isAttackableTile, describeObjectTile,
 import { describeFaction, blightPreviewKeys, isBlighted, factionInfo, BLIGHT_ATTACK_BONUS } from "../../services/heartwood/tacticsFactions"
 import { terrainArtStyle, ObjectArt, TerrainIcon, BlightIcon, BLIGHT_ART_URL, SmokeArt } from "./TerrainArt"
 import { ForestFloor } from "./ForestFloor"
+import FastTips from "./FastTips"
 import { biomeBoardStyle, hashString } from "./forestFloorLayout"
 import { biomeForBattle } from "../../data/heartwood/battleBiomes"
 import { archetypeOf, beamTiles, blastTiles, AIM_BONUS, SUPPRESS_PENALTY } from "../../services/heartwood/tacticsRanged"
@@ -916,6 +917,7 @@ export default function TacticsBoard({
     return keys
   }, [intents])
   // Present feature types, for the small battlefield legend.
+  const layoutRef = useRef(null)
   const terrainKinds = useMemo(() => [...new Set(Object.values(battle.terrain || {}))].filter((t) => TERRAIN_INFO[t]), [battle.terrain])
   // Battlefield piece 2: the biome drawing this fight, and a salt that keeps
   // one battle's forest floor the same all fight (its line-up of unit ids).
@@ -1691,7 +1693,9 @@ export default function TacticsBoard({
 
   return (
     <>
-      <div className="hwt-layout">
+      {/* Fast hover explanations for everything in the battle view. */}
+      <FastTips containerRef={layoutRef} />
+      <div className="hwt-layout" ref={layoutRef}>
         <div className="hwt-board-col">
           <SquadBar battle={battle} selectedId={selectedId} onSelect={handleSquadSelect} />
           <TurnTimeline battle={battle} intents={intents} selectedId={selectedId} onSelect={handleSquadSelect} />
