@@ -71,6 +71,7 @@ import { useFreeLayout } from "./useFreeLayout.jsx"
 import PatchPreviewPanel from "../hearthwood-studio/PatchPreviewPanel"
 import marketBanner from "../../assets/heartwood/battle-bg.jpg"
 import hearthwoodLogo from "../../assets/heartwood/hearthwood-logo.png"
+import CommanderArt from "./CommanderArt"
 // Marc's own Copilot-made plaque buttons (kuvia/ drop, "luon microsoft
 // copilotilla napit" / "lisään ne samaan kansioon ja käytät niitä
 // uissa" - I'm making the buttons with Copilot, I'll add them to the
@@ -1750,7 +1751,7 @@ export default function SquadDraft({
                Market Level widget above. */
             <div className="hw-commander-cluster">
               <span className="hw-badge" title={commander?.description}>
-                <CardGlyph name={commander?.art} className="hw-intent-glyph" />
+                <CommanderArt character={commander} className="hw-intent-glyph" />
                 {commander?.name} · Rank {commanderRank}
               </span>
               <span

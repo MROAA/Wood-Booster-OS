@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { CardGlyph } from "./cardArt"
+import CommanderArt from "./CommanderArt"
+import HeroAvatar from "./HeroAvatar"
+import { HEROES, HERO_SKIN_COST } from "../../data/heartwood/heroes"
+import { isSkinUnlocked, normalizeHeroSkins } from "../../services/heartwood/heroSkins"
 import { MEMORY_ESSENCE_BONUS } from "../../services/heartwood/runEngine"
 import { parseSeed } from "../../data/heartwood/seed"
 import { useFreeLayout } from "./useFreeLayout.jsx"
@@ -40,8 +43,15 @@ export default function CommanderSelect({
   acorns = 0,
   onUnlock,
   depthLevel = 0,
+  heroSkins,
+  onUnlockSkin,
+  onChooseSkin,
 }) {
   const [confirmingId, setConfirmingId] = useState(null)
+  // Hero avatars (heroes.js): hovering a card makes that hero light up,
+  // picking one gets the victory face during the confirm moment.
+  const [hoverId, setHoverId] = useState(null)
+  const skins = normalizeHeroSkins(heroSkins)
   const unlocked = new Set(unlockedIds)
 
   // Free Layout foundation (Stage A, PR 2) - see useFreeLayout.jsx and
@@ -156,39 +166,86 @@ export default function CommanderSelect({
             {characters.map((character) => {
               const isLocked = character.locked && !unlocked.has(character.id)
               const canAfford = acorns >= (character.unlockCost || 0)
+              const hero = HEROES[character.id]
+              const wornSkin = skins.chosen[character.id] || "default"
+              const mood = confirmingId === character.id ? "victory" : hoverId === character.id && !isLocked && !confirmingId ? "joy" : "neutral"
               return (
-                <button
-                  key={character.id}
-                  type="button"
-                  className="hw-commander-card"
-                  data-confirming={confirmingId === character.id}
-                  data-dimmed={confirmingId !== null && confirmingId !== character.id}
-                  data-locked={isLocked}
-                  disabled={confirmingId !== null || (isLocked && !canAfford)}
-                  onClick={() => {
-                    if (isLocked) {
-                      if (canAfford && onUnlock) onUnlock(character.id)
-                      return
-                    }
-                    handlePick(character.id)
-                  }}
-                >
-                  <span className="hw-commander-portrait">
-                    <CardGlyph name={character.art} className="hw-commander-glyph" />
-                  </span>
-                  <strong className="hw-commander-name">{character.name}</strong>
-                  <p className="hw-commander-tagline">{character.tagline}</p>
-                  <p className="hw-commander-desc">{character.description}</p>
-                  <span className="hw-commander-cta">
-                    {isLocked
-                      ? canAfford
-                        ? `Unlock — ${character.unlockCost} \u{1F33F}`
-                        : `Locked — ${character.unlockCost} Acorns`
-                      : confirmingId === character.id
-                        ? "Leading the squad..."
-                        : "Lead the squad"}
-                  </span>
-                </button>
+                <div key={character.id} className="hw-commander-slot" data-dimmed={confirmingId !== null && confirmingId !== character.id}>
+                  <button
+                    type="button"
+                    className="hw-commander-card"
+                    data-confirming={confirmingId === character.id}
+                    data-dimmed={confirmingId !== null && confirmingId !== character.id}
+                    data-locked={isLocked}
+                    disabled={confirmingId !== null || (isLocked && !canAfford)}
+                    onMouseEnter={() => setHoverId(character.id)}
+                    onMouseLeave={() => setHoverId((h) => (h === character.id ? null : h))}
+                    onClick={() => {
+                      if (isLocked) {
+                        if (canAfford && onUnlock) onUnlock(character.id)
+                        return
+                      }
+                      handlePick(character.id)
+                    }}
+                  >
+                    <span className="hw-commander-portrait" data-hero-art={hero ? "true" : undefined}>
+                      <CommanderArt character={character} variant="round" mood={mood} skin={wornSkin} className="hw-commander-glyph" />
+                    </span>
+                    <strong className="hw-commander-name">{character.name}</strong>
+                    {hero && (
+                      <span className="hw-commander-role" title={`Strength: ${hero.strength}. Weakness: ${hero.weakness}. For the squad: ${hero.squadBenefit}.`}>
+                        {hero.role} · {hero.energy}
+                      </span>
+                    )}
+                    {hero && (
+                      <span className="hw-commander-traits" title={`${hero.persona} ${hero.quirk}`}>
+                        {hero.traits.join(" · ")}
+                      </span>
+                    )}
+                    {/* Hovering a drawn hero lets them speak for themselves. */}
+                    <p className="hw-commander-tagline" data-hero-quote={hero && mood !== "neutral" ? "true" : undefined}>
+                      {hero && mood !== "neutral" ? `"${mood === "victory" ? hero.lines.victory : hero.lines.start}"` : character.tagline}
+                    </p>
+                    <p className="hw-commander-desc">{character.description}</p>
+                    <span className="hw-commander-cta">
+                      {isLocked
+                        ? canAfford
+                          ? `Unlock — ${character.unlockCost} \u{1F33F}`
+                          : `Locked — ${character.unlockCost} Acorns`
+                        : confirmingId === character.id
+                          ? "Leading the squad..."
+                          : "Lead the squad"}
+                    </span>
+                  </button>
+                  {hero && !isLocked && (
+                    <div className="hw-commander-looks" aria-label={`${character.name}'s looks`}>
+                      {Object.entries(hero.skins).map(([skinId, skin]) => {
+                        const owned = isSkinUnlocked(skins, character.id, skinId)
+                        const affordable = acorns >= HERO_SKIN_COST
+                        return (
+                          <button
+                            key={skinId}
+                            type="button"
+                            className="hw-commander-look"
+                            data-skin-id={skinId}
+                            data-worn={wornSkin === skinId || undefined}
+                            data-owned={owned || undefined}
+                            disabled={confirmingId !== null || (!owned && !affordable)}
+                            title={
+                              owned
+                                ? `${skin.name}${skin.blurb ? ` - ${skin.blurb}` : ""}${wornSkin === skinId ? " (worn)" : ""}`
+                                : `Rare look: ${skin.name} - ${skin.blurb} Unlock for ${HERO_SKIN_COST} Acorns.`
+                            }
+                            onClick={() => (owned ? onChooseSkin?.(character.id, skinId) : onUnlockSkin?.(character.id, skinId))}
+                          >
+                            <HeroAvatar heroId={character.id} skin={skinId} variant="round" className="hw-commander-look-art" />
+                            {!owned && <span className="hw-commander-look-price">{HERO_SKIN_COST} {"\u{1F33F}"}</span>}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               )
             })}
           </div>

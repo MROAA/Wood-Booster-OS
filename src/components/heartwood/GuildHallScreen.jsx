@@ -1,6 +1,7 @@
 import { TRIBES, synergyTiersSummary } from "../../data/heartwood/synergies"
 import { CardGlyph } from "./cardArt"
 import { useFreeLayout } from "./useFreeLayout.jsx"
+import CommanderArt from "./CommanderArt"
 
 // The Guild Hall (Marc's PRD v2.0, Phase 4, sections 5-6/39-41): the
 // player's first real "place" in Hearthwood, not just a screen. Sits
@@ -104,7 +105,7 @@ export default function GuildHallScreen({ character, pendingMemory, bannerSrc, b
           "commanderStrip",
           <div className="hw-guildhall-commander-strip">
             <span className="hw-commander-portrait hw-guildhall-commander-portrait">
-              <CardGlyph name={character?.art} className="hw-commander-glyph" />
+              <CommanderArt character={character} className="hw-commander-glyph" />
             </span>
             <div>
               <strong className="hw-commander-name">{character?.name}</strong>

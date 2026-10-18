@@ -15,6 +15,7 @@
 import { auraTiles, AURA_LABEL } from "../../services/heartwood/gear"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
+import HeroToken, { heroIdOfUnit } from "./HeroToken"
 import { ElementBadges, ElementHelp } from "./TacticsElementsUi"
 // Combat depth sprint: round timeline, stances, reactions, combos.
 import { TurnTimeline, DepthActions, DepthTokenChips, IntentReactionMarks, DepthHelp } from "./TacticsDepthUi"
@@ -246,7 +247,10 @@ function portraitOf(unit) {
 
 // Portrait (or glyph fallback) - shared by the live token, the fading
 // fallen-unit ghost and the panel's selected-unit card.
-function TokenArt({ unit }) {
+function TokenArt({ unit, battle, speak = false }) {
+  // Drawn Commanders (heroes.js) react and speak - see HeroToken.jsx.
+  const heroId = heroIdOfUnit(unit)
+  if (heroId) return <HeroToken unit={unit} heroId={heroId} battle={battle} speak={speak} />
   const src = portraitOf(unit)
   return (
     <div className="hwt-token-art" data-has-image={!!src}>
@@ -1327,7 +1331,7 @@ export default function TacticsBoard({
               data-burrowed={(unit.burrowed > 0 && !(unit.revealed > 0)) || undefined}
               title={roleTitle(unit)}
             >
-              <TokenArt unit={unit} />
+              <TokenArt unit={unit} battle={battle} speak />
               <DepthTokenChips unit={unit} battle={battle} />
               <ManaTokenMarks unit={unit} />
               {/* Hero identity: the class signature chip + signature marks. */}
@@ -1761,7 +1765,7 @@ export default function TacticsBoard({
           )}
           {selected && selected.side === "player" && (
             <div className="hwt-selected-card" data-role={roleOf(selected)}>
-              <TokenArt unit={selected} />
+              <TokenArt unit={selected} battle={battle} />
               <div className="hwt-selected-info">
                 <span className="hwt-selected-name">{selected.name}</span>
                 <span className="hwt-selected-role" data-role={roleOf(selected)}>
