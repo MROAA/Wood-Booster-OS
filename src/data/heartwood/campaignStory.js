@@ -84,7 +84,7 @@ export const UNIQUE_HEROES = {
   merra: { id: "merra", name: "Merra", defId: "tidewarden", title: "Tide-Singer of Mistfen", line: "\"I've waited longer for less.\"" },
   kivi: { id: "kivi", name: "Kivi", defId: "stonemoot-sentinel", title: "Speaker of the Stone Moot", line: "\"Where you stand, I stand. That's the whole oath.\"" },
   saarni: { id: "saarni", name: "Saarni", defId: "starcaller", title: "Ley Warden", line: "\"The lines hum when you walk over them. Did you know?\"" },
-  maura: { id: "maura", name: "Maura", defId: "hexmother", title: "the Unhooded", line: "\"I know how the Rot thinks. Let me show you.\"" },
+  maura: { id: "maura", name: "Maura", defId: "hexmother", title: "the Unhooded, last of the longship seers", line: "\"I know how the Rot thinks. Let me show you.\"" },
   ilta: { id: "ilta", name: "Ilta", defId: "witherkit", title: "the Herald's Apprentice", line: "\"She told me about you. All of it.\"" },
 }
 
@@ -134,7 +134,7 @@ export const REGION_MODS = {
   allied: { id: "allied", label: "Allied", threatMult: 0.5, text: "An allied faction holds it. Threat grows half as fast, and their warriors fight beside you here." },
   warded: { id: "warded", label: "Warded", threatMult: 0.5, text: "The Ley Wardens watch it. Threat grows half as fast." },
   drained: { id: "drained", label: "Drained", threatMult: 1.5, text: "You drained its ley dry. No more Ley Sites; the dead marsh rots faster." },
-  sunk: { id: "sunk", label: "Sunk", threatMult: 0, text: "The Hollow King's flood lies here now. Nothing lives there; nothing comes out." },
+  sunk: { id: "sunk", label: "Sunk", threatMult: 0, text: "The Silence the Hollow King let loose lies here now. Nothing lives there; nothing comes out." },
 }
 
 // Ley choice (Ch3) numbers.
@@ -175,7 +175,7 @@ export const STORY_BEATS = {
   ],
   7: [
     { when: { herald: ["regent"] }, title: "The Last Root", line: "Maura keeps the empty throne for you. Go down to the last root. Finish it.", region: "crownless" },
-    { title: "The Last Root", line: "The end of the road. Win, and the Hearthwood lives.", region: "crownless" },
+    { title: "The Last Root", line: "The end of the road, and the last verse. Win, and decide how the Song ends.", region: "crownless" },
   ],
 }
 
@@ -207,9 +207,10 @@ export const STORY_SCENES = {
     icon: "🌳",
     lines: [
       ["The Rootkeeper", "...You. You are not the corruption."],
-      ["The Rootkeeper", "Listen. The Rot does not come from the roots. It comes from deeper. The heart is hiding."],
-      [null, "At his feet, tangled in his own roots, kneels a hooded woman with a staff of black sap. She was feeding the Rot into him, drop by drop."],
-      ["Maura", "Well? Go on. You won't stop what's coming by stopping me."],
+      ["The Rootkeeper", "Listen. The Rot does not come from the roots. It comes from deeper. It is the Silence, out of balance - forgetting eating at the forest's memory. And I am that memory. The heart is hiding."],
+      [null, "At his feet, tangled in his own roots, kneels a hooded woman with a staff of black sap and the braided hair of the old longship seers. She was feeding the Rot into him, drop by drop."],
+      ["Maura", "Well? Go on. My people were promised every answer, and the only answer was Silence. You won't stop what's coming by stopping me."],
+      [null, "A verse of the First Song stirs in the Rootkeeper's bark: \"First there was silence, and the silence was whole. Then something sang - and the first sound was a root.\""],
     ],
     options: [
       {
@@ -250,7 +251,8 @@ export const STORY_SCENES = {
       ["Hehku of the Ember Clans", "Burn the Rot out. All of it. What grows back will be ours."],
       ["Merra of the Tide Folk", "Burn, burn. Always burning. Wash it out slowly. The tide always wins."],
       ["Kivi of the Stone Moot", "Neither. Wall it in. Nothing gets past stone."],
-      ["Heartwood Warden", "They will follow whoever you stand with. Choose."],
+      ["Heartwood Warden", "Each of them tells a different tale of where the forest came from. None of them is wholly wrong. They will follow whoever you stand with. Choose."],
+      [null, "A verse of the First Song hums between the three of them: \"Out of the Song came fire, and water, and stone - and each one swore that it came first.\""],
     ],
     options: [
       {
@@ -289,7 +291,8 @@ export const STORY_SCENES = {
       [null, "The ley line under the forest has split open. Mana bleeds into the air like light through a cracked lantern."],
       ["Saarni, Ley Warden", "We have watched these lines since before the Hearth was lit. Help us close the wound, and the ley will remember you."],
       ["Spacemonkey", "Or - hear me out - you drink it. All of it. That's the war won right there. Probably. Mostly."],
-      ["Saarni, Ley Warden", "Drink it, and there's nothing left to heal the forest with. Ever."],
+      ["Saarni, Ley Warden", "These lines are the veins of the First Song. Drink it, and there's nothing left to heal the forest with. Ever."],
+      [null, "A verse of the First Song glows in the bleeding ley: \"Under the ground the Song ran in bright veins, and where it ran, the world remembered how to be.\""],
     ],
     options: [
       {
@@ -317,9 +320,10 @@ export const STORY_SCENES = {
     title: "The Hollow Flood",
     icon: "🌑",
     lines: [
-      ["The Hollow King", "I only wanted to keep it safe... I only wanted..."],
-      [null, "He comes apart like smoke. But the dark he held doesn't vanish. It spills out over the roots like floodwater, looking for somewhere to go."],
-      ["Spacemonkey", "It has to go somewhere. It always has to go somewhere."],
+      ["The Hollow King", "A kingdom that would never die... that's what it promised us. I only wanted to finish the Song, so it would last forever... I only wanted..."],
+      [null, "The last jarl of the longships comes apart like smoke. But the dark he held doesn't vanish. It spills out over the roots like floodwater, looking for somewhere to go."],
+      ["Spacemonkey", "That's the Silence. Not evil - just the thing that stops a song going on forever. He tried to sing past it. It has to go somewhere. It always has to go somewhere."],
+      [null, "A verse of the First Song rises out of the dark flood: \"Silence follows every song as night follows day - not to end it, but to let it rest.\""],
     ],
     options: [
       {
@@ -360,6 +364,7 @@ export const STORY_SCENES = {
       [null, "The throne in the Crownless Reach is empty. Someone is standing beside it, hood down."],
       ["Maura", "You let me go, at the Rootkeeper's gate. I've been trying to work out why ever since."],
       ["Maura", "The Rot doesn't want me anymore. I'm not sure what I want. Tell me."],
+      [null, "A verse of the First Song is cut into the throne's steps: \"A rune is a verse held still: a word the world must keep.\""],
     ],
     options: [
       {
@@ -397,6 +402,7 @@ export const STORY_SCENES = {
     lines: [
       [null, "You've brought Maura all this way in chains. At the foot of the empty throne, she finally asks for something."],
       ["Maura", "Let me go. Or don't. But stop making me watch you wonder."],
+      [null, "A verse of the First Song is cut into the throne's steps: \"A rune is a verse held still: a word the world must keep.\""],
     ],
     options: [
       {
@@ -435,6 +441,7 @@ export const STORY_SCENES = {
       [null, "Maura sits on the empty throne with a crown of black thorns on her head. Her Brood fills the hall behind her."],
       ["Maura", "You broke my staff. So I found a bigger one."],
       ["Maura", "I'm tired, though. Aren't you?"],
+      [null, "A verse of the First Song is cut into the throne's steps: \"A rune is a verse held still: a word the world must keep.\""],
     ],
     options: [
       {
@@ -466,6 +473,7 @@ export const STORY_SCENES = {
       [null, "A blue-violet shape flickers in the rift: a tail, a crooked grin, a hand that won't keep still."],
       ["Spacemonkey's memory", "Don't look at me like that. I'm not asking you to forgive me. I'm asking you to keep going."],
       ["Spacemonkey's memory", "You can take me with you, if you want. I'm not heavy. Mostly regret, and that's light stuff."],
+      [null, "A verse of the First Song flickers through the rift: \"What the root remembers, it can remember wrong - and then the wrong thing is true.\""],
     ],
     options: [
       {
@@ -505,48 +513,49 @@ export const STORY_SCENES = {
     final: true,
     lines: [
       ["The forest", "The roots remember. The heart remembers. The void remembers. You remember."],
-      [null, "The Crownless stands at the last root. It doesn't speak. It only waits."],
-      ["The forest", "Who leads us now?"],
+      [null, "The Crownless stands at the last root - not a ruler, but the last verse of the First Song, never sung. It doesn't speak. It only waits."],
+      [null, "The last verse of the First Song begins: \"And the forest...\" - and there it stops."],
+      ["The forest", "Am I a broken world to mend, or a world left unfinished on purpose? Who leads us now? How does the Song end?"],
     ],
     // One option per ending; the flags decide which are open.
     options: [
       {
         id: "rooted",
-        label: "Restore the forest as it was",
+        label: "Sing the Song back as it was",
         say: "\"Grow back. Just the way you were.\"",
         requires: { ley: ["ward"], void: ["sunk", "shared"] },
         locked: "You'd need the Ley Wardens' trust - and no dark of your own to carry.",
-        stakes: [["story", "Ending: The Rooted King"]],
+        stakes: [["story", "Ending: The Song Restored"]],
         result: "",
         effects: { ending: "rooted" },
       },
       {
         id: "ember",
-        label: "Give the forest a new fire",
+        label: "Bind the forest with burning runes",
         say: "\"Not what it was. Stronger.\"",
         requires: { any: [{ ally: ["ember"] }, { ley: ["drain"] }] },
         locked: "Only the Ember Clans - or someone full of stolen ley - would dare.",
-        stakes: [["story", "Ending: The Ember Sovereign"]],
+        stakes: [["story", "Ending: The Bound Forest"]],
         result: "",
         effects: { ending: "ember" },
       },
       {
         id: "hollow",
-        label: "Let the void become part of the forest",
+        label: "Let the Silence keep part of the forest",
         say: "\"It's been in me all this time. It can live here too.\"",
         requires: { void: ["carried"] },
         locked: "Only someone who carried the Hollow King's dark could offer it a home.",
-        stakes: [["story", "Ending: The Hollow Crown"]],
+        stakes: [["story", "Ending: The Silence Accepted"]],
         result: "",
         effects: { ending: "hollow" },
       },
       {
         id: "echo",
-        label: "Bring Spacemonkey's memory to the root",
+        label: "Sing a new verse with Spacemonkey's memory",
         say: "\"You wanted to see this. Look.\"",
         requires: { echo: ["carried"] },
         locked: "You'd need to have carried his memory this far.",
-        stakes: [["story", "Ending: The Echo Sovereign"]],
+        stakes: [["story", "Ending: The New Verse"]],
         result: "",
         effects: { ending: "echo" },
       },
@@ -562,9 +571,9 @@ export const STORY_SCENES = {
       },
       {
         id: "watch",
-        label: "Keep watch, and go home",
+        label: "Leave the Song unfinished, and go home",
         say: "\"It isn't mine to decide. We'll keep the Hearth lit.\"",
-        stakes: [["story", "Ending: The Long Watch"]],
+        stakes: [["story", "Ending: The Unfinished Song"]],
         result: "",
         effects: { ending: "watch" },
       },
@@ -579,38 +588,38 @@ export const STORY_SCENES = {
 export const ENDINGS = {
   rooted: {
     id: "rooted",
-    title: "The Rooted King",
+    title: "The Song Restored",
     color: "#7fb069",
     light: "green",
     epilogue: [
-      "The last root drinks, and the forest remembers its old shape. Not all at once - a grove here, a stream there - but it remembers.",
+      "You sing the verses back the way they were, and the forest remembers its old shape. Not all at once - a grove here, a stream there - but it remembers. Song, Root, Rune and Silence go back to their own sides.",
       "The Heartwood Warden takes the empty seat. He doesn't call it a throne. He calls it a stump, and sits on it like one.",
-      "The Ley Wardens walk the lines every spring. The ground still hums when your heroes pass.",
+      "The Ley Wardens walk the lines every spring. The ground still hums when your heroes pass. But a restored song is not the same song: some of the paths you walked are gone, and they will not grow back.",
       "Somewhere in the green, Spacemonkey's memory smiles. Me jatkamme puun tarinaa.",
     ],
     unlock: "commander:lehva",
   },
   ember: {
     id: "ember",
-    title: "The Ember Sovereign",
+    title: "The Bound Forest",
     color: "#e07a3a",
     light: "red",
     epilogue: [
-      "The forest burns, and comes back red. New bark, hard as iron. New leaves the colour of coals.",
+      "Runes are burned into every root, and the forest comes back red. New bark, hard as iron. New leaves the colour of coals. It keeps its rules now - all of them, always.",
       "The Ashlord Reborn takes the crown. The Ember Clans sing all night on the ridge.",
-      "It is a stronger forest now. It is not a gentler one. Your heroes notice the difference, and say nothing.",
+      "It is a stronger forest now, and a predictable one. It is not a freer one - it has stopped dreaming. Your heroes notice the difference, and say nothing.",
       "Spacemonkey's memory frowns, and warns you - and then, because it's you, accepts it.",
     ],
     unlock: "relic:emberbrand",
   },
   hollow: {
     id: "hollow",
-    title: "The Hollow Crown",
+    title: "The Silence Accepted",
     color: "#9b7fc7",
     light: "violet",
     epilogue: [
       "You set down the dark you've carried since the Reckoning, and the forest takes it in.",
-      "Violet light runs through the roots. The void isn't an enemy anymore. It's just the quiet part of the forest - the part that remembers what being alone was like.",
+      "Violet light runs through the roots, and whole groves fade out of the world - forgotten, so the rest can go on living. The Silence isn't an enemy anymore. It's just the quiet part of the forest - the part that keeps the Song from growing forever.",
       "The Crownless kneels, and the crown it never wore settles on you instead.",
       "Spacemonkey's memory whispers: \"You did what I didn't dare to.\"",
     ],
@@ -618,11 +627,11 @@ export const ENDINGS = {
   },
   echo: {
     id: "echo",
-    title: "The Echo Sovereign",
+    title: "The New Verse",
     color: "#7f8fe0",
     light: "blue-violet",
     epilogue: [
-      "You bring his memory down to the last root, and let it look.",
+      "You bring his memory down to the last root, and together you sing something no one has sung before - not the old last verse, and not a new perfect order. Just a new verse, with room left after it.",
       "The crown comes apart into blue-violet light and doesn't come back together. You aren't a king. You're the one who carried the memory that saved the forest.",
       "Leaves grow with a blue edge now. Flowers open only as you pass.",
       "\"I didn't run anymore,\" the memory says. \"And you didn't leave me.\" The forest doesn't remember kings. It remembers those who didn't run.",
@@ -636,7 +645,7 @@ export const ENDINGS = {
     light: "gold",
     epilogue: [
       "No one takes the crown. Maura keeps the throne empty, as she promised, sitting on the steps with her hood down.",
-      "The Rot doesn't end. It just stops having anyone to speak for it. Without a herald, it's only weather.",
+      "The Rot doesn't end. It just stops having anyone to speak for it. Without a herald, the Silence is only weather.",
       "Every season someone comes to the Reach to ask who rules the forest. Maura sends them home with the same answer: the forest does.",
       "Puun ehdoilla. On the tree's own terms.",
     ],
@@ -644,11 +653,11 @@ export const ENDINGS = {
   },
   watch: {
     id: "watch",
-    title: "The Long Watch",
+    title: "The Unfinished Song",
     color: "#a8b98a",
     light: "ember-gold",
     epilogue: [
-      "You don't choose. The Crownless waits a while longer, then sinks back into the root to wait for someone who will.",
+      "You don't sing the last verse. The Crownless waits a while longer, then sinks back into the root to wait for someone who will. Maybe the forest was meant to stay unfinished.",
       "The forest lives. It is tired, and patched, and stubborn, and it lives.",
       "You go home. The Hearth stays lit. On quiet nights your heroes still take turns at the window, watching the treeline.",
       "Somewhere down there, the story is waiting for the next one who comes.",

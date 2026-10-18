@@ -63,25 +63,25 @@ export const FOREST_PATHS = [
   {
     id: "rooted",
     name: "The Rooted Path",
-    tagline: "Growth. Peace. A return to what was.",
+    tagline: "Restore the Song. A return to what was.",
     blurb:
-      "Restore the Heartwood to the shape it held before the rot. The Warden takes the crown, the roots hold, the forest goes quiet and green again.",
+      "Sing the First Song back the way it was. Song, Root, Rune and Silence return to balance and the Warden takes the crown - but a restored song is not the same song, and something of this world changes for good.",
     endingId: "ending-rooted",
   },
   {
     id: "ember",
     name: "The Ember Path",
-    tagline: "Power. Change. Fire purifies.",
+    tagline: "Bind the forest. Burn the runes in.",
     blurb:
-      "Give the forest a new identity - fierce, bright, unafraid. The Ashlord rises, and the Heartwood is reborn as something that will not be caught sleeping again.",
+      "Burn runes into every root and hold the forest's forces in check. The Ashlord rises and the Heartwood will never break again - safer, more predictable, and far less free.",
     endingId: "ending-ember",
   },
   {
     id: "hollow",
     name: "The Hollow Path",
-    tagline: "Truth. Void. You.",
+    tagline: "Accept the Silence. Truth. You.",
     blurb:
-      "Accept the void as part of the forest, and the crown as part of you. No new guardian rises. The Heartwood and the emptiness become one thing, and you carry it.",
+      "Accept the Silence as part of the forest, and let part of it be forgotten so the rest of the world can go on. No new guardian rises. The Heartwood and the emptiness become one thing, and you carry it.",
     endingId: "ending-hollow",
   },
 ]
