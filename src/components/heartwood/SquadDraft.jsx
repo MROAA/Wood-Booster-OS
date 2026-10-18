@@ -1750,7 +1750,11 @@ export default function SquadDraft({
                Market Level widget above. */
             <div className="hw-commander-cluster">
               <span className="hw-badge" title={commander?.description}>
-                <CardGlyph name={commander?.art} className="hw-intent-glyph" />
+                {commander?.image ? (
+                  <img className="hw-commander-badge-img" src={commander.image} alt="" draggable={false} />
+                ) : (
+                  <CardGlyph name={commander?.art} className="hw-intent-glyph" />
+                )}
                 {commander?.name} · Rank {commanderRank}
               </span>
               <span

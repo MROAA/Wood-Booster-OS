@@ -200,6 +200,12 @@ comes before the new rules.
    board BETWEEN the floor and the cards, so they bloom around a card and
    never cover its numbers; only rising things float above. Capped, short,
    off under reduced motion.
+4b. ✅ **Raised ground** (Marc: "high ground rumasti… kumpuja", "3D-mäinen
+   mutta 2D", "korkeuserot"; chose *raised ground* over a tilted board):
+   high ground is drawn by `ForestFloor.jsx` HillLayer as rounded humps that
+   join into one hill, extruded 14px (earth face on the south side) with a
+   cast shadow and a dome light from the top-left. A hero on a hill stands
+   7px higher with a ground shadow. Colours: `biome.palette.hill`.
 5. Frostroot, Sunspire, Mirefall as data + their unique pieces.
 6. Forest-shaping class skills (manipulation part 2).
 7. Readability + performance pass with a full board (many units, many FX).
