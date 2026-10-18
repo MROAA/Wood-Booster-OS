@@ -12,6 +12,7 @@
 // for a real fight). This component only decides WHAT to render and WHICH
 // pure tacticsEngine.js function a click should call - it dispatches the
 // result via `onBattleChange`, never holds the battle itself.
+import { runModifierById } from "../../data/heartwood/boons"
 import { auraTiles, AURA_LABEL } from "../../services/heartwood/gear"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
@@ -2002,6 +2003,14 @@ export default function TacticsBoard({
           <ThreatPanel battle={battle} />
           <CounterPanel battle={battle} />
           <ManaFeedPanel battle={battle} />
+          {/* Forest creatures: a Root-Eater surfaced in this fight. */}
+          {battle.rootEaterArrived && (
+            <div className="hwt-creature-banner" data-creature-banner="rooteater">
+              <div className="hwt-creature-banner-title">🪱 A Root-Eater surfaced</div>
+              It eats wood and roots next to it every enemy turn and heals on them - fight it in the open.
+              {battle.rootEaterAte && <div className="hwt-creature-banner-ate">It fed on an old bond: {runModifierById(battle.rootEaterAte)?.name || battle.rootEaterAte} is gone.</div>}
+            </div>
+          )}
           {/* Forest creatures: a Shapeshifter still hiding among the trees. */}
           {battle.creatureHint && Object.keys(battle.mimics || {}).length > 0 && (
             <div className="hwt-creature-banner" data-creature-banner="shapeshifter">

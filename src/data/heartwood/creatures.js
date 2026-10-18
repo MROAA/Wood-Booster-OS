@@ -20,7 +20,13 @@
 //                      out when it reaches a hero or is struck.
 //   Water-Rememberers - an event (events.js "the-rememberer"): trade a
 //                      memory for something.
-// (Root-Eaters: next round.)
+//   Root-Eaters      - from Act III one may wake and come toward you, a fight
+//                      closer each win (map panel shows how far). When it
+//                      arrives it surfaces in that fight, eats trees and
+//                      roots off the board (healing on them), and devours
+//                      one old bond: your oldest BANE if the forest regards
+//                      you well (regard >= 0), else your newest BOON. It
+//                      passes twice at most, then sinks for good.
 
 export const REGARD_MIN = -100
 export const REGARD_MAX = 100
@@ -68,6 +74,20 @@ export const CREATURES = {
     hint: "One of these trees is not a tree. Trees don't move - watch which one does.",
     reveal: "It was never a tree!",
   },
+}
+
+export const ROOT_EATER = {
+  enemy: "ironroot",
+  name: "Root-Eater",
+  fromAct: 3,
+  chance: 0.6,
+  approach: 3, // won fights until it arrives
+  again: 4, // ...and until it comes back after a pass
+  passes: 2,
+  hpMult: 1.6,
+  feedHeal: 4,
+  eats: { tree: "stump", roots: "rubble", log: "rubble", stump: "rubble" },
+  surface: "The ground splits. A Root-Eater surfaces, chewing.",
 }
 
 export function regardBand(regard = 0) {
