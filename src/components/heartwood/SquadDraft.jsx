@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react"
 import "./heartwood-market-table.css"
 import MarketScreen from "./MarketScreen"
+import { actionShownAt } from "../../data/heartwood/squadActions"
 import FusionRewardChoice from "./FusionRewardChoice"
 import HeadquartersScreen from "./HeadquartersScreen"
 import { setCountMap } from "../../data/heartwood/buildSets"
@@ -698,7 +699,12 @@ export default function SquadDraft({
   // reserve lists render identical cards - the only difference between
   // the two groups is which section they sit in and the quiet dim on
   // the reserve grid, nothing about the card itself.
-  function renderBenchCard(entry) {
+  // `place` decides which actions the card carries (data/heartwood/
+  // squadActions.js): "camp" = Headquarters (gear, fusion, upgrade, mend),
+  // "classic" = the old tabbed layout (everything). Trades with the
+  // merchant (sell, reforge) live on the Market's renderTradeRow.
+  function renderBenchCard(entry, { place = "classic" } = {}) {
+    const shows = (action) => actionShownAt(action, place)
     const def = UNITS[entry.defId]
     // fused heroes (Tier 2 and Tier 3) are past reforging and upgrading
     const fusedTier = def?.displayTier || 1
@@ -743,6 +749,7 @@ export default function SquadDraft({
         </div>
         {/* Gear sprint: the hero's gear ROW (adjacency links glow between
             slots; drag to reorder) + its full gear screen. */}
+        {shows("gear") && (
         <div className="hw-gear-row-wrap">
           <GearRow
             items={runState.items}
@@ -757,7 +764,8 @@ export default function SquadDraft({
             Gear
           </button>
         </div>
-        {fusedTier < 3 && (
+        )}
+        {fusedTier < 3 && shows("fusion") && (
           <div
             className="hw-badge hw-fusion-progress"
             data-next-tier={fusedTier + 1}
@@ -770,7 +778,7 @@ export default function SquadDraft({
         {/* Upgrade — the PRD's "level-up = a strategic choice". Its own
             row above Reforge/Sell so the branch pick reads as the
             unit's identity decision, not a churn action. */}
-        {fusedTier < 2 && (
+        {fusedTier < 2 && shows("upgrade") && (
           <button
             className="hw-move-btn hw-upgrade-btn"
             style={{ fontSize: 11, padding: "4px 6px", width: "100%" }}
@@ -783,7 +791,7 @@ export default function SquadDraft({
           </button>
         )}
         {/* Lasting consequences: pay to heal a hurt or Wounded unit. */}
-        {onMend && (unitHpPct(entry) < 1 || entry.wounded) && (
+        {onMend && shows("mend") && (unitHpPct(entry) < 1 || entry.wounded) && (
           <button
             className="hw-move-btn hw-mend-btn"
             style={{ fontSize: 11, padding: "4px 6px", width: "100%" }}
@@ -797,8 +805,9 @@ export default function SquadDraft({
         {/* Reforge + Sell side by side - half the vertical footprint of
             two stacked full-width buttons (this screen's zero-scroll
             budget), same click targets/labels. */}
+        {(shows("reforge") || shows("sell")) && (
         <div style={{ display: "flex", gap: 4 }}>
-          {canReforge && (
+          {canReforge && shows("reforge") && (
             <button
               className="hw-move-btn"
               style={{ fontSize: 11, padding: "4px 6px", flex: 1 }}
@@ -809,6 +818,7 @@ export default function SquadDraft({
               Reforge
             </button>
           )}
+          {shows("sell") && (
           <button
             className="hw-move-btn hw-sell-btn"
             style={{ fontSize: 11, padding: "4px 6px", flex: 1 }}
@@ -817,7 +827,41 @@ export default function SquadDraft({
           >
             Sell (+{sellRefund})
           </button>
+          )}
         </div>
+        )}
+      </div>
+    )
+  }
+
+  // One squad hero as a trade row on the Market: who it is, Reforge
+  // (swap for another hero of the same tier) and Sell (back to the
+  // merchant). Same actions and prices as the classic bench card.
+  function renderTradeRow(entry) {
+    const def = UNITS[entry.defId]
+    if (!def) return null
+    const refund = sellRefundFor(def, effectiveSellMult(runState))
+    const fused = (def.displayTier || 1) >= 2
+    return (
+      <div key={entry.key} className="hwm-trade-row" data-deployed={runState.deployed.includes(entry.key) || undefined}>
+        <span className="hwm-trade-art">{def.image ? <img src={def.image} alt="" /> : <CardGlyph name={def.art} className="hwm-trade-glyph" />}</span>
+        <span className="hwm-trade-name">{def.name}</span>
+        {!fused && actionShownAt("reforge", "market") && (
+          <button
+            type="button"
+            className="hw-move-btn hwm-trade-btn"
+            disabled={runState.essence < REFORGE_COST}
+            onClick={() => handleReforge(entry.key)}
+            title={`Swap ${def.name} for a different random hero of the same tier (${REFORGE_COST} Essence)`}
+          >
+            Reforge
+          </button>
+        )}
+        {actionShownAt("sell", "market") && (
+          <button type="button" className="hw-move-btn hw-sell-btn hwm-trade-btn" onClick={() => handleSell(entry.key)} title={`Sell ${def.name} back for ${refund} Essence`}>
+            Sell +{refund}
+          </button>
+        )}
       </div>
     )
   }
@@ -1964,6 +2008,7 @@ export default function SquadDraft({
     renderRecruitCard,
     renderItemOffer,
     renderBenchCard,
+    renderTradeRow,
     renderOwnedRail,
     renderCenterSections,
   }

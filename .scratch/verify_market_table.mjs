@@ -29,6 +29,8 @@ c.hqFits = await fits()
 c.hqContinueInView = await page.evaluate(() => document.querySelector(".hwq-root .hwm-continue").getBoundingClientRect().bottom <= innerHeight)
 c.hqShowsSquad = (await page.locator(".hwq-cards .hw-card").count()) === 3
 c.hqHasCommander = (await page.locator(".hwq-root .hw-commander-cluster").count()) === 1
+// camp cards keep camp actions only - selling/reforging are trades (Market)
+c.hqCardsCampOnly = (await page.locator(".hwq-cards .hw-sell-btn").count()) === 0 && (await page.locator(".hwq-cards .hw-upgrade-btn").count()) === 3
 c.hqHidesOwnedPrice = await page.evaluate(() => [...document.querySelectorAll(".hwq-cards .hw-card-cost")].every((e) => getComputedStyle(e).display === "none"))
 // cards: exactly one attack gem, and it is the battle's own attack number
 c.cardAttackIsBattleAttack = await page.evaluate(async () => {
@@ -57,15 +59,17 @@ c.buySpendsEssence = (await essence()) < e0
 const e2 = await essence()
 await page.locator(".hwm-actions button", { hasText: "Reroll" }).click(); await page.waitForTimeout(600)
 c.rerollWorks = (await essence()) < e2
+// trade panel: one row per hero, selling pays
+c.tradeRowPerHero = (await page.locator(".hwm-trade-row").count()) === 4
+const eSell = await essence()
+await page.locator(".hwm-trade .hw-sell-btn").first().click(); await page.waitForTimeout(600)
+c.sellInMarketRefunds = (await essence()) > eSell && (await page.locator(".hwm-trade-row").count()) === 3
 if (SHOT) await page.screenshot({ path: `${SHOT}-market.png` })
 
-// --- back home: the bought hero is in the squad; sell one from its card
+// --- back home: bought one, sold one
 await page.locator(".hwm-hq-btn").click(); await page.waitForTimeout(600)
 c.backToHq = (await page.locator(".hwq-root").count()) === 1
-c.boughtHeroInSquad = (await page.locator(".hwq-cards .hw-card").count()) === 4
-const e1 = await essence()
-await page.locator(".hwq-cards .hw-sell-btn").first().click(); await page.waitForTimeout(600)
-c.sellRefunds = (await essence()) > e1
+c.squadAfterTrade = (await page.locator(".hwq-cards .hw-card").count()) === 3
 if (SHOT) await page.screenshot({ path: `${SHOT}-hq.png` })
 
 // --- classic layout and back, remembered across reload

@@ -162,3 +162,32 @@ speed; colours, rune & hearth glow, column widths, arrival banner).
 | Battle art direction | `heartwood-graphics.css`, `TacticsFx.jsx` |
 | Theme tokens | `.hw-root` in `heartwood.css` |
 | Market engine (logic, shared pieces) | `SquadDraft.jsx` |
+
+## 11. Where things go (Market vs Headquarters vs the road)
+
+Marc: "asiat on eroteltu niille sivuille mihin ne kuuluu loogisesti" — every
+feature lives on the page it logically belongs to. Ask **who you do it with**:
+
+| Who with | Place | Examples |
+|---|---|---|
+| the merchant (a trade) | **Market** (`MarketScreen.jsx`) | buy heroes/gear, Reroll, Freeze, Gamble, Antidote, Market level/Tier, Ledger, buy back, **sell, reforge** |
+| your own squad / camp | **Headquarters** (`HeadquartersScreen.jsx`) | commander (Rank Up, Retrain, Opening Strike), hero gear, fusion progress, **upgrade, mend**, relics & bag, build, dev desk |
+| the journey | the road (map, Continue / Back to the road) | the run map, setting out |
+
+Headquarters stays calm: if something is a trade, it does not go there.
+
+### Adding something new — the system
+- **A hero action** (a button on a hero): add one line to
+  `src/data/heartwood/squadActions.js` (`places: ["camp"]` or `["market"]`),
+  then draw it behind `actionShownAt(action, place)` in `renderBenchCard`
+  (camp cards) or `renderTradeRow` (Market rows). Never hard-code the place.
+- **A panel / piece** on the Market or Headquarters: build it as a `piece_*`
+  or `render*` function in `SquadDraft.jsx` (the engine), add it to
+  `marketKit`, and place it in `MarketScreen.jsx` or `HeadquartersScreen.jsx`.
+- **A title / rune / subtitle**: add an entry to `src/data/heartwood/marketUi.js`
+  and draw it with `<UiTitle k="..." />` — editable in Studio.
+- **A colour / size / speed**: add a `--hw-ui-*` / `--hw-card-*` token on
+  `.hw-root` (heartwood.css) and a slider/swatch in Studio's ThemePanel.
+- **A check**: extend `.scratch/verify_market_table.mjs` /
+  `verify_hq_between_fights.mjs` / `verify_fusion.mjs`.
+

@@ -26,6 +26,7 @@ export const MARKET_UI = {
   hqRoad: { name: "The road", subtitle: "", rune: "ᚱ", meaning: "Raido - the journey" },
   hqBuild: { name: "Your build", subtitle: "", rune: "ᛉ", meaning: "Algiz - protection" },
   hqMarket: { name: "The market", subtitle: "", rune: "ᚲ", meaning: "Kenaz - the torch, the craftsman" },
+  trade: { name: "Trade your heroes", subtitle: "", rune: "ᚾ", meaning: "Nauthiz - need, the exchange made under it" },
   visitMarket: { name: "Visit the market", subtitle: "Heroes, gear, the Ledger", rune: "", meaning: "" },
   backToRoad: { name: "Back to the road", subtitle: "Pick up where you left off", rune: "", meaning: "" },
 }
