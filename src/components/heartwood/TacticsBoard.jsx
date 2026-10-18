@@ -170,6 +170,9 @@ import { describeBoss, bossWarningTiles } from "../../services/heartwood/tactics
 import { OBJECTS, objectHpAt, objectMaxHp, isAttackableTile, describeObjectTile, isBurning, isChilled } from "../../services/heartwood/tacticsObjects"
 import { describeFaction, blightPreviewKeys, isBlighted, factionInfo, BLIGHT_ATTACK_BONUS } from "../../services/heartwood/tacticsFactions"
 import { terrainArtStyle, ObjectArt, TerrainIcon, BlightIcon, BLIGHT_ART_URL, SmokeArt } from "./TerrainArt"
+import { ForestFloor } from "./ForestFloor"
+import { biomeBoardStyle, hashString } from "./forestFloorLayout"
+import { biomeForBattle } from "../../data/heartwood/battleBiomes"
 import { archetypeOf, beamTiles, blastTiles, AIM_BONUS, SUPPRESS_PENALTY } from "../../services/heartwood/tacticsRanged"
 // Dota depth sprint: active items on the action bar + enemy counter kits.
 import { ItemActions, KitBadges, CounterPanel } from "./TacticsItemsUi"
@@ -274,20 +277,58 @@ function bandEdges(moveOptions) {
 }
 
 // Graphics pass: board atmosphere - a soft canopy light, edge vignette
-// and a few drifting fireflies. Pure decoration (pointer-events: none);
-// the CSS stills the fireflies under reduced motion.
-const FIREFLIES = Array.from({ length: 14 }, (_, i) => ({
+// and a few drifting fireflies. Battlefield piece 2: the biome sets how
+// many fireflies and drifting leaves there are, and the golden sun shafts.
+// Pure decoration (pointer-events: none); CSS stills it under reduced motion.
+const FIREFLIES = Array.from({ length: 24 }, (_, i) => ({
   left: (i * 37 + 11) % 97,
   top: (i * 53 + 23) % 93,
   delay: -((i * 1.7) % 9),
   dur: 7 + ((i * 3) % 6),
 }))
-function BoardAmbience() {
+const DRIFT_LEAVES = Array.from({ length: 12 }, (_, i) => ({
+  left: (i * 41 + 7) % 92,
+  delay: -((i * 3.3) % 20),
+  dur: 16 + ((i * 5) % 9),
+  sway: (i % 2 ? 1 : -1) * (24 + ((i * 7) % 20)),
+  tone: i % 4,
+}))
+// The forest lives while you play: evening deepens a little every turn
+// (the fight runs into dusk), and the light answers victory / defeat.
+const duskFor = (turn) => Math.min(1, Math.max(0, ((turn || 1) - 1) / 10)).toFixed(2)
+const BUTTERFLIES = [
+  { path: "a", delay: 0, dur: 26, tone: 0 },
+  { path: "b", delay: -11, dur: 31, tone: 1 },
+  { path: "a", delay: -19, dur: 29, tone: 2 },
+]
+function BoardAmbience({ biome, turn }) {
+  const amb = biome?.ambient || {}
   return (
-    <div className="hwt-ambience" aria-hidden="true">
+    <div className="hwt-ambience" aria-hidden="true" style={{ "--hwt-dusk": duskFor(turn) }}>
       <div className="hwt-ambience-light" />
-      {FIREFLIES.map((f, i) => (
+      {amb.shafts && (
+        <div className="hwt-sun-shafts">
+          <span />
+          <span />
+          <span />
+        </div>
+      )}
+      {FIREFLIES.slice(0, amb.fireflies ?? 14).map((f, i) => (
         <span key={i} className="hwt-firefly" style={{ left: `${f.left}%`, top: `${f.top}%`, animationDelay: `${f.delay}s`, animationDuration: `${f.dur}s` }} />
+      ))}
+      {DRIFT_LEAVES.slice(0, amb.leaves || 0).map((l, i) => (
+        <span
+          key={`l${i}`}
+          className="hwt-drift-leaf"
+          data-tone={l.tone}
+          style={{ left: `${l.left}%`, animationDelay: `${l.delay}s`, animationDuration: `${l.dur}s`, "--sway": `${l.sway}px` }}
+        />
+      ))}
+      {BUTTERFLIES.slice(0, amb.butterflies || 0).map((b, i) => (
+        <span key={`b${i}`} className="hwt-butterfly" data-path={b.path} data-tone={b.tone} style={{ animationDelay: `${b.delay}s`, animationDuration: `${b.dur}s` }}>
+          <i />
+          <i />
+        </span>
       ))}
     </div>
   )
@@ -296,6 +337,9 @@ function BoardAmbience() {
 // Graphics pass: a stable per-tile ground variant (0-3) so the forest
 // floor reads as one painted surface, not a repeated stamp.
 const groundVariant = (row, col) => (row * 7 + col * 13 + ((row * col) % 5)) % 4
+// Battlefield piece 2: which tree species (birch / aspen / spruce) stands
+// on a tile - stable per tile, mixed across a grove (TerrainArt TREE_SPECIES).
+const treeVariant = (row, col) => (row * 5 + col * 3 + ((row + col) % 2)) % 3
 
 function getUnitName(battle, id) {
   return battle.units.find((u) => u.id === id)?.name || "?"
@@ -871,6 +915,12 @@ export default function TacticsBoard({
   }, [intents])
   // Present feature types, for the small battlefield legend.
   const terrainKinds = useMemo(() => [...new Set(Object.values(battle.terrain || {}))].filter((t) => TERRAIN_INFO[t]), [battle.terrain])
+  // Battlefield piece 2: the biome drawing this fight, and a salt that keeps
+  // one battle's forest floor the same all fight (its line-up of unit ids).
+  const biome = biomeForBattle(battle)
+  const biomeStyle = useMemo(() => biomeBoardStyle(biome), [biome])
+  const unitSignature = battle.units.map((u) => u.id).join("|")
+  const floorSalt = useMemo(() => hashString(`${biome.id}|${unitSignature}`), [biome.id, unitSignature])
   const targetHere = (row, col) => targets.find((t) => t.pos.row === row && t.pos.col === col)
   const healableHere = (row, col) => healable.find((u) => u.pos.row === row && u.pos.col === col)
 
@@ -1199,7 +1249,7 @@ export default function TacticsBoard({
           )}
           {OBJECTS[terrain] && (
             <span className="hwt-object" data-object={terrain} aria-hidden="true">
-              <ObjectArt type={terrain} burning={isBurning(battle, { row, col })} brittle={terrain === "icepillar" && isChilled(battle, { row, col })} />
+              <ObjectArt type={terrain} variant={treeVariant(row, col)} burning={isBurning(battle, { row, col })} brittle={terrain === "icepillar" && isChilled(battle, { row, col })} />
             </span>
           )}
           {OBJECTS[terrain] && objectMaxHp(terrain) > 1 && (
@@ -1223,7 +1273,7 @@ export default function TacticsBoard({
               <span key={`o${fx.id}`}>
                 {fx.fx === "fall" && (
                   <span className="hwt-obj-falling" style={{ "--fall-x": fx.dir?.col || 0, "--fall-y": fx.dir?.row || 0 }}>
-                    <ObjectArt type="tree" />
+                    <ObjectArt type="tree" variant={treeVariant(row, col)} />
                   </span>
                 )}
                 <span className="hwt-wall-fx hwt-obj-fx" data-kind={fx.fx}>
@@ -1645,12 +1695,15 @@ export default function TacticsBoard({
           <TurnTimeline battle={battle} intents={intents} selectedId={selectedId} onSelect={handleSquadSelect} />
           <div
             className="hwt-board"
-            style={{ gridTemplateColumns: `repeat(${battle.grid.cols}, 76px)`, gridTemplateRows: `repeat(${battle.grid.rows}, 76px)`, "--hwt-blight-art": BLIGHT_ART_URL }}
+            data-biome={biome.id}
+            data-phase={battle.phase}
+            style={{ gridTemplateColumns: `repeat(${battle.grid.cols}, 76px)`, gridTemplateRows: `repeat(${battle.grid.rows}, 76px)`, "--hwt-blight-art": BLIGHT_ART_URL, ...biomeStyle }}
           >
+            <ForestFloor biome={biome} grid={battle.grid} terrain={battle.terrain} salt={floorSalt} />
             {cells}
             <BoardOverlay battle={battle} pairs={aggro} hoverPath={hoverPath} selected={selected} healReachTiles={healRing.size ? healReach(selected) : 0} />
             <BondOverlay battle={battle} />
-            <BoardAmbience />
+            <BoardAmbience biome={biome} turn={battle.turn} />
           </div>
         </div>
 
