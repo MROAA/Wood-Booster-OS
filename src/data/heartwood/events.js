@@ -59,6 +59,39 @@
 export const EVENTS = [
 
   // --- Act I ----------------------------------------------------------
+  // Lost Expedition (First Song PRD §5): the longship expedition that came
+  // looking for the root of all worlds. A chain across Acts I-IV - camp ->
+  // (log) -> the seer's heir; barrow -> (runes) -> the jarl's oath-stone.
+  // Some of its legacy helps you; some of it is dangerous.
+  {
+    id: "longship-camp",
+    tag: "ᛟ The Lost Expedition",
+    act: 1,
+    title: "The Longship Camp",
+    body: "Under the moss lie the ribs of a camp: sea-chests rotted open, a ring of fire-stones, a mast laid flat and grown through with birch. Centuries ago, men came up the river in longships looking for the root of all worlds. A tally-stick still hangs from a pole, notched with runes.",
+    choices: [
+      {
+        label: "Search the sea-chests.",
+        result: "Under a layer of black leaves, one chest kept its secret. Whatever it is, it was made by people who expected to fight for a long time.",
+        effects: [{ item: "random" }],
+      },
+      {
+        label: "Read the runes on the tally-stick.",
+        result: "It is a camp log. Day after day, one word: closer. Then the notches change. Four names, four promises - and the last line, cut deep: the forest said yes. A rune-stone is tied to the stick. You take it.",
+        effects: [{ rune: "random" }, { flag: "read_the_camp_log" }],
+      },
+      {
+        label: "Burn the rotten camp so nothing nests in it.",
+        result: "The old wood goes up fast and hot. Your squad warms its hands - but the trees around the clearing lean away from the smoke, and the forest goes very quiet.",
+        effects: [{ essence: 40 }, { regard: -6 }],
+      },
+      {
+        label: "Walk on.",
+        result: "You leave the camp to the birches. They have been patient with it this long.",
+        effects: [],
+      },
+    ],
+  },
   {
     id: "roadside-shrine",
     act: 1,
@@ -194,10 +227,36 @@ export const EVENTS = [
   },
 
   // --- Act II -------------------------------------------------------
+  // Lost Expedition: a shieldmaiden's barrow. Dangerous legacy.
+  {
+    id: "shieldmaiden-barrow",
+    tag: "ᛟ The Lost Expedition",
+    act: 2,
+    title: "The Shieldmaiden's Barrow",
+    body: "A long mound, too regular to be a hill. Stones ring it, and the stone at its head is carved with a ship and a woman holding a shield. The longship warriors were promised enemies to fight forever. Something under the turf is still keeping that promise - you can hear it, if you stand very still.",
+    choices: [
+      {
+        label: "Open the barrow and take her grave-goods.",
+        result: "The grave-goods are beautiful, and still sharp. As you climb out, the turf behind you heaves. She was promised enemies forever. Now she has one.",
+        effects: [{ relic: "random" }, { fate: "barrow-wight-rival" }],
+      },
+      {
+        label: "Leave an offering at the head-stone.",
+        result: "You lay down coin and a whetstone. The sound under the turf settles. Your heroes stand a little straighter on the road ahead, as if someone old approves.",
+        effects: [{ essence: -40 }, { boon: "stoneblood" }],
+      },
+      {
+        label: "Read the runes on the stones.",
+        result: "The ring-stones tell her story: a jarl's oath-stone stands deeper in the forest, where he swore the kingdom would never die. Whoever breaks that oath breaks the promise that holds her here.",
+        effects: [{ flag: "read_the_barrow" }, { regard: 3 }],
+      },
+    ],
+  },
   // Forest creatures (First Song PRD §6): a Water-Rememberer. It keeps
   // memories, and will trade for things you would rather not lose.
   {
     id: "the-rememberer",
+    tag: "🌊 A creature of the forest",
     act: 2,
     title: "The Rememberer in the Tarn",
     body: "The tarn is black and perfectly still. Then something under the surface opens its eyes - two pale lamps, wider apart than any fish's. A voice comes up through the water like a bubble: \"I keep what the forest forgets. A longship's songs. A jarl's last promise. I will keep something of yours too - if you will trade.\"",
@@ -291,6 +350,32 @@ export const EVENTS = [
   },
 
   // --- Act III ------------------------------------------------------
+  // Lost Expedition: an heir of the expedition's seers (needs the camp log).
+  {
+    id: "the-seers-heir",
+    tag: "ᛟ The Lost Expedition",
+    act: 3,
+    requiresFlag: "read_the_camp_log",
+    title: "The Seer's Heir",
+    body: "A woman with braided seer's hair is waiting on the path as if she expected you. \"You read the tally-stick,\" she says. \"My people were the seers. We were promised every answer. The warriors got their endless war, the jarl his endless kingdom, the mourners their dead walking back to them. We got answers. Every one. That is why so few of us still speak.\"",
+    choices: [
+      {
+        label: "Ask her to walk with you.",
+        result: "\"For a while,\" she says. \"I want to see what you do with what you learn.\" She falls in behind your squad, quiet, watching the trees.",
+        effects: [{ fate: "seers-heir-ally" }],
+      },
+      {
+        label: "Ask her the one question that matters: can the last verse be sung?",
+        result: "She is silent a long time. \"It can,\" she says. \"Nobody knows what it ends. My great-grandmother sang the first line once, and the river forgot its name.\" She presses something into your hand and walks away.",
+        effects: [{ flag: "knows_the_four_promises" }, { rune: "random" }, { xp: 3, who: "all" }],
+      },
+      {
+        label: "Leave her be.",
+        result: "\"Most do,\" she says, without bitterness.",
+        effects: [],
+      },
+    ],
+  },
   {
     id: "chained-fighter",
     act: 3,
@@ -395,6 +480,33 @@ export const EVENTS = [
   },
 
   // --- Act IV -------------------------------------------------------
+  // Lost Expedition: the Hollow King's own oath (needs the barrow's runes).
+  {
+    id: "the-jarls-oath-stone",
+    tag: "ᛟ The Lost Expedition",
+    act: 4,
+    requiresFlag: "read_the_barrow",
+    title: "The Jarl's Oath-Stone",
+    body: "A standing stone taller than three men, cut on every face. One line is carved deeper than the rest, and the moss will not grow in it: A KINGDOM THAT NEVER DIES. This is where the jarl of the longships swore - the man the forest now calls the Hollow King. The oath still holds the barrows shut and the warriors fighting.",
+    choices: [
+      {
+        label: "Break the oath with a rune.",
+        needsRune: true,
+        result: "You set your rune against the deep line and it splits clean through. Somewhere behind you a barrow sighs and goes still. The forest breathes out, long and slow, and something like gratitude moves through the leaves.",
+        effects: [{ loseRune: "oldest" }, { boon: "grove-warded" }, { regard: 10 }, { flag: "broke_the_jarls_oath" }],
+      },
+      {
+        label: "Swear on the stone yourself.",
+        result: "You put your hand on the cold stone and swear to finish what you started. The oath takes hold of you. Your heroes fight harder from here on - and the weight of a promise that never ends settles on all of them.",
+        effects: [{ boon: "milestone-oath" }, { bane: "name-burden" }, { regard: -5 }],
+      },
+      {
+        label: "Leave the oath to the jarl.",
+        result: "Some promises are not yours to break. You walk on, and the stone watches you go.",
+        effects: [],
+      },
+    ],
+  },
   {
     id: "the-crownless-vision",
     act: 4,

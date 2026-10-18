@@ -189,7 +189,8 @@ export function plantFate(runState, fateId, act = 1) {
   }
   if (def.kind === "rival") {
     const pool = (ACT_ENEMIES[Math.max(1, Math.min(7, act))] || []).filter((id) => ENEMIES[id])
-    inst.enemyId = pickFrom(pool, rng) || "mist-growler"
+    // A fate can name its own enemy (e.g. the Barrow Shieldmaiden).
+    inst.enemyId = (def.enemy && ENEMIES[def.enemy] ? def.enemy : null) || pickFrom(pool, rng) || "mist-growler"
     inst.rivalName = def.rivalName
   }
   if (def.kind === "ally") {
