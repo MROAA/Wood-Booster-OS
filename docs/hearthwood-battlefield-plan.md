@@ -150,7 +150,7 @@ Story moments may also set a fight's biome directly (`battle.biome`).
 
 ## 4c. Heroes get their own art (later)
 Marc will create heroes with their own graphics. Commander canon: **Tommy is
-an orange cat, Aatos a white reindeer, Repo a robot.** The battlefield keeps
+an orange cat, Aatos a white reindeer, Repo a fox.** The battlefield keeps
 units the brightest, clearest thing on the field so that hero art can drop in
 without re-tuning the forest.
 
@@ -179,16 +179,20 @@ Marc (2026-10-18): **"first the game must look good"** — the graphics polish
 comes before the new rules.
 
 1. ✅ #633 Terrain belongs to the ground (objects on the floor, not in boxes).
-2. **The look (Autumnwood)** — biome registry (palette + floor detail +
+2. ✅ #634 **The look (Autumnwood)** — biome registry (palette + floor detail +
    ambient, as data), seeded non-blocking floor detail on empty tiles that
    gathers around trees/rocks/water (aspen leaves, fly agarics, chanterelles,
    lingonberries, cones, fern, twigs, pebbles, moss tufts, flowers), moss and
    leaf-litter patches across tile borders, old roots framing the corners,
    ambient life (drifting leaves, fireflies, butterflies, sun shafts), dusk
    deepening per turn, victory/defeat light. Purely visual — no rule changes.
-3. **Living forest rules** — forest rules (`tacticsForest.js`), moss / leaves
-   / roots / runestone / glowcap with art, burn + crush tables, dressing
-   generator reading the biome, AI awareness, legend + tooltips, verify suite.
+3. ✅ **Living forest rules** — forest rules (`tacticsForest.js`), moss / leaves
+   / roots / runestone / glowcap / branches / gravel with art, burn + crush +
+   break tables, spells striking the forest (`FOREST_SPELLS`), dressing
+   generator reading the biome, AI awareness, fire telegraph, legend +
+   tooltips, `.scratch/verify_forest_rules.mjs`.
+   Rule: **one blow = one break-down step** (a quake never fells a tree AND
+   crushes its stump in the same hit).
 4. Combat FX per PRD §6 (hit dust/leaves, heal flowers, root magic, frost,
    fire), unit shadows and target rings, victory/defeat mood.
 5. Frostroot, Sunspire, Mirefall as data + their unique pieces.

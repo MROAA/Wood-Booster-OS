@@ -29,7 +29,7 @@ import {
 } from "./tacticsEngine"
 import { applyElement, reactStatus, ENTANGLE_DURATION } from "./tacticsElements"
 import { enemySkillsFor } from "./tacticsEnemyAbilities"
-import { rollBoulder, placeTimedTile, igniteGrass, igniteTree, explode, freezeWater, OBJECTS, FIRE_TILE_TURNS, POISON_TILE_TURNS } from "./tacticsObjects"
+import { rollBoulder, placeTimedTile, igniteGrass, igniteTree, explode, freezeWater, forestSpellStrike, OBJECTS, FIRE_TILE_TURNS, POISON_TILE_TURNS } from "./tacticsObjects"
 import { knockback, pushDir } from "./tacticsChaos"
 import { canAfford, hasMana, manaBlockReason, resourceMods, profileOf, gainResource, tokensOf, reagentCombos, VENOM_DAMAGE } from "./tacticsMana"
 import * as ranged from "./tacticsRanged"
@@ -614,6 +614,7 @@ function detonateCharges(state) {
   for (const c of charges) {
     const owner = getUnit(next, c.ownerId)
     next = emit(addLog(next, `${owner?.name || "A charge"}'s Explosive Charge blows!`), { kind: "aoe", actorId: c.ownerId })
+    const preBlast = next.terrain || {}
     const terrain = { ...(next.terrain || {}) }
     const wallHp = { ...(next.wallHp || {}) }
     for (let dr = -1; dr <= 1; dr++) {
@@ -628,6 +629,8 @@ function detonateCharges(state) {
     next = { ...next, terrain, wallHp }
     const ids = livingUnits(next, "enemy").filter((e) => dist(e.pos, c) <= 1).map((e) => e.id)
     for (const id of ids) if (!ended(next)) next = flatHit(next, id, c.damage)
+    // Battlefield piece 3: the blast strikes the forest around the charge.
+    if (!ended(next)) next = forestSpellStrike(next, "explosive-charge", { row: c.row, col: c.col }, null, 1, preBlast)
     next = checkTacticsBattleEnd(next)
   }
   return next

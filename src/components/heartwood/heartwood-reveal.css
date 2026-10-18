@@ -269,3 +269,64 @@
   .hwt-selected-card * { translate: none !important; filter: none !important; transition-duration: 0s !important; }
 }
 .hw-reduce-motion .hwt-selected-card * { translate: none !important; filter: none !important; transition-duration: 0s !important; }
+
+/* ---------- The selected unit, UNDER the battlefield ----------
+   Marc: "haluan taistelukentän alapuolelle tiedot valitusta yksiköstä".
+   Here there is room, so every detail is shown at once - no hover reveal.
+   Left: portrait, name, role (+ what it means), class, stats.
+   Right: resource bar + rules, signature, identity. */
+.hwt-unit-info-below {
+  /* width 0 + min-width 100%: as wide as the board, never wider - the
+     card must not stretch the board column and push the side panel away. */
+  width: 0;
+  min-width: 100%;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: 14px;
+  align-items: start;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--hw-border, rgba(201, 169, 106, 0.35));
+  border-left: 3px solid var(--hwt-role-accent, var(--hw-border, rgba(201, 169, 106, 0.5)));
+  border-radius: 10px;
+  background: color-mix(in srgb, #14120e 88%, transparent);
+  animation: hwt-unit-info-in 0.22s ease-out;
+}
+.hwt-unit-info-below[data-role="tank"] { --hwt-role-accent: var(--hwt-role-tank); }
+.hwt-unit-info-below[data-role="healer"] { --hwt-role-accent: var(--hwt-role-healer); }
+.hwt-unit-info-below[data-role="dps"] { --hwt-role-accent: var(--hwt-role-dps); }
+.hwt-unit-info-below[data-role="support"] { --hwt-role-accent: var(--hwt-role-support); }
+.hwt-unit-info-below[data-role="control"] { --hwt-role-accent: var(--hwt-role-control); }
+.hwt-unit-info-below .hwt-selected-card.hwt-unit-info-main[data-role] {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: none;
+  box-shadow: none;
+}
+.hwt-unit-info-side {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.hwt-unit-info-below :is(.hwt-selected-role-what, .hwt-res-bps, .hwt-res-now, .hwt-res-rules, .hwt-sig-info-text, .hwt-sig-info-combo, .hwt-sig-info-legend, .hwt-identity-info) {
+  max-height: none;
+  opacity: 1;
+  overflow: visible;
+  margin-top: revert;
+  margin-bottom: revert;
+  translate: none;
+  filter: none;
+  transition: none;
+}
+@keyframes hwt-unit-info-in {
+  from { opacity: 0; translate: 0 6px; }
+  to { opacity: 1; translate: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hwt-unit-info-below { animation: none; }
+}
+@media (max-width: 900px) {
+  .hwt-unit-info-below { grid-template-columns: 1fr; }
+}

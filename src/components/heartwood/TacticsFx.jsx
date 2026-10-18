@@ -346,7 +346,9 @@ export default function TacticsFx({ battle }) {
           timers.push(setTimeout(() => {
             flashTiles(ev.tiles || [ev.pos], `obj-${ev.fx}`)
             if (["boom", "fall", "shatter", "spore"].includes(ev.fx)) { shakeBoard(); play("hitBig") }
-            else if (ev.fx === "roll" || ev.fx === "break") play("hit")
+            else if (ev.fx === "flare") play("hitBig", { gain: 0.7 })
+            else if (ev.fx === "bloom") play("heal")
+            else if (ev.fx === "roll" || ev.fx === "break" || ev.fx === "crush") play("hit", { gain: ev.fx === "crush" ? 0.5 : 1 })
           }, at + IMPACT_DELAY_MS))
         } else if (ev.kind === "mana") {
           // Mana step 1: "+N mana" (gains), "-N mana" (drain/burn), Overcharge spend.
