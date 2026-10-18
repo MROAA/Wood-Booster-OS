@@ -150,7 +150,7 @@ Story moments may also set a fight's biome directly (`battle.biome`).
 
 ## 4c. Heroes get their own art (later)
 Marc will create heroes with their own graphics. Commander canon: **Tommy is
-an orange cat, Aatos a white reindeer, Repo a robot.** The battlefield keeps
+an orange cat, Aatos a white reindeer, Repo a fox.** The battlefield keeps
 units the brightest, clearest thing on the field so that hero art can drop in
 without re-tuning the forest.
 
