@@ -95,7 +95,8 @@ export default function EventScreen({ event, onResolve, previewLines, blockedRea
                 marginBottom: 6,
               }}
             >
-              An Event
+              {/* A story thread names itself (e.g. the Lost Expedition). */}
+              {event.tag || "An Event"}
             </div>
 
             <EditInStudioLink type="events" id={event.id} />
