@@ -142,6 +142,10 @@ Tree backdrop. All titles/runes/meanings live in
 
 - **Lift & tilt** on hover; shadow grows as the card rises.
 - **Sheen** follows the pointer like lamplight on lacquer.
+- **Turning the cards**: hero cards arrive face DOWN (forest-green back, gold
+  double frame, sun rays, the glowing ᛉ Algiz rune - the World Tree) and turn
+  face up one after another - in the Market and when Headquarters opens.
+  Gear still just slides in (items aren't tarot).
 - **Dealing**: offers slide in from the deck, one after another.
 - **To your hand**: a bought hero's card flies down into the squad strip and
   the new chip pops in with a glow.

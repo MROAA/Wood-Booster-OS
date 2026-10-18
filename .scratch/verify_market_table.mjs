@@ -26,6 +26,8 @@ const fits = () => page.evaluate(() => document.documentElement.scrollHeight <= 
 // --- Headquarters: the default stance
 c.hqIsDefault = (await page.locator(".hwq-root").count()) === 1 && (await page.locator(".hwm-root").count()) === 0
 c.hqFits = await fits()
+// card turn: every hero card ends face up (its back gone), none left half-turned
+c.cardsTurnedFaceUp = await page.evaluate(() => [...document.querySelectorAll(".hwq-cards > *")].every((el) => getComputedStyle(el, "::after").visibility === "hidden" && getComputedStyle(el).opacity === "1"))
 c.hqContinueInView = await page.evaluate(() => document.querySelector(".hwq-root .hwm-continue").getBoundingClientRect().bottom <= innerHeight)
 c.hqShowsSquad = (await page.locator(".hwq-cards .hw-card").count()) === 3
 c.hqHasCommander = (await page.locator(".hwq-root .hw-commander-cluster").count()) === 1
