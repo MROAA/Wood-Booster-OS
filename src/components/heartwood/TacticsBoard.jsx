@@ -1707,6 +1707,48 @@ export default function TacticsBoard({
             <BondOverlay battle={battle} />
             <BoardAmbience biome={biome} turn={battle.turn} />
           </div>
+          {/* Marc: the selected unit's details live UNDER the battlefield,
+              all of them visible at once (not hidden behind a hover). */}
+          {selected && selected.side === "player" && (
+            <div className="hwt-unit-info-below" data-unit-info={selected.id} data-role={roleOf(selected)}>
+              <div className="hwt-selected-card hwt-unit-info-main" data-role={roleOf(selected)}>
+              <TokenArt unit={selected} />
+              <div className="hwt-selected-info">
+                <span className="hwt-selected-name">{selected.name}</span>
+                <span className="hwt-selected-role" data-role={roleOf(selected)}>
+                  <span className="hwt-selected-role-icon">{BATTLE_ROLES[roleOf(selected)].icon}</span>
+                  <strong>{BATTLE_ROLES[roleOf(selected)].label}</strong>
+                  <span className="hwt-selected-role-what">{BATTLE_ROLES[roleOf(selected)].what}</span>
+                </span>
+                {classInfoFor(selected) && (
+                  <span className="hwt-class-badge" data-class-id={selected.classId} title={`${classInfoFor(selected).passive.name}: ${classInfoFor(selected).passive.text}`}>
+                    <span className="hwt-class-icon">{classInfoFor(selected).icon}</span> {classInfoFor(selected).name}
+                    {archetypeOf(selected) && <span className="hwt-class-archetype"> · {archetypeOf(selected).name}</span>}
+                  </span>
+                )}
+                <span className="hwt-selected-stats">
+                  <span data-stat="atk" title="Attack">⚔ {selected.attack}</span>
+                  <span data-stat="hp" title="Health">♥ {selected.hp}/{selected.maxHp}</span>
+                  <span data-stat="move" title="Movement">➤ {selected.move}</span>
+                  <span data-stat="range" title={rangeAt(battle, selected) > selected.range ? "Attack range (+1 from high ground)" : "Attack range"}>
+                    ◎ {rangeAt(battle, selected)}
+                  </span>
+                  {hasMana(selected) && (
+                    <span data-stat="mana" data-res={profileOf(selected).id} title={`${manaSummary(selected, battle)}. ${profileOf(selected).text}${selected.overcharge > 0 ? ` Overcharge: the next skill gets +${surgeFor(selected)}.` : ""}`}>
+                      {profileOf(selected).icon} {selected.mana}/{selected.manaMax}
+                      {selected.overcharge > 0 && <b className="hwt-stat-over"> +{selected.overcharge}</b>}
+                    </span>
+                  )}
+                </span>
+              </div>
+              </div>
+              <div className="hwt-unit-info-side">
+                {hasMana(selected) && <ResourceInfo unit={selected} battle={battle} />}
+                <SignatureInfo battle={battle} unit={selected} />
+                <IdentityInfo battle={battle} unit={selected} />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="hwt-panel">
@@ -1757,42 +1799,6 @@ export default function TacticsBoard({
                   {TERRAIN_INFO[t].name}
                 </span>
               ))}
-            </div>
-          )}
-          {selected && selected.side === "player" && (
-            <div className="hwt-selected-card" data-role={roleOf(selected)}>
-              <TokenArt unit={selected} />
-              <div className="hwt-selected-info">
-                <span className="hwt-selected-name">{selected.name}</span>
-                <span className="hwt-selected-role" data-role={roleOf(selected)}>
-                  <span className="hwt-selected-role-icon">{BATTLE_ROLES[roleOf(selected)].icon}</span>
-                  <strong>{BATTLE_ROLES[roleOf(selected)].label}</strong>
-                  <span className="hwt-selected-role-what">{BATTLE_ROLES[roleOf(selected)].what}</span>
-                </span>
-                {classInfoFor(selected) && (
-                  <span className="hwt-class-badge" data-class-id={selected.classId} title={`${classInfoFor(selected).passive.name}: ${classInfoFor(selected).passive.text}`}>
-                    <span className="hwt-class-icon">{classInfoFor(selected).icon}</span> {classInfoFor(selected).name}
-                    {archetypeOf(selected) && <span className="hwt-class-archetype"> · {archetypeOf(selected).name}</span>}
-                  </span>
-                )}
-                <span className="hwt-selected-stats">
-                  <span data-stat="atk" title="Attack">⚔ {selected.attack}</span>
-                  <span data-stat="hp" title="Health">♥ {selected.hp}/{selected.maxHp}</span>
-                  <span data-stat="move" title="Movement">➤ {selected.move}</span>
-                  <span data-stat="range" title={rangeAt(battle, selected) > selected.range ? "Attack range (+1 from high ground)" : "Attack range"}>
-                    ◎ {rangeAt(battle, selected)}
-                  </span>
-                  {hasMana(selected) && (
-                    <span data-stat="mana" data-res={profileOf(selected).id} title={`${manaSummary(selected, battle)}. ${profileOf(selected).text}${selected.overcharge > 0 ? ` Overcharge: the next skill gets +${surgeFor(selected)}.` : ""}`}>
-                      {profileOf(selected).icon} {selected.mana}/{selected.manaMax}
-                      {selected.overcharge > 0 && <b className="hwt-stat-over"> +{selected.overcharge}</b>}
-                    </span>
-                  )}
-                </span>
-                {hasMana(selected) && <ResourceInfo unit={selected} battle={battle} />}
-                <SignatureInfo battle={battle} unit={selected} />
-                <IdentityInfo battle={battle} unit={selected} />
-              </div>
             </div>
           )}
           {hitPreview && hitPreview.rolls && (
