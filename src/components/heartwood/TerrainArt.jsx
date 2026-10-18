@@ -4,7 +4,7 @@
 // into the cell's existing background stack (`--hwt-tile-pattern`) - every zone
 // tint / move ring / telegraph keeps painting ON TOP of it with zero changes.
 // Each type has an animated and a still version (reduced motion picks still).
-// Objects (tree, barrel, spore pod, boulder, ice pillar): inline JSX SVG sprites.
+// Objects (tree, barrel, spore pod, boulder, ice pillar, runestone, glowcap): inline JSX SVG sprites.
 // Pure presentation - no game rules here.
 import { OBJECTS } from "../../services/heartwood/tacticsObjects"
 
@@ -254,7 +254,101 @@ const TERRAIN_SVG = {
         `<circle cx="32" cy="32" r="4" fill="#e8f6ff">${anim(a, loop("opacity", ".5;1;.5", "1.6s"))}</circle>`,
       `<radialGradient id="mw"><stop offset="0" stop-color="#7cc4ff" stop-opacity=".95"/><stop offset=".6" stop-color="#2d63c8" stop-opacity=".75"/><stop offset="1" stop-color="#16285a" stop-opacity=".2"/></radialGradient>`,
     ),
+  // ---- Battlefield piece 3: the living forest ground ----
+  // Moss: a soft cushion of feather moss with little sporophyte stalks.
+  moss: (a) =>
+    svg(
+      MOSS +
+        `<g>` +
+        [
+          [22, 30, 13, 9, "#3f5a26"],
+          [40, 28, 14, 10, "#4a6a2b"],
+          [30, 42, 15, 10, "#41602a"],
+          [48, 44, 9, 7, "#3c5524"],
+          [14, 44, 8, 6, "#3c5524"],
+        ]
+          .map(([x, y, rx, ry, c]) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${c}"/><ellipse cx="${x - rx * 0.25}" cy="${y - ry * 0.35}" rx="${rx * 0.6}" ry="${ry * 0.45}" fill="#5f8236" opacity=".75"/>`)
+          .join("") +
+        `</g><g fill="#7fa24a" opacity=".55">${[[18, 27], [27, 25], [37, 24], [45, 26], [26, 38], [35, 40], [44, 41], [20, 42]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.1"/>`).join("")}</g>` +
+        `<g stroke="#8a6a3a" stroke-width=".7" fill="none">${[[24, 30], [41, 27], [32, 41], [47, 43]].map(([x, y], i) => `<path d="M${x} ${y}q1-5 0-9">${anim(a, `<animateTransform attributeName="transform" type="rotate" values="-4 ${x} ${y};4 ${x} ${y};-4 ${x} ${y}" dur="${3.5 + i * 0.4}s" repeatCount="indefinite"/>`)}</path>`).join("")}</g>` +
+        `<g fill="#c99a52">${[[24, 21], [41, 18], [32, 32], [47, 34]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx=".9" ry="1.4"/>`).join("")}</g>`,
+    ),
+  // Dry leaves: a crisp pile of copper / amber aspen leaves - reads as tinder.
+  leaves: () =>
+    svg(
+      EARTH +
+        `<ellipse cx="32" cy="38" rx="24" ry="15" fill="#3a2414" opacity=".55"/>` +
+        [
+          [18, 34, -30, "#8e3f1f"],
+          [30, 30, 20, "#b5602a"],
+          [44, 34, 70, "#c98a2e"],
+          [24, 44, 110, "#d9a441"],
+          [38, 44, -60, "#a5522a"],
+          [50, 42, 15, "#8e3f1f"],
+          [32, 38, 150, "#e0b04a"],
+          [14, 42, 60, "#c98a2e"],
+          [42, 24, -10, "#d9a441"],
+          [22, 26, 45, "#b5602a"],
+        ]
+          .map(
+            ([x, y, r, c]) =>
+              `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M0-8C5-5.5 5.8 3 0 8C-5.8 3-5-5.5 0-8Z" fill="${c}" stroke="#2a1608" stroke-opacity=".45" stroke-width=".7"/><path d="M0-7V9.5M0-2l2.6-1.8M0 1.4l-2.8-2M0 4l2.4-1.6" stroke="#2a1608" stroke-opacity=".4" stroke-width=".55" fill="none"/></g>`,
+          )
+          .join("") +
+        `<g fill="#f2d48a" opacity=".5"><circle cx="29" cy="27" r="1"/><circle cx="43" cy="31" r=".9"/><circle cx="31" cy="35" r=".9"/></g>`,
+    ),
+  // Roots: old gnarled roots arching up out of the soil and diving back in
+  // (dark holes where they enter the ground) - a snare, not loose sticks.
+  roots: () =>
+    svg(
+      EARTH +
+        `<ellipse cx="32" cy="36" rx="27" ry="14" fill="#1c140c" opacity=".55"/>` +
+        [
+          ["M4 44C10 26 24 24 30 40", 6.5, [4, 44], [30, 40]],
+          ["M24 30C30 14 46 14 52 32", 7.5, [24, 30], [52, 32]],
+          ["M34 52C40 38 54 40 60 50", 5.5, [34, 52], [60, 50]],
+          ["M10 56C14 48 20 48 24 56", 3.6, [10, 56], [24, 56]],
+        ]
+          .map(
+            ([d, w, a, b]) =>
+              `<ellipse cx="${a[0]}" cy="${a[1] + 1}" rx="${w * 0.9}" ry="${w * 0.45}" fill="#0c0805"/><ellipse cx="${b[0]}" cy="${b[1] + 1}" rx="${w * 0.9}" ry="${w * 0.45}" fill="#0c0805"/>` +
+              `<path d="${d}" stroke="#120c07" stroke-width="${w + 2.6}" fill="none" stroke-linecap="round"/>` +
+              `<path d="${d}" stroke="#5a4632" stroke-width="${w}" fill="none" stroke-linecap="round"/>` +
+              `<path d="${d}" stroke="#8a6e4c" stroke-width="${Math.max(0.9, w * 0.32)}" fill="none" stroke-linecap="round" transform="translate(-.7 -1.2)"/>`,
+          )
+          .join("") +
+        `<g stroke="#3a2a1a" stroke-width="1" fill="none" stroke-linecap="round"><path d="M16 31q-3-4-1-8M40 18q2-5 6-6M48 42q4-3 4-7"/></g>` +
+        `<g fill="#4f6b2e"><ellipse cx="38" cy="17" rx="5" ry="2.2"/><ellipse cx="17" cy="30" rx="3.4" ry="1.6"/><ellipse cx="47" cy="41" rx="3" ry="1.4"/></g>` +
+        `<g fill="#8fa86a" opacity=".6"><circle cx="37" cy="16" r=".9"/><circle cx="16" cy="29" r=".8"/></g>`,
+    ),
+  // Branches: a splintered log's pieces.
+  branches: () =>
+    svg(
+      MOSS +
+        `<g stroke-linecap="round" fill="none">` +
+        [
+          ["M8 40L40 28", 4.2],
+          ["M20 52L54 40", 3.6],
+          ["M28 18L50 50", 3.2],
+          ["M12 26L30 36", 2.4],
+          ["M40 28l6-6M34 44l-4 7M44 40l5 4", 1.6],
+        ]
+          .map(([d, w]) => `<path d="${d}" stroke="#000" stroke-opacity=".4" stroke-width="${w + 1.2}" transform="translate(0 2)"/><path d="${d}" stroke="#6a4a2c" stroke-width="${w}"/><path d="${d}" stroke="#9a744a" stroke-width="${Math.max(0.6, w * 0.3)}" transform="translate(-.4 -.8)"/>`)
+          .join("") +
+        `</g><g fill="#c09058"><ellipse cx="40" cy="28" rx="1.8" ry="2.2"/><ellipse cx="54" cy="40" rx="1.6" ry="2"/><ellipse cx="50" cy="50" rx="1.5" ry="1.9"/></g>` +
+        `<g fill="#b5602a" opacity=".85"><ellipse cx="18" cy="30" rx="2" ry="1.2" transform="rotate(30 18 30)"/><ellipse cx="46" cy="22" rx="2" ry="1.2" transform="rotate(-40 46 22)"/></g>`,
+    ),
+  // Gravel: crushed stone.
+  gravel: () =>
+    svg(
+      EARTH +
+        `<g>${[[14, 20, 3], [24, 30, 2.4], [36, 22, 2.8], [48, 30, 2.2], [18, 42, 2.6], [30, 46, 3.2], [44, 44, 2.4], [52, 52, 2], [26, 56, 2], [40, 34, 1.8], [10, 32, 1.8], [54, 18, 1.8]]
+          .map(([x, y, r], i) => `<ellipse cx="${x}" cy="${y + 0.8}" rx="${r}" ry="${r * 0.6}" fill="#000" opacity=".35"/><ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.7}" fill="${i % 3 ? "#6b665e" : "#7d776c"}"/><ellipse cx="${x - r * 0.3}" cy="${y - r * 0.25}" rx="${r * 0.45}" ry="${r * 0.3}" fill="#a39c90" opacity=".6"/>`)
+          .join("")}</g>`,
+    ),
   // Plain ground under the object sprites.
+  stone: () => svg(MOSS),
+  glowcap: () => svg(MOSS),
   tree: () => svg(MOSS),
   sporepod: () => svg(MOSS),
   barrel: () => svg(EARTH),
@@ -477,7 +571,72 @@ function IcePillarSprite({ brittle }) {
   )
 }
 
-const SPRITES = { tree: TreeSprite, barrel: BarrelSprite, sporepod: SporeSprite, boulder: BoulderSprite, icepillar: IcePillarSprite }
+// Battlefield piece 3: a mossy runestone (bautakivi) with a faintly glowing
+// carved rune (Othala - inheritance, the old forest's memory).
+function StoneSprite() {
+  return (
+    <>
+      <ellipse cx="32" cy="58" rx="17" ry="3.8" fill="#000" opacity=".5" />
+      <path d="M19 58C17 44 18 26 22 16C25 8 36 5 42 11C47 17 47 36 45 58Z" fill="#6c675f" />
+      <path d="M45 58C47 36 47 17 42 11C44 20 43 40 39 58Z" fill="#4a4640" />
+      <path d="M22 18C25 10 34 7 39 10C32 10 26 14 24 24Z" fill="#9a9387" opacity=".55" />
+      <path d="M20 50C24 46 28 50 33 47C38 45 42 49 45 47L45 58H19Z" fill="#3f5a26" />
+      <path d="M22 51C25 48 28 51 32 49" stroke="#6f9040" strokeWidth="1.2" fill="none" />
+      <path d="M26 12C30 8 37 8 41 12C37 11 31 12 27 15Z" fill="#4f6b2e" />
+      <g className="hwt-art-rune" fill="none" stroke="#9fd8c4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M32 22L38 29 32 36 26 29Z" />
+        <path d="M27 31L22 40M37 31L42 40" />
+      </g>
+      <g fill="#b4bc8f" opacity=".7">
+        <circle cx="38" cy="18" r="1.1" />
+        <circle cx="25" cy="40" r="1" />
+        <circle cx="40" cy="44" r=".8" />
+      </g>
+    </>
+  )
+}
+
+// Battlefield piece 3: a cluster of glowing mushrooms; spores drift up.
+function GlowcapSprite() {
+  const caps = [
+    [22, 44, 0.85],
+    [40, 46, 0.75],
+    [31, 40, 1.1],
+  ]
+  return (
+    <>
+      <ellipse cx="32" cy="56" rx="19" ry="4" fill="#000" opacity=".45" />
+      <circle className="hwt-art-glow" cx="32" cy="38" r="22" fill="url(#hwt-glowcap-halo)" />
+      <defs>
+        <radialGradient id="hwt-glowcap-halo">
+          <stop offset="0" stopColor="#8ff0d4" stopOpacity=".45" />
+          <stop offset="1" stopColor="#8ff0d4" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      {caps.map(([x, y, sc]) => (
+        <g key={x} transform={`translate(${x} ${y}) scale(${sc})`}>
+          <path d="M-2.4 14q-1-8 .6-15h3.6q1.6 7 .6 15z" fill="#e8e2cf" />
+          <path d="M1.6-1q1.6 7 .6 15h-1.4q.6-8-.4-15z" fill="#b8b09a" />
+          <path d="M-11 0Q-10-12 0-13Q10-12 11 0Q0 3-11 0Z" fill="#5fc9b0" />
+          <path d="M-11 0Q0 3 11 0Q9 2.6 0 3.2Q-9 2.6-11 0Z" fill="#2f7f74" />
+          <path d="M-7-5Q-5-11 1-11.6Q-5-8-6-3Z" fill="#c4fff0" opacity=".8" />
+          <g fill="#e8fff8">
+            <circle cx="-3" cy="-7" r="1.2" />
+            <circle cx="4" cy="-8" r="1" />
+            <circle cx="6" cy="-3" r=".9" />
+          </g>
+        </g>
+      ))}
+      <g className="hwt-art-spores" fill="#b8ffe8">
+        <circle cx="20" cy="22" r="1.4" />
+        <circle cx="44" cy="20" r="1.2" />
+        <circle cx="33" cy="14" r="1" />
+      </g>
+    </>
+  )
+}
+
+const SPRITES = { tree: TreeSprite, barrel: BarrelSprite, sporepod: SporeSprite, boulder: BoulderSprite, icepillar: IcePillarSprite, stone: StoneSprite, glowcap: GlowcapSprite }
 
 export function ObjectArt({ type, burning = false, brittle = false, variant = 0, className = "hwt-object-art" }) {
   const Sprite = SPRITES[type]

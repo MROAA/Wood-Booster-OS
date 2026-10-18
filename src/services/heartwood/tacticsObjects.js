@@ -15,6 +15,7 @@ import { TERRAIN, terrainAt, WALL_MAX_HP } from "./tacticsTerrain"
 import { coverAgainst } from "./tacticsCover"
 import { emit, getUnit, setUnit, applyDamageWithBlock, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood } from "./tacticsEngine"
 import { applyElement, abilityElement } from "./tacticsElements"
+import { BURNS_TO, FLARES, BREAKS_TO, MOSS_HEAL, LEAF_FLARE_DAMAGE, GLOWCAP_HEAL, FLARE_TURNS, isBurnable, spreadsInto, crushResult, forestSpell, spellAreaTiles } from "./tacticsForest"
 
 export const OBJECTS = {
   tree: { name: "Tree", hp: 6, icon: "🌲" },
@@ -22,6 +23,9 @@ export const OBJECTS = {
   sporepod: { name: "Spore pod", hp: 1, icon: "🍄", explosive: "poison" },
   boulder: { name: "Boulder", hp: 12, icon: "🪨" },
   icepillar: { name: "Ice pillar", hp: 6, icon: "🧊" },
+  // Battlefield piece 3 - the living forest.
+  stone: { name: "Runestone", hp: 10, icon: "🗿" },
+  glowcap: { name: "Glowcap", hp: 1, icon: "🍄" },
 }
 export const TREE_FALL_DAMAGE = 4
 export const TREE_BURN_TURNS = 2
@@ -74,8 +78,10 @@ export function isBurning(state, pos) {
 export function isChilled(state, pos) {
   return !!state.objChill?.[k(pos)]
 }
+// Forest ground the AI weighs (roots snag, dry leaves flare).
+const AI_FOREST_GROUND = new Set(["roots", "leaves"])
 export function hasObjects(state) {
-  return Object.values(state.terrain || {}).some((t) => OBJECTS[t] || t === "fire")
+  return Object.values(state.terrain || {}).some((t) => OBJECTS[t] || t === "fire" || AI_FOREST_GROUND.has(t))
 }
 
 // --- small state helpers -------------------------------------------------------
@@ -126,6 +132,9 @@ function timedTile(state, pos, type, turns) {
   const rule = TERRAIN[was] || TERRAIN.path
   if (rule.cost === Infinity || was === "bridge" || was === "lava") return state
   const prev = state.tileTimers?.[key]
+  // Battlefield piece 3: fire landing on burnable forest ground catches it
+  // (dry leaves flare) and burns down to ash instead of growing back.
+  if (type === "fire" && !prev && isBurnable(was)) return igniteGround(state, pos)
   const revert = prev ? prev.revert : was
   const next = setTile(state, pos, type)
   return { ...next, tileTimers: { ...(next.tileTimers || {}), [key]: { turns, revert } } }
@@ -133,12 +142,142 @@ function timedTile(state, pos, type, turns) {
 
 // Chaos sprint: fire catches TALL GRASS - it becomes flames for a couple
 // of turns and burns down to ash (spreading to the grass beside it next round).
-export function igniteGrass(state, pos) {
-  if (!isOnBoard(pos, state.grid) || terrainAt(state, pos) !== "bush") return state
+// Battlefield piece 3: the same for every burnable forest tile (moss, roots,
+// logs, branches, stumps); dry leaves FLARE instead (flareLeaves).
+const IGNITE_LINE = {
+  bush: "The tall grass catches fire!",
+  moss: "The moss smoulders and burns.",
+  roots: "The roots catch fire!",
+  log: "The fallen log catches fire!",
+  branches: "The branches go up in flames!",
+  stump: "The stump catches fire!",
+}
+export function igniteGround(state, pos) {
+  if (!isOnBoard(pos, state.grid)) return state
+  const t = terrainAt(state, pos)
+  if (!isBurnable(t)) return state
+  if (FLARES.has(t)) return flareLeaves(state, pos)
   const key = k(pos)
   let next = setTile(state, pos, "fire")
-  next = { ...next, tileTimers: { ...(next.tileTimers || {}), [key]: { turns: FIRE_TILE_TURNS, revert: "ash" } } }
-  return objEvent(addLog(next, "The tall grass catches fire!"), "grassfire", pos, "Grass fire!", { tiles: [pos] })
+  next = { ...next, tileTimers: { ...(next.tileTimers || {}), [key]: { turns: FIRE_TILE_TURNS, revert: BURNS_TO[t] } } }
+  return objEvent(addLog(next, IGNITE_LINE[t] || "The ground catches fire!"), "grassfire", pos, t === "bush" ? "Grass fire!" : "Ablaze!", { tiles: [pos] })
+}
+export function igniteGrass(state, pos) {
+  return isOnBoard(pos, state.grid) && terrainAt(state, pos) === "bush" ? igniteGround(state, pos) : state
+}
+
+// Dry leaves: the fire leaps across every connected leaf tile at once,
+// scorching whoever stands in them; the flames die after a turn.
+function flareLeaves(state, pos) {
+  const seen = new Set([k(pos)])
+  const queue = [pos]
+  const tiles = []
+  while (queue.length) {
+    const cur = queue.shift()
+    tiles.push(cur)
+    for (const d of ORTHO) {
+      const p = { row: cur.row + d.row, col: cur.col + d.col }
+      if (!isOnBoard(p, state.grid) || seen.has(k(p)) || !FLARES.has(terrainAt(state, p))) continue
+      seen.add(k(p))
+      queue.push(p)
+    }
+  }
+  tiles.sort((a, b) => (k(a) < k(b) ? -1 : 1))
+  let next = state
+  const timers = {}
+  for (const p of tiles) {
+    next = setTile(next, p, "fire")
+    timers[k(p)] = { turns: FLARE_TURNS, revert: "ash" }
+  }
+  next = { ...next, tileTimers: { ...(next.tileTimers || {}), ...timers } }
+  next = objEvent(addLog(next, `The dry leaves FLARE up (${tiles.length} tile${tiles.length > 1 ? "s" : ""})!`), "flare", pos, "Flare!", { tiles })
+  for (const p of tiles) {
+    if (ended(next)) break
+    const u = unitAt(next, p)
+    if (u) next = hurt(next, u.id, LEAF_FLARE_DAMAGE, "the flaring leaves")
+  }
+  return checkTacticsBattleEnd(next)
+}
+
+// Heavy impacts (explosions, a rolling boulder, earth-shaking spells) break
+// the ground down one step (tacticsForest CRUSHES_TO): grass/moss/leaves/
+// roots flatten, a log splinters into branches, rocks crack to rubble,
+// rubble to gravel. Burning or poisoned (timed) tiles are left alone.
+export function crushTiles(state, tiles) {
+  let next = state
+  const changed = []
+  for (const p of tiles) {
+    if (!isOnBoard(p, next.grid) || next.tileTimers?.[k(p)]) continue
+    const into = crushResult(terrainAt(next, p))
+    if (!into) continue
+    next = setTile(next, p, into)
+    changed.push(p)
+  }
+  return changed.length ? objEvent(next, "crush", changed[0], "Crushed!", { tiles: changed }) : next
+}
+
+// Glowcaps pop into healing spores: every unit in the 3x3 heals (both
+// sides - timing is the choice); soft moss is left where they grew.
+export function bloomGlowcap(state, pos) {
+  let next = addLog(setTile(state, pos, BREAKS_TO.glowcap), "The glowcaps burst in a cloud of healing spores!")
+  const area = spellAreaTiles(pos, 1, state.grid)
+  next = objEvent(next, "bloom", pos, "Healing spores!", { tiles: area })
+  for (const p of area) {
+    const u = unitAt(next, p)
+    if (!u || u.structure) continue
+    const heal = Math.min(u.maxHp - u.hp, GLOWCAP_HEAL)
+    if (heal <= 0) continue
+    next = emit(setUnit(next, u.id, { hp: u.hp + heal }), { kind: "heal", actorId: u.id, targetId: u.id, amount: heal })
+  }
+  return next
+}
+
+// Moss: a unit ending its side's turn on moss recovers MOSS_HEAL.
+export function forestTurnEnd(state, side) {
+  if (!state.terrain || ended(state)) return state
+  let next = state
+  for (const u of state.units) {
+    if (u.side !== side || u.hp <= 0 || u.structure || u.hp >= u.maxHp) continue
+    if (!TERRAIN[terrainAt(state, u.pos)]?.moss) continue
+    const heal = Math.min(u.maxHp - u.hp, MOSS_HEAL)
+    next = emit(addLog(setUnit(next, u.id, { hp: u.hp + heal }), `${u.name} rests on the moss (+${heal}).`), { kind: "heal", actorId: u.id, targetId: u.id, amount: heal })
+  }
+  return next
+}
+
+// Spells strike the forest (tacticsForest FOREST_SPELLS): objects in the
+// area take the hit (trees fall away from the centre), the element
+// reshapes the ground, a quake crushes it. `radius` = the spell's own
+// radius field (used when the table says radius: "skill"). `baseline` = the
+// terrain before the blow, when the caller already changed tiles itself
+// (so one blow never breaks a tile down two steps).
+export function forestSpellStrike(state, spellId, center, casterPos, radius = 1, baseline = null) {
+  const spec = forestSpell(spellId)
+  if (!spec || !center || !state.terrain || ended(state)) return state
+  const r = spec.radius === "skill" ? radius || 1 : spec.radius
+  const tiles = spellAreaTiles(center, r, state.grid)
+  const fire = spec.element === "fire"
+  const frost = spec.element === "frost"
+  let next = state
+  const before = baseline || state.terrain || {}
+  for (const p of tiles) {
+    if (ended(next)) break
+    if (!isAttackableTile(terrainAt(next, p)) || (casterPos && samePos(p, casterPos))) continue
+    const from = samePos(p, center) && casterPos ? casterPos : center
+    next = damageObject(next, p, spec.power, { row: sign(p.row - from.row), col: sign(p.col - from.col) }, { fire, frost })
+  }
+  for (const p of tiles) {
+    if (ended(next)) break
+    const t = terrainAt(next, p)
+    if (fire && isBurnable(t)) next = igniteGround(next, p)
+    if (frost && t === "water") next = freezeWater(next, p)
+    if (frost && t === "icepillar") next = chillPillar(next, p)
+  }
+  // The quake crushes what was ALREADY lying there - debris this spell just
+  // made (a felled tree's stump and log) stays: things break down one step
+  // per blow.
+  if (spec.quake && !ended(next)) next = crushTiles(next, tiles.filter((p) => (next.terrain?.[k(p)] || "path") === (before[k(p)] || "path")))
+  return checkTacticsBattleEnd(next)
 }
 
 // Chaos sprint: frost freezes deep WATER into walkable ice (an ice bridge).
@@ -166,13 +305,14 @@ export function damageObject(state, pos, amount, dir = null, opts = {}) {
   }
   const def = OBJECTS[type]
   if (!def) return state
+  if (type === "glowcap") return bloomGlowcap(state, pos)
   if (def.explosive) return explode(state, pos)
   if (type === "icepillar" && isChilled(state, pos)) return shatterPillar(state, pos)
   const hp = Math.max(0, objectHpAt(state, pos) - amount)
   if (hp <= 0) {
     if (type === "tree") return fellTree(state, pos, dir)
     if (type === "icepillar") return shatterPillar(state, pos)
-    return objEvent(addLog(setTile(state, pos, "rubble"), `The ${def.name.toLowerCase()} cracks apart.`), "break", pos, "Crumbles!")
+    return objEvent(addLog(setTile(state, pos, BREAKS_TO[type] || "rubble"), `The ${def.name.toLowerCase()} cracks apart.`), "break", pos, "Crumbles!")
   }
   let next = objEvent({ ...state, objHp: { ...(state.objHp || {}), [key]: hp } }, "hit", pos, `-${amount}`)
   if (type === "tree" && opts.fire) next = igniteTree(next, pos)
@@ -257,6 +397,15 @@ export function explode(state, pos) {
       if (!fire && getUnit(next, u.id)?.hp > 0) next = setUnit(next, u.id, { poison: (getUnit(next, u.id).poison || 0) + 2 })
     }
   }
+  // Battlefield piece 3: the blast reshapes the ground around it - a fire
+  // blast sets burnable forest ground alight (dry leaves flare), any blast
+  // crushes the rest one step (rocks -> rubble, logs -> branches...).
+  for (const p of area) {
+    if (ended(next) || samePos(p, pos) || OBJECTS[terrainAt(next, p)]) continue
+    if (fire && isBurnable(terrainAt(next, p))) next = igniteGround(next, p)
+    else next = crushTiles(next, [p])
+  }
+  if (ended(next)) return checkTacticsBattleEnd(next)
   // Leftover tiles: centre + the 4 sides.
   for (const p of [pos, ...ORTHO.map((d) => ({ row: pos.row + d.row, col: pos.col + d.col }))]) {
     if (!isOnBoard(p, next.grid) || OBJECTS[terrainAt(next, p)]) continue
@@ -300,6 +449,8 @@ export function rollBoulder(state, pos, from) {
   let next = setTile(setTile(state, pos, "path"), cur, "boulder")
   if (hp < OBJECTS.boulder.hp) next = { ...next, objHp: { ...(next.objHp || {}), [k(cur)]: hp } }
   next = objEvent(addLog(next, `The boulder rolls ${path.length} tile(s)!`), "roll", cur, stopper ? "Crash!" : "Rumble!", { from: { ...pos }, dir: d, tiles: [pos, ...path] })
+  // Battlefield piece 3: it flattens what it rolls over.
+  next = crushTiles(next, path.slice(0, -1))
   if (stopper?.unitId) next = hurt(next, stopper.unitId, BOULDER_DAMAGE, "the rolling boulder")
   else if (stopper) next = damageObject(next, stopper.pos, BOULDER_DAMAGE, d)
   return { next: checkTacticsBattleEnd(next), moved: true }
@@ -329,7 +480,7 @@ export function attackObject(state, actor, pos, amount) {
 export function elementNear(state, pos, element) {
   if (!pos || (element !== "fire" && element !== "frost")) return state
   let next = state
-  if (element === "fire" && terrainAt(next, pos) === "bush") next = igniteGrass(next, pos)
+  if (element === "fire" && isBurnable(terrainAt(next, pos))) next = igniteGround(next, pos)
   for (const d of ORTHO) {
     const p = { row: pos.row + d.row, col: pos.col + d.col }
     if (!isOnBoard(p, next.grid)) continue
@@ -378,7 +529,7 @@ export function objectsRoundTick(state) {
     const t = terrainAt(next, p)
     if (t === "tree") next = igniteTree(next, p)
     else if (OBJECTS[t]?.explosive === "fire") next = explode(next, p)
-    else if (t === "bush") next = igniteGrass(next, p)
+    else if (spreadsInto(t)) next = igniteGround(next, p)
   }
   // 3. Timed tiles fade.
   const tileTimers = {}
@@ -393,11 +544,32 @@ export function objectsRoundTick(state) {
   return checkTacticsBattleEnd({ ...next, terrain, tileTimers })
 }
 
+// Telegraph (board): tiles the fire will catch when the turn ends - what
+// burning trees and flames spread into next tick (objectsRoundTick).
+export function fireSpreadTargets(state) {
+  const keys = new Set()
+  const sources = [...Object.keys(state.objFire || {}), ...Object.entries(state.terrain || {}).filter(([, t]) => t === "fire").map(([key]) => key)]
+  for (const key of sources) {
+    const pos = fromKey(key)
+    for (const d of ORTHO) {
+      const p = { row: pos.row + d.row, col: pos.col + d.col }
+      if (!isOnBoard(p, state.grid)) continue
+      const t = terrainAt(state, p)
+      if ((t === "tree" && !isBurning(state, p)) || OBJECTS[t]?.explosive === "fire" || spreadsInto(t)) keys.add(k(p))
+    }
+  }
+  return keys
+}
+
 // --- enemy AI helpers --------------------------------------------------------------------
 // Tile penalty: next to a burning tree or an explosive.
 export function aiObjectTilePenalty(state, pos) {
   if (!state.terrain) return 0
   let pen = 0
+  // Battlefield piece 3: roots stop you; dry leaves next to a fire flare.
+  const own = state.terrain[k(pos)]
+  if (own === "roots") pen += 4
+  if (own === "leaves" && nearFire(state, pos)) pen += 12
   for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
     if (!dr && !dc) continue
     const p = { row: pos.row + dr, col: pos.col + dc }
@@ -406,6 +578,15 @@ export function aiObjectTilePenalty(state, pos) {
     else if (OBJECTS[t]?.explosive) pen += 6
   }
   return pen
+}
+
+function nearFire(state, pos) {
+  for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+    const p = { row: pos.row + dr, col: pos.col + dc }
+    const t = state.terrain?.[k(p)]
+    if (t === "fire" || (t === "tree" && isBurning(state, p))) return true
+  }
+  return false
 }
 
 // Explosives worth setting off from `pos`: players in the blast, no allies.
@@ -450,6 +631,8 @@ export function describeObjectTile(state, pos) {
   if (type === "barrel") return `Powder barrel: any hit (or fire) blows it up - ${BARREL_DAMAGE} damage to everything in the 3x3 around it, and the ground burns for ${FIRE_TILE_TURNS} turns.`
   if (type === "sporepod") return `Spore pod: any hit bursts it - ${SPORE_DAMAGE} damage and +2 Poison to everything in the 3x3 around it; poison pools linger ${POISON_TILE_TURNS} turns.`
   if (type === "boulder") return `Boulder (${hp}/${max} HP): blocks movement. Hit it from right next to it (1 AP) to SHOVE it - it rolls away until something stops it, dealing ${BOULDER_DAMAGE} to what it hits.`
+  if (type === "stone") return `Runestone (${hp}/${max} HP): an old mossy standing stone - blocks movement, FULL cover for a hero right next to it. The toughest thing on the field; it cracks into rubble (half cover).`
+  if (type === "glowcap") return `Glowcap: any hit pops it - healing spores restore ${GLOWCAP_HEAL} HP to EVERY unit in the 3x3 around it (yours and theirs), leaving soft moss. Pop it when your heroes are close and theirs aren't.`
   if (type === "icepillar") return `Ice pillar (${hp}/${max} HP): Frost (a Frost attack, or Chill landing next to it) makes it brittle; the next hit shatters it - ${SHATTER_DAMAGE} damage + 1 Chill to every hero around it.${isChilled(state, pos) ? " BRITTLE: the next hit shatters it!" : ""}`
   return null
 }

@@ -25,6 +25,7 @@ import { UNITS } from "../../data/heartwood/units"
 import { streamRng } from "../../data/heartwood/seed"
 import { GRID, createRunTacticsBattle } from "./tacticsEngine"
 import { TERRAIN, buildTemplateTerrain, pickTemplate, sidesConnected } from "./tacticsTerrain"
+import { biomeForAct } from "../../data/heartwood/battleBiomes"
 import { effectiveUnitDef } from "./autoBattleEngine"
 import { objectiveForNode, applyObjective } from "./tacticsObjectives"
 import { arenaTerrainFor, applyBossFight } from "./tacticsBosses"
@@ -159,6 +160,44 @@ export function mapTemplateForNode(seed, nodeIndex) {
 // Guaranteed crossable: if a scatter tile ever cuts every route
 // (walls/water counted as blocking), scatter blockers are dropped.
 export function generateRealTerrain(seed, nodeIndex) {
+  return generateForestDressing(seed, nodeIndex, generateBaseTerrain(seed, nodeIndex))
+}
+
+// Battlefield piece 3: the Act's biome scatters its living-forest pieces
+// (battleBiomes.js `dressing`: dry leaves, moss, roots, runestones,
+// glowcaps) on middle tiles the template + scatter left open. Own seeded
+// salt, so every earlier roll - and the older layouts - stay identical.
+// Blocking pieces are only kept where the two sides stay joined.
+export function generateForestDressing(seed, nodeIndex, terrain) {
+  const biome = biomeForAct(actIndexForNode(nodeIndex, RUN_PATH.length))
+  const rng = streamRng(seed, "combat", `${nodeIndex}:forest`)
+  const between = (a, b) => a + Math.floor(rng() * (b - a + 1))
+  const lo = 3
+  const hi = GRID.cols - 4
+  const out = { ...terrain }
+  for (const piece of biome.dressing || []) {
+    const blocks = TERRAIN[piece.type]?.cost === Infinity
+    const clumps = between(piece.clumps[0], piece.clumps[1])
+    for (let c = 0; c < clumps; c++) {
+      let row = between(0, GRID.rows - 1)
+      let col = between(lo, hi)
+      const size = between(piece.size[0], piece.size[1])
+      for (let i = 0; i < size; i++) {
+        const key = `${row}-${col}`
+        if (!out[key]) {
+          out[key] = piece.type
+          if (blocks && !sidesConnected(out, GRID)) delete out[key]
+        }
+        if (rng() < 0.5) row = Math.min(GRID.rows - 1, Math.max(0, row + (rng() < 0.5 ? -1 : 1)))
+        else col = Math.min(hi, Math.max(lo, col + (rng() < 0.5 ? -1 : 1)))
+      }
+    }
+  }
+  return out
+}
+
+// The template + scatter layers (everything before the forest pieces).
+export function generateBaseTerrain(seed, nodeIndex) {
   const { template, rng } = mapTemplateForNode(seed, nodeIndex)
   const base = buildTemplateTerrain(template, rng, GRID, 3, GRID.cols - 4)
   const scatter = generateScatterTerrain(seed, nodeIndex)
