@@ -104,6 +104,7 @@ import { unlockHeroSkin, chooseHeroSkin, setActiveHeroSkins } from "../services/
 import GuildHallScreen from "../components/heartwood/GuildHallScreen"
 import SquadDraft from "../components/heartwood/SquadDraft"
 import FormationScreen from "../components/heartwood/FormationScreen"
+import { carveRune } from "../services/heartwood/runRunes"
 import AutoBattleView from "../components/heartwood/AutoBattleView"
 import RelicChoice from "../components/heartwood/RelicChoice"
 import FloorChoice from "../components/heartwood/FloorChoice"
@@ -1531,6 +1532,7 @@ function HeartwoodBattleScreens() {
           onClear={handleClear}
           onStartBattle={handleStartBattle}
           onStartTacticsBattle={handleStartTacticsBattle}
+          onCarveRune={(id) => setRunState((current) => carveRune(current, id))}
         />
       </div>
     )

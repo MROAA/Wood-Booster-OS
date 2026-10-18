@@ -172,6 +172,7 @@ import { OBJECTS, objectHpAt, objectMaxHp, isAttackableTile, describeObjectTile,
 import { describeFaction, blightPreviewKeys, isBlighted, factionInfo, BLIGHT_ATTACK_BONUS } from "../../services/heartwood/tacticsFactions"
 import { terrainArtStyle, ObjectArt, TerrainIcon, BlightIcon, BLIGHT_ART_URL, SmokeArt } from "./TerrainArt"
 import { ForestFloor } from "./ForestFloor"
+import FastTips from "./FastTips"
 import { biomeBoardStyle, hashString } from "./forestFloorLayout"
 import { biomeForBattle } from "../../data/heartwood/battleBiomes"
 import { archetypeOf, beamTiles, blastTiles, AIM_BONUS, SUPPRESS_PENALTY } from "../../services/heartwood/tacticsRanged"
@@ -181,6 +182,7 @@ import { ItemActions, KitBadges, CounterPanel } from "./TacticsItemsUi"
 import { EnemyTalentsLine } from "./TalentNeutralUi"
 import { hushedNow, talentSkillNote } from "../../services/heartwood/tacticsTalents"
 import { activeDef, itemActiveTargets, castItemActive } from "../../services/heartwood/tacticsItems"
+import "./heartwood-runes.css"
 import "./heartwood-reveal.css"
 
 // Ranged rework: tile skills that hit a 3x3 area (blast preview on hover).
@@ -920,6 +922,7 @@ export default function TacticsBoard({
     return keys
   }, [intents])
   // Present feature types, for the small battlefield legend.
+  const layoutRef = useRef(null)
   const terrainKinds = useMemo(() => [...new Set(Object.values(battle.terrain || {}))].filter((t) => TERRAIN_INFO[t]), [battle.terrain])
   // Battlefield piece 2: the biome drawing this fight, and a salt that keeps
   // one battle's forest floor the same all fight (its line-up of unit ids).
@@ -1591,6 +1594,11 @@ export default function TacticsBoard({
                 )}
                 <ElementBadges unit={unit} />
                 <KitBadges unit={unit} />
+                {unit.runeMark && (
+                  <span className="hwt-rune-mark" data-rune-mark title="Touched by the carved rune">
+                    {unit.runeMark}
+                  </span>
+                )}
                 {unit.side === "enemy" && factionInfo(unit.faction) && (
                   <span className="hwt-faction-badge" data-faction={unit.faction} title={`${factionInfo(unit.faction).tag}${unit.skirmisher ? " - strikes, then fades up to 2 tiles back" : ""}${unit.echo ? " - an echo of your own hero" : ""}`}>
                     {factionInfo(unit.faction).icon}
@@ -1695,7 +1703,9 @@ export default function TacticsBoard({
 
   return (
     <>
-      <div className="hwt-layout">
+      {/* Fast hover explanations for everything in the battle view. */}
+      <FastTips containerRef={layoutRef} />
+      <div className="hwt-layout" ref={layoutRef}>
         <div className="hwt-board-col">
           <SquadBar battle={battle} selectedId={selectedId} onSelect={handleSquadSelect} />
           <TurnTimeline battle={battle} intents={intents} selectedId={selectedId} onSelect={handleSquadSelect} />
@@ -1711,60 +1721,11 @@ export default function TacticsBoard({
             <BondOverlay battle={battle} />
             <BoardAmbience biome={biome} turn={battle.turn} />
           </div>
-        </div>
-
-        <div className="hwt-panel">
-          {bossInfo && <BossBar info={bossInfo} />}
-          <div className="hwt-turn-header" data-phase={battle.phase}>
-            <div className="hwt-turn-label" data-phase={battle.phase}>
-              {deploying && "Deployment"}
-              {battle.phase === "player" && `Player Turn ${battle.turn}`}
-              {battle.phase === "enemy" && "Enemy Turn"}
-              {battle.phase === "won" && "Victory"}
-              {battle.phase === "lost" && "Defeat"}
-            </div>
-            <div className="hwt-turn-sub">
-              {deploying && "Place your heroes - enemies act after your first turn"}
-              {battle.phase === "player" && "Your move"}
-              {battle.phase === "enemy" && "The enemy acts..."}
-              {(battle.phase === "won" || battle.phase === "lost") && "The battle is over"}
-            </div>
-          </div>
-          <ThreatPanel battle={battle} />
-          <CounterPanel battle={battle} />
-          <ManaFeedPanel battle={battle} />
-          {factionView && (
-            <div className="hwt-faction-banner" data-faction={factionView.id}>
-              <div className="hwt-faction-title">
-                <span className="hwt-faction-icon">{factionView.icon}</span> {factionView.tag}
-              </div>
-              <div className="hwt-faction-hint">{factionView.hint}</div>
-              {factionView.id === "corrupted" && (
-                <div className="hwt-faction-extra">
-                  <BlightIcon />
-                  Blight: {factionView.blightCount} tile(s){blightNext.size ? ` - spreads to ${blightNext.size} more next enemy turn (dashed)` : ""}
-                </div>
-              )}
-            </div>
-          )}
-          <div className="hwt-objective" data-objective={objective.type}>
-            <div className="hwt-objective-title">Objective: {objective.title}</div>
-            <div className="hwt-objective-detail">{objective.detail}</div>
-            {objective.extra && <div className="hwt-objective-extra">{objective.extra}</div>}
-          </div>
-          {terrainKinds.length > 0 && (
-            <div className="hwt-terrain-legend">
-              <span className="hwt-terrain-legend-title">Battlefield</span>
-              {terrainKinds.map((t) => (
-                <span key={t} className="hwt-terrain-legend-item" data-kind={t} title={TERRAIN_INFO[t].text}>
-                  <TerrainIcon type={t} />
-                  {TERRAIN_INFO[t].name}
-                </span>
-              ))}
-            </div>
-          )}
+          {/* Marc: the selected unit's details live UNDER the battlefield,
+              all of them visible at once (not hidden behind a hover). */}
           {selected && selected.side === "player" && (
-            <div className="hwt-selected-card" data-role={roleOf(selected)}>
+            <div className="hwt-unit-info-below" data-unit-info={selected.id} data-role={roleOf(selected)}>
+              <div className="hwt-selected-card hwt-unit-info-main" data-role={roleOf(selected)}>
               <TokenArt unit={selected} battle={battle} />
               <div className="hwt-selected-info">
                 <span className="hwt-selected-name">{selected.name}</span>
@@ -1793,10 +1754,74 @@ export default function TacticsBoard({
                     </span>
                   )}
                 </span>
+              </div>
+              </div>
+              <div className="hwt-unit-info-side">
                 {hasMana(selected) && <ResourceInfo unit={selected} battle={battle} />}
                 <SignatureInfo battle={battle} unit={selected} />
                 <IdentityInfo battle={battle} unit={selected} />
               </div>
+            </div>
+          )}
+        </div>
+
+        <div className="hwt-panel">
+          {bossInfo && <BossBar info={bossInfo} />}
+          <div className="hwt-turn-header" data-phase={battle.phase}>
+            <div className="hwt-turn-label" data-phase={battle.phase}>
+              {deploying && "Deployment"}
+              {battle.phase === "player" && `Player Turn ${battle.turn}`}
+              {battle.phase === "enemy" && "Enemy Turn"}
+              {battle.phase === "won" && "Victory"}
+              {battle.phase === "lost" && "Defeat"}
+            </div>
+            <div className="hwt-turn-sub">
+              {deploying && "Place your heroes - enemies act after your first turn"}
+              {battle.phase === "player" && "Your move"}
+              {battle.phase === "enemy" && "The enemy acts..."}
+              {(battle.phase === "won" || battle.phase === "lost") && "The battle is over"}
+            </div>
+          </div>
+          <ThreatPanel battle={battle} />
+          <CounterPanel battle={battle} />
+          <ManaFeedPanel battle={battle} />
+          {battle.rune && (
+            <div className="hwt-rune-banner" data-rune-banner={battle.rune.id} style={{ "--hw-rune-colour": battle.rune.color }}>
+              <div className="hwt-rune-banner-title">
+                <span className="hw-rune-glyph">{battle.rune.glyph}</span> {battle.rune.name} rune carved
+              </div>
+              <div className="hw-rune-line" data-tone="good">✦ {battle.rune.effect}</div>
+              <div className="hw-rune-line" data-tone="bad">✕ {battle.rune.cost}</div>
+            </div>
+          )}
+          {factionView && (
+            <div className="hwt-faction-banner" data-faction={factionView.id}>
+              <div className="hwt-faction-title">
+                <span className="hwt-faction-icon">{factionView.icon}</span> {factionView.tag}
+              </div>
+              <div className="hwt-faction-hint">{factionView.hint}</div>
+              {factionView.id === "corrupted" && (
+                <div className="hwt-faction-extra">
+                  <BlightIcon />
+                  Blight: {factionView.blightCount} tile(s){blightNext.size ? ` - spreads to ${blightNext.size} more next enemy turn (dashed)` : ""}
+                </div>
+              )}
+            </div>
+          )}
+          <div className="hwt-objective" data-objective={objective.type}>
+            <div className="hwt-objective-title">Objective: {objective.title}</div>
+            <div className="hwt-objective-detail">{objective.detail}</div>
+            {objective.extra && <div className="hwt-objective-extra">{objective.extra}</div>}
+          </div>
+          {terrainKinds.length > 0 && (
+            <div className="hwt-terrain-legend">
+              <span className="hwt-terrain-legend-title">Battlefield</span>
+              {terrainKinds.map((t) => (
+                <span key={t} className="hwt-terrain-legend-item" data-kind={t} title={TERRAIN_INFO[t].text}>
+                  <TerrainIcon type={t} />
+                  {TERRAIN_INFO[t].name}
+                </span>
+              ))}
             </div>
           )}
           {hitPreview && hitPreview.rolls && (

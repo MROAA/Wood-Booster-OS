@@ -67,6 +67,9 @@ import {
   campCommune as campCommuneState,
 } from "./betweenFights"
 import { setBonusEffects, setEssenceBonus, activeSetTierKeys, startedSetIds, setOfItem } from "../../data/heartwood/buildSets"
+// Runes (First Song PRD §4): the Rune Pouch rules + the carved rune in a fight.
+import { startingRunes, runeDrop, carvedRuneId, spendCarvedRune } from "./runRunes"
+import { applyRuneCarving } from "./tacticsRunes"
 // A new hero rolls its traits AND its personality quirks the moment it joins.
 const withRolledTraits = (rs) => withHeroIdentity(rollTraitsOnly(rs))
 
@@ -1081,6 +1084,10 @@ export function startRun(characterId, carriedMemory = null, meta = null) {
     bench: [],
     benchKeyCounter: 0,
     deployed: Array.from({ length: DEPLOY_SLOTS }, () => null),
+    // Runes: the Rune Pouch starts with one rune; `carvedRune` = the one
+    // marked on the Formation screen for the next fight.
+    runes: startingRunes(seed),
+    carvedRune: null,
     essence: START_ESSENCE + (carriedMemory ? MEMORY_ESSENCE_BONUS : 0),
     honoredMemory: carriedMemory || null,
     // Branching path (see advanceToNextNode's own comment above): path
@@ -3008,8 +3015,12 @@ export function startTacticsFormationBattle(runState0, buildTacticsBattle) {
   const start = autoBattleStartFor(runState)
   const tactics = buildTacticsBattle(start)
   if (!tactics) return runState
+  // Runes: the carved rune (its arrivals were added inside the build) is
+  // applied LAST so carried HP / gear / mana can't overwrite it, then spent.
+  const runeId = carvedRuneId(runState)
+  const finish = (battle) => (runeId ? applyRuneCarving(battle, runeId) : battle)
   return {
-    ...runState,
+    ...spendCarvedRune(runState),
     phase: "battle",
     // Unit levels (unitLevels.js): perks + XP tracking fields.
     // Gear sprint (gear.js): the gear rows - item fx, row adjacency, board
@@ -3017,7 +3028,7 @@ export function startTacticsFormationBattle(runState0, buildTacticsBattle) {
     // Hero identity (heroIdentity.js): quirks, bonds, scars + class signature
     // mechanics (a worn signature legendary is read off the gear above).
     // Dota depth sprint: enemy counter kits for this Act + the Scepter's class upgrade.
-    battle: { ...prepareItemsForBattle(applyIdentityToBattle(applyGearToBattle(applyLevelsToTactics(tactics, runState), runState, effectiveItemSlots(runState)), runState), actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length)), engine: "tactics" },
+    battle: { ...finish(prepareItemsForBattle(applyIdentityToBattle(applyGearToBattle(applyLevelsToTactics(tactics, runState), runState, effectiveItemSlots(runState)), runState), actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length))), engine: "tactics" },
     pendingActiveEffects: [],
     // Camp Commune "overcharge" is a one-fight charge (read by the tactics build).
     campOvercharge: 0,
@@ -3556,7 +3567,8 @@ export function resolveBattleOutcome(runState) {
     // Gear sprint: elites (half the time) and minibosses drop a Class Collar.
     // Hero identity: minibosses (always) / elites (sometimes) drop a signature legendary.
     // Dota depth 2: a neutral item drop (elites / minibosses most of all).
-    const rs0 = neutralDrop(signatureDrop(collarDrop(evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs, node), node), node, actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length))
+    // Runes: elites / minibosses drop a rune into the Rune Pouch.
+    const rs0 = runeDrop(neutralDrop(signatureDrop(collarDrop(evolved.length ? { ...evoRs, lastEvolved: evolved } : evoRs, node), node), node, actIndexForNode(runState.nodeIndex || 0, RUN_PATH.length)), node)
     // Between-fights: a Hunted / Cursed path pays its promised loot; Fates
     // tick (allies leave, rivals pay their bounty, curses wear off).
     // Interest + the win payout below still read the pre-fate balance.

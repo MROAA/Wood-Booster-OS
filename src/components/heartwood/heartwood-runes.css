@@ -1,0 +1,142 @@
+/* Hearthwood - runes (First Song PRD §4): the Rune Pouch on the Formation
+   screen and the carved rune on the tactics board. Muted stone + a soft
+   glow in the rune's own colour, like the runes on the World Tree backdrop. */
+
+.hw-rune-pouch {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--hw-border);
+  border-radius: 10px;
+  background: var(--hw-surface-bg, var(--hw-panel));
+  box-shadow: var(--hw-surface-edge, none);
+}
+.hw-rune-pouch-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.hw-rune-pouch-title {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--hw-text);
+}
+.hw-rune-pouch-count {
+  color: var(--hw-muted);
+  font-variant-numeric: tabular-nums;
+}
+.hw-rune-pouch-hint {
+  color: var(--hw-muted);
+  font-size: 0.85em;
+}
+.hw-rune-pouch-stones {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.hw-rune-stone {
+  --hw-rune-colour: var(--hw-rune);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 64px;
+  padding: 8px 10px 6px;
+  border-radius: 10px 10px 14px 14px;
+  border: 1px solid color-mix(in srgb, var(--hw-rune-colour) 35%, var(--hw-border));
+  background: linear-gradient(180deg, #3a3833, #24231f);
+  color: var(--hw-text);
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+.hw-rune-stone:hover {
+  transform: translateY(-2px);
+}
+.hw-rune-stone:focus-visible {
+  outline: 2px solid var(--hw-rune-colour);
+  outline-offset: 2px;
+}
+.hw-rune-glyph {
+  font-size: 1.6em;
+  line-height: 1;
+  color: color-mix(in srgb, var(--hw-rune-colour, var(--hw-rune)) 75%, #fff);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--hw-rune-colour, var(--hw-rune)) 50%, transparent);
+}
+.hw-rune-name {
+  font-size: 0.78em;
+  color: var(--hw-muted);
+}
+.hw-rune-stone[data-carved] {
+  border-color: var(--hw-rune-colour);
+  box-shadow: 0 0 0 1px var(--hw-rune-colour), 0 0 18px -2px var(--hw-rune-colour);
+  animation: hw-rune-carve 520ms ease-out;
+}
+.hw-rune-stone[data-carved] .hw-rune-glyph {
+  color: #fff;
+  text-shadow: 0 0 10px var(--hw-rune-colour), 0 0 22px var(--hw-rune-colour);
+}
+.hw-rune-stone[data-carved] .hw-rune-name {
+  color: var(--hw-text);
+}
+@keyframes hw-rune-carve {
+  0% { transform: scale(0.94); box-shadow: 0 0 0 0 var(--hw-rune-colour); }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.hw-rune-carved {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--hw-rune-colour);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--hw-rune-colour) 9%, transparent);
+}
+.hw-rune-carved-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.hw-rune-carved-title .hw-rune-glyph {
+  font-size: 1.15em;
+}
+.hw-rune-force {
+  color: var(--hw-muted);
+  font-weight: 400;
+}
+.hw-rune-line {
+  font-size: 0.88em;
+  line-height: 1.4;
+}
+.hw-rune-line[data-tone="good"] { color: color-mix(in srgb, var(--hw-text) 92%, #9fd18a); }
+.hw-rune-line[data-tone="bad"] { color: color-mix(in srgb, var(--hw-text) 70%, #e0866e); }
+
+/* ---- on the tactics board ---- */
+.hwt-rune-banner {
+  --hw-rune-colour: var(--hw-rune);
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--hw-rune-colour) 55%, var(--hw-border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--hw-rune-colour) 8%, transparent);
+}
+.hwt-rune-banner-title {
+  font-weight: 600;
+}
+.hwt-rune-banner .hw-rune-glyph {
+  font-size: 1.25em;
+  animation: hw-rune-pulse 2.8s ease-in-out infinite;
+}
+.hwt-rune-mark {
+  display: inline-block;
+  margin-left: 2px;
+  font-size: 0.85em;
+  color: #fff;
+  text-shadow: 0 0 6px var(--hw-rune);
+}
+@keyframes hw-rune-pulse {
+  0%, 100% { text-shadow: 0 0 4px var(--hw-rune-colour); }
+  50% { text-shadow: 0 0 14px var(--hw-rune-colour), 0 0 24px var(--hw-rune-colour); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-rune-stone[data-carved],
+  .hwt-rune-banner .hw-rune-glyph { animation: none; }
+}

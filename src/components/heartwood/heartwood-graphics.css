@@ -859,3 +859,125 @@ html body .hw-layout-tools-toggle {
   .hwt-art-rune,
   .hwt-art-glow { animation: none; }
 }
+
+/* ---------- Fast hover explanations (FastTips.jsx) ----------
+   Marc: the browser's own tooltip came too slowly on the battlefield.
+   Lives on <body> (portal), so the Nordic forest theme values are written
+   out here instead of read from .hw-root tokens. */
+.hw-fast-tip {
+  position: fixed;
+  z-index: 10000;
+  max-width: 340px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(143, 176, 122, 0.28);
+  border-top-color: rgba(205, 180, 122, 0.45);
+  background: rgba(15, 19, 12, 0.96);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+  color: #e8e2c8;
+  font-size: 0.8rem;
+  line-height: 1.38;
+  white-space: pre-line;
+  pointer-events: none;
+  opacity: 0;
+}
+.hw-fast-tip[data-ready="true"] {
+  opacity: 1;
+  transition: opacity 90ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-fast-tip[data-ready="true"] { transition: none; }
+}
+
+/* ---------- The battlefield, piece 4: the forest answers the fight ----------
+   (forestReactions.js) Short ground reactions at a unit's feet. The base
+   `transform` centres each piece on its ground point; the animations use
+   the individual translate / scale / rotate properties, which compose. */
+.hwt-fr {
+  position: absolute;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+/* ground level: over the floor and tiles, UNDER the hero cards (z 1) */
+.hwt-fr[data-layer="ground"] { z-index: 0; }
+/* rising things (spirit, embers, spores) float over the cards */
+.hwt-fr[data-layer="over"] { z-index: 3; }
+.hwt-fr[data-layer="screen"] { position: fixed; z-index: 69; }
+.hwt-fr[data-fr="leaf"] {
+  width: 11px;
+  height: 7px;
+  border-radius: 0 80% 0 80%;
+  box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.3);
+}
+.hwt-fr[data-fr="dust"] {
+  width: 26px;
+  height: 13px;
+  border-radius: 50%;
+  background: radial-gradient(rgba(196, 172, 128, 0.6), rgba(150, 125, 85, 0) 70%);
+}
+.hwt-fr[data-fr="flower"] { line-height: 0; filter: drop-shadow(0 0 3px rgba(255, 240, 190, 0.6)); }
+.hwt-fr[data-fr="ring"] {
+  width: 96px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 224, 150, 0.75);
+  box-shadow: 0 0 12px rgba(255, 214, 140, 0.55), inset 0 0 10px rgba(200, 242, 176, 0.4);
+}
+.hwt-fr[data-fr="root"] {
+  line-height: 0;
+  transform: translate(-50%, -100%);
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+}
+.hwt-fr[data-fr="rime"] {
+  width: 104px;
+  height: 32px;
+  border-radius: 50%;
+  background: radial-gradient(rgba(223, 243, 251, 0.55), rgba(160, 210, 235, 0.25) 55%, transparent 72%);
+  border: 1px dashed rgba(223, 243, 251, 0.7);
+}
+.hwt-fr[data-fr="crystal"] {
+  width: 11px;
+  height: 11px;
+  background: #eaf8ff;
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+  filter: drop-shadow(0 0 3px rgba(190, 239, 255, 0.9));
+}
+.hwt-fr[data-fr="glow"] {
+  width: 96px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(rgba(255, 150, 60, 0.6), rgba(220, 80, 20, 0.15) 60%, transparent 75%);
+}
+.hwt-fr[data-fr="ember"] {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ffd27a;
+  box-shadow: 0 0 6px 2px rgba(255, 130, 40, 0.8);
+}
+.hwt-fr[data-fr="spore"] {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(rgba(190, 236, 110, 0.75), rgba(140, 200, 70, 0) 70%);
+}
+.hwt-fr[data-fr="wisp"] {
+  width: 14px;
+  height: 18px;
+  border-radius: 50% 50% 45% 45%;
+  background: radial-gradient(circle at 50% 35%, #f4fff6, rgba(170, 240, 210, 0.75) 45%, rgba(140, 220, 190, 0) 72%);
+  box-shadow: 0 0 14px 5px rgba(160, 240, 210, 0.45);
+}
+.hw-reduce-motion .hwt-fr { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hwt-fr { display: none; }
+}
+.hwt-fr[data-fr="blade"] {
+  width: 3px;
+  height: 15px;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(0deg, #3e5220, #8f8a34);
+  transform: translate(-50%, -100%);
+  transform-origin: 50% 100%;
+}
