@@ -1244,7 +1244,7 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
     image: hollowmereImg2,
   }),
-  thistlemaw: unit("thistlemaw", "Thistlemaw", "spark", 1, "dps", [
+  thistlemaw: unit("thistlemaw", "Cow", "spark", 1, "dps", [
     { type: "attack", amount: 4 },
     { type: "attack", amount: 4 },
   ], {
