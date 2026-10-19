@@ -27,7 +27,7 @@ export const STUDIO_ROOMS = [
       { label: "Traits", kind: "view", view: "traits" },
       { label: "Gear", kind: "view", view: "gear" },
     ],
-    types: ["units", "characters", "traits", "promotions", "signatures", "quirks", "scars", "roles", "evolutions", "upgradeBranches", "dualClasses", "mutations", "tribes", "synergies", "comboSynergies", "positionSynergies", "formations"],
+    types: ["units", "commanders", "characters", "traits", "promotions", "signatures", "quirks", "scars", "roles", "evolutions", "upgradeBranches", "dualClasses", "mutations", "tribes", "synergies", "comboSynergies", "positionSynergies", "formations"],
   },
   {
     id: "skills",
@@ -48,7 +48,7 @@ export const STUDIO_ROOMS = [
     actions: [
       { label: "Edit an enemy", kind: "type", type: "enemies" },
     ],
-    types: ["enemies"],
+    types: ["enemies", "campaignEnemies"],
   },
   {
     id: "battlefield",
@@ -73,7 +73,7 @@ export const STUDIO_ROOMS = [
       { label: "Map events", kind: "type", type: "events" },
       { label: "Write a new event", kind: "add", type: "events" },
     ],
-    types: ["storyScenes", "storyBeats", "storyChapters", "endings", "startVariants", "storyTimeline", "events", "dialogues", "crossroads", "storyJournal", "cinematics", "crownless"],
+    types: ["storyScenes", "storyBeats", "chapterEvents", "worldEvents", "missionBriefs", "campaignBossFights", "storyChapters", "endings", "startVariants", "storyTimeline", "events", "dialogues", "crossroads", "storyJournal", "cinematics", "crownless"],
   },
   {
     id: "lore",
@@ -85,7 +85,7 @@ export const STUDIO_ROOMS = [
       { label: "Runes", kind: "type", type: "runes" },
       { label: "Forest creatures", kind: "type", type: "creatures" },
     ],
-    types: ["tellings", "mythEvidence", "runes", "creatures", "regardBands", "loreTruths", "fates", "factions", "nemeses", "uniqueHeroes", "moods", "almanac"],
+    types: ["tellings", "mythEvidence", "runes", "creatures", "biomes", "chapterContent", "regardBands", "loreTruths", "fates", "factions", "nemeses", "uniqueHeroes", "moods", "almanac"],
   },
   {
     id: "market",

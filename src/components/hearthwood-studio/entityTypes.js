@@ -73,6 +73,15 @@ export const ALL_TYPES = [
   { type: "factions", label: "Factions", category: "Lore" },
   { type: "nemeses", label: "Nemeses", category: "Lore" },
   { type: "uniqueHeroes", label: "Unique Heroes", category: "Lore" },
+  // Campaign story text, 2026-10-19.
+  { type: "chapterEvents", label: "Chapter Events", category: "Story" },
+  { type: "worldEvents", label: "World Events", category: "Story" },
+  { type: "missionBriefs", label: "Mission Briefs", category: "Story" },
+  { type: "campaignBossFights", label: "Campaign Boss Fights", category: "Story" },
+  { type: "chapterContent", label: "Chapter Regions", category: "Lore" },
+  { type: "biomes", label: "Biomes", category: "Lore" },
+  { type: "commanders", label: "Commanders & Their Lines", category: "Content" },
+  { type: "campaignEnemies", label: "Campaign Enemies", category: "Content" },
 
   // Marc: "säädän itse sillä pelin vaikeustasoa"
   { type: "economyLevers", label: "Economy Levers", category: "Economy" },

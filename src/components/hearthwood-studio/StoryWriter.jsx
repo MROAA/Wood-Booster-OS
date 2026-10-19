@@ -27,7 +27,10 @@ export const STORY_WRITER_TYPES = new Set([
   "storyScenes", "storyBeats", "storyChapters", "endings", "startVariants",
   "tellings", "mythEvidence", "runes", "creatures", "regardBands", "loreTruths", "fates", "factions", "nemeses", "uniqueHeroes",
   "events", "dialogues", "crossroads", "storyJournal", "cinematics", "crownless", "almanac", "moods",
+  "chapterEvents", "worldEvents", "missionBriefs", "campaignBossFights", "chapterContent", "biomes", "commanders",
 ])
+// Map keyed by campaign chapter number (1..7).
+const CHAPTER_KEYED = new Set(["storyBeats", "chapterEvents", "chapterContent"])
 
 // Technical keys - never words the player reads.
 const SKIP = new Set([
@@ -41,6 +44,8 @@ const LABELS = {
   epilogue: "Epilogue", blurb: "Short description", meaning: "Meaning", teller: "Who tells it", rivalName: "Rival name",
   kicker: "Title", body: "Scene text", log: "Log line", stakes: "What's at stake", versions: "Versions (depends on earlier choices)",
   value: "Text", heading: "Heading", npc: "Who speaks", fromAct: "From", intoAct: "Into",
+  start: "At the start of a fight", joy: "When things go well", hurt: "When hurt", victory: "After a victory", defeat: "After a defeat",
+  goal: "Goal", persona: "Personality", quirk: "Quirk", mood: "Mood", description: "Description", rules: "Rules",
 }
 const TUPLE_LABELS = {
   lines: ["Who speaks", "What they say"],
@@ -64,6 +69,13 @@ function textLeaves(entityId, fields) {
           }
           walk(item.fields, [...root, index], item.tuple, key)
         })
+        continue
+      }
+      // A flat object of lines (a commander's `lines: { start, joy, ... }`).
+      if (field.kind === "complex" && field.group) {
+        for (const [part, sub] of Object.entries(field.group)) {
+          if (sub.kind === "string") out.push({ path: [...prefix, key, part], key: part, label: labelFor(part), value: String(sub.value), grouped: key })
+        }
         continue
       }
       if (inTuple) {
@@ -135,7 +147,8 @@ function StoryWriter({ type, entityId, entityDetail, onSelect, onApplied, onPrev
 
   // Group the leaves: plain fields first, then each list as its own block.
   const plain = leaves.filter(leaf => !leaf.tuple && leaf.path.length === 2)
-  const dialogue = leaves.filter(leaf => leaf.tuple === "lines")
+  // The entry's own script; lines inside a version (a chapter event) stay in that version's block.
+  const dialogue = leaves.filter(leaf => leaf.tuple === "lines" && leaf.path[1] === "lines")
   const dialogueRows = []
   for (const leaf of dialogue) {
     const row = leaf.path.slice(0, -1).join("/")
@@ -144,13 +157,14 @@ function StoryWriter({ type, entityId, entityDetail, onSelect, onApplied, onPrev
     if (leaf.slot === 0) entry.speaker = leaf
     else entry.text = leaf
   }
-  const rest = leaves.filter(leaf => !plain.includes(leaf) && leaf.tuple !== "lines")
+  const rest = leaves.filter(leaf => !plain.includes(leaf) && !dialogue.includes(leaf))
   const restGroups = []
   for (const leaf of rest) {
     // [id, list, i, ...] - or [id, i, ...] when the entry IS the list.
     const rootList = typeof leaf.path[1] === "number"
     const list = rootList ? "versions" : String(leaf.path[1])
-    const index = rootList ? leaf.path[1] : leaf.path[2]
+    // A flat group's keys (start/joy/...) share one block.
+    const index = leaf.grouped ? null : rootList ? leaf.path[1] : leaf.path[2]
     const groupKey = `${list}/${index}`
     let group = restGroups.find(g => g.key === groupKey)
     if (!group) restGroups.push(group = { key: groupKey, list, index, leaves: [] })
@@ -249,7 +263,7 @@ function StoryWriter({ type, entityId, entityDetail, onSelect, onApplied, onPrev
 export function chapterOf(type, entity) {
   const fields = entity?.fields || {}
   if (fields.chapter?.kind === "number") return fields.chapter.value
-  if ((type === "storyBeats") && /^\d+$/.test(String(entity?.id))) return Number(entity.id)
+  if (CHAPTER_KEYED.has(type) && /^\d+$/.test(String(entity?.id))) return Number(entity.id)
   return null
 }
 
