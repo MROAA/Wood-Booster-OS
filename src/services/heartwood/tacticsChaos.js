@@ -25,6 +25,9 @@ import { OBJECTS, explode, fellTree, rollBoulder, damageObject, hurtUnit } from 
 import { applyElement } from "./tacticsElements"
 import { immovable } from "./tacticsClasses"
 
+// Studio-made blast objects say their own name.
+const blastLine = (type) => (type === "barrel" ? "Into the barrel - BOOM!" : type === "sporepod" ? "Into the spore pod!" : `Into the ${OBJECTS[type].name.toLowerCase()}!`)
+
 export const CHAOS = {
   impact: 2, // into a unit / object / edge (both sides of a crash)
   lava: 3, // landed in lava
@@ -112,7 +115,7 @@ function crash(state, ctx, unitId, dest, dir) {
   if (b.kind === "object") {
     next = impact(next, unitId, CHAOS.impact, `the ${OBJECTS[b.type].name.toLowerCase()}`)
     if (ended(next)) return next
-    if (OBJECTS[b.type].explosive) return explode(step(next, ctx, unitId, b.type === "barrel" ? "Into the barrel - BOOM!" : "Into the spore pod!", dest), dest)
+    if (OBJECTS[b.type].explosive) return explode(step(next, ctx, unitId, blastLine(b.type), dest), dest)
     if (b.type === "tree") return fellTree(step(next, ctx, unitId, "Timber!", dest), dest, dir)
     if (b.type === "boulder") return rollBoulder(step(next, ctx, unitId, "Boulder away!", dest), dest, getUnit(next, unitId).pos).next
     return damageObject(step(next, ctx, unitId, "Smack!", dest), dest, CHAOS.impact, dir)
@@ -192,7 +195,7 @@ export function blockedPushSideEffects(state, targetId, dest, dir) {
   const ctx = { n: 0 }
   if (b.kind === "water") return canDrown(u) ? drown(step(state, ctx, targetId, "Drowned!", dest), targetId) : applyElement(step(state, ctx, targetId, "Splash!", dest), targetId, "frost", 1)
   if (b.kind === "unit") return impact(addLog(step(state, ctx, targetId, "Crash!", dest), `${u.name} is slammed into ${b.unit.name}!`), b.unit.id, CHAOS.impact, "the crash")
-  if (OBJECTS[b.type]?.explosive) return explode(step(state, ctx, targetId, b.type === "barrel" ? "Into the barrel - BOOM!" : "Into the spore pod!", dest), dest)
+  if (OBJECTS[b.type]?.explosive) return explode(step(state, ctx, targetId, blastLine(b.type), dest), dest)
   if (b.type === "tree") return fellTree(step(state, ctx, targetId, "Timber!", dest), dest, dir)
   return damageObject(step(state, ctx, targetId, "Smack!", dest), dest, CHAOS.impact, dir)
 }

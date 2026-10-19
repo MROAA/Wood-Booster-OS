@@ -8,6 +8,23 @@
 // Pure presentation - no game rules here.
 import { OBJECTS } from "../../services/heartwood/tacticsObjects"
 
+// Paintings for Studio-made objects (battleObjects.js `image` = file name).
+const OBJECT_PAINTINGS = Object.fromEntries(
+  Object.entries(import.meta.glob("../../assets/heartwood/battleObjects/*.{png,jpg,jpeg,webp,gif}", { eager: true, import: "default" })).map(([path, url]) => [path.split("/").pop(), url]),
+)
+export const objectPaintingUrl = (file) => (file ? OBJECT_PAINTINGS[file] || null : null)
+
+// A Studio-made object: its painting, else its emoji, on a soft ground shadow.
+function CustomObjectSprite({ def }) {
+  const url = objectPaintingUrl(def.image)
+  return (
+    <>
+      <ellipse cx="32" cy="54" rx="18" ry="5" fill="#000" opacity=".28" />
+      {url ? <image href={url} x="6" y="4" width="52" height="52" preserveAspectRatio="xMidYMid meet" /> : <text x="32" y="44" textAnchor="middle" fontSize="36">{def.icon}</text>}
+    </>
+  )
+}
+
 const svg = (body, defs = "") =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" preserveAspectRatio="none">${defs ? `<defs>${defs}</defs>` : ""}${body}</svg>`
 const anim = (on, s) => (on ? s : "")
@@ -707,6 +724,13 @@ function CrystalSprite() {
 const SPRITES = { crystal: CrystalSprite, tree: TreeSprite, barrel: BarrelSprite, sporepod: SporeSprite, boulder: BoulderSprite, icepillar: IcePillarSprite, stone: StoneSprite, glowcap: GlowcapSprite }
 
 export function ObjectArt({ type, burning = false, brittle = false, variant = 0, species = null, className = "hwt-object-art" }) {
+  if (OBJECTS[type]?.custom) {
+    return (
+      <svg className={className} data-art-object={type} data-custom-object="true" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <CustomObjectSprite def={OBJECTS[type]} />
+      </svg>
+    )
+  }
   const Sprite = SPRITES[type]
   if (!Sprite) return null
   return (
@@ -718,6 +742,13 @@ export function ObjectArt({ type, burning = false, brittle = false, variant = 0,
 
 // Mini legend icon: the same tile art (terrain) or sprite on its ground (object).
 export function TerrainIcon({ type }) {
+  if (OBJECTS[type]?.custom) {
+    return (
+      <span className="hwt-legend-icon" data-art-icon={type} aria-hidden="true">
+        <ObjectArt type={type} className="hwt-legend-icon-sprite" />
+      </span>
+    )
+  }
   if (!ART[type]) return null
   return (
     <span className="hwt-legend-icon" data-art-icon={type} style={{ backgroundImage: ART[type].still }} aria-hidden="true">

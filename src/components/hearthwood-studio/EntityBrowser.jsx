@@ -4,6 +4,8 @@ import { apiGet } from "../../api/client"
 
 import { actLabel } from "./actNames"
 import { ALL_TYPES } from "./entityTypes"
+import { chapterOf } from "./StoryWriter"
+import { STORY_CHAPTERS } from "../../data/heartwood/campaign"
 import StoryTimeline from "./StoryTimeline"
 
 // Marc: "tämä on liian epäselvä systeemi että osaan editoida tarinaa
@@ -25,7 +27,9 @@ const STORY_TIMELINE_TYPE = "storyTimeline"
  * ks. GET /api/hearthwood-patchbay/entities?type=&q= (paths.js:n
  * ENTITY_TYPES on totuuden lähde tyypeille).
  */
-function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onCreateNew }) {
+// `allowedTypes` (Hearthwood HQ rooms, studioRooms.js): only that room's
+// lists are offered; null = every type (the "More tools" view).
+function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onCreateNew, allowedTypes = null }) {
   const [entities, setEntities] = useState([])
   const [query, setQuery] = useState("")
   const [typeFilter, setTypeFilter] = useState("")
@@ -35,11 +39,15 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onC
   const isStoryTimeline = type === STORY_TIMELINE_TYPE
 
   const needle = typeFilter.trim().toLowerCase()
+  const roomTypes = allowedTypes ? ALL_TYPES.filter(entry => allowedTypes.includes(entry.type)) : ALL_TYPES
   const visibleTypes = needle
-    ? ALL_TYPES.filter(entry =>
+    ? roomTypes.filter(entry =>
       entry.label.toLowerCase().includes(needle) || entry.category.toLowerCase().includes(needle),
     )
-    : ALL_TYPES
+    : roomTypes
+  const showTimeline = !allowedTypes || allowedTypes.includes(STORY_TIMELINE_TYPE)
+  // A room with a handful of lists needs no filter box.
+  const showTypeFilter = roomTypes.length > 8
 
   useEffect(() => {
     if (isStoryTimeline) {
@@ -89,6 +97,7 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onC
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="shrink-0 space-y-3 p-4">
+        {showTimeline && (
         <button
           type="button"
           onClick={() => onTypeChange(STORY_TIMELINE_TYPE)}
@@ -103,7 +112,9 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onC
         >
           📖 Story Timeline
         </button>
+        )}
 
+        {showTypeFilter && (
         <input
           value={typeFilter}
           onChange={event => setTypeFilter(event.target.value)}
@@ -114,7 +125,9 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onC
             placeholder:text-[var(--wood-muted)] focus:border-[var(--wood-accent)]
           "
         />
+        )}
 
+        {roomTypes.length > 1 && (
         <div className="wood-scroll max-h-40 overflow-y-auto rounded-lg border border-[var(--wood-border)] bg-[var(--wood-bg)] p-2">
           <div className="flex flex-wrap gap-1.5">
             {
@@ -145,6 +158,7 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onC
             }
           </div>
         </div>
+        )}
 
         {
           !isStoryTimeline && (
@@ -212,6 +226,8 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onC
               entities.map(entity => {
                 const imagePath = entity.fields?.image?.value
                 const act = entity.fields?.act?.value
+                // The First Song's campaign chapter (Story Writer), same idea.
+                const chapter = chapterOf(type, entity)
 
                 return (
                   <button
@@ -252,6 +268,13 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onC
                         typeof act === "number" && (
                           <div className="truncate text-[10px] font-semibold uppercase tracking-wide text-[var(--wood-accent)]">
                             {actLabel(act)}
+                          </div>
+                        )
+                      }
+                      {
+                        chapter && (
+                          <div className="truncate text-[10px] font-semibold uppercase tracking-wide text-[var(--wood-accent)]" data-chapter={chapter}>
+                            Chapter {chapter} · {STORY_CHAPTERS.find(c => c.chapter === chapter)?.title}
                           </div>
                         )
                       }

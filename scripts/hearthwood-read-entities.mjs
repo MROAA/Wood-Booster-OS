@@ -373,6 +373,63 @@ function isListOfScalars(node) {
 }
 
 /**
+ * Every element is a short array of scalars - a "tuple" list. The First
+ * Song story's dialogue is written this way: `lines: [["Maura", "Well?"],
+ * [null, "Narration..."]]` (speaker, text), and an option's `stakes`
+ * likewise ([kind, text]). Marc, 2026-10-19: he wants to rewrite every
+ * line of it by hand - each tuple becomes an item whose positions are
+ * fields "0", "1"... (resolvePath already walks numeric indices).
+ */
+function isListOfTuples(node) {
+
+    return node.type === "ArrayExpression"
+        && node.elements.length > 0
+        && node.elements.every(el => el && el.type === "ArrayExpression"
+            && el.elements.length > 0 && el.elements.length <= 4
+            && el.elements.every(part => part && scalarValue(part)))
+
+}
+
+function tupleItems(node) {
+
+    return node.elements.map(el => {
+
+        const fields = {}
+
+        el.elements.forEach((part, index) => {
+
+            const scalar = scalarValue(part)
+
+            fields[String(index)] = { value: scalar.value, kind: scalar.kind, range: [part.start, part.end] }
+        })
+
+        return { fields, complexKeys: [], identifierKeys: [], tuple: true, range: [el.start, el.end] }
+    })
+
+}
+
+/** The records of a list-of-objects, each walked like an entity's own fields. */
+function objectItems(node, importMap, depth) {
+
+    return node.elements.map(el => {
+
+        const itemFields = {}
+        const itemComplexKeys = []
+        const itemIdentifierKeys = []
+
+        collectObjectFields(el, itemFields, itemComplexKeys, itemIdentifierKeys, importMap, depth + 1)
+
+        return {
+            fields: itemFields,
+            complexKeys: itemComplexKeys,
+            identifierKeys: itemIdentifierKeys,
+            range: [el.start, el.end],
+        }
+    })
+
+}
+
+/**
  * The "Everything" round (Marc, 2026-09-20: "kaiken" - every remaining
  * data file with real content got registered in one pass) surfaced
  * several display-name conventions this codebase already uses beyond
@@ -451,23 +508,20 @@ function classifyField(fk, valueNode, fields, complexKeys, identifierKeys, impor
         complexKeys.push(fk)
         identifierKeys.push(fk)
 
+    } else if (depth < 3 && isListOfTuples(valueNode)) {
+
+        fields[fk] = {
+            value: null,
+            kind: "list",
+            range: [valueNode.start, valueNode.end],
+            items: tupleItems(valueNode),
+        }
+
+        complexKeys.push(fk)
+
     } else if (depth < 3 && isListOfObjects(valueNode)) {
 
-        const items = valueNode.elements.map(el => {
-
-            const itemFields = {}
-            const itemComplexKeys = []
-            const itemIdentifierKeys = []
-
-            collectObjectFields(el, itemFields, itemComplexKeys, itemIdentifierKeys, importMap, depth + 1)
-
-            return {
-                fields: itemFields,
-                complexKeys: itemComplexKeys,
-                identifierKeys: itemIdentifierKeys,
-                range: [el.start, el.end],
-            }
-        })
+        const items = objectItems(valueNode, importMap, depth)
 
         fields[fk] = {
             value: null,
@@ -659,6 +713,25 @@ function entityFromProperty(prop, importMap) {
             name = scalar.value
 
         }
+
+    } else if (value && isListOfObjects(value)) {
+
+        // A map entry whose value IS a list of records - campaignStory.js's
+        // STORY_BEATS: chapter -> [{ title, line, when? }, ...] (one record
+        // per story branch). Exposed as one list field, flagged `rootList`
+        // so the editor's paths skip the field name: [entityId, index, key]
+        // (resolvePath: map key -> ArrayExpression -> numeric index).
+        fields.versions = {
+            value: null,
+            kind: "list",
+            rootList: true,
+            range: [value.start, value.end],
+            items: objectItems(value, importMap, 0),
+        }
+
+        complexKeys.push("versions")
+
+        name = displayNameFrom(fields.versions.items[0].fields)
 
     } else if (value) {
 

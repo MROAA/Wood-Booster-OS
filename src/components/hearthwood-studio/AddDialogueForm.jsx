@@ -41,8 +41,9 @@ function emptyExchange() {
   return { question: "", answer: "" }
 }
 
-function AddDialogueForm({ type, onApplied, onPreviewUrlChange }) {
-  const [open, setOpen] = useState(false)
+// autoOpen: an HQ room button ("Write a new event"...) opens it straight away.
+function AddDialogueForm({ type, onApplied, onPreviewUrlChange, autoOpen = false }) {
+  const [open, setOpen] = useState(autoOpen)
   const [npc, setNpc] = useState("")
   const [greeting, setGreeting] = useState("")
   const [exchanges, setExchanges] = useState([emptyExchange(), emptyExchange()])

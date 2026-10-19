@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { apiGet } from "../api/client"
 
 import AddCrossroadsForm from "../components/hearthwood-studio/AddCrossroadsForm"
+import AddBattleObjectForm from "../components/hearthwood-studio/AddBattleObjectForm"
 import AddDialogueForm from "../components/hearthwood-studio/AddDialogueForm"
 import AddEventForm from "../components/hearthwood-studio/AddEventForm"
 import AddStoryEntryForm from "../components/hearthwood-studio/AddStoryEntryForm"
@@ -23,6 +24,9 @@ import ResourceEditor from "../components/hearthwood-studio/ResourceEditor"
 import MutationEditor from "../components/hearthwood-studio/MutationEditor"
 import { TraitEditor, PromotionEditor, HeroIdentityEditor } from "../components/hearthwood-studio/HeroDataEditor"
 import GearEditor from "../components/hearthwood-studio/GearEditor"
+import StudioHome from "../components/hearthwood-studio/StudioHome"
+import StoryWriter, { STORY_WRITER_TYPES } from "../components/hearthwood-studio/StoryWriter"
+import { roomById, roomForType } from "../components/hearthwood-studio/studioRooms"
 
 /*
  * Hearthwood Studio - oma Dev Studio pelille, ei pilleri geneerisellä
@@ -52,6 +56,22 @@ function deepLinkFromUrl() {
   return type ? { type, id: id || null } : null
 }
 
+// Story entries open in the Story Writer; their raw fields fold away.
+function AdvancedFold({ fold, children }) {
+  if (!fold) return <>{children}</>
+  return (
+    <details className="rounded-lg border border-[var(--wood-border)] p-2" data-testid="all-fields-fold">
+      <summary className="cursor-pointer text-xs text-[var(--wood-muted)]">All fields (advanced)</summary>
+      <div className="mt-3 space-y-3">{children}</div>
+    </details>
+  )
+}
+
+const navClass = active => `
+  rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
+  ${active ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]" : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"}
+`
+
 function HearthwoodStudio() {
   const deepLink = deepLinkFromUrl()
 
@@ -60,7 +80,19 @@ function HearthwoodStudio() {
     if (view === "resources" || view === "mutations" || view === "gear" || view === "traits" || view === "promotions" || view === "identity") return view
     // the in-game dev desk deep-links straight to these too
     if (view === "theme" || view === "sheet" || view === "dashboard") return view
-    return deepLink ? "single" : "dashboard"
+    return deepLink ? "single" : "home"
+  })
+  // Hearthwood HQ (studioRooms.js): the room you're in limits the left
+  // list to that room's things; null = every list ("More tools").
+  const [room, setRoom] = useState(() => roomById(new URLSearchParams(window.location.search).get("room")) || (deepLink ? roomForType(deepLink.type) : null))
+  const [roomHint, setRoomHint] = useState("")
+  // An HQ "add" button opens that type's compose form already open; the
+  // nonce re-mounts it so pressing the button again re-opens it.
+  const [compose, setCompose] = useState({ type: null, nonce: 0 })
+  // The old tab row (Single / Sheet / Mutations / ...) lives behind this.
+  const [showMoreTools, setShowMoreTools] = useState(() => {
+    const view = new URLSearchParams(window.location.search).get("view")
+    return view === "sheet" || view === "dashboard"
   })
   // `browsingType` drives what the LEFT panel shows; `entityType` drives
   // what the DETAIL panel fetches. Normally the same value - split only
@@ -192,26 +224,95 @@ function HearthwoodStudio() {
     setReloadKey(previous => previous + 1)
   }
 
+  // --- Hearthwood HQ ---------------------------------------------------
+  function goHome() {
+    setRoom(null)
+    setRoomHint("")
+    setViewMode("home")
+  }
+
+  function enterRoom(nextRoom) {
+    setRoom(nextRoom)
+    setRoomHint("")
+    const first = nextRoom.actions.find(action => action.kind === "type") || nextRoom.actions[0]
+    runRoomAction(nextRoom, first)
+  }
+
+  function runRoomAction(nextRoom, action) {
+    setRoom(nextRoom)
+    setRoomHint(action.hint || "")
+    if (action.kind === "link") {
+      window.open(action.href, "_blank", "noopener")
+      return
+    }
+    if (action.kind === "view") {
+      setViewMode(action.view)
+      return
+    }
+    setBrowsingType(action.type)
+    setPreviewUrl(null)
+    if (action.kind === "add") {
+      handleAddNew(action.type)
+      setCompose(previous => ({ type: action.type, nonce: previous.nonce + 1 }))
+      return
+    }
+    setCompose(previous => ({ ...previous, type: null }))
+    handleTypeChange(action.type)
+    setViewMode("single")
+  }
+
+  // A "More tools" tab: every list again, no room.
+  function openTool(view) {
+    setRoom(null)
+    setRoomHint("")
+    setViewMode(view)
+  }
+
   return (
     <div className="space-y-6">
-      <header>
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[var(--wood-accent)]">
-          Boosterverse
-        </p>
+      <header className="space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-4xl font-bold text-[var(--wood-text)]">
+              <span className="mr-2 text-[var(--wood-accent)]" aria-hidden="true">ᛞ</span>Hearthwood HQ
+            </h1>
+            <p className="mt-1 text-[var(--wood-muted)]">
+              Your workshop for building the game. Nothing changes until you press Apply, and every change can be undone.
+            </p>
+          </div>
 
-        <h1 className="mt-2 text-4xl font-bold text-[var(--wood-text)]">
-          🜏 Hearthwood Studio
-        </h1>
+          <nav className="flex flex-wrap gap-2" data-testid="studio-nav">
+            <button type="button" onClick={goHome} data-testid="studio-nav-home" className={navClass(viewMode === "home")}>🏠 HQ</button>
+            <button type="button" onClick={() => openTool("dashboard")} data-testid="studio-nav-find" className={navClass(viewMode === "dashboard")}>🔎 Find anything</button>
+            <button type="button" onClick={() => openTool("history")} data-testid="studio-nav-undo" className={navClass(viewMode === "history")}>↩ Undo a change</button>
+            <button type="button" onClick={() => setShowMoreTools(previous => !previous)} data-testid="studio-nav-more" className={navClass(showMoreTools)}>⚙ More tools</button>
+          </nav>
+        </div>
 
-        <p className="mt-3 max-w-3xl text-[var(--wood-muted)]">
-          Browse the game's content, describe what you want to change in your own words, review the
-          proposed diff, and apply only after you approve it. Every change is one click away from being reverted.
-        </p>
+        {
+          room && viewMode !== "home" && (
+            <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] px-4 py-2" data-testid="studio-room-bar">
+              <button type="button" onClick={goHome} className="text-sm text-[var(--wood-muted)] hover:text-[var(--wood-text)]">HQ</button>
+              <span className="text-[var(--wood-muted)]">›</span>
+              <span className="text-sm font-semibold text-[var(--wood-text)]"><span className="mr-1 text-[var(--wood-accent)]">{room.rune}</span>{room.title}</span>
+              <span className="mx-2 h-4 w-px bg-[var(--wood-border)]" />
+              {
+                room.actions.map(action => (
+                  <button key={action.label} type="button" onClick={() => runRoomAction(room, action)} className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-text)] hover:border-[var(--wood-accent)]">
+                    {action.label}
+                  </button>
+                ))
+              }
+              {roomHint && <span className="w-full text-xs text-[var(--wood-accent)]">{roomHint}</span>}
+            </div>
+          )
+        }
 
-        <div className="mt-4 flex gap-2">
+        {showMoreTools && (
+        <div className="mt-3 flex flex-wrap gap-2" data-testid="studio-more-tools">
           <button
             type="button"
-            onClick={() => setViewMode("dashboard")}
+            onClick={() => openTool("dashboard")}
             className={`
               rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
               ${
@@ -226,7 +327,7 @@ function HearthwoodStudio() {
 
           <button
             type="button"
-            onClick={() => setViewMode("single")}
+            onClick={() => openTool("single")}
             className={`
               rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
               ${
@@ -241,7 +342,7 @@ function HearthwoodStudio() {
 
           <button
             type="button"
-            onClick={() => setViewMode("sheet")}
+            onClick={() => openTool("sheet")}
             className={`
               rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
               ${
@@ -256,7 +357,7 @@ function HearthwoodStudio() {
 
           <button
             type="button"
-            onClick={() => setViewMode("theme")}
+            onClick={() => openTool("theme")}
             className={`
               rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
               ${
@@ -272,7 +373,7 @@ function HearthwoodStudio() {
           <button
             type="button"
             data-testid="studio-resources-tab"
-            onClick={() => setViewMode("resources")}
+            onClick={() => openTool("resources")}
             className={`
               rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
               ${
@@ -288,7 +389,7 @@ function HearthwoodStudio() {
           <button
             type="button"
             data-testid="studio-mutations-tab"
-            onClick={() => setViewMode("mutations")}
+            onClick={() => openTool("mutations")}
             className={`
               rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
               ${
@@ -304,7 +405,7 @@ function HearthwoodStudio() {
           <button
             type="button"
             data-testid="studio-traits-tab"
-            onClick={() => setViewMode("traits")}
+            onClick={() => openTool("traits")}
             className={`
               rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
               ${
@@ -320,7 +421,7 @@ function HearthwoodStudio() {
           <button
             type="button"
             data-testid="studio-promotions-tab"
-            onClick={() => setViewMode("promotions")}
+            onClick={() => openTool("promotions")}
             className={`
               rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
               ${
@@ -336,7 +437,7 @@ function HearthwoodStudio() {
           <button
             type="button"
             data-testid="studio-identity-tab"
-            onClick={() => setViewMode("identity")}
+            onClick={() => openTool("identity")}
             className={`
               rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
               ${
@@ -352,7 +453,7 @@ function HearthwoodStudio() {
           <button
             type="button"
             data-testid="studio-gear-tab"
-            onClick={() => setViewMode("gear")}
+            onClick={() => openTool("gear")}
             className={`
               rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
               ${
@@ -365,7 +466,14 @@ function HearthwoodStudio() {
             🎒 Gear
           </button>
         </div>
+        )}
       </header>
+
+      {
+        viewMode === "home" && (
+          <StudioHome onEnterRoom={enterRoom} onAction={runRoomAction} />
+        )
+      }
 
       {
         viewMode === "dashboard" && (
@@ -451,7 +559,7 @@ function HearthwoodStudio() {
         )
       }
 
-      {viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && viewMode !== "mutations" && viewMode !== "gear" && viewMode !== "traits" && viewMode !== "promotions" && viewMode !== "identity" && (
+      {viewMode !== "home" && viewMode !== "history" && viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && viewMode !== "mutations" && viewMode !== "gear" && viewMode !== "traits" && viewMode !== "promotions" && viewMode !== "identity" && (
       <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
         <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <EntityBrowser
@@ -461,6 +569,7 @@ function HearthwoodStudio() {
             onSelect={handleSelect}
             onAddNew={handleAddNew}
             onCreateNew={handleCreateNew}
+            allowedTypes={room ? room.types : null}
           />
         </section>
 
@@ -495,6 +604,8 @@ function HearthwoodStudio() {
                   {
                     entityType === "events" && (
                       <AddEventForm
+                        key={`events-${compose.nonce}`}
+                        autoOpen={compose.type === "events"}
                         type={entityType}
                         onApplied={handleApplied}
                         onPreviewUrlChange={setPreviewUrl}
@@ -505,6 +616,20 @@ function HearthwoodStudio() {
                   {
                     entityType === "dialogues" && (
                       <AddDialogueForm
+                        key={`dialogues-${compose.nonce}`}
+                        autoOpen={compose.type === "dialogues"}
+                        type={entityType}
+                        onApplied={handleApplied}
+                        onPreviewUrlChange={setPreviewUrl}
+                      />
+                    )
+                  }
+
+                  {
+                    entityType === "battleObjects" && (
+                      <AddBattleObjectForm
+                        key={`battleObjects-${compose.nonce}`}
+                        autoOpen={compose.type === "battleObjects"}
                         type={entityType}
                         onApplied={handleApplied}
                         onPreviewUrlChange={setPreviewUrl}
@@ -543,6 +668,35 @@ function HearthwoodStudio() {
                           {entityDetail.name || entityDetail.id}
                         </div>
 
+                        {
+                          STORY_WRITER_TYPES.has(entityType) && (
+                            <StoryWriter
+                              type={entityType}
+                              entityId={entityId}
+                              entityDetail={entityDetail}
+                              onSelect={handleSelect}
+                              onApplied={handleApplied}
+                              onPreviewUrlChange={setPreviewUrl}
+                            />
+                          )
+                        }
+
+                        <AdvancedFold fold={STORY_WRITER_TYPES.has(entityType)}>
+                        {/* Picture first (Marc: hero pictures are the first thing he changes). */}
+                        {
+                          (entityDetail.identifierKeys || []).map(fieldName => (
+                            <ImageUploadField
+                              key={fieldName}
+                              type={entityType}
+                              entityId={entityId}
+                              fieldName={fieldName}
+                              currentImagePath={entityDetail.fields?.[fieldName]?.value}
+                              onApplied={handleApplied}
+                              onPreviewUrlChange={setPreviewUrl}
+                            />
+                          ))
+                        }
+
                         <CloneEntityForm
                           key={entityId}
                           type={entityType}
@@ -560,20 +714,8 @@ function HearthwoodStudio() {
                           onApplied={handleApplied}
                           onPreviewUrlChange={setPreviewUrl}
                         />
+                        </AdvancedFold>
 
-                        {
-                          (entityDetail.identifierKeys || []).map(fieldName => (
-                            <ImageUploadField
-                              key={fieldName}
-                              type={entityType}
-                              entityId={entityId}
-                              fieldName={fieldName}
-                              currentImagePath={entityDetail.fields?.[fieldName]?.value}
-                              onApplied={handleApplied}
-                              onPreviewUrlChange={setPreviewUrl}
-                            />
-                          ))
-                        }
                       </div>
                     )
                   }
@@ -602,10 +744,11 @@ function HearthwoodStudio() {
       </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+      {(viewMode === "history" || showMoreTools) && (
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]" data-testid="studio-history">
         <section className="rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <div className="border-b border-[var(--wood-border)] px-5 py-3 text-sm font-semibold text-[var(--wood-text)]">
-            History
+            Your changes - press Revert on any of them to undo it
           </div>
 
           <div className="h-[420px]">
@@ -613,11 +756,14 @@ function HearthwoodStudio() {
           </div>
         </section>
 
-        <div className="space-y-4">
-          <DoctorPanel />
-          <BalancePanel />
-        </div>
+        {showMoreTools && (
+          <div className="space-y-4">
+            <DoctorPanel />
+            <BalancePanel />
+          </div>
+        )}
       </div>
+      )}
     </div>
   )
 }
