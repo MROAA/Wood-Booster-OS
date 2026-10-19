@@ -716,7 +716,7 @@ const BASE_UNITS = {
     rallyAdjacent: { id: "strength", amount: 2 },
     image: ashenhornImg2,
   }),
-  rootfang: unit("rootfang", "Rootfang", "root", 3, "dps", [
+  rootfang: unit("rootfang", "Seagull", "root", 3, "dps", [
     { type: "attack", amount: 7 },
     { type: "debuff", id: "poison", amount: 3, target: "target" },
     { type: "attack", amount: 7 },
