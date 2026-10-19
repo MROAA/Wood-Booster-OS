@@ -962,7 +962,7 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
     image: thornwardenImg2,
   }),
-  bloomcaller: unit("bloomcaller", "Bloomcaller", "leaf", 3, "support", [
+  bloomcaller: unit("bloomcaller", "Bird", "leaf", 3, "support", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 4 },
   ], {
