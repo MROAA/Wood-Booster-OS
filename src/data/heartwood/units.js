@@ -1187,7 +1187,7 @@ const BASE_UNITS = {
     chainDamage: 4,
     image: rimefangImg2,
   }),
-  hollowquill: unit("hollowquill", "Hollowquill", "rune", 2, "dps", [
+  hollowquill: unit("hollowquill", "Piglet", "rune", 2, "dps", [
     { type: "attack", amount: 8 },
   ], { image: hollowquillImg2 }),
   // Shatter (effects.js) - a genuinely new mechanic, Execute's mirror:
