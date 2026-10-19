@@ -600,7 +600,7 @@ const BASE_UNITS = {
     attackPattern: "knight",
     image: knightsLeapImg2,
   }),
-  "rooks-charge": unit("rooks-charge", "Rook's Charge", "spark", 2, "dps", [{ type: "attack", amount: 6 }], {
+  "rooks-charge": unit("rooks-charge", "Bird", "spark", 2, "dps", [{ type: "attack", amount: 6 }], {
     attackPattern: "rook",
     image: rooksChargeImg2,
   }),
