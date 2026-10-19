@@ -798,7 +798,7 @@ const BASE_UNITS = {
     haste: true,
     image: swiftclawImg2,
   }),
-  emberwisp: unit("emberwisp", "Emberwisp", "spark", 3, "dps", [{ type: "aoe", amount: 5 }], {
+  emberwisp: unit("emberwisp", "Cat", "spark", 3, "dps", [{ type: "aoe", amount: 5 }], {
     // The roster's first player-side AoE (autoBattleEngine.js's aoe
     // branch, previously only Spacemonkey's signature move) - a real
     // mage identity: every round, it blasts every living enemy at
