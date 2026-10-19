@@ -1025,7 +1025,7 @@ const BASE_UNITS = {
     className: "Briarblade",
     image: briarbladeImg2,
   }),
-  sapkeeper: unit("sapkeeper", "Sapkeeper", "leaf", 2, "support", [
+  sapkeeper: unit("sapkeeper", "Camel", "leaf", 2, "support", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 3 },
   ], {
