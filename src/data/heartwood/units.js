@@ -226,6 +226,7 @@ import foxfireImg2 from "../../assets/heartwood/units/foxfire-2.jpg"
 import loamguardImg2 from "../../assets/heartwood/units/loamguard-2.jpg"
 import willowfangImg2 from "../../assets/heartwood/units/willowfang-2.jpg"
 import cragmossImg2 from "../../assets/heartwood/units/cragmoss-2.jpg"
+import willowmendImg2 from "../../assets/heartwood/units/willowmend-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1158,7 +1159,7 @@ const BASE_UNITS = {
     { type: "cleanse" },
     { type: "heal", amount: 4 },
     { type: "attack", amount: 4 },
-  ], { image: willowmendImg }),
+  ], { image: willowmendImg2 }),
   sparrowthorn: unit("sparrowthorn", "Sparrowthorn", "spark", 1, "dps", [{ type: "attack", amount: 6 }], {
     // Wounded Fury - a scrappy fighter that gets meaner once it's
     // cornered, fitting "sparrow" over a heavier bruiser identity.
