@@ -187,6 +187,7 @@ import theDevilImg2 from "../../assets/heartwood/units/the-devil.jpg"
 import theTowerImg2 from "../../assets/heartwood/units/the-tower-2.jpg"
 import theStarImg2 from "../../assets/heartwood/units/the-star-2.jpg"
 import theMoonImg2 from "../../assets/heartwood/units/the-moon-2.jpg"
+import theSunImg2 from "../../assets/heartwood/units/the-sun-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -579,7 +580,7 @@ const BASE_UNITS = {
     image: theMoonImg2,
   }),
   "the-sun": unit("the-sun", "Sunthorn", "the-sun", 2, "dps", [{ type: "attack", amount: 16 }], {
-    image: theSunImg,
+    image: theSunImg2,
   }),
   judgement: unit("judgement", "Stoneknell", "judgement", 1, "dps", [{ type: "attack", amount: 7 }], {
     // Shatter - "judgement" as a reckoning against whatever's still
