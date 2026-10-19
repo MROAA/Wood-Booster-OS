@@ -1139,7 +1139,7 @@ const BASE_UNITS = {
     haste: true,
     image: willowfangImg2,
   }),
-  cragmoss: unit("cragmoss", "Cragmoss", "leaf", 3, "tank", [
+  cragmoss: unit("cragmoss", "Deer", "leaf", 3, "tank", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 5 },
   ], {
