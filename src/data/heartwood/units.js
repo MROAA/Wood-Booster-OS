@@ -234,6 +234,7 @@ import quarrywardenImg2 from "../../assets/heartwood/units/quarrywarden-2.jpg"
 import fernwakeImg2 from "../../assets/heartwood/units/fernwake-2.jpg"
 import duskbrambleImg2 from "../../assets/heartwood/units/duskbramble-2.jpg"
 import hollowmereImg2 from "../../assets/heartwood/units/hollowmere-2.jpg"
+import thistlemawImg2 from "../../assets/heartwood/units/thistlemaw-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1250,7 +1251,7 @@ const BASE_UNITS = {
     // Chain - a 2-hit unit where either swing can trigger the bonus,
     // "thistle catches on everything nearby."
     chainDamage: 3,
-    image: thistlemawImg,
+    image: thistlemawImg2,
   }),
   brackenveil: unit("brackenveil", "Brackenveil", "leaf", 2, "hybrid", [
     { type: "block", amount: 4 },
