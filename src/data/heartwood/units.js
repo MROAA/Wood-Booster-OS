@@ -170,6 +170,7 @@ import beastcallerImg from "../../assets/heartwood/units/beastcaller.jpg"
 import { applyBranch } from "./upgrades"
 import theFoolImg2 from "../../assets/heartwood/units/the-fool.jpg"
 import theMagicianImg2 from "../../assets/heartwood/units/the-magician.jpg"
+import theHighPriestessImg2 from "../../assets/heartwood/units/the-high-priestess.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -457,7 +458,7 @@ const BASE_UNITS = {
     // (previously only Rootward on the enemy side, Willowmend
     // uncommon on the player side).
     passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } }],
-    image: theHighPriestessImg,
+    image: theHighPriestessImg2,
   }),
   "the-empress": unit("the-empress", "Thistlequeen", "the-empress", 2, "support", [
     { type: "heal", amount: 5 },
