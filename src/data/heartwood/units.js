@@ -674,7 +674,7 @@ const BASE_UNITS = {
     ],
     image: stoneheartImg2,
   }),
-  forgehowl: unit("forgehowl", "Forgehowl", "forgehowl", 3, "dps", [
+  forgehowl: unit("forgehowl", "Insect", "forgehowl", 3, "dps", [
     { type: "attack", amount: 20 },
     { type: "block", amount: 8 },
   ], {
