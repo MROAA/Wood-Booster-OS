@@ -8,6 +8,9 @@ import {
 
 import App from "./App"
 
+// Studio saves refresh the Studio without reloading the page (vite.config.js).
+import "./hwDataChanged"
+
 
 import {
   AIProvider,

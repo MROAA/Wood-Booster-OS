@@ -27,6 +27,7 @@ import GearEditor from "../components/hearthwood-studio/GearEditor"
 import StudioHome from "../components/hearthwood-studio/StudioHome"
 import StudioToast from "../components/hearthwood-studio/StudioToast"
 import StoryMap from "../components/hearthwood-studio/StoryMap"
+import CardGallery from "../components/hearthwood-studio/CardGallery"
 import { plainName } from "../components/hearthwood-studio/plainWords"
 import { labelFor } from "../components/hearthwood-studio/entityTypes"
 // The game's own "details open on hover" pop-up style (Marc: "käytä samaa pop up tyyliä paljolle tiedolle kuin pelissäkin").
@@ -85,7 +86,7 @@ function HearthwoodStudio() {
     const view = new URLSearchParams(window.location.search).get("view")
     if (view === "resources" || view === "mutations" || view === "gear" || view === "traits" || view === "promotions" || view === "identity") return view
     // the in-game dev desk deep-links straight to these too
-    if (view === "theme" || view === "sheet" || view === "dashboard" || view === "storyMap") return view
+    if (view === "theme" || view === "sheet" || view === "dashboard" || view === "storyMap" || view === "history") return view
     return deepLink ? "single" : "home"
   })
   // Hearthwood HQ (studioRooms.js): the room you're in limits the left
@@ -165,7 +166,8 @@ function HearthwoodStudio() {
     return () => {
       cancelled = true
     }
-  }, [entityType, entityId])
+    // reloadKey: refetch after a save / a data file change (no page reload any more).
+  }, [entityType, entityId, reloadKey])
 
   function handleTypeChange(nextType) {
     setBrowsingType(nextType)
@@ -239,6 +241,28 @@ function HearthwoodStudio() {
   function handleReverted() {
     setReloadKey(previous => previous + 1)
   }
+
+  // Keep where you are in the address bar, so even a manual refresh (F5)
+  // comes back to the same page instead of the HQ home (Marc: "se vie
+  // minut aina takaisin etusivulle"). deepLinkFromUrl/room/view read it back.
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (viewMode !== "home") {
+      if (viewMode !== "single") params.set("view", viewMode)
+      if (viewMode === "single" && entityType) params.set("type", entityType)
+      if (viewMode === "single" && entityId) params.set("id", entityId)
+    }
+    if (room && viewMode !== "home") params.set("room", room.id)
+    const next = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`
+    if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, "", next)
+  }, [viewMode, entityType, entityId, room])
+
+  // A game data file changed (vite.config.js hearthwoodDataHmr): refresh, don't reload.
+  useEffect(() => {
+    const onDataChanged = () => setReloadKey(previous => previous + 1)
+    window.addEventListener("hw-data-changed", onDataChanged)
+    return () => window.removeEventListener("hw-data-changed", onDataChanged)
+  }, [])
 
   // --- Hearthwood HQ ---------------------------------------------------
   function goHome() {
@@ -655,6 +679,7 @@ function HearthwoodStudio() {
             onAddNew={handleAddNew}
             onCreateNew={handleCreateNew}
             allowedTypes={room ? room.types : null}
+            reloadKey={reloadKey}
             showIds={showMoreTools}
           />
         </section>
@@ -734,10 +759,9 @@ function HearthwoodStudio() {
                   }
 
                   {
-                    !entityId && (
-                      <div className="text-sm text-[var(--wood-muted)]">
-                        Select an entity on the left to get started.
-                      </div>
+                    // No entry picked: the whole list as picture cards (Marc is a visual person).
+                    !entityId && entityType !== "storyTimeline" && (
+                      <CardGallery type={entityType} onSelect={handleSelect} reloadKey={reloadKey} />
                     )
                   }
 
@@ -750,8 +774,13 @@ function HearthwoodStudio() {
                   {
                     entityId && entityDetail && (
                       <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3 space-y-3">
-                        <div className="text-lg font-semibold text-[var(--wood-text)]" data-testid="entity-title">
-                          {plainName(entityDetail, labelFor(entityType))}
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="text-lg font-semibold text-[var(--wood-text)]" data-testid="entity-title">
+                            {plainName(entityDetail, labelFor(entityType))}
+                          </div>
+                          <button type="button" onClick={() => setEntityId(null)} data-testid="back-to-cards" className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]">
+                            ▦ Back to all cards
+                          </button>
                         </div>
 
                         {
