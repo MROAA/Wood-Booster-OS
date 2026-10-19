@@ -13,12 +13,13 @@
 // Forest creatures: a Shapeshifter hides as a tree (tacticsCreatures.js).
 import { revealShapeshifter, creaturesTurnEnd } from "./tacticsCreatures"
 import { isOnBoard, samePos, kingAdjacent } from "./targeting"
-import { TERRAIN, terrainAt, WALL_MAX_HP, CUSTOM_OBJECT_IDS } from "./tacticsTerrain"
+import { TERRAIN, terrainAt, WALL_MAX_HP, sidesConnected, CUSTOM_OBJECT_IDS } from "./tacticsTerrain"
 import { BATTLE_OBJECTS, BREAK_EFFECTS } from "../../data/heartwood/battleObjects"
 import { coverAgainst } from "./tacticsCover"
 import { emit, getUnit, setUnit, applyDamageWithBlock, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood } from "./tacticsEngine"
 import { applyElement, abilityElement } from "./tacticsElements"
-import { BURNS_TO, FLARES, BREAKS_TO, MOSS_HEAL, LEAF_FLARE_DAMAGE, GLOWCAP_HEAL, FLARE_TURNS, isBurnable, spreadsInto, crushResult, forestSpell, spellAreaTiles } from "./tacticsForest"
+import { BURNS_TO, FLARES, BREAKS_TO, MOSS_HEAL, LEAF_FLARE_DAMAGE, GLOWCAP_HEAL, FLARE_TURNS, isBurnable, spreadsInto, crushResult, forestSpell, spellAreaTiles, forestShaping, GROWABLE, TOPPLERS, TOPPLE_DAMAGE, CRYSTAL_MANA } from "./tacticsForest"
+import { gainExternal } from "./tacticsMana"
 
 export const OBJECTS = {
   tree: { name: "Tree", hp: 6, icon: "🌲" },
@@ -29,6 +30,8 @@ export const OBJECTS = {
   // Battlefield piece 3 - the living forest.
   stone: { name: "Runestone", hp: 10, icon: "🗿" },
   glowcap: { name: "Glowcap", hp: 1, icon: "🍄" },
+  // Battlefield piece 6 - breaking it releases mana (shatterCrystal).
+  crystal: { name: "Mana crystal", hp: 4, icon: "💎" },
 }
 // Studio-made objects (data/heartwood/battleObjects.js): `custom` routes
 // them through damageCustomObject; blasts also carry `explosive` so fire
@@ -344,6 +347,7 @@ export function damageObject(state, pos, amount, dir = null, opts = {}) {
   if (hp <= 0) {
     if (type === "tree") return fellTree(state, pos, dir)
     if (type === "icepillar") return shatterPillar(state, pos)
+    if (type === "crystal") return shatterCrystal(state, pos)
     return objEvent(addLog(setTile(state, pos, BREAKS_TO[type] || "rubble"), `The ${def.name.toLowerCase()} cracks apart.`), "break", pos, "Crumbles!")
   }
   let next = objEvent({ ...state, objHp: { ...(state.objHp || {}), [key]: hp } }, "hit", pos, `-${amount}`)
@@ -390,6 +394,38 @@ export function fellTree(state, pos, dir, leaves = "stump", line = "Timber! The 
     if (!["bridge", "lava", "fire"].includes(t)) next = setTile(next, p, "log")
   }
   return checkTacticsBattleEnd(next)
+}
+
+// Battlefield piece 6: a heavy hero topples a runestone along `dir`. It
+// lands on the next tile (4 damage to whoever stands there); both tiles
+// become rubble - into deep water it makes a stepping-stone crossing.
+// Returns null when there is nowhere for it to fall (a wall, an object,
+// the board edge, a bridge / lava / flames) - the blow then just hits it.
+export function toppleStone(state, pos, dir) {
+  const d = { row: sign(dir.row), col: sign(dir.col) }
+  if (terrainAt(state, pos) !== "stone" || (!d.row && !d.col)) return null
+  const land = { row: pos.row + d.row, col: pos.col + d.col }
+  if (!isOnBoard(land, state.grid)) return null
+  const t = terrainAt(state, land)
+  if (t !== "water" && ((TERRAIN[t] || TERRAIN.path).cost === Infinity || ["bridge", "lava", "fire"].includes(t) || state.tileTimers?.[k(land)])) return null
+  let next = setTile(setTile(state, pos, "rubble"), land, "rubble")
+  next = objEvent(addLog(next, t === "water" ? "The runestone topples into the water - a stepping-stone crossing!" : "The runestone topples over!"), "topple", pos, "Toppled!", { dir: d, tiles: [pos, land] })
+  const u = unitAt(next, land)
+  if (u) next = hurt(next, u.id, TOPPLE_DAMAGE, "the toppling runestone")
+  return checkTacticsBattleEnd(next)
+}
+
+// Battlefield piece 6: a mana crystal shatters - every hero within 1 tile
+// (both sides: timing is the choice) gains CRYSTAL_MANA; gravel is left.
+export function shatterCrystal(state, pos) {
+  let next = addLog(setTile(state, pos, BREAKS_TO.crystal), "The mana crystal shatters - raw mana bursts out!")
+  const area = spellAreaTiles(pos, 1, state.grid)
+  next = objEvent(next, "crystal", pos, "Mana burst!", { tiles: area })
+  for (const p of area) {
+    const u = unitAt(next, p)
+    if (u && !u.structure) next = gainExternal(next, u.id, CRYSTAL_MANA, "crystal")
+  }
+  return next
 }
 
 export function igniteTree(state, pos) {
@@ -515,6 +551,10 @@ export function attackObject(state, actor, pos, amount) {
     const rolled = rollBoulder(state, pos, actor.pos)
     if (rolled.moved) return addLog(rolled.next, `${actor.name} shoves the boulder!`)
   }
+  if (type === "stone" && cheb(actor.pos, pos) === 1 && TOPPLERS.has(actor.classId)) {
+    const toppled = toppleStone(state, pos, d)
+    if (toppled) return addLog(toppled, `${actor.name} topples the runestone!`)
+  }
   const next = addLog(state, `${actor.name} strikes the ${OBJECTS[type].name.toLowerCase()} (${amount}).`)
   return damageObject(next, pos, amount, d, { fire, frost })
 }
@@ -588,6 +628,45 @@ export function objectsRoundTick(state) {
     }
   }
   return checkTacticsBattleEnd({ ...next, terrain, tileTimers })
+}
+
+// Forest-shaping skills (tacticsForest FOREST_SHAPING): the forest grows
+// where the skill says - closest tiles first, deterministic. Ground pieces
+// (roots, moss, leaves) may grow under a unit; objects (glowcap) only on
+// empty unoccupied ground and only where the two sides stay joined.
+export function forestShape(state, skillId, casterPos, targetPos, side) {
+  const spec = forestShaping(skillId)
+  if (!spec || !state.terrain || ended(state)) return state
+  const center = spec.on.endsWith("target") ? targetPos : casterPos
+  if (!center) return state
+  const blocks = (TERRAIN[spec.grow] || TERRAIN.path).cost === Infinity
+  let cands
+  if (spec.on === "under-allies") {
+    cands = state.units.filter((u) => u.hp > 0 && u.side === side && !u.structure && cheb(u.pos, center) <= spec.radius).map((u) => u.pos)
+  } else if (spec.on === "under-target") {
+    cands = [center]
+  } else {
+    cands = spellAreaTiles(center, spec.radius, state.grid).filter((p) => !samePos(p, center))
+  }
+  cands = cands
+    .filter((p) => isOnBoard(p, state.grid) && GROWABLE.has(terrainAt(state, p)) && terrainAt(state, p) !== spec.grow && !state.tileTimers?.[k(p)])
+    .filter((p) => !blocks || !unitAt(state, p))
+    .sort((a, b) => cheb(a, center) - cheb(b, center) || (k(a) < k(b) ? -1 : 1))
+  let next = state
+  const grown = []
+  for (const p of cands) {
+    if (grown.length >= spec.count) break
+    const was = terrainAt(next, p)
+    next = setTile(next, p, spec.grow)
+    if (blocks && !sidesConnected(next.terrain, next.grid)) {
+      next = setTile(next, p, was)
+      continue
+    }
+    grown.push(p)
+  }
+  if (!grown.length) return state
+  const name = { roots: "Roots", moss: "Moss", leaves: "Dry leaves", glowcap: "A glowcap" }[spec.grow] || "The forest"
+  return objEvent(addLog(next, `${name} ${spec.grow === "glowcap" ? "sprouts" : "spread"} across ${grown.length} tile${grown.length > 1 ? "s" : ""}.`), "grow", grown[0], `${name} grow!`, { tiles: grown, grow: spec.grow })
 }
 
 // Telegraph (board): tiles the fire will catch when the turn ends - what
@@ -677,7 +756,8 @@ export function describeObjectTile(state, pos) {
   if (type === "barrel") return `Powder barrel: any hit (or fire) blows it up - ${BARREL_DAMAGE} damage to everything in the 3x3 around it, and the ground burns for ${FIRE_TILE_TURNS} turns.`
   if (type === "sporepod") return `Spore pod: any hit bursts it - ${SPORE_DAMAGE} damage and +2 Poison to everything in the 3x3 around it; poison pools linger ${POISON_TILE_TURNS} turns.`
   if (type === "boulder") return `Boulder (${hp}/${max} HP): blocks movement. Hit it from right next to it (1 AP) to SHOVE it - it rolls away until something stops it, dealing ${BOULDER_DAMAGE} to what it hits.`
-  if (type === "stone") return `Runestone (${hp}/${max} HP): an old mossy standing stone - blocks movement, FULL cover for a hero right next to it. The toughest thing on the field; it cracks into rubble (half cover).`
+  if (type === "stone") return `Runestone (${hp}/${max} HP): an old mossy standing stone - blocks movement, FULL cover for a hero right next to it. The toughest thing on the field; it cracks into rubble (half cover). A JUGGERNAUT or BRUISER striking it from right next to it TOPPLES it away from them: ${TOPPLE_DAMAGE} damage to whoever stands there, both tiles become rubble (into deep water: a stepping-stone crossing).`
+  if (type === "crystal") return `Mana crystal (${hp}/${max} HP): blocks movement, FULL cover for a hero right next to it. Break it and its mana bursts out - +${CRYSTAL_MANA} resource to EVERY hero within 1 tile (yours and theirs), leaving gravel. Break it when your heroes stand close.`
   if (type === "glowcap") return `Glowcap: any hit pops it - healing spores restore ${GLOWCAP_HEAL} HP to EVERY unit in the 3x3 around it (yours and theirs), leaving soft moss. Pop it when your heroes are close and theirs aren't.`
   if (OBJECTS[type].custom) {
     const def = OBJECTS[type]

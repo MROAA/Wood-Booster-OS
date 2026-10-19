@@ -366,6 +366,7 @@ const TERRAIN_SVG = {
   // Plain ground under the object sprites.
   stone: () => svg(MOSS),
   glowcap: () => svg(MOSS),
+  crystal: () => svg(EARTH),
   tree: () => svg(MOSS),
   sporepod: () => svg(MOSS),
   barrel: () => svg(EARTH),
@@ -685,7 +686,42 @@ function GlowcapSprite() {
   )
 }
 
-const SPRITES = { tree: TreeSprite, barrel: BarrelSprite, sporepod: SporeSprite, boulder: BoulderSprite, icepillar: IcePillarSprite, stone: StoneSprite, glowcap: GlowcapSprite }
+// Battlefield piece 6: a cluster of violet mana crystals humming with light.
+function CrystalSprite() {
+  const shards = [
+    [32, 56, 0, 1.15],
+    [22, 56, -22, 0.8],
+    [42, 56, 18, 0.85],
+    [27, 57, -8, 0.6],
+  ]
+  return (
+    <>
+      <ellipse cx="32" cy="57" rx="17" ry="3.6" fill="#000" opacity=".5" />
+      <circle className="hwt-art-glow" cx="32" cy="36" r="22" fill="url(#hwt-crystal-halo)" />
+      <defs>
+        <radialGradient id="hwt-crystal-halo">
+          <stop offset="0" stopColor="#b89cff" stopOpacity=".45" />
+          <stop offset="1" stopColor="#b89cff" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      {shards.map(([x, y, rot, sc], i) => (
+        <g key={i} transform={`translate(${x} ${y}) rotate(${rot}) scale(${sc})`}>
+          <path d="M-6 0L-7-24L0-36L7-24L6 0Z" fill="#5a3e98" />
+          <path d="M0-36L7-24L6 0L0 0Z" fill="#3b2770" />
+          <path d="M-7-24L0-36L0 0L-6 0Z" fill="#8a66d6" />
+          <path className="hwt-art-crystal-core" d="M-2-6L-3-24L0-30L1-12Z" fill="#e8dcff" opacity=".8" />
+        </g>
+      ))}
+      <g fill="#efe4ff" opacity=".85">
+        <circle cx="19" cy="22" r="1.1" />
+        <circle cx="46" cy="18" r="1" />
+        <circle cx="36" cy="12" r=".9" />
+      </g>
+    </>
+  )
+}
+
+const SPRITES = { crystal: CrystalSprite, tree: TreeSprite, barrel: BarrelSprite, sporepod: SporeSprite, boulder: BoulderSprite, icepillar: IcePillarSprite, stone: StoneSprite, glowcap: GlowcapSprite }
 
 export function ObjectArt({ type, burning = false, brittle = false, variant = 0, species = null, className = "hwt-object-art" }) {
   if (OBJECTS[type]?.custom) {

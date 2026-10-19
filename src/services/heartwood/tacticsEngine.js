@@ -31,7 +31,7 @@ import { isOnBoard, samePos, kingAdjacent, reachableTiles as reachableTilesRaw }
 import * as relicFx from "./tacticsRelics"
 import * as elements from "./tacticsElements"
 import * as objects from "./tacticsObjects"
-import { forestSpell } from "./tacticsForest"
+import { forestSpell, forestShaping } from "./tacticsForest"
 import { objectiveVerdict, objectiveEnemyPhaseStart, objectiveNewTurn } from "./tacticsObjectives"
 import { bossVerdict, bossEnemyPhaseStart, bossImmuneHit, bossAfterDamage, bossTilePenalty, bossQa } from "./tacticsBosses"
 import { deriveAbilityForDef, abilityTargetSide, HAND_ABILITIES, signatureAbilityForDef } from "./tacticsAbilities"
@@ -2564,19 +2564,23 @@ export function castAbility(state, actorId, targetId, skillId) {
 // Battlefield piece 3: an area spell strikes the forest too (tacticsForest
 // FOREST_SPELLS) - centred on the caster or on the target / chosen tile.
 function forestAfterCast(before, after, actorId, targetId, skill) {
+  if (after.phase === "won" || after.phase === "lost") return after
   const spec = forestSpell(skill?.id)
-  if (!spec || spec.delayed || after.phase === "won" || after.phase === "lost") return after
+  const shaping = forestShaping(skill?.id)
+  if (!(spec && !spec.delayed) && !shaping) return after
   const caster = getUnit(after, actorId) || getUnit(before, actorId)
-  let center = caster?.pos
-  if (spec.shape === "target") {
-    const unit = targetId ? getUnit(before, targetId) : null
-    if (unit) center = unit.pos
-    else if (typeof targetId === "string" && /^\d+-\d+$/.test(targetId)) {
-      const [row, col] = targetId.split("-").map(Number)
-      center = { row, col }
-    } else if (targetId && typeof targetId === "object") center = { row: targetId.row, col: targetId.col }
-  }
-  return objects.forestSpellStrike(after, skill.id, center, caster?.pos, skill.radius)
+  let target = null
+  const unit = targetId ? getUnit(before, targetId) : null
+  if (unit) target = getUnit(after, targetId)?.pos || unit.pos
+  else if (typeof targetId === "string" && /^\d+-\d+$/.test(targetId)) {
+    const [row, col] = targetId.split("-").map(Number)
+    target = { row, col }
+  } else if (targetId && typeof targetId === "object") target = { row: targetId.row, col: targetId.col }
+  let out = after
+  if (spec && !spec.delayed) out = objects.forestSpellStrike(out, skill.id, spec.shape === "target" ? target || caster?.pos : caster?.pos, caster?.pos, skill.radius, before.terrain || {})
+  // Battlefield piece 6: forest-shaping skills make the forest grow.
+  if (shaping && out.phase !== "won" && out.phase !== "lost") out = objects.forestShape(out, skill.id, caster?.pos, target, caster?.side)
+  return out
 }
 
 function castAbilityBase(state, actorId, targetId, skillId) {

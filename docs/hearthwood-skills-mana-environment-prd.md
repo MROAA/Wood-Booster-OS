@@ -365,3 +365,9 @@ into the ground**. Do not rebuild the modules in §9; map them:
 4. **Charred ground boosts fire, frozen pool boosts ice, crystal releases mana
    (§7).** New surface rules on top of `tacticsForest.js`.
 5. **Effects-amount setting (§10)** that provably does not change results.
+
+**Update (battlefield piece 6, 2026-10-19):** gap 3 is done for the class
+skills (roots / moss / glowcap / leaves grow from skills, runestones topple,
+Ground Breaker quakes); gap 4 is done (ash +1 Burn, ice +1 Chill, mana
+crystals). Still open: Commander kits (gap 1), class mana styles (gap 2),
+effects-amount setting (gap 5).

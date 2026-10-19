@@ -22,6 +22,8 @@ import {
   trySpawnBrood,
 } from "./tacticsEngine"
 import { elementNear } from "./tacticsObjects"
+import { terrainAt } from "./tacticsTerrain"
+import { GROUND_ELEMENT_BONUS } from "./tacticsForest"
 import { onChill } from "./tacticsDepth"
 
 export const ELEMENTS = {
@@ -142,6 +144,13 @@ export function comboScoreForStatus(target, status) {
 export function applyElement(state, unitId, element, amount) {
   const u = getUnit(state, unitId)
   if (!u || u.hp <= 0 || !ELEMENTS[element]) return state
+  // Battlefield piece 6 (PRD §7): the ground answers - charred ground
+  // (ash) makes fire bite deeper, a frozen pool (ice) freezes sooner.
+  const ground = GROUND_ELEMENT_BONUS[element]
+  if (ground && amount > 0 && state.terrain && terrainAt(state, u.pos) === ground.on) {
+    amount += ground.extra
+    state = emit(state, { kind: "reaction", unitId, label: ground.label })
+  }
   return elementNear(applyElementToUnit(state, unitId, element, amount), u.pos, element)
 }
 
