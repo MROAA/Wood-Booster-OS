@@ -199,6 +199,7 @@ import stormwingImg2 from "../../assets/heartwood/units/stormwing-2.jpg"
 import stoneheartImg2 from "../../assets/heartwood/units/stoneheart-2.jpg"
 import forgehowlImg2 from "../../assets/heartwood/units/forgehowl-2.jpg"
 import duskclawImg2 from "../../assets/heartwood/units/duskclaw.jpg"
+import ashenhornImg2 from "../../assets/heartwood/units/ashenhorn-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -712,7 +713,7 @@ const BASE_UNITS = {
     // reaches - a real placement decision, not just "recruit it and
     // forget it", matching Marc's "easy to play but hard to master".
     rallyAdjacent: { id: "strength", amount: 2 },
-    image: ashenhornImg,
+    image: ashenhornImg2,
   }),
   rootfang: unit("rootfang", "Rootfang", "root", 3, "dps", [
     { type: "attack", amount: 7 },
