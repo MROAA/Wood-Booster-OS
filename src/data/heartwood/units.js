@@ -215,6 +215,7 @@ import wispkeeperImg2 from "../../assets/heartwood/units/wispkeeper-2.jpg"
 import trueshotImg2 from "../../assets/heartwood/units/trueshot-2.jpg"
 import motleyImg2 from "../../assets/heartwood/units/motley-2.jpg"
 import thornwardenImg2 from "../../assets/heartwood/units/thornwarden.jpg"
+import bloomcallerImg2 from "../../assets/heartwood/units/bloomcaller-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -973,7 +974,7 @@ const BASE_UNITS = {
     // already-proven mechanisms rather than a new one. Whoever stands
     // next to Bloomcaller finishes wounded enemies faster.
     rallyAdjacent: { id: "execute", amount: 2 },
-    image: bloomcallerImg,
+    image: bloomcallerImg2,
   }),
   mosswalker: unit("mosswalker", "Mosswalker", "moonGlyph", 2, "support", [{ type: "attack", amount: 4 }], {
     // The first Evasion class ("väistelee ja katoaa taistelusta" -
