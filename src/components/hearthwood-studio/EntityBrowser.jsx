@@ -251,6 +251,7 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onC
                           src={`/${imagePath}`}
                           alt=""
                           className="h-8 w-8 shrink-0 rounded object-cover bg-[var(--wood-bg)]"
+                          onError={event => { event.currentTarget.style.visibility = "hidden" }}
                         />
                       )
                     }

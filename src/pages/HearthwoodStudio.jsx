@@ -32,6 +32,8 @@ import { plainName } from "../components/hearthwood-studio/plainWords"
 import { labelFor } from "../components/hearthwood-studio/entityTypes"
 // The game's own "details open on hover" pop-up style (Marc: "käytä samaa pop up tyyliä paljolle tiedolle kuin pelissäkin").
 import "../components/heartwood/heartwood-reveal.css"
+// The Studio wears the game's own look (Marc: "esimerkki sille laadulle mitä peli tulee olemaan").
+import "../components/hearthwood-studio/hearthwood-studio.css"
 import StoryWriter, { STORY_WRITER_TYPES } from "../components/hearthwood-studio/StoryWriter"
 import { roomById, roomForType } from "../components/hearthwood-studio/studioRooms"
 
@@ -345,13 +347,13 @@ function HearthwoodStudio() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="hws-root space-y-6">
       <StudioToast />
-      <header className="space-y-3">
+      <header className="hws-header space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-4xl font-bold text-[var(--wood-text)]">
-              <span className="mr-2 text-[var(--wood-accent)]" aria-hidden="true">ᛞ</span>Hearthwood HQ
+            <h1 className="hws-display text-5xl font-bold text-[var(--wood-text)]">
+              <span className="hws-rune mr-2 text-[var(--wood-accent)]" aria-hidden="true">ᛞ</span>Hearthwood HQ
             </h1>
             <p className="mt-1 text-[var(--wood-muted)]">
               Your workshop for building the game. Nothing changes until you press "Put it in the game", and every change can be undone.
@@ -548,7 +550,18 @@ function HearthwoodStudio() {
 
       {
         viewMode === "home" && (
-          <StudioHome onEnterRoom={enterRoom} onAction={runRoomAction} onWish={handleWish} />
+          <StudioHome
+            onEnterRoom={enterRoom}
+            onAction={runRoomAction}
+            onWish={handleWish}
+            onOpenEntity={(type, id) => {
+              setRoom(roomForType(type))
+              setRoomHint("")
+              handleSelect(type, id)
+              setBrowsingType(type)
+              setViewMode("single")
+            }}
+          />
         )
       }
 
@@ -775,7 +788,7 @@ function HearthwoodStudio() {
                     entityId && entityDetail && (
                       <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3 space-y-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="text-lg font-semibold text-[var(--wood-text)]" data-testid="entity-title">
+                          <div className="hws-display text-2xl font-semibold text-[var(--wood-text)]" data-testid="entity-title">
                             {plainName(entityDetail, labelFor(entityType))}
                           </div>
                           <button type="button" onClick={() => setEntityId(null)} data-testid="back-to-cards" className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]">

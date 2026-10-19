@@ -1,0 +1,56 @@
+/* Hearthwood HQ (the Studio) in the game's own palette and type.
+   Marc, 2026-10-19: "esimerkki sille laadulle mitä peli tulee olemaan" -
+   then: "korosta minimalistisuutta sekä käytännöllisyyttä, visuaalisuus
+   tulee sen jälkeen". So: the game's calm colours (lichen gold accent,
+   forest-floor panels, pale lichen text, docs/hearthwood-visual-theme.md
+   §4), Cormorant Garamond for names, ONE thin Sámi ribbon under the top
+   bar - and nothing else: no glows, lifts or shadows. Every Studio
+   component paints from --wood-* tokens, so re-valuing them inside
+   .hws-root is the whole re-theme; the app shell outside keeps its own. */
+
+.hws-root {
+  --wood-bg: #0f130c;
+  --wood-panel: #151b11;
+  --wood-card: #1d2617;
+  --wood-border: rgba(205, 180, 122, 0.2);
+  --wood-text: #e8e2c8;
+  --wood-muted: #a3a68c;
+  --wood-accent: #cdb47a;
+  --hws-display: "Cormorant Garamond", "Georgia", serif;
+}
+
+/* Names and titles in the game's display face. */
+.hws-root .hws-display {
+  font-family: var(--hws-display);
+  letter-spacing: 0.01em;
+}
+
+/* Sámi ribbon (gákti-trim stripes) under the header - abstract bands only, thin and muted. */
+.hws-root .hws-header {
+  position: relative;
+  padding-bottom: 14px;
+}
+.hws-root .hws-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+  opacity: 0.45;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 0 1px, #9b4436 1px 2px, transparent 2px 3px, #c4a14a 3px 4px, transparent 4px),
+    repeating-linear-gradient(90deg, transparent 0 14px, rgba(60, 96, 150, 0.9) 14px 18px, transparent 18px 32px, rgba(82, 128, 76, 0.9) 32px 36px);
+  background-size: 100% 100%, 100% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 0, 0 4px;
+}
+
+/* Cards: just the panel colour and the gold hairline border (hover = the border warms, set in JSX). */
+.hws-root .hws-card {
+  background: var(--wood-panel);
+}
+.hws-root .hws-card-art {
+  border-bottom: 1px solid var(--wood-border);
+}

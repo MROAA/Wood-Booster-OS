@@ -38,7 +38,7 @@ function Card({ kind, title, preview, note, onOpen, testId }) {
       type="button"
       onClick={onOpen}
       data-testid={testId}
-      className="hw-reveal w-full rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3 text-left transition-colors hover:border-[var(--wood-accent)] focus:border-[var(--wood-accent)]"
+      className="hws-card hw-reveal w-full rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3 text-left transition-colors hover:border-[var(--wood-accent)] focus:border-[var(--wood-accent)]"
     >
       <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--wood-accent)]">{kind}</div>
       <div className="text-sm font-semibold text-[var(--wood-text)]">{title}</div>
@@ -81,7 +81,7 @@ function StoryMap({ onOpen }) {
               <li key={chapter} className="rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] p-4" data-chapter-block={chapter}>
                 <div className="flex flex-wrap items-baseline gap-x-3">
                   <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--wood-accent)]">Chapter {chapter}</span>
-                  <h3 className="text-lg font-semibold text-[var(--wood-text)]">{title}</h3>
+                  <h3 className="hws-display text-2xl font-semibold text-[var(--wood-text)]">{title}</h3>
                   {chapterInfo && <button type="button" onClick={() => onOpen("storyChapters", chapterInfo.id)} className="text-[11px] text-[var(--wood-muted)] underline decoration-dotted">edit</button>}
                 </div>
                 {chapterInfo?.fields?.line?.value && <p className="mt-1 text-sm italic text-[var(--wood-muted)]">{chapterInfo.fields.line.value}</p>}
