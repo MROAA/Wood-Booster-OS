@@ -51,6 +51,23 @@ const home = {
   hScroll: await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
   bottom: await page.evaluate(() => Math.round(document.querySelector('[data-testid="studio-home"]').getBoundingClientRect().bottom)),
 }
+// Room counts: each card's number = the sum of its lists in /overview.
+await page.locator('[data-testid="room-count-heroes"]').waitFor({ timeout: 10000 })
+home.counts = await page.evaluate(async () => {
+  const { STUDIO_ROOMS } = await import("/src/components/hearthwood-studio/studioRooms.js")
+  const overview = await fetch("http://localhost:3001/api/hearthwood-patchbay/overview").then((r) => r.json())
+  const by = Object.fromEntries(overview.types.map((t) => [t.type, t.count]))
+  return STUDIO_ROOMS.map((room) => {
+    const el = document.querySelector(`[data-testid="room-count-${room.id}"]`)
+    const shown = el ? Number(el.textContent.replace(/[^0-9]/g, "")) : 0
+    return { room: room.id, shown, expected: room.types.reduce((sum, t) => sum + (by[t] || 0), 0) }
+  })
+})
+await page.locator('[data-room="heroes"]').hover()
+await page.waitForTimeout(450)
+home.heroBreakdown = await page.locator('[data-testid="room-breakdown-heroes"]').evaluate((el) => (Number(getComputedStyle(el).opacity) > 0.5 ? el.textContent : null))
+await page.mouse.move(5, 5)
+await page.waitForTimeout(300)
 const extraShown = () => page.locator('[data-room="story"] .hw-reveal-more').last().evaluate((el) => Number(getComputedStyle(el).opacity) > 0.5 && el.getBoundingClientRect().height > 10)
 home.storyBeforeHover = await extraShown()
 await page.locator('[data-room="story"]').hover()
@@ -61,6 +78,7 @@ await page.locator('[data-testid="studio-purpose"] button').click()
 home.purposeFull = await page.locator('[data-testid="studio-purpose"]').textContent()
 await page.screenshot({ path: new URL("./shots/studio_home.png", import.meta.url).pathname })
 out.home = home
+c(home.counts.every((x) => x.shown === x.expected) && home.counts.find((x) => x.room === "heroes").shown > 100 && home.heroBreakdown?.includes("Heroes"), "h0c room counts match the Studio + breakdown on hover", { counts: home.counts, breakdown: home.heroBreakdown })
 c(home.storyBeforeHover === false && home.storyAfterHover === true, "h0b room details open on hover", { before: home.storyBeforeHover, after: home.storyAfterHover })
 c(home.purpose?.includes("honest limits") && home.purposeFull?.includes("headquarters of its development"), "h0 purpose statement", home.purpose)
 c(home.title.includes("Hearthwood HQ") && home.rooms === 9 && home.nav === 4 && home.moreTools === 0 && home.history === 0 && !home.hScroll, "h1 HQ front door", home)
