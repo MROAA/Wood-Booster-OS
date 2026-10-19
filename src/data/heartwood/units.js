@@ -639,7 +639,7 @@ const BASE_UNITS = {
     // (previously only Aatos's Commander passive did that, squad-wide).
     passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } }],
   }),
-  stormwing: unit("stormwing", "Stormwing", "stormwing", 3, "dps", [
+  stormwing: unit("stormwing", "Frog", "stormwing", 3, "dps", [
     { type: "attack", amount: 9 },
     { type: "debuff", id: "weak", amount: 2, target: "target" },
     { type: "attack", amount: 9 },
