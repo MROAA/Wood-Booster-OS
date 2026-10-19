@@ -550,7 +550,7 @@ const BASE_UNITS = {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "block", amount: 3 } }],
     image: temperanceImg2,
   }),
-  "the-devil": unit("the-devil", "Hollowmaw", "the-devil", 1, "dps", [{ type: "attack", amount: 16 }], {
+  "the-devil": unit("the-devil", "Giraffe", "the-devil", 1, "dps", [{ type: "attack", amount: 16 }], {
     // Already the roster's biggest single hit at its cost - kept that
     // glass-cannon identity intact and added only a small Execute,
     // the roster's first COMMON-tier source (previously rare-only:
