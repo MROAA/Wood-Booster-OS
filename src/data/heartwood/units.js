@@ -476,7 +476,7 @@ const BASE_UNITS = {
     passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 5 } }],
     image: theEmperorImg2,
   }),
-  "the-hierophant": unit("the-hierophant", "Goldenbough", "the-hierophant", 1, "dps", [
+  "the-hierophant": unit("the-hierophant", "Chipmunk", "the-hierophant", 1, "dps", [
     { type: "attack", amount: 4 },
   ], {
     passive: [{ type: "applyBuff", id: "strength", amount: 1 }],
