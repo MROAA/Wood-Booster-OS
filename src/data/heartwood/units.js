@@ -204,6 +204,7 @@ import rootfangImg2 from "../../assets/heartwood/units/rootfang-2.jpg"
 import wraithbriarImg2 from "../../assets/heartwood/units/wraithbriar-2.jpg"
 import grimtuskImg2 from "../../assets/heartwood/units/grimtusk-2.jpg"
 import thornguardImg2 from "../../assets/heartwood/units/thornguard-2.jpg"
+import swiftclawImg2 from "../../assets/heartwood/units/swiftclaw-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -794,7 +795,7 @@ const BASE_UNITS = {
     // per round with a Vampiric Bloom/Sundering Mark/Bramble Ward
     // build) rather than raw total damage).
     haste: true,
-    image: swiftclawImg,
+    image: swiftclawImg2,
   }),
   emberwisp: unit("emberwisp", "Emberwisp", "spark", 3, "dps", [{ type: "aoe", amount: 5 }], {
     // The roster's first player-side AoE (autoBattleEngine.js's aoe
