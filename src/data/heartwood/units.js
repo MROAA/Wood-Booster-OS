@@ -181,6 +181,7 @@ import theHermitImg2 from "../../assets/heartwood/units/the-hermit.jpg"
 import wheelOfFortuneImg2 from "../../assets/heartwood/units/wheel-of-fortune.jpg"
 import justiceImg2 from "../../assets/heartwood/units/justice-2.jpg"
 import theHangedManImg2 from "../../assets/heartwood/units/the-hanged-man-2.jpg"
+import deathImg2 from "../../assets/heartwood/units/death-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -538,7 +539,7 @@ const BASE_UNITS = {
   death: unit("death", "Bonewither", "death", 1, "dps", [{ type: "attack", amount: 7 }], {
     // Poison on hit - "wither" is decay given a mechanic.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } }],
-    image: deathImg,
+    image: deathImg2,
   }),
   temperance: unit("temperance", "Stillbark", "temperance", 1, "tank", [
     { type: "block", amount: 3 },
