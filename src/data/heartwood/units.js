@@ -513,7 +513,7 @@ const BASE_UNITS = {
     // for this new portable trait - not invented flavor.
     wary: true,
   }),
-  "wheel-of-fortune": unit("wheel-of-fortune", "Windshift", "wheel-of-fortune", 1, "hybrid", [
+  "wheel-of-fortune": unit("wheel-of-fortune", "Trail", "wheel-of-fortune", 1, "hybrid", [
     { type: "attack", amount: 10, weight: 1 },
     { type: "block", amount: 10, weight: 1 },
   ], { moveSelect: "weightedRandom", image: wheelOfFortuneImg2 }),
