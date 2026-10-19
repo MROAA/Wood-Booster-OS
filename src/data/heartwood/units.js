@@ -221,6 +221,7 @@ import ironbarkImg2 from "../../assets/heartwood/units/ironbark-2.jpg"
 import briarbladeImg2 from "../../assets/heartwood/units/briarblade-2.jpg"
 import sapkeeperImg2 from "../../assets/heartwood/units/sapkeeper.jpg"
 import spiritWolfImg2 from "../../assets/heartwood/units/spirit-wolf-2.jpg"
+import beastcallerImg2 from "../../assets/heartwood/units/beastcaller-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1100,7 +1101,7 @@ const BASE_UNITS = {
     // available read is a figure confronting/calling forth a beast
     // version of themselves, a loose placeholder per Marc's "even a
     // placeholder, but everything needs an image" bar.
-    image: beastcallerImg,
+    image: beastcallerImg2,
   }),
   // Plain roster reinforcements - all 12 base classes are covered
   // already, so these just add more bodies at common/uncommon tier
