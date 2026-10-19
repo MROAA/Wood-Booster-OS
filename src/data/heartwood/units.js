@@ -169,6 +169,7 @@ import trueshotImg from "../../assets/heartwood/units/trueshot.jpg"
 import beastcallerImg from "../../assets/heartwood/units/beastcaller.jpg"
 import { applyBranch } from "./upgrades"
 import theFoolImg2 from "../../assets/heartwood/units/the-fool.jpg"
+import theMagicianImg2 from "../../assets/heartwood/units/the-magician.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -439,7 +440,7 @@ const BASE_UNITS = {
     // Weak on hit - a weaver of illusions/curses draining a target's
     // own strength, not raw force.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } }],
-    image: theMagicianImg,
+    image: theMagicianImg2,
     // Guild Identity v1: Dreamweaver (Illusions/Control) - the existing
     // "weaver of illusions/curses" flavor above already IS Marc's
     // Dreamweaver class, word for word. No kit change, just naming
