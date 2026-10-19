@@ -192,6 +192,7 @@ import judgementImg2 from "../../assets/heartwood/units/judgement.jpg"
 import theWorldImg2 from "../../assets/heartwood/units/the-world-2.jpg"
 import knightsLeapImg2 from "../../assets/heartwood/units/knights-leap.jpg"
 import rooksChargeImg2 from "../../assets/heartwood/units/rooks-charge.jpg"
+import bishopsSlashImg2 from "../../assets/heartwood/units/bishops-slash.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -606,7 +607,7 @@ const BASE_UNITS = {
   }),
   "bishops-slash": unit("bishops-slash", "Bishop's Slash", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
     attackPattern: "bishop",
-    image: bishopsSlashImg,
+    image: bishopsSlashImg2,
   }),
 
   // First two non-Tarot, non-chess-pattern units - same "new
