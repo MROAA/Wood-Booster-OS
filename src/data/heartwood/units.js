@@ -189,6 +189,7 @@ import theStarImg2 from "../../assets/heartwood/units/the-star-2.jpg"
 import theMoonImg2 from "../../assets/heartwood/units/the-moon-2.jpg"
 import theSunImg2 from "../../assets/heartwood/units/the-sun-2.jpg"
 import judgementImg2 from "../../assets/heartwood/units/judgement.jpg"
+import theWorldImg2 from "../../assets/heartwood/units/the-world-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -590,7 +591,7 @@ const BASE_UNITS = {
     image: judgementImg2,
   }),
   "the-world": unit("the-world", "Rootcrown", "the-world", 3, "dps", [{ type: "attack", amount: 20 }], {
-    image: theWorldImg,
+    image: theWorldImg2,
   }),
 
   "knights-leap": unit("knights-leap", "Knight's Leap", "spark", 2, "dps", [{ type: "attack", amount: 12 }], {
