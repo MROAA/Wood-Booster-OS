@@ -88,6 +88,7 @@ import { crownlessIntroLine } from "../data/heartwood/crownless"
 import { loadRunSave, saveRunSave, clearRunSave, loadLastRun, saveLastRun, clearLastRun } from "../services/heartwood/runSaveState"
 import { loadMeta, saveMeta } from "../services/heartwood/metaState"
 import { recordForestMemory } from "../services/heartwood/forestMemory"
+import { believe, cinematicWithBelief } from "../services/heartwood/myths"
 import {
   loadHearth, saveHearth, hearthStartFor, harvestRun, upgradeRoom, buyFurniture, recruitAtHome, retireUnit,
   releaseUnit, setPermadeath, breedHeroes, togglePacked, discardStashed, craftRecipe, takePackedGear,
@@ -825,6 +826,11 @@ function HeartwoodBattleScreens() {
     )
   }
 
+  // The Four Tellings (myths.js): what the player believes about the forest.
+  function handleBelieve(tellingId) {
+    setRunState((current) => believe(current, tellingId))
+  }
+
   function handleTacticsBattleChange(newBattle) {
     setRunState((current) => ({ ...current, battle: newBattle }))
   }
@@ -1226,7 +1232,7 @@ function HeartwoodBattleScreens() {
     return (
       <StoryCinematic
         key={endingCinematic}
-        cinematic={cinematicById(endingCinematic)}
+        cinematic={cinematicWithBelief(cinematicById(endingCinematic), runState)}
         onDone={() => {
           if (endingCinematic !== "echo-epilogue" && runState.chosenEnding && !runState.echoEpilogueSeen) {
             setRunState((rs) => markEchoEpilogueSeen(rs))
@@ -1320,7 +1326,7 @@ function HeartwoodBattleScreens() {
         data-free-active={mapStripLayout.freeActive || undefined}
         data-editing-layout={mapStripLayout.editingLayout || undefined}
       >
-        {mapStripLayout.renderSection("strip", <RunMap runState={runState} />)}
+        {mapStripLayout.renderSection("strip", <RunMap runState={runState} onBelieve={handleBelieve} />)}
       </div>
       {setBanner}
     </>
@@ -1407,7 +1413,7 @@ function HeartwoodBattleScreens() {
     onContinue: () => setShowMapAfterShop(true),
     showIntro: showIntro,
     onDismissIntro: dismissIntro,
-    mapSlot: <RunMap runState={runState} mode="rail" onScout={handleScout} />,
+    mapSlot: <RunMap runState={runState} mode="rail" onScout={handleScout} onBelieve={handleBelieve} />,
   }
 
   if (hqOverlay && hqAvailable) {
@@ -1423,7 +1429,7 @@ function HeartwoodBattleScreens() {
     return (
       <div className="hw-root hw-screen-fade" style={rootStyle} data-screen="map-after-shop" key="map-after-shop">
         {utilityBar}
-        <RunMap runState={runState} />
+        <RunMap runState={runState} onBelieve={handleBelieve} />
         <div style={{ padding: "0 21px" }}>
           <RunBuildPanel runState={runState} />
           <button

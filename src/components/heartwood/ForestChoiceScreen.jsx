@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { FOREST_PATHS } from "../../data/heartwood/crownless"
 import { newVerseStatus } from "../../services/heartwood/forestMemory"
+import { beliefForEnding } from "../../services/heartwood/myths"
 import "./heartwood-creatures.css"
 import marketBanner from "../../assets/heartwood/battle-bg.jpg"
 
@@ -68,6 +69,12 @@ export default function ForestChoiceScreen({ suggested, onChoose, runState }) {
                 <span className="hw-forest-choice-path-tagline">{p.tagline}</span>
                 <span className="hw-forest-choice-path-blurb">{p.blurb}</span>
                 {isSuggested && <span className="hw-forest-choice-lean">the forest leans this way</span>}
+                {beliefForEnding(runState, p.endingId) && (
+                  <span className="hw-forest-choice-belief" data-belief={beliefForEnding(runState, p.endingId).id}>
+                    {beliefForEnding(runState, p.endingId).icon} what you believe: {beliefForEnding(runState, p.endingId).answer}
+                    {beliefForEnding(runState, p.endingId).borneOut ? " - the evidence agrees" : " - on thin evidence"}
+                  </span>
+                )}
                 {locked && <span className="hw-forest-choice-locked">🔒 {locked}</span>}
                 {p.requiresNewVerse && !locked && <span className="hw-forest-choice-lean">🌀 the forest remembers you</span>}
               </motion.button>
