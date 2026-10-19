@@ -25,6 +25,7 @@ import MutationEditor from "../components/hearthwood-studio/MutationEditor"
 import { TraitEditor, PromotionEditor, HeroIdentityEditor } from "../components/hearthwood-studio/HeroDataEditor"
 import GearEditor from "../components/hearthwood-studio/GearEditor"
 import StudioHome from "../components/hearthwood-studio/StudioHome"
+import StoryWriter, { STORY_WRITER_TYPES } from "../components/hearthwood-studio/StoryWriter"
 import { roomById, roomForType } from "../components/hearthwood-studio/studioRooms"
 
 /*
@@ -53,6 +54,17 @@ function deepLinkFromUrl() {
   // `type` alone opens that type's list (the in-game dev desk links to
   // whole categories, e.g. "all relics"); `type` + `id` opens one entry.
   return type ? { type, id: id || null } : null
+}
+
+// Story entries open in the Story Writer; their raw fields fold away.
+function AdvancedFold({ fold, children }) {
+  if (!fold) return <>{children}</>
+  return (
+    <details className="rounded-lg border border-[var(--wood-border)] p-2" data-testid="all-fields-fold">
+      <summary className="cursor-pointer text-xs text-[var(--wood-muted)]">All fields (advanced)</summary>
+      <div className="mt-3 space-y-3">{children}</div>
+    </details>
+  )
 }
 
 const navClass = active => `
@@ -656,6 +668,20 @@ function HearthwoodStudio() {
                           {entityDetail.name || entityDetail.id}
                         </div>
 
+                        {
+                          STORY_WRITER_TYPES.has(entityType) && (
+                            <StoryWriter
+                              type={entityType}
+                              entityId={entityId}
+                              entityDetail={entityDetail}
+                              onSelect={handleSelect}
+                              onApplied={handleApplied}
+                              onPreviewUrlChange={setPreviewUrl}
+                            />
+                          )
+                        }
+
+                        <AdvancedFold fold={STORY_WRITER_TYPES.has(entityType)}>
                         {/* Picture first (Marc: hero pictures are the first thing he changes). */}
                         {
                           (entityDetail.identifierKeys || []).map(fieldName => (
@@ -688,6 +714,7 @@ function HearthwoodStudio() {
                           onApplied={handleApplied}
                           onPreviewUrlChange={setPreviewUrl}
                         />
+                        </AdvancedFold>
 
                       </div>
                     )

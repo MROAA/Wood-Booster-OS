@@ -4,6 +4,8 @@ import { apiGet } from "../../api/client"
 
 import { actLabel } from "./actNames"
 import { ALL_TYPES } from "./entityTypes"
+import { chapterOf } from "./StoryWriter"
+import { STORY_CHAPTERS } from "../../data/heartwood/campaign"
 import StoryTimeline from "./StoryTimeline"
 
 // Marc: "tämä on liian epäselvä systeemi että osaan editoida tarinaa
@@ -224,6 +226,8 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onC
               entities.map(entity => {
                 const imagePath = entity.fields?.image?.value
                 const act = entity.fields?.act?.value
+                // The First Song's campaign chapter (Story Writer), same idea.
+                const chapter = chapterOf(type, entity)
 
                 return (
                   <button
@@ -264,6 +268,13 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onC
                         typeof act === "number" && (
                           <div className="truncate text-[10px] font-semibold uppercase tracking-wide text-[var(--wood-accent)]">
                             {actLabel(act)}
+                          </div>
+                        )
+                      }
+                      {
+                        chapter && (
+                          <div className="truncate text-[10px] font-semibold uppercase tracking-wide text-[var(--wood-accent)]" data-chapter={chapter}>
+                            Chapter {chapter} · {STORY_CHAPTERS.find(c => c.chapter === chapter)?.title}
                           </div>
                         )
                       }

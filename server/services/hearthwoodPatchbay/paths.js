@@ -239,6 +239,23 @@ export const ENTITY_TYPES = {
     shopLayout: { file: "shopLayout.js", exportName: "SHOP_LAYOUT" },
     // Object Maker: battlefield objects Marc makes himself (AddBattleObjectForm).
     battleObjects: { file: "battleObjects.js", exportName: "BATTLE_OBJECTS" },
+    // The First Song story (Marc, 2026-10-19: "haluan muokata niitä
+    // ihmisen muokkaamaksi" - every line of it, rewritten by hand).
+    storyScenes: { file: "campaignStory.js", exportName: "STORY_SCENES" },
+    storyBeats: { file: "campaignStory.js", exportName: "STORY_BEATS" },
+    endings: { file: "campaignStory.js", exportName: "ENDINGS" },
+    storyChapters: { file: "campaign.js", exportName: "STORY_CHAPTERS" },
+    startVariants: { file: "campaignStory.js", exportName: "START_VARIANTS" },
+    factions: { file: "campaignStory.js", exportName: "FACTIONS" },
+    nemeses: { file: "campaignStory.js", exportName: "NEMESES" },
+    uniqueHeroes: { file: "campaignStory.js", exportName: "UNIQUE_HEROES" },
+    tellings: { file: "myths.js", exportName: "TELLINGS" },
+    mythEvidence: { file: "myths.js", exportName: "EVIDENCE" },
+    runes: { file: "runes.js", exportName: "RUNES" },
+    creatures: { file: "creatures.js", exportName: "CREATURES" },
+    regardBands: { file: "creatures.js", exportName: "REGARD_BANDS" },
+    loreTruths: { file: "forestMemory.js", exportName: "LORE_TRUTHS" },
+    fates: { file: "fates.js", exportName: "FATES" },
 }
 
 /**

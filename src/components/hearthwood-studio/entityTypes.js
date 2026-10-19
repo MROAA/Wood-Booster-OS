@@ -57,6 +57,22 @@ export const ALL_TYPES = [
   { type: "marketUi", label: "Market & Headquarters Texts", category: "Guidance" },
   { type: "moods", label: "Forest Mood", category: "Story" },
   { type: "almanac", label: "Almanac Lore", category: "Story" },
+  // The First Song (Marc, 2026-10-19): every scene, line and myth, by hand.
+  { type: "storyScenes", label: "Story Scenes & Dialogue", category: "Story" },
+  { type: "storyBeats", label: "Chapter Story Lines", category: "Story" },
+  { type: "storyChapters", label: "Chapters", category: "Story" },
+  { type: "endings", label: "Endings", category: "Story" },
+  { type: "startVariants", label: "Campaign Starts", category: "Story" },
+  { type: "tellings", label: "The Four Tellings", category: "Lore" },
+  { type: "mythEvidence", label: "Myth Clues", category: "Lore" },
+  { type: "runes", label: "Runes", category: "Lore" },
+  { type: "creatures", label: "Forest Creatures", category: "Lore" },
+  { type: "regardBands", label: "Forest Regard", category: "Lore" },
+  { type: "loreTruths", label: "Forest Memory (New Game+)", category: "Lore" },
+  { type: "fates", label: "Fates", category: "Lore" },
+  { type: "factions", label: "Factions", category: "Lore" },
+  { type: "nemeses", label: "Nemeses", category: "Lore" },
+  { type: "uniqueHeroes", label: "Unique Heroes", category: "Lore" },
 
   // Marc: "säädän itse sillä pelin vaikeustasoa"
   { type: "economyLevers", label: "Economy Levers", category: "Economy" },
