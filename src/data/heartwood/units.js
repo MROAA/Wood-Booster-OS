@@ -785,7 +785,7 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "ward", amount: 2 }],
     image: thornguardImg2,
   }),
-  swiftclaw: unit("swiftclaw", "Swiftclaw", "spark", 2, "dps", [{ type: "attack", amount: 4 }], {
+  swiftclaw: unit("swiftclaw", "Dog", "spark", 2, "dps", [{ type: "attack", amount: 4 }], {
     className: "Skirmisher",
     // Haste - a genuinely different shape of DPS from every other
     // attacker: two small hits a round instead of one big one, at
