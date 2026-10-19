@@ -225,6 +225,7 @@ import beastcallerImg2 from "../../assets/heartwood/units/beastcaller-2.jpg"
 import foxfireImg2 from "../../assets/heartwood/units/foxfire-2.jpg"
 import loamguardImg2 from "../../assets/heartwood/units/loamguard-2.jpg"
 import willowfangImg2 from "../../assets/heartwood/units/willowfang-2.jpg"
+import cragmossImg2 from "../../assets/heartwood/units/cragmoss-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1146,7 +1147,7 @@ const BASE_UNITS = {
     // Sapkeeper already established - a second, tankier unit built
     // around mending adjacent allies every round instead of just once.
     rallyHeal: 2,
-    image: cragmossImg,
+    image: cragmossImg2,
   }),
   // Cleanse (effects.js) - Sunder's mirror, the roster's first tool
   // against its OWN negative statuses (Poison/Weak/Vulnerable/Stun)
