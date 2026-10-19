@@ -1196,7 +1196,7 @@ const BASE_UNITS = {
   // one below an HP threshold. Stoneknoll is the first unit built
   // around it, rewarding a squad that keeps pressing a defensive
   // enemy instead of waiting out its Block.
-  stoneknoll: unit("stoneknoll", "Stoneknoll", "shield", 2, "dps", [{ type: "attack", amount: 6 }], {
+  stoneknoll: unit("stoneknoll", "Bird", "shield", 2, "dps", [{ type: "attack", amount: 6 }], {
     passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
     image: stoneknollImg2,
   }),
