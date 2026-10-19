@@ -483,7 +483,7 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "strength", amount: 1 }],
     image: theHierophantImg2,
   }),
-  "the-lovers": unit("the-lovers", "Twinbriar", "the-lovers", 1, "dps", [{ type: "attack", amount: 6 }], {
+  "the-lovers": unit("the-lovers", "Lemming", "the-lovers", 1, "dps", [{ type: "attack", amount: 6 }], {
     // Chain - "twin" as a bonus strike on a second target, the
     // cheapest possible read of the name.
     chainDamage: 3,
