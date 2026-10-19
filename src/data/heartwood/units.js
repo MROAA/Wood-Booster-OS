@@ -198,6 +198,7 @@ import grovekeeperImg2 from "../../assets/heartwood/units/grovekeeper-2.jpg"
 import stormwingImg2 from "../../assets/heartwood/units/stormwing-2.jpg"
 import stoneheartImg2 from "../../assets/heartwood/units/stoneheart-2.jpg"
 import forgehowlImg2 from "../../assets/heartwood/units/forgehowl-2.jpg"
+import duskclawImg2 from "../../assets/heartwood/units/duskclaw.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -695,7 +696,7 @@ const BASE_UNITS = {
     // Culling Strike relic (relics.js), for a squad that wants Execute
     // without spending a relic slot on it.
     passive: [{ type: "applyBuff", id: "execute", amount: 4 }],
-    image: duskclawImg,
+    image: duskclawImg2,
   }),
   ashenhorn: unit("ashenhorn", "Ashenhorn", "leaf", 2, "support", [
     { type: "block", amount: 4 },
