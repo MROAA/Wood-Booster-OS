@@ -932,7 +932,7 @@ const BASE_UNITS = {
     // strike is the closest visual read available.
     image: trueshotImg2,
   }),
-  motley: unit("motley", "Motley", "moonGlyph", 2, "hybrid", [
+  motley: unit("motley", "Hedgehog", "moonGlyph", 2, "hybrid", [
     { type: "attack", amount: 5 },
     { type: "block", amount: 4 },
     { type: "debuff", id: "weak", amount: 1, target: "target" },
