@@ -214,6 +214,7 @@ import hexmotherImg2 from "../../assets/heartwood/units/hexmother-2.jpg"
 import wispkeeperImg2 from "../../assets/heartwood/units/wispkeeper-2.jpg"
 import trueshotImg2 from "../../assets/heartwood/units/trueshot-2.jpg"
 import motleyImg2 from "../../assets/heartwood/units/motley-2.jpg"
+import thornwardenImg2 from "../../assets/heartwood/units/thornwarden.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -958,7 +959,7 @@ const BASE_UNITS = {
     // 50% HP) - a real risk/reward tank-adjacent DPS identity, not
     // just a flat number.
     passive: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
-    image: thornwardenImg,
+    image: thornwardenImg2,
   }),
   bloomcaller: unit("bloomcaller", "Bloomcaller", "leaf", 3, "support", [
     { type: "block", amount: 5 },
