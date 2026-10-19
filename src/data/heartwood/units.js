@@ -518,7 +518,7 @@ const BASE_UNITS = {
     { type: "attack", amount: 10, weight: 1 },
     { type: "block", amount: 10, weight: 1 },
   ], { moveSelect: "weightedRandom", image: wheelOfFortuneImg2 }),
-  justice: unit("justice", "Oakwarden", "justice", 1, "tank", [
+  justice: unit("justice", "Guardian angel", "justice", 1, "tank", [
     { type: "block", amount: 7 },
     { type: "attack", amount: 6 },
     // Sunder - "justice" stripping away an ill-gotten edge, added as
