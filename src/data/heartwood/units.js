@@ -30,6 +30,7 @@ import theEmpressImg from "../../assets/heartwood/units/the-empress.jpg"
 import theDevilImg from "../../assets/heartwood/units/the-devil.webp"
 import worldAshElderImg from "../../assets/heartwood/units/world-ash-elder.webp"
 import theThornThroneImg from "../../assets/heartwood/units/the-thorn-throne.webp"
+import bulwarkOfAgesImg from "../../assets/heartwood/units/bulwark-of-ages.webp"
 import theLoversImg from "../../assets/heartwood/units/the-lovers.jpg"
 import theEmperorImg from "../../assets/heartwood/units/the-emperor.jpg"
 import theSunImg from "../../assets/heartwood/units/the-sun.jpg"
@@ -1576,8 +1577,8 @@ const BASE_UNITS = {
   // conditionalPassive) and a deliberately modest stat line - the pick
   // is "which direction is my squad going," not "biggest numbers." All
   // three hooks reuse the existing effect vocabulary; nothing invented.
-  // World-Ash Elder + The Thorn Throne have Marc's paintings; the other
-  // two still use the placeholder glyph art (cardArt.jsx fallback).
+  // World-Ash Elder, The Thorn Throne + Bulwark of Ages have Marc's
+  // paintings; Deepwood Sovereign still uses the placeholder glyph art.
   "world-ash-elder": unit("world-ash-elder", "World-Ash Elder", "wood", 4, "support", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 4 },
@@ -1616,6 +1617,7 @@ const BASE_UNITS = {
     // clumped formation (deploy carries beside it, not spread out).
     // (block 3 stacked too much attrition value for a generic squad.)
     aura: { effect: { type: "block", amount: 2 } },
+    image: bulwarkOfAgesImg,
   }),
   "deepwood-sovereign": unit("deepwood-sovereign", "Deepwood Sovereign", "shadow", 4, "dps", [
     { type: "attack", amount: 7 },
