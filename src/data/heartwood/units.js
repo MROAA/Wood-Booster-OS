@@ -913,7 +913,7 @@ const BASE_UNITS = {
     rallyAdjacent: { id: "revive", amount: 1 },
     image: wispkeeperImg2,
   }),
-  trueshot: unit("trueshot", "Trueshot", "spark", 3, "dps", [{ type: "attack", amount: 6 }], {
+  trueshot: unit("trueshot", "Arctic fox", "spark", 3, "dps", [{ type: "attack", amount: 6 }], {
     className: "Marksman",
     // The first Hunter - a precision tracker rather than a blaster:
     // knight's-leap targeting (bypasses shielding, same as Knight's
