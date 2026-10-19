@@ -172,6 +172,7 @@ import theFoolImg2 from "../../assets/heartwood/units/the-fool.jpg"
 import theMagicianImg2 from "../../assets/heartwood/units/the-magician.jpg"
 import theHighPriestessImg2 from "../../assets/heartwood/units/the-high-priestess.jpg"
 import theEmpressImg2 from "../../assets/heartwood/units/the-empress-2.jpg"
+import theEmperorImg2 from "../../assets/heartwood/units/the-emperor-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -472,7 +473,7 @@ const BASE_UNITS = {
   ], {
     className: "Crownguard",
     passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 5 } }],
-    image: theEmperorImg,
+    image: theEmperorImg2,
   }),
   "the-hierophant": unit("the-hierophant", "Goldenbough", "the-hierophant", 1, "dps", [
     { type: "attack", amount: 4 },
