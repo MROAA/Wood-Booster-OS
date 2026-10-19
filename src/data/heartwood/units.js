@@ -229,6 +229,7 @@ import cragmossImg2 from "../../assets/heartwood/units/cragmoss-2.jpg"
 import willowmendImg2 from "../../assets/heartwood/units/willowmend-2.jpg"
 import rimefangImg2 from "../../assets/heartwood/units/rimefang-2.jpg"
 import hollowquillImg2 from "../../assets/heartwood/units/hollowquill-2.jpg"
+import stoneknollImg2 from "../../assets/heartwood/units/stoneknoll-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1197,7 +1198,7 @@ const BASE_UNITS = {
   // enemy instead of waiting out its Block.
   stoneknoll: unit("stoneknoll", "Stoneknoll", "shield", 2, "dps", [{ type: "attack", amount: 6 }], {
     passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
-    image: stoneknollImg,
+    image: stoneknollImg2,
   }),
   quarrywarden: unit("quarrywarden", "Quarrywarden", "shield", 2, "tank", [
     { type: "block", amount: 5 },
