@@ -183,6 +183,7 @@ import justiceImg2 from "../../assets/heartwood/units/justice-2.jpg"
 import theHangedManImg2 from "../../assets/heartwood/units/the-hanged-man-2.jpg"
 import deathImg2 from "../../assets/heartwood/units/death-2.jpg"
 import temperanceImg2 from "../../assets/heartwood/units/temperance.jpg"
+import theDevilImg2 from "../../assets/heartwood/units/the-devil.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -555,7 +556,7 @@ const BASE_UNITS = {
     // the roster's first COMMON-tier source (previously rare-only:
     // Duskclaw/Trueshot) - "the devil claims what's already dying."
     passive: [{ type: "applyBuff", id: "execute", amount: 2 }],
-    image: theDevilImg,
+    image: theDevilImg2,
   }),
   "the-tower": unit("the-tower", "Bramblespire", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }], {
     image: theTowerImg,
