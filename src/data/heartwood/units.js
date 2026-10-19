@@ -231,6 +231,7 @@ import rimefangImg2 from "../../assets/heartwood/units/rimefang-2.jpg"
 import hollowquillImg2 from "../../assets/heartwood/units/hollowquill-2.jpg"
 import stoneknollImg2 from "../../assets/heartwood/units/stoneknoll-2.jpg"
 import quarrywardenImg2 from "../../assets/heartwood/units/quarrywarden-2.jpg"
+import fernwakeImg2 from "../../assets/heartwood/units/fernwake-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1223,7 +1224,7 @@ const BASE_UNITS = {
     { type: "attack", amount: 3 },
   ], {
     rallyAdjacent: { id: "regen", amount: 2 },
-    image: fernwakeImg,
+    image: fernwakeImg2,
   }),
   duskbramble: unit("duskbramble", "Duskbramble", "root", 1, "dps", [{ type: "attack", amount: 6 }], {
     // Sunder on hit - a dps-side echo of Oakwarden's identity at a
