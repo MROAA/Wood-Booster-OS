@@ -28,6 +28,7 @@ import justiceImg from "../../assets/heartwood/units/justice.jpg"
 import deathImg from "../../assets/heartwood/units/death.jpg"
 import theEmpressImg from "../../assets/heartwood/units/the-empress.jpg"
 import theDevilImg from "../../assets/heartwood/units/the-devil.webp"
+import saplingwardImg from "../../assets/heartwood/units/saplingward.webp"
 import starHeraldImg from "../../assets/heartwood/units/star-herald.webp"
 import voidHeraldImg from "../../assets/heartwood/units/void-herald.webp"
 import worldAshElderImg from "../../assets/heartwood/units/world-ash-elder.webp"
@@ -1652,6 +1653,7 @@ const BASE_UNITS = {
     // Growth, rare-scale: +1 Strength/round. A slow build that pays off
     // in a long fight without warping the squad the way the Elder does.
     growth: { amount: 1 },
+    image: saplingwardImg,
   }),
   "emberbanner": unit("emberbanner", "Emberbanner", "ember", 3, "hybrid", [
     { type: "attack", amount: 5 },
