@@ -31,6 +31,7 @@ import theDevilImg from "../../assets/heartwood/units/the-devil.webp"
 import worldAshElderImg from "../../assets/heartwood/units/world-ash-elder.webp"
 import theThornThroneImg from "../../assets/heartwood/units/the-thorn-throne.webp"
 import bulwarkOfAgesImg from "../../assets/heartwood/units/bulwark-of-ages.webp"
+import deepwoodSovereignImg from "../../assets/heartwood/units/deepwood-sovereign.webp"
 import theLoversImg from "../../assets/heartwood/units/the-lovers.jpg"
 import theEmperorImg from "../../assets/heartwood/units/the-emperor.jpg"
 import theSunImg from "../../assets/heartwood/units/the-sun.jpg"
@@ -1577,8 +1578,7 @@ const BASE_UNITS = {
   // conditionalPassive) and a deliberately modest stat line - the pick
   // is "which direction is my squad going," not "biggest numbers." All
   // three hooks reuse the existing effect vocabulary; nothing invented.
-  // World-Ash Elder, The Thorn Throne + Bulwark of Ages have Marc's
-  // paintings; Deepwood Sovereign still uses the placeholder glyph art.
+  // All four legendaries use Marc's own paintings.
   "world-ash-elder": unit("world-ash-elder", "World-Ash Elder", "wood", 4, "support", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 4 },
@@ -1634,6 +1634,7 @@ const BASE_UNITS = {
         { type: "applyBuff", id: "execute", amount: 3 },
       ],
     },
+    image: deepwoodSovereignImg,
   }),
 
   // --- Rare additions: smaller tastes of the same three hooks --------
