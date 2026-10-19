@@ -536,7 +536,7 @@ const BASE_UNITS = {
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 } }],
     image: theHangedManImg2,
   }),
-  death: unit("death", "Bonewither", "death", 1, "dps", [{ type: "attack", amount: 7 }], {
+  death: unit("death", "Ghost", "death", 1, "dps", [{ type: "attack", amount: 7 }], {
     // Poison on hit - "wither" is decay given a mechanic.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } }],
     image: deathImg2,
