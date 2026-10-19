@@ -212,6 +212,7 @@ import glimmerwardImg2 from "../../assets/heartwood/units/glimmerward.jpg"
 import wraithcallerImg2 from "../../assets/heartwood/units/wraithcaller-2.jpg"
 import hexmotherImg2 from "../../assets/heartwood/units/hexmother-2.jpg"
 import wispkeeperImg2 from "../../assets/heartwood/units/wispkeeper-2.jpg"
+import trueshotImg2 from "../../assets/heartwood/units/trueshot-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -928,7 +929,7 @@ const BASE_UNITS = {
     // the bare glyph, so this borrows a battle-mage casting a bolt of
     // arcane light: not literally "true shot," but a precision ranged
     // strike is the closest visual read available.
-    image: trueshotImg,
+    image: trueshotImg2,
   }),
   motley: unit("motley", "Motley", "moonGlyph", 2, "hybrid", [
     { type: "attack", amount: 5 },
