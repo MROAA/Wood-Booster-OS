@@ -195,6 +195,7 @@ import rooksChargeImg2 from "../../assets/heartwood/units/rooks-charge.jpg"
 import bishopsSlashImg2 from "../../assets/heartwood/units/bishops-slash.jpg"
 import emberStagImg2 from "../../assets/heartwood/units/ember-stag-2.jpg"
 import grovekeeperImg2 from "../../assets/heartwood/units/grovekeeper-2.jpg"
+import stormwingImg2 from "../../assets/heartwood/units/stormwing-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -649,7 +650,7 @@ const BASE_UNITS = {
     // first player-side unit with a repeating Weak debuff, previously
     // only an enemy move (Moss Troll, Rune Warden, Mist Growler,
     // Spacemonkey all already use it against the player).
-    image: stormwingImg,
+    image: stormwingImg2,
   }),
   stoneheart: unit("stoneheart", "Stoneheart", "stoneheart", 3, "tank", [
     { type: "block", amount: 10 },
