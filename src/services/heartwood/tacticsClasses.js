@@ -1440,6 +1440,11 @@ const HANDLERS = {
       for (const id of hitIds) if (!ended(s)) s = hit(s, a.id, id, k.damage, k).next
       if (ended(s)) return s
     }
+    // Chill BEFORE the ground freezes: the frozen-pool bonus (+1 Chill on
+    // ice, battlefield piece 6) is for ice that was already there.
+    const chilled = livingUnits(s, t.side).filter((u) => !u.structure && dist(u.pos, t.pos) <= 1).map((u) => u.id)
+    for (const id of chilled) if (!ended(s)) s = applyElement(s, id, "frost", 1)
+    if (ended(s)) return s
     const terrain = { ...(s.terrain || {}) }
     const icy = new Set(["path", "forest", "rubble", "bush", "poison"])
     for (let dr = -1; dr <= 1; dr++) {
@@ -1448,10 +1453,7 @@ const HANDLERS = {
         if (isOnBoard(p, s.grid) && icy.has(terrainAt(s, p))) terrain[`${p.row}-${p.col}`] = "ice"
       }
     }
-    s = addLog({ ...s, terrain }, `${a.name} freezes the ground around ${t.name}.`)
-    const chilled = livingUnits(s, t.side).filter((u) => !u.structure && dist(u.pos, t.pos) <= 1).map((u) => u.id)
-    for (const id of chilled) if (!ended(s)) s = applyElement(s, id, "frost", 1)
-    return s
+    return addLog({ ...s, terrain }, `${a.name} freezes the ground around ${t.name}.`)
   },
 
   // ---- Part B -------------------------------------------------------------
