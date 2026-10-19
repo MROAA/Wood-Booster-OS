@@ -423,7 +423,7 @@ const BASE_UNITS = {
   // proven mechanic vocabulary (nothing invented from scratch) rather
   // than a from-scratch new system - the same discipline every combo
   // item/relic/enemy this session has followed.
-  "the-fool": unit("the-fool", "Mosskit", "the-fool", 0, "support", [
+  "the-fool": unit("the-fool", "Wild boar", "the-fool", 0, "support", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 4 },
   ], {
