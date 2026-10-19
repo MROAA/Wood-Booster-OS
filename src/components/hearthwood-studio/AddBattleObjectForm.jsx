@@ -2,7 +2,7 @@ import { useState } from "react"
 
 import { apiGet, apiUpload } from "../../api/client"
 import { BREAK_EFFECTS, LEAVES_OPTIONS } from "../../data/heartwood/battleObjects"
-import { TERRAIN } from "../../services/heartwood/tacticsTerrain"
+import { TERRAIN, CUSTOM_OBJECT_IDS } from "../../services/heartwood/tacticsTerrain"
 
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
@@ -40,6 +40,23 @@ const HOW_MANY = [
 const ICON_IDEAS = ["🐝", "🏮", "🪵", "🗿", "🔥", "💎", "🍯", "🌋", "🪺", "🕯️", "⚱️", "🌸"]
 const ROMAN = { 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V", 6: "VI", 7: "VII" }
 const NO_STRENGTH = new Set(["crumble", "fall"])
+// The practice board (HeartwoodTactics.jsx ?objects=1) lays out every
+// object, Studio-made ones included, right in reach of the squad.
+const PRACTICE_URL = "/heartwood-tactics?objects=1"
+
+function TryItLink() {
+  return (
+    <a
+      href={PRACTICE_URL}
+      target="_blank"
+      rel="noreferrer"
+      data-testid="battle-object-try"
+      className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+    >
+      ⚔ Try my objects in a practice battle
+    </a>
+  )
+}
 
 function slugify(text) {
   return String(text)
@@ -76,7 +93,10 @@ function AddBattleObjectForm({ type, onApplied, onPreviewUrlChange }) {
   const { result, applyMode, setApplyMode, previewing, applying, errorMessage, preview, discard, apply } =
     usePatchPreview({ onApplied, onPreviewUrlChange })
 
-  const set = (field, value) => setForm(previous => ({ ...previous, [field]: value }))
+  const set = (field, value) => {
+    setForm(previous => ({ ...previous, [field]: value }))
+    setCheckError("")
+  }
   const effect = BREAK_EFFECTS[form.onBreak]
   const effectSentence = effect.text.replace("{power}", form.power)
 
@@ -102,7 +122,8 @@ function AddBattleObjectForm({ type, onApplied, onPreviewUrlChange }) {
       return
     }
 
-    if (TERRAIN[id]) {
+    // (Studio-made objects are in TERRAIN too - the server check below names those.)
+    if (TERRAIN[id] && !CUSTOM_OBJECT_IDS.includes(id)) {
       setCheckError(`"${name}" is already a built-in part of the battlefield - pick another name.`)
       return
     }
@@ -165,14 +186,17 @@ function AddBattleObjectForm({ type, onApplied, onPreviewUrlChange }) {
 
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={startOpen}
-        data-testid="add-battle-object-open"
-        className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
-      >
-        + Make a new battlefield object
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={startOpen}
+          data-testid="add-battle-object-open"
+          className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]"
+        >
+          + Make a new battlefield object
+        </button>
+        <TryItLink />
+      </div>
     )
   }
 
