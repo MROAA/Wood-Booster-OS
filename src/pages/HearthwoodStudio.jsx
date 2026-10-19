@@ -550,7 +550,18 @@ function HearthwoodStudio() {
 
       {
         viewMode === "home" && (
-          <StudioHome onEnterRoom={enterRoom} onAction={runRoomAction} onWish={handleWish} />
+          <StudioHome
+            onEnterRoom={enterRoom}
+            onAction={runRoomAction}
+            onWish={handleWish}
+            onOpenEntity={(type, id) => {
+              setRoom(roomForType(type))
+              setRoomHint("")
+              handleSelect(type, id)
+              setBrowsingType(type)
+              setViewMode("single")
+            }}
+          />
         )
       }
 
