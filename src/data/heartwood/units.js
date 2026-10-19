@@ -616,7 +616,7 @@ const BASE_UNITS = {
   // applied to the recruit pool instead: forest creatures alongside
   // the Arcana, matching the enemy roster's own crude-doodle register
   // rather than the Tarot line-art style.
-  "ember-stag": unit("ember-stag", "Ember Stag", "emberStag", 3, "dps", [
+  "ember-stag": unit("ember-stag", "Flamingo", "emberStag", 3, "dps", [
     { type: "attack", amount: 11 },
     { type: "attack", amount: 11 },
     { type: "block", amount: 6 },
