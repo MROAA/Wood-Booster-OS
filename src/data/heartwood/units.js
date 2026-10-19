@@ -184,6 +184,7 @@ import theHangedManImg2 from "../../assets/heartwood/units/the-hanged-man-2.jpg"
 import deathImg2 from "../../assets/heartwood/units/death-2.jpg"
 import temperanceImg2 from "../../assets/heartwood/units/temperance.jpg"
 import theDevilImg2 from "../../assets/heartwood/units/the-devil.jpg"
+import theTowerImg2 from "../../assets/heartwood/units/the-tower-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -559,7 +560,7 @@ const BASE_UNITS = {
     image: theDevilImg2,
   }),
   "the-tower": unit("the-tower", "Bramblespire", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }], {
-    image: theTowerImg,
+    image: theTowerImg2,
   }),
   "the-star": unit("the-star", "Glowmoss", "the-star", 1, "support", [{ type: "attack", amount: 4 }], {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "heal", amount: 3 } }],
