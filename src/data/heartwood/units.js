@@ -208,6 +208,7 @@ import swiftclawImg2 from "../../assets/heartwood/units/swiftclaw-2.jpg"
 import emberwispImg2 from "../../assets/heartwood/units/emberwisp-2.jpg"
 import runeveilImg2 from "../../assets/heartwood/units/runeveil.jpg"
 import frostbindImg2 from "../../assets/heartwood/units/frostbind-2.jpg"
+import glimmerwardImg2 from "../../assets/heartwood/units/glimmerward.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -858,7 +859,7 @@ const BASE_UNITS = {
     // code - rallyAdjacent was already generic on the buff id, not
     // hardcoded to Strength.
     rallyAdjacent: { id: "ward", amount: 1 },
-    image: glimmerwardImg,
+    image: glimmerwardImg2,
   }),
   wraithcaller: unit("wraithcaller", "Wraithcaller", "moonGlyph", 3, "hybrid", [{ type: "attack", amount: 6 }], {
     className: "Soulbinder",
