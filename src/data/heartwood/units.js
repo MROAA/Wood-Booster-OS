@@ -1168,7 +1168,7 @@ const BASE_UNITS = {
     // swapped in over the initial dragon-golem placeholder.
     image: sparrowthornImg,
   }),
-  duskwren: unit("duskwren", "Duskwren", "spark", 1, "dps", [
+  duskwren: unit("duskwren", "Bird", "spark", 1, "dps", [
     { type: "attack", amount: 5 },
     { type: "attack", amount: 3 },
   ], {
