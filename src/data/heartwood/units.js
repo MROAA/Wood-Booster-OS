@@ -764,7 +764,7 @@ const BASE_UNITS = {
     // brute" to retire round 2's skip note above.
     image: grimtuskImg2,
   }),
-  thornguard: unit("thornguard", "Thornguard", "shield", 2, "tank", [
+  thornguard: unit("thornguard", "Goat", "shield", 2, "tank", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 5 },
   ], {
