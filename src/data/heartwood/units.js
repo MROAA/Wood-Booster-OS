@@ -178,6 +178,7 @@ import theLoversImg2 from "../../assets/heartwood/units/the-lovers-2.jpg"
 import theChariotImg2 from "../../assets/heartwood/units/the-chariot.jpg"
 import strengthImg2 from "../../assets/heartwood/units/strength-2.jpg"
 import theHermitImg2 from "../../assets/heartwood/units/the-hermit.jpg"
+import wheelOfFortuneImg2 from "../../assets/heartwood/units/wheel-of-fortune.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -515,7 +516,7 @@ const BASE_UNITS = {
   "wheel-of-fortune": unit("wheel-of-fortune", "Windshift", "wheel-of-fortune", 1, "hybrid", [
     { type: "attack", amount: 10, weight: 1 },
     { type: "block", amount: 10, weight: 1 },
-  ], { moveSelect: "weightedRandom", image: wheelOfFortuneImg }),
+  ], { moveSelect: "weightedRandom", image: wheelOfFortuneImg2 }),
   justice: unit("justice", "Oakwarden", "justice", 1, "tank", [
     { type: "block", amount: 7 },
     { type: "attack", amount: 6 },
