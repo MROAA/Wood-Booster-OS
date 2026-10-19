@@ -72,3 +72,26 @@ export const SAFETY_WORDS = {
   HIGH: "This touches how the game itself works, so the Studio won't put it in on its own. Ask Claude Code to do this one.",
   CRITICAL: "This touches the game's core files, so the Studio won't put it in on its own. Ask Claude Code to do this one.",
 }
+
+// A readable name for list rows and page titles when an entry has none of
+// its own (economy levers, moods, mission briefs...): "winEssence" ->
+// "Essence for winning a fight"; otherwise the code id is turned into words.
+const NAMED = {
+  winEssence: "Essence for winning a fight",
+  formationBonusEssence: "Bonus essence: tough formation",
+  minibossBonusEssence: "Bonus essence: miniboss",
+  eliteBonusEssence: "Bonus essence: elite",
+  gambleCost: "Cost of a gamble",
+  interestRate: "Interest: how much you earn",
+  interestThreshold: "Interest: essence needed to earn it",
+  interestCap: "Interest: the most you can earn",
+}
+export function plainName(entity, typeLabel = "") {
+  const id = String(entity?.id ?? "")
+  const own = entity?.name
+  if (own && own !== id) return own
+  if (NAMED[id]) return NAMED[id]
+  if (/^\d+$/.test(id)) return `${typeLabel || "Entry"} ${id}`
+  const words = id.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[-_]+/g, " ").trim().toLowerCase()
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : "?"
+}

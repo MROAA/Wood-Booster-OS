@@ -68,6 +68,7 @@ export const STUDIO_ROOMS = [
     title: "Story",
     blurb: "Every scene and line of dialogue - read it and rewrite it in your own words.",
     actions: [
+      { label: "Read the whole story", kind: "view", view: "storyMap" },
       { label: "Rewrite scenes & dialogue", kind: "type", type: "storyScenes", hint: "Pick a scene on the left - every line is its own box. Change as many as you like, then press Preview once." },
       { label: "Endings", kind: "type", type: "endings" },
       { label: "Map events", kind: "type", type: "events" },
