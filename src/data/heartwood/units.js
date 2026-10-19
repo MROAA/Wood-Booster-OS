@@ -217,6 +217,7 @@ import motleyImg2 from "../../assets/heartwood/units/motley-2.jpg"
 import thornwardenImg2 from "../../assets/heartwood/units/thornwarden.jpg"
 import bloomcallerImg2 from "../../assets/heartwood/units/bloomcaller-2.jpg"
 import mosswalkerImg2 from "../../assets/heartwood/units/mosswalker-2.jpg"
+import ironbarkImg2 from "../../assets/heartwood/units/ironbark-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1005,7 +1006,7 @@ const BASE_UNITS = {
     // uncommon tier + battle-start Taunt) is exactly Marc's
     // Defense/Tank class. Naming what was already built, not a stretch.
     className: "Ironbark",
-    image: ironbarkImg,
+    image: ironbarkImg2,
   }),
   briarblade: unit("briarblade", "Briarblade", "root", 3, "dps", [{ type: "attack", amount: 10 }], {
     // The first Assassin ("iskee heikkoihin kohteisiin" - strikes weak
