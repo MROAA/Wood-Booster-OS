@@ -990,7 +990,7 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "ward", amount: 2 }],
     image: mosswalkerImg2,
   }),
-  ironbark: unit("ironbark", "Ironbark", "shield", 2, "tank", [
+  ironbark: unit("ironbark", "Bird", "shield", 2, "tank", [
     { type: "block", amount: 7 },
     { type: "attack", amount: 4 },
   ], {
