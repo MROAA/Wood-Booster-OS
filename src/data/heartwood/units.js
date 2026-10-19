@@ -213,6 +213,7 @@ import wraithcallerImg2 from "../../assets/heartwood/units/wraithcaller-2.jpg"
 import hexmotherImg2 from "../../assets/heartwood/units/hexmother-2.jpg"
 import wispkeeperImg2 from "../../assets/heartwood/units/wispkeeper-2.jpg"
 import trueshotImg2 from "../../assets/heartwood/units/trueshot-2.jpg"
+import motleyImg2 from "../../assets/heartwood/units/motley-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -945,7 +946,7 @@ const BASE_UNITS = {
     // roll on damage, just on move order) - chaos in sequencing, not
     // in outcome, matching Marc's "easy to play but hard to master".
     moveSelect: "weightedRandom",
-    image: motleyImg,
+    image: motleyImg2,
   }),
   thornwarden: unit("thornwarden", "Thornwarden", "root", 2, "dps", [{ type: "attack", amount: 6 }], {
     className: "Bruiser",
