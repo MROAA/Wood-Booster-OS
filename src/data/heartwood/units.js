@@ -559,7 +559,7 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "execute", amount: 2 }],
     image: theDevilImg2,
   }),
-  "the-tower": unit("the-tower", "Bramblespire", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }], {
+  "the-tower": unit("the-tower", "Elephant", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }], {
     image: theTowerImg2,
   }),
   "the-star": unit("the-star", "Glowmoss", "the-star", 1, "support", [{ type: "attack", amount: 4 }], {
