@@ -370,11 +370,11 @@ export default function TacticsFx({ battle }) {
           timers.push(setTimeout(() => {
             flashTiles(ev.tiles || [ev.pos], `obj-${ev.fx}`)
             // the ground answers on the changed tiles (a few, not all)
-            const groundKind = { flare: "fire", boom: "fire", burn: "fire", grassfire: "fire", bloom: "heal", crush: "dust", fall: "hit", break: "dust", shatter: "frost", freeze: "frost", chill: "frost", spore: "poison" }[ev.fx]
-            if (groundKind) for (const t of (ev.tiles || [ev.pos]).slice(0, 5)) react(groundKind, feetOfTile(t))
-            if (["boom", "fall", "shatter", "spore"].includes(ev.fx)) { shakeBoard(); play("hitBig") }
+            const groundKind = ev.fx === "grow" ? { roots: "root", moss: "heal", glowcap: "heal", leaves: "rustle" }[ev.grow] || "dust" : { flare: "fire", boom: "fire", burn: "fire", grassfire: "fire", bloom: "heal", crush: "dust", fall: "hit", break: "dust", topple: "hit", crystal: "mana", shatter: "frost", freeze: "frost", chill: "frost", spore: "poison" }[ev.fx]
+            if (groundKind) for (const t of (ev.tiles || [ev.pos]).slice(0, 5)) forestReact(groundKind, feetOfTile(t), colours, ev.grow === "leaves" ? "leaves" : null)
+            if (["boom", "fall", "shatter", "spore", "topple"].includes(ev.fx)) { shakeBoard(); play("hitBig") }
             else if (ev.fx === "flare") play("hitBig", { gain: 0.7 })
-            else if (ev.fx === "bloom") play("heal")
+            else if (ev.fx === "bloom" || ev.fx === "crystal") play("heal")
             else if (ev.fx === "roll" || ev.fx === "break" || ev.fx === "crush") play("hit", { gain: ev.fx === "crush" ? 0.5 : 1 })
           }, at + IMPACT_DELAY_MS))
         } else if (ev.kind === "mana") {

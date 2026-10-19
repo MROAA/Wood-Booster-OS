@@ -14,7 +14,7 @@ import { sigHitParts } from "./tacticsSignatures"
 export const COVER = { NONE: 0, HALF: 1, FULL: 2, HUNKERED: 3 }
 export const COVER_NAME = ["No cover", "Half cover", "Full cover", "Full cover (hunkered)"]
 // Tiles that shield a unit standing next to them.
-export const FULL_COVER_TILES = new Set(["rock", "wall", "boulder", "tree", "icepillar", "stone"])
+export const FULL_COVER_TILES = new Set(["rock", "wall", "boulder", "tree", "icepillar", "stone", "crystal"])
 export const HALF_COVER_TILES = new Set(["log", "bush", "stump", "rubble", "barrel", "sporepod", "branches", "glowcap"])
 export const COVER_HIT_PENALTY = [0, 20, 40, 55]
 export const BASE_HIT = 85

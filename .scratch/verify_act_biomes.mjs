@@ -9,7 +9,7 @@ const checks = []
 const ok = (name, pass, info = "") => checks.push({ name, pass: !!pass, info })
 const KINDS = ["leaf", "leaves", "flower", "toadstool", "chanterelle", "pebbles", "fern", "twig", "berries", "cone", "mosstuft", "reeds", "lily", "deadtwig", "ash", "ember", "snowtuft", "icecrystal", "shard", "glowmote"]
 const SPECIES = ["birch", "aspen", "spruce", "willow", "dead", "spruce-snow", "birch-frost", "birch-sun", "echo"]
-const FOREST = ["moss", "leaves", "roots", "stone", "glowcap", "sporepod", "icepillar"]
+const FOREST = ["moss", "leaves", "roots", "stone", "glowcap", "crystal", "crystal", "sporepod", "icepillar"]
 const EXPECT = { 1: "autumnwood", 2: "mirefall", 3: "woundedgrove", 4: "frostroot", 5: "sunspire", 6: "echo", 7: "echo" }
 
 const page = await (await b.newContext({ viewport: { width: 1536, height: 864 } })).newPage()

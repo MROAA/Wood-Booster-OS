@@ -170,6 +170,7 @@ const mutationTitle = (unit) =>
     .join("\n")
 import { describeBoss, bossWarningTiles } from "../../services/heartwood/tacticsBosses"
 import { OBJECTS, objectHpAt, objectMaxHp, isAttackableTile, describeObjectTile, isBurning, isChilled, fireSpreadTargets } from "../../services/heartwood/tacticsObjects"
+import { forestShaping } from "../../services/heartwood/tacticsForest"
 import { describeFaction, blightPreviewKeys, isBlighted, factionInfo, BLIGHT_ATTACK_BONUS } from "../../services/heartwood/tacticsFactions"
 import { terrainArtStyle, ObjectArt, TerrainIcon, BlightIcon, BLIGHT_ART_URL, SmokeArt } from "./TerrainArt"
 import { ForestFloor } from "./ForestFloor"
@@ -1933,10 +1934,16 @@ export default function TacticsBoard({
                             data-no-mana={!!manaBlockReason(selected, sk) || undefined}
                             disabled={!ready}
                             onClick={() => handleSkillClick(sk)}
-                            title={`${sk.name} (${sk.cost} AP${hasMana(selected) ? `, ${skillCostText(selected, sk)}` : ""}, recharge ${sk.cooldown}) - ${sk.text}${manaBlockReason(selected, sk) ? `\nNot enough ${resourceLabel(selected)}: ${manaBlockReason(selected, sk)}.` : ""}${sk.upgrade ? `\n★ ${sk.upgrade.name} (${sk.upgrade.branch}): ${sk.upgrade.text}` : ""}${sk.talentMarks?.length ? `\n✦ Talent: ${talentSkillNote(sk)}${sk.charges > 1 ? ` (${sk.charges} charges)` : ""}` : ""}${key <= 4 ? ` [key ${key}]` : ""}`}
+                            data-forest={forestShaping(sk.id)?.grow || undefined}
+                            title={`${sk.name} (${sk.cost} AP${hasMana(selected) ? `, ${skillCostText(selected, sk)}` : ""}, recharge ${sk.cooldown}) - ${sk.text}${forestShaping(sk.id) ? `\n🌿 Shapes the forest: ${forestShaping(sk.id).text}` : ""}${manaBlockReason(selected, sk) ? `\nNot enough ${resourceLabel(selected)}: ${manaBlockReason(selected, sk)}.` : ""}${sk.upgrade ? `\n★ ${sk.upgrade.name} (${sk.upgrade.branch}): ${sk.upgrade.text}` : ""}${sk.talentMarks?.length ? `\n✦ Talent: ${talentSkillNote(sk)}${sk.charges > 1 ? ` (${sk.charges} charges)` : ""}` : ""}${key <= 4 ? ` [key ${key}]` : ""}`}
                           >
                             <span className="hwt-skill-icon">{sk.icon}</span>
                             <span className="hwt-skill-name">{sk.name}</span>
+                            {forestShaping(sk.id) && (
+                              <span className="hwt-skill-forest" data-grow={forestShaping(sk.id).grow}>
+                                🌿
+                              </span>
+                            )}
                             {sk.upgrade && (
                               <span className="hwt-skill-upgrade">
                                 ★ {sk.upgrade.name}
