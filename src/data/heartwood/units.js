@@ -28,6 +28,7 @@ import justiceImg from "../../assets/heartwood/units/justice.jpg"
 import deathImg from "../../assets/heartwood/units/death.jpg"
 import theEmpressImg from "../../assets/heartwood/units/the-empress.jpg"
 import theDevilImg from "../../assets/heartwood/units/the-devil.webp"
+import voidHeraldImg from "../../assets/heartwood/units/void-herald.webp"
 import worldAshElderImg from "../../assets/heartwood/units/world-ash-elder.webp"
 import theThornThroneImg from "../../assets/heartwood/units/the-thorn-throne.webp"
 import bulwarkOfAgesImg from "../../assets/heartwood/units/bulwark-of-ages.webp"
@@ -1555,6 +1556,7 @@ const BASE_UNITS = {
       { type: "applyBuff", id: "execute", amount: 2 },
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
     ],
+    image: voidHeraldImg,
   }),
   "star-herald": unit("star-herald", "Star Herald", "cosmic", 3, "support", [
     { type: "block", amount: 5 },
