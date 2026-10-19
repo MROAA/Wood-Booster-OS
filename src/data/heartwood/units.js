@@ -686,7 +686,7 @@ const BASE_UNITS = {
     // slow, hard-swinging identity rather than a sustained one.
     image: forgehowlImg2,
   }),
-  duskclaw: unit("duskclaw", "Duskclaw", "flame", 3, "dps", [
+  duskclaw: unit("duskclaw", "Moose", "flame", 3, "dps", [
     { type: "attack", amount: 8 },
   ], {
     className: "Nightblade",
