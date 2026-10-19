@@ -194,6 +194,7 @@ import knightsLeapImg2 from "../../assets/heartwood/units/knights-leap.jpg"
 import rooksChargeImg2 from "../../assets/heartwood/units/rooks-charge.jpg"
 import bishopsSlashImg2 from "../../assets/heartwood/units/bishops-slash.jpg"
 import emberStagImg2 from "../../assets/heartwood/units/ember-stag-2.jpg"
+import grovekeeperImg2 from "../../assets/heartwood/units/grovekeeper-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -631,7 +632,7 @@ const BASE_UNITS = {
     { type: "block", amount: 8 },
     { type: "attack", amount: 6 },
   ], {
-    image: grovekeeperImg,
+    image: grovekeeperImg2,
     // The Emperor already does turnStart block - this is the roster's
     // first unit with its own unconditional turnStart self-heal
     // (previously only Aatos's Commander passive did that, squad-wide).
