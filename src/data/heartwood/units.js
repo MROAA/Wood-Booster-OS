@@ -977,7 +977,7 @@ const BASE_UNITS = {
     rallyAdjacent: { id: "execute", amount: 2 },
     image: bloomcallerImg2,
   }),
-  mosswalker: unit("mosswalker", "Mosswalker", "moonGlyph", 2, "support", [{ type: "attack", amount: 4 }], {
+  mosswalker: unit("mosswalker", "Cow", "moonGlyph", 2, "support", [{ type: "attack", amount: 4 }], {
     // The first Evasion class ("väistelee ja katoaa taistelusta" -
     // dodges and vanishes from battle) - deliberately NOT a dodge-
     // chance/miss-chance roll (Marc's own "easy to play but hard to
