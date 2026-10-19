@@ -566,6 +566,22 @@ function classifyField(fk, valueNode, fields, complexKeys, identifierKeys, impor
             range: [valueNode.start, valueNode.end],
         }
 
+        // A flat object of scalars - heroes.js's `lines: { start, joy,
+        // hurt, victory, defeat }` (a commander's spoken lines). Still
+        // "complex" for every existing editor (raw-JS edit unchanged);
+        // `group` lists its scalars so the Story Writer can show each
+        // line as its own text box (path [entityId, fk, key]).
+        if (valueNode.type === "ObjectExpression" && valueNode.properties.length > 0
+            && valueNode.properties.every(prop => prop.type === "Property" && !prop.computed && scalarValue(prop.value))) {
+
+            fields[fk].group = Object.fromEntries(valueNode.properties.map(prop => {
+
+                const scalar = scalarValue(prop.value)
+
+                return [keyName(prop.key, prop.computed), { value: scalar.value, kind: scalar.kind, range: [prop.value.start, prop.value.end] }]
+            }))
+        }
+
     }
 }
 

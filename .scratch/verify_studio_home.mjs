@@ -105,6 +105,31 @@ c(sw.where.includes("Chapter 1 of 7") && sw.lines === 5 && sw.speaker0 === "The 
 c(sw.changed === 1 && sw.previewType === "storyScenes" && sw.edits?.length === 2 && e0?.value === "...You. You are not the rot." && e2?.value === "Narrator", "s3 one preview, exact line paths", sw.edits)
 c(sw.nextWhere.includes("Chapter 2 of 7") && sw.endingBoxes >= 5, "s4 next scene + endings", { next: sw.nextWhere, boxes: sw.endingBoxes })
 
+// 2c. Campaign story: chapter events (chronological) + a commander's spoken lines.
+await page.locator('[data-testid="studio-nav-home"]').click()
+await page.locator('[data-testid="room-story"]').click()
+await page.waitForTimeout(400)
+await page.locator("button[title]", { hasText: "Chapter Events" }).click()
+await page.waitForTimeout(800)
+const ce = { badges: await page.locator("[data-chapter]").evaluateAll((els) => els.map((el) => el.getAttribute("data-chapter"))) }
+await page.locator("[data-chapter]").first().click()
+await page.locator('[data-testid="story-writer"]').waitFor({ timeout: 10000 })
+ce.where = await page.locator('[data-testid="story-writer-where"]').textContent()
+ce.boxes = await page.locator('[data-testid="story-writer"] textarea').count()
+ce.hasWidow = await page.locator('[data-testid="story-writer"] textarea').evaluateAll((els) => els.some((el) => el.value.includes("The Rot took him in the spring")))
+await page.locator('[data-testid="studio-nav-home"]').click()
+await page.locator('[data-testid="room-heroes"]').click()
+await page.waitForTimeout(400)
+await page.locator("button[title]", { hasText: "Commanders & Their Lines" }).click()
+await page.waitForTimeout(800)
+await page.locator("aside button, section button").filter({ hasText: "tommy" }).first().click()
+await page.locator('[data-testid="story-writer"]').waitFor({ timeout: 10000 })
+ce.tommy = await page.locator('[data-testid="story-writer"] textarea').evaluateAll((els) => els.map((el) => el.value))
+ce.tommyLabels = await page.locator('[data-testid="story-writer"] label').allTextContents()
+out.campaign = ce
+c(ce.badges.join() === "1,2,3,4,5,6,7" && ce.where.includes("Chapter 1 of 7") && ce.hasWidow && ce.boxes > 10, "s5 chapter events chronological", { badges: ce.badges, where: ce.where, boxes: ce.boxes })
+c(ce.tommy.includes("Called it.") && ce.tommyLabels.some((l) => l.includes("When things go well")), "s6 commander lines", ce.tommy)
+
 await page.locator('[data-testid="studio-nav-home"]').click()
 await page.waitForTimeout(300)
 
