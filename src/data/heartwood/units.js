@@ -168,6 +168,7 @@ import runeveilImg from "../../assets/heartwood/units/runeveil.png"
 import trueshotImg from "../../assets/heartwood/units/trueshot.jpg"
 import beastcallerImg from "../../assets/heartwood/units/beastcaller.jpg"
 import { applyBranch } from "./upgrades"
+import theFoolImg2 from "../../assets/heartwood/units/the-fool.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -429,7 +430,7 @@ const BASE_UNITS = {
     // Regen - a free-tier unit's first taste of sustain, fitting
     // "moss" (things that regrow).
     passive: [{ type: "applyBuff", id: "regen", amount: 2 }],
-    image: theFoolImg,
+    image: theFoolImg2,
   }),
   "the-magician": unit("the-magician", "Duskweaver", "the-magician", 1, "hybrid", [
     { type: "block", amount: 4 },
