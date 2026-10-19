@@ -490,7 +490,7 @@ const BASE_UNITS = {
     chainDamage: 3,
     image: theLoversImg2,
   }),
-  "the-chariot": unit("the-chariot", "Thornram", "the-chariot", 2, "dps", [{ type: "attack", amount: 14 }], {
+  "the-chariot": unit("the-chariot", "Fox", "the-chariot", 2, "dps", [{ type: "attack", amount: 14 }], {
     image: theChariotImg2,
   }),
   strength: unit("strength", "Ironclaw", "strength", 1, "dps", [{ type: "attack", amount: 5 }], {
