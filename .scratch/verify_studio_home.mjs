@@ -1,9 +1,12 @@
 import { chromium } from "playwright"
 
 // Hearthwood HQ - the Studio's rooms front door (studioRooms.js /
-// StudioHome.jsx). Read-only GETs go to whatever API answers on 3001;
-// every write (POST/PUT/...) is blocked so this can never change files.
-const PORT = process.env.PORT || 5445
+// StudioHome.jsx) + the Story Writer. The page's hard-coded API
+// (localhost:3001 = the MAIN checkout's server) is rerouted to API_PORT,
+// a server started from THIS worktree; reads only - every POST is
+// mocked (/preview, its body captured) or blocked, so no file changes.
+const PORT = process.env.PORT || 5446
+const API_PORT = process.env.API_PORT || 3446
 const browser = await chromium.launch()
 const errs = []
 const out = { errors: [] }
@@ -11,9 +14,15 @@ const c = (ok, label, data) => { if (!ok) out.errors.push(data === undefined ? l
 
 const ctx = await browser.newContext({ viewport: { width: 1536, height: 864 } })
 let blocked = 0
+let previewBody = null
 await ctx.route("http://localhost:3001/**", (route) => {
-  if (route.request().method() !== "GET") { blocked++; return route.abort() }
-  return route.continue()
+  const req = route.request()
+  if (req.method() === "POST" && req.url().endsWith("/hearthwood-patchbay/preview")) {
+    previewBody = req.postDataJSON()
+    return route.fulfill({ status: 201, json: { patchId: "t", risk: { tier: "MEDIUM", allowedModes: ["live"], reasons: [] }, diff: "+ (mocked)", targetFiles: [], previewUrl: null, plannedEdits: previewBody.edits, rejectedOps: [] } })
+  }
+  if (req.method() !== "GET") { blocked++; return route.abort() }
+  return route.continue({ url: req.url().replace("localhost:3001", `localhost:${API_PORT}`) })
 })
 const page = await ctx.newPage()
 page.on("pageerror", (err) => errs.push(String(err)))
@@ -28,7 +37,7 @@ const roomBar = () => page.locator('[data-testid="studio-room-bar"]').textConten
 // 1. Opens on HQ: 8 rooms, 4 nav buttons, old tabs + history hidden.
 await go()
 const home = {
-  title: await page.locator("h1").textContent(),
+  title: await page.getByRole("heading", { name: "Hearthwood HQ" }).textContent(),
   rooms: await page.locator("[data-room]").count(),
   nav: await page.locator('[data-testid="studio-nav"] button').count(),
   moreTools: await page.locator('[data-testid="studio-more-tools"]').count(),
@@ -38,7 +47,7 @@ const home = {
 }
 await page.screenshot({ path: new URL("./shots/studio_home.png", import.meta.url).pathname })
 out.home = home
-c(home.title.includes("Hearthwood HQ") && home.rooms === 8 && home.nav === 4 && home.moreTools === 0 && home.history === 0 && !home.hScroll, "h1 HQ front door", home)
+c(home.title.includes("Hearthwood HQ") && home.rooms === 9 && home.nav === 4 && home.moreTools === 0 && home.history === 0 && !home.hScroll, "h1 HQ front door", home)
 
 // 2. Every Studio list lives in exactly one room.
 const coverage = await page.evaluate(async () => {
@@ -54,6 +63,47 @@ const coverage = await page.evaluate(async () => {
 out.coverage = coverage
 c(!coverage.missing.length && !coverage.unknown.length && !coverage.badActions.length, "h2 every list in exactly one room", coverage)
 
+// 2b. The Story Writer: the First Song, chronological, line by line.
+await page.locator('[data-room="story"] button', { hasText: "Rewrite scenes & dialogue" }).click()
+await page.waitForTimeout(900)
+const sw = { bar: await roomBar(), badges: await page.locator("[data-chapter]").evaluateAll((els) => els.map((el) => el.textContent.trim())) }
+await page.locator("[data-chapter]").first().click()
+await page.locator('[data-testid="story-writer"]').waitFor({ timeout: 10000 })
+sw.where = await page.locator('[data-testid="story-writer-where"]').textContent()
+sw.lines = await page.locator('[data-testid="story-writer-line"]').count()
+sw.narratorItalic = await page.locator('[data-testid="story-writer-line"]').nth(2).evaluate((el) => getComputedStyle(el).fontStyle)
+sw.speaker0 = await page.locator('[data-testid="story-writer-dialogue"] input').first().inputValue()
+sw.speaker2 = await page.locator('[data-testid="story-writer-dialogue"] input').nth(2).inputValue()
+sw.fold = await page.locator('[data-testid="all-fields-fold"]').evaluate((el) => el.open).catch(() => null)
+await page.locator('[data-testid="story-writer-line"]').first().fill("...You. You are not the rot.")
+await page.locator('[data-testid="story-writer-dialogue"] input').nth(2).fill("Narrator")
+sw.changed = await page.getByText(/2 changed/).count()
+await page.screenshot({ path: new URL("./shots/story_writer.png", import.meta.url).pathname })
+await page.locator('[data-testid="story-writer-preview"]').click()
+await page.waitForTimeout(500)
+sw.edits = previewBody?.edits
+sw.previewType = previewBody?.type
+await page.locator('[data-testid="story-writer-next"]').click()
+await page.waitForTimeout(700)
+sw.nextWhere = await page.locator('[data-testid="story-writer-where"]').textContent()
+await page.locator('[data-testid="studio-room-bar"] button', { hasText: "Endings" }).click()
+await page.waitForTimeout(700)
+await page.locator('[data-testid="studio-room-bar"]').waitFor()
+const firstEnding = page.locator("aside button, section button").filter({ hasText: "The Song Restored" }).first()
+await firstEnding.click().catch(() => {})
+await page.waitForTimeout(700)
+sw.endingBoxes = await page.locator('[data-testid="story-writer"] textarea').count()
+out.storyWriter = sw
+const e0 = sw.edits?.find((x) => x.path.join() === "rootkeeper-gate,lines,0,1")
+const e2 = sw.edits?.find((x) => x.path.join() === "rootkeeper-gate,lines,2,0")
+c(sw.bar?.includes("Story") && sw.badges[0]?.startsWith("Chapter 1") && sw.badges.length === 9, "s1 scenes list chronological with chapters", sw.badges)
+c(sw.where.includes("Chapter 1 of 7") && sw.lines === 5 && sw.speaker0 === "The Rootkeeper" && sw.speaker2 === "" && sw.narratorItalic === "italic" && sw.fold === false, "s2 script view", sw)
+c(sw.changed === 1 && sw.previewType === "storyScenes" && sw.edits?.length === 2 && e0?.value === "...You. You are not the rot." && e2?.value === "Narrator", "s3 one preview, exact line paths", sw.edits)
+c(sw.nextWhere.includes("Chapter 2 of 7") && sw.endingBoxes >= 5, "s4 next scene + endings", { next: sw.nextWhere, boxes: sw.endingBoxes })
+
+await page.locator('[data-testid="studio-nav-home"]').click()
+await page.waitForTimeout(300)
+
 // 3. Heroes room: only hero lists, picture hint, no Story Timeline.
 await page.locator('[data-room="heroes"] button', { hasText: "Change a hero's picture" }).click()
 await page.waitForTimeout(400)
@@ -67,7 +117,7 @@ await page.locator('[data-room="battlefield"] button', { hasText: "Make a new ob
 await page.waitForTimeout(400)
 const bf = { form: await page.locator('[data-testid="add-battle-object-form"]').count(), bar: await roomBar(), chips: await chips() }
 out.battlefield = bf
-c(bf.form === 1 && bf.bar?.includes("Battlefield") && bf.chips.join() === "Battlefield Objects,Arenas", "h4 battlefield make-object", bf)
+c(bf.form === 1 && bf.bar?.includes("Battlefield") && [...bf.chips].sort().join() === "Arenas,Battlefield Objects", "h4 battlefield make-object", bf)
 await page.screenshot({ path: new URL("./shots/studio_room_battlefield.png", import.meta.url).pathname })
 
 // 5. Story: timeline + "Write a new event" opens the event form.
@@ -75,7 +125,7 @@ await page.locator('[data-testid="studio-nav-home"]').click()
 await page.locator('[data-room="story"] button', { hasText: "Write a new event" }).click()
 await page.waitForTimeout(400)
 const story = { eventForm: await page.getByText("New Map Event").count(), timelineBtn: await page.getByRole("button", { name: /Story Timeline/ }).count() }
-await page.locator('[data-testid="studio-room-bar"] button', { hasText: "Read the story in order" }).click()
+await page.getByRole("button", { name: /Story Timeline/ }).click()
 await page.waitForTimeout(600)
 story.timelineShown = await page.getByText(/story timeline|Act I/i).count()
 out.story = story
