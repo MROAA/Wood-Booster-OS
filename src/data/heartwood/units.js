@@ -210,6 +210,7 @@ import runeveilImg2 from "../../assets/heartwood/units/runeveil.jpg"
 import frostbindImg2 from "../../assets/heartwood/units/frostbind-2.jpg"
 import glimmerwardImg2 from "../../assets/heartwood/units/glimmerward.jpg"
 import wraithcallerImg2 from "../../assets/heartwood/units/wraithcaller-2.jpg"
+import hexmotherImg2 from "../../assets/heartwood/units/hexmother-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -894,7 +895,7 @@ const BASE_UNITS = {
     // enemy ends up rotting AND hitting softer at once. No new engine
     // code - both debuffs already exist and the debuff-movePattern
     // shape already supports back-to-back entries.
-    image: hexmotherImg,
+    image: hexmotherImg2,
   }),
   wispkeeper: unit("wispkeeper", "Wispkeeper", "heart", 3, "support", [
     { type: "block", amount: 6 },
