@@ -949,7 +949,7 @@ const BASE_UNITS = {
     moveSelect: "weightedRandom",
     image: motleyImg2,
   }),
-  thornwarden: unit("thornwarden", "Thornwarden", "root", 2, "dps", [{ type: "attack", amount: 6 }], {
+  thornwarden: unit("thornwarden", "Deer", "root", 2, "dps", [{ type: "attack", amount: 6 }], {
     className: "Bruiser",
     // The first Bruiser ("saa voimaa vahingoittumisesta" - gains power
     // from being damaged) - WoundedFury's first UNIT-level source
