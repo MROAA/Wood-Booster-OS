@@ -1201,7 +1201,7 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
     image: stoneknollImg2,
   }),
-  quarrywarden: unit("quarrywarden", "Quarrywarden", "shield", 2, "tank", [
+  quarrywarden: unit("quarrywarden", "Bird", "shield", 2, "tank", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 4 },
   ], {
