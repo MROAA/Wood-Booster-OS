@@ -494,7 +494,7 @@ const BASE_UNITS = {
   "the-chariot": unit("the-chariot", "Fox", "the-chariot", 2, "dps", [{ type: "attack", amount: 14 }], {
     image: theChariotImg2,
   }),
-  strength: unit("strength", "Ironclaw", "strength", 1, "dps", [{ type: "attack", amount: 5 }], {
+  strength: unit("strength", "A spark of flame", "strength", 1, "dps", [{ type: "attack", amount: 5 }], {
     passive: [{ type: "applyBuff", id: "strength", amount: 2 }],
     image: strengthImg2,
   }),
