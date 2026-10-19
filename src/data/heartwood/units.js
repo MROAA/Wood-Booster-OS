@@ -228,6 +228,7 @@ import willowfangImg2 from "../../assets/heartwood/units/willowfang-2.jpg"
 import cragmossImg2 from "../../assets/heartwood/units/cragmoss-2.jpg"
 import willowmendImg2 from "../../assets/heartwood/units/willowmend-2.jpg"
 import rimefangImg2 from "../../assets/heartwood/units/rimefang-2.jpg"
+import hollowquillImg2 from "../../assets/heartwood/units/hollowquill-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1188,7 +1189,7 @@ const BASE_UNITS = {
   }),
   hollowquill: unit("hollowquill", "Hollowquill", "rune", 2, "dps", [
     { type: "attack", amount: 8 },
-  ], { image: hollowquillImg }),
+  ], { image: hollowquillImg2 }),
   // Shatter (effects.js) - a genuinely new mechanic, Execute's mirror:
   // bonus damage against a target currently holding Block instead of
   // one below an HP threshold. Stoneknoll is the first unit built
