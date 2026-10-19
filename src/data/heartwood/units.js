@@ -527,7 +527,7 @@ const BASE_UNITS = {
     // common-tier Sunder source).
     { type: "sunder" },
   ], { image: justiceImg2 }),
-  "the-hanged-man": unit("the-hanged-man", "Snarevine", "the-hanged-man", 0, "dps", [
+  "the-hanged-man": unit("the-hanged-man", "roots", "the-hanged-man", 0, "dps", [
     { type: "attack", amount: 6 },
   ], {
     // Vulnerable on hit - "snare" reads directly as marking a target
