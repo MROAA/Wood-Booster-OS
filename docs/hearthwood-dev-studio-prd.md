@@ -1,10 +1,112 @@
-# HEARTHWOOD DEV STUDIO — PRD
+# HEARTHWOOD DEV STUDIO — MASTER PRD v2.1 (Hearthwood Exclusive)
 
-Product Requirements Document · Versio 1.0 · Käyttäjälähtöinen pelinkehitysympäristö
-(Marc, 2026-10-19. North star for the Studio, `src/pages/HearthwoodStudio.jsx`.
-Builds on `docs/hearthwood-studio-universal-editor-prd.md`.)
+**Projekti:** Hearthwood · **Kehitysympäristö:** Hearthwood Dev Studio (`src/pages/HearthwoodStudio.jsx`, "Hearthwood HQ") · **Pääkehittäjä:** Claude Code · **AI-avustaja:** Spacemonkey · **Käyttötarkoitus:** ainoastaan Hearthwood-pelin kehittäminen.
+(Marc, 2026-10-19. Korvaa aiemmat yleiskäyttöistä Game Dev Studio -alustaa koskevat tavoitteet. Pelin sisältöä koskevat vaatimukset: `docs/hearthwood-master-prd.md`. Pelisuunnittelun linjaukset: `docs/hearthwood-design-interview-2026-10-19.md`. Aiempi v1.0 on liitteenä A.)
 
-## 1. Tuotevisio
+## 0. Dev Studion tarkoitus (Marcin omin sanoin)
+
+> Dev Studiolla pystyn luomaan, muokkaamaan ja tekemään pelin sisältöä itse mieluisekseni. Dev Studio on selkeä ja helppokäyttöinen, ja se toimii tekoälyavusteisesti. Jos jotain, mitä haluan lisätä, ei pysty tekemään, rajat kerrotaan minulle heti. Dev Studiosta tulee pelin moottori, joka hyödyntää jo olemassa olevia teemoja, tyylejä ja muuta peliin liittyvää, ja toimii näin päämajana kehitykselle. Dev Studio määrittää pelin tyylin ja siihen liittyvän sisällön, ja tätä kautta pystyn kehittämään peliä itse. Dev Studio on kehittyvä pala peliä, jolla mahdollistan oman vaikuttamiseni pelin sisältöön.
+
+Lyhyesti: **Kuvaile idea → tarkista suunnitelma → esikatsele → testaa → hyväksy.** Marc päättää, Claude Code toteuttaa, Spacemonkey avustaa, Studio näyttää ja suojaa.
+
+## 1. Päätavoite
+
+Hearthwood Dev Studio on Hearthwood-pelin oma kokonaisvaltainen kehitysympäristö. Sen tarkoituksena on mahdollistaa Hearthwoodin kaikkien pelimekaniikkojen, sisältöjen, järjestelmien, käyttöliittymien ja kehitystoimintojen hallinta yhdestä paikasta. Studio ei ole itsenäinen yleiskäyttöinen pelinkehitystuote. **Kaikki kehitys tehdään Hearthwoodin tarpeiden perusteella.**
+
+## 2. Nykyinen lähtötilanne
+
+Hearthwood on aktiivisesti kehitettävä peli, jossa on jo pitkälle kehitetty Dev Tool (kartoitus 2026-10-19: 70 sisältölistaa, 1 363 sisältökohdetta, noin 9 000 muokattavaa kenttää, ks. Tila-osio lopussa). **Nykyinen Dev Tool on kehityksen perusta, ei korvattava prototyyppi.**
+
+## 3. Kehityksen tärkeimmät säännöt
+
+1. Älä rakenna nykyisiä ominaisuuksia uudelleen ilman perusteltua syytä.
+2. Älä poista toimivia ominaisuuksia.
+3. Älä luo päällekkäisiä editoreita tai tietomalleja.
+4. Älä muuta pelin toimintalogiikkaa pelkän käyttöliittymäuudistuksen vuoksi.
+5. Käytä nykyistä Hearthwood-arkkitehtuuria aina, kun se on tarkoituksenmukaista.
+6. Tee muutokset modulaarisesti.
+7. Testaa muutokset ennen niiden käyttöönottoa.
+8. Säilytä yhteensopivuus nykyisten pelitallennusten kanssa.
+9. Esitä pysyvät muutokset käyttäjän hyväksyttäväksi.
+10. Keskity vain Hearthwoodin kehittämiseen.
+
+## 4. Studion keskeiset vastuualueet
+
+- **4.1 Game Systems:** vuoropohjainen taktinen taistelu, ruudukkokentät ja maasto, hahmot, luokat ja taidot, mana ja muut resurssit, heimot, elementit ja synergiat, viholliset ja pomot, taktinen tekoäly, varusteet, reliikit ja valmistus, pelitalous, roguelite-kartta, biomit, NPC:t ja hahmosuhteet, tarina ja tapahtumat, tehtävät ja saavutukset, pysyvä ja pelikertakohtainen eteneminen. Olemassaolo ja toteutusaste tarkistetaan projektista.
+- **4.2 Content Management:** keskitetty haku, loogiset kategoriat, suodattimet, riippuvuudet, esikatselu, vertailu, validointi, turvallinen tallennus, versiohistoria. Uudet työkalut integroidaan ensisijaisesti nykyisiin editoreihin.
+- **4.3 Game Testing:** taistelusimulaatiot, luokka- ja synergiatestit, tekoälyn ja pomojen testit, talous- ja tapahtumaketjujen validointi, tallennus-, UI- ja regressiotestit. Hyödynnetään nykyisiä järjestelmiä.
+- **4.4 Visual Development:** käyttöliittymät, taistelunäkymät, animaatioiden esikatselu, grafiikkaresurssit, efektit, teemat ja tyylit, näyttökoot. Olemassa olevat komponentit kartoitetaan ensin.
+- **4.5 AI Development:** Claude Code on ensisijainen koodin toteuttaja. Spacemonkey analysoi, ehdottaa, tutkii tasapainoa, dokumentoi ja tulkitsee testejä, mutta ei tee hyväksymättömiä pysyviä muutoksia.
+- **4.6 Project Management:** tilannekuva, kehitystehtävät, moduulien tila, virheraportit, testitulokset, riippuvuudet, muutosehdotukset, historia, versionhallinta, hyväksyntäprosessi.
+
+## 5. Käyttöliittymän tavoite
+
+Selkeä, tehokas ja helppokäyttöinen. Yli tuhannen muokattavan asian vuoksi tärkeintä on, että haluttu asia löytyy nopeasti: yhtenäinen navigointi, selkeä kategorisointi, nopea haku, hyvä luettavuus, kontekstisidonnaiset asetukset, vähemmän turhia valikoita, muutosten näkyvyys ja helppo palauttaminen. Kaikkia asetuksia ei näytetä yhtä aikaa. Laajasta järjestelmästä tehdään helposti hallittava. Tekniset asetukset ovat oletuksena piilossa ("All fields (advanced)").
+
+## 6. Turvallinen kehitystyönkulku
+
+1. Valitaan muokattava ominaisuus.
+2. Tarkistetaan sen nykyinen toteutus.
+3. Laaditaan muutosehdotus.
+4. Tarkistetaan riippuvuudet.
+5. Valmistellaan muutos eristetyssä työtilassa.
+6. Suoritetaan tarvittavat testit.
+7. Näytetään muutosten vaikutukset.
+8. Käyttäjä hyväksyy tai hylkää.
+9. Hyväksytty muutos tallennetaan projektiin.
+10. Muutos dokumentoidaan.
+
+**Rajat kerrotaan heti:** jos pyyntö vaatii uutta pelikoodia, Studio sanoo sen selvästi, kertoo mitä puuttuu ja kirjaa pyynnön kehitystehtäväksi. Se ei teeskentele, että ominaisuus on jo olemassa, eikä AI väitä tehneensä tai testanneensa mitään, mitä ei oikeasti tehty.
+
+## 7. Taitojen ja ominaisuuksien luonti (PRD 2.0 §12, Dev Studion tärkein toiminnallisuus)
+
+**7.1 Taitojen työpaja.** Jokaisella sankarilla ja yksiköllä on Taidot ja ominaisuudet -näkymä, jossa taidon voi lisätä, kopioida, muokata tai poistaa. Kentät:
+- nimi, kuvaus, ikoni, harvinaisuus;
+- tyyppi (aktiivinen, passiivinen, perushyökkäys, ultimate, reaktio);
+- kohde (oma, liittolainen, vihollinen, alue, ympäristöobjekti);
+- vaikutus (vahinko, parannus, kilpi, kutsu, hallinta, liike, ympäristön muutos);
+- mana tai energia, jäähdytys, kesto;
+- tasot, parannukset, skaalaus;
+- elementit, synergiat, aktivointiehdot;
+- animaatio, ääni, visuaalinen palaute.
+
+Vaikutukset valitaan valmiista valikoista. Jos haluttua ei ole, Spacemonkey / Claude Code rakentaa sen uutena ominaisuutena.
+
+**7.2 Vaikeustasot:**
+
+| Taso | Esimerkki | Toteutus |
+|---|---|---|
+| Helppo | +10 % hyökkäysnopeutta | arvo |
+| Keskitaso | parannus aina kun vihollinen kuolee | tapahtuma + kohde + vaikutus |
+| Edistynyt | jäätaika jäädyttää veden, jää särkyy | uusi mekaniikka + testit |
+| Uusi järjestelmä | uusi luokka omalla manasyklillä | järjestelmä taustalla + yhteensopivuustestit |
+
+**7.3 Yksiköt.** Samoilla työkaluilla hallitaan viholliset, kutsutut olennot ja pomot: terveys, hyökkäys, puolustus, nopeus, resurssit, vastustuskyvyt, tekoäly ja taitojen järjestys.
+
+**7.4 Tasapainotus.** Ennen käyttöönottoa näytetään:
+- arvioitu vahinko tai parannus;
+- manan kulutus ja käyttötiheys;
+- kesto ja kohteiden määrä;
+- synergiat ja vertailu vastaaviin;
+- testitulokset.
+
+Arviot perustuvat pelin todellisiin sääntöihin ja testeihin, ei pelkkään AI:n mielipiteeseen. Haastattelun linjaus: erittäin voimakkaita buildeja ei heikennetä automaattisesti pelkkien laskelmien perusteella.
+
+## 8. Rajaukset
+
+Hearthwood Dev Studio EI ole yleiskäyttöinen pelimoottori, muiden pelien kehitysympäristö, kaupallinen pelieditorituote, Unityn/Godotin/Unrealin kilpailija eikä Hearthwoodista erillinen ohjelmistokehitysalusta. Se on Hearthwoodin oma kehitystyökalu.
+
+## 9. Lopullinen tavoite
+
+Hearthwood Dev Studio mahdollistaa Hearthwoodin kokonaisvaltaisen kehittämisen yhdestä ympäristöstä. Käyttäjä hallitsee sisältöä, mekaniikkoja, tasapainoa, tarinaa, visuaalisuutta, testejä ja kehitystehtäviä ilman tarpeetonta käsin tehtävää koodimuokkausta. Lopullinen hyväksymiskriteeri (PRD 2.0 §13): Marc pystyy itse luomaan uuden sankarin, antamaan sille useita taitoja, määrittelemään täysin uuden kyvyn luonnollisella kielellä, testaamaan sen ja ottamaan sen käyttöön pelissä kirjoittamatta koodia.
+
+**Pääperiaate: kehitä nykyisestä Hearthwood Dev Toolista mahdollisimman kattava, tehokas ja helppokäyttöinen Hearthwoodin oma Game Dev Studio.**
+
+---
+
+# Liite A: Dev Studio PRD v1.0 (2026-10-19, ensimmäinen versio)
+
+### 1. Tuotevisio
 
 Hearthwood Dev Studio on Hearthwood-pelin oma visuaalinen kehitystyökalu, jossa voit luoda, muokata, testata ja hallita pelin sisältöä ilman, että sinun tarvitsee osata koodata.
 
@@ -12,7 +114,7 @@ Työkalun pitää tuntua selkeältä luovalta studiota muistuttavalta työpöyd�
 
 **Päätavoite:** sinä päätät, millainen Hearthwoodista tulee. Dev Studio hoitaa sisällön teknisen tallentamisen, tarkistamisen ja viemisen peliin.
 
-### Suunnittelun perusperiaatteet
+#### Suunnittelun perusperiaatteet
 
 - **Ei koodipakkoa:** tavalliset sisällönluontitehtävät onnistuvat visuaalisesti.
 - **Yksi selkeä asia kerrallaan:** käyttöliittymä ei hukuta käyttäjää kymmeniin asetuksiin.
@@ -21,7 +123,7 @@ Työkalun pitää tuntua selkeältä luovalta studiota muistuttavalta työpöyd�
 - **AI-apuri:** Spacemonkey auttaa suunnittelemaan sisältöä, täyttämään asetuksia ja selittämään vaihtoehtoja ymmärrettävästi.
 - **Oikea peliprojekti:** kaikki hyväksytyt muutokset tallennetaan Hearthwoodin todelliseen sisältöjärjestelmään, eivät vain Dev Studion esikatseluun.
 
-## 2. Käyttöliittymän rakenne
+### 2. Käyttöliittymän rakenne
 
 Dev Studio avautuu Hearthwoodin omaan kehitysnäkymään. Käyttäjän ei tarvitse navigoida kooditiedostoissa tai tuntea pelin kansiorakennetta.
 
@@ -40,7 +142,7 @@ Pääosiot:
 
 Lisäksi: **Julkaise muutokset peliin**. Tarkista muutokset, suorita testit ja hyväksy julkaisu.
 
-## 3. Sisällönluontityökalut
+### 3. Sisällönluontityökalut
 
 Jokaisessa osiossa käytetään samaa helppoa toimintamallia:
 
@@ -50,7 +152,7 @@ Jokaisessa osiossa käytetään samaa helppoa toimintamallia:
 4. Tallenna luonnos.
 5. Testaa pelissä ja julkaise hyväksytty sisältö.
 
-### 3.1 Sankarieditori
+#### 3.1 Sankarieditori
 
 Sankarieditorilla voi luoda uusia pelattavia sankareita ja muokata olemassa olevia.
 
@@ -63,7 +165,7 @@ Sankarieditorilla voi luoda uusia pelattavia sankareita ja muokata olemassa olev
 
 Esikatselussa sankarin muotokuva, taidot ja perustiedot näkyvät rinnakkain. Puuttuvat kuvat tai virheelliset asetukset ilmoitetaan ymmärrettävästi.
 
-### 3.2 Skill- ja spell-editori
+#### 3.2 Skill- ja spell-editori
 
 Taitoja luodaan valmiista pohjista ilman koodin kirjoittamista. Esimerkkilomake:
 
@@ -76,7 +178,7 @@ Taitoja luodaan valmiista pohjista ilman koodin kirjoittamista. Esimerkkilomake:
 - **Yhteenveto**, esim. "Metsän purkaus · Aktiivinen taito · Luonto · Mana: 35 · Voimakkuus: 60 · Vaikutus: Juurten kasvatus"
 - Painike: "Pyydä Spacemonkeyta määrittelemään tämä taito"
 
-### 3.3 Ympäristö- ja Seed-editori
+#### 3.3 Ympäristö- ja Seed-editori
 
 Tällä työkalulla voit luoda objekteja ja yhdistää niitä Seed Systemiin.
 
@@ -90,7 +192,7 @@ Tällä työkalulla voit luoda objekteja ja yhdistää niitä Seed Systemiin.
 
 Objekteille tehdään valmiit mallipohjat, joten uuden sienityypin luominen ei vaadi teknisen järjestelmän suunnittelua uudelleen.
 
-### 3.4 Maastostudio
+#### 3.4 Maastostudio
 
 Maastostudio tarjoaa visuaalisen kenttäeditorin:
 
@@ -104,7 +206,7 @@ Maastostudio tarjoaa visuaalisen kenttäeditorin:
 
 Maastostudio erottaa visuaaliset koristeet pelimekaanisesti vaikuttavista objekteista. Näin koristepuu ei vahingossa estä liikkumista tai vaikuta taistelun laskentaan.
 
-## 4. Spacemonkey — AI-kehitysapuri
+### 4. Spacemonkey — AI-kehitysapuri
 
 Spacemonkey on Dev Studion keskeinen käyttöliittymä koodaamattomalle kehittämiselle. Esimerkkipyyntöjä:
 
@@ -119,7 +221,7 @@ Spacemonkey muuntaa pyynnön rakenteiseksi sisältöluonnokseksi. Se näyttää 
 
 **Tärkeä raja:** AI ei saa ilmoittaa muutosta tehdyksi ennen kuin se on todella tallennettu ja validoitu. Jos sisältö tarvitsee uuden koodiominaisuuden, Spacemonkey kertoo sen ja tarjoaa toteutussuunnitelman.
 
-## 5. Asset-kirjasto ja visuaalinen sisällöntuotanto
+### 5. Asset-kirjasto ja visuaalinen sisällöntuotanto
 
 Kaikki pelin visuaaliset resurssit hallitaan yhdessä paikassa:
 
@@ -131,7 +233,7 @@ Kaikki pelin visuaaliset resurssit hallitaan yhdessä paikassa:
 
 Jokaisella resurssilla on esikatselu, nimi, tyyppi, käyttökohteet ja tila. Uusi kuva voidaan yhdistää sankariin tai objektiin valitsemalla se kirjastosta. Puuttuvista tai yhteensopimattomista tiedostoista ilmoitetaan ennen julkaisua.
 
-## 6. Lore, dialogit ja tehtävät
+### 6. Lore, dialogit ja tehtävät
 
 Tarinatyökalun avulla voit muokata Hearthwoodin maailmaa ilman, että dialogit ovat koodissa.
 
@@ -144,7 +246,7 @@ Tarinatyökalun avulla voit muokata Hearthwoodin maailmaa ilman, että dialogit 
 
 Spacemonkey voi ehdottaa sisältöä, mutta käyttäjä hyväksyy lopulliset tekstit ja tarinamuutokset.
 
-## 7. Turvallinen tallennus ja julkaisuprosessi
+### 7. Turvallinen tallennus ja julkaisuprosessi
 
 Kaikki sisältö kulkee saman prosessin läpi:
 
@@ -166,7 +268,7 @@ Dev Studion tulee tarjota:
 
 Git voidaan pitää taustalla versionhallintana, mutta käyttäjän ei tarvitse käyttää terminaalia tai käsitellä Git-komentoja tavallisessa sisältötyössä.
 
-## 8. Tekninen rakenne
+### 8. Tekninen rakenne
 
 | Moduuli | Tehtävä |
 |---|---|
@@ -182,7 +284,7 @@ Git voidaan pitää taustalla versionhallintana, mutta käyttäjän ei tarvitse 
 
 Nämä ovat ehdotettuja moduuleja, eivät vahvistus siitä, että ne ovat jo olemassa Hearthwoodissa. Toteutuksessa hyödynnetään projektin nykyisiä järjestelmiä aina, kun se on mahdollista.
 
-## 9. MVP — ensimmäinen toimiva versio
+### 9. MVP — ensimmäinen toimiva versio
 
 Ensimmäiseen versioon ei rakenneta kaikkia ominaisuuksia kerralla.
 
@@ -192,7 +294,7 @@ Ensimmäiseen versioon ei rakenneta kaikkia ominaisuuksia kerralla.
 4. **Esikatselu ja testaus:** näytä sisältö ja tarjoa yksinkertainen tapa testata muutokset pelissä.
 5. **Spacemonkey-integraatio:** lisää AI-avustettu sisällönluonti, joka tuottaa ehdotuksia, selittää asetukset ja auttaa korjaamaan validointivirheitä.
 
-## 10. Hyväksymiskriteerit
+### 10. Hyväksymiskriteerit
 
 - [ ] Uuden sankarin voi luoda käyttöliittymästä ilman koodin kirjoittamista.
 - [ ] Taitoja voi luoda ja muokata valmiista pohjista.
@@ -205,7 +307,7 @@ Ensimmäiseen versioon ei rakenneta kaikkia ominaisuuksia kerralla.
 - [ ] Keskeneräinen sisältö ei riko pelin käynnistymistä.
 - [ ] Käyttäjä voi suorittaa tärkeimmät sisältötyöt ilman terminaalia.
 
-## 11. Onnistumisen mittarit
+### 11. Onnistumisen mittarit
 
 Dev Studion onnistumista mitataan sillä, kuinka helposti käyttäjä pystyy luomaan oikeaa pelisisältöä.
 
@@ -215,7 +317,7 @@ Dev Studion onnistumista mitataan sillä, kuinka helposti käyttäjä pystyy luo
 - Käyttäjä pystyy testaamaan muutoksen ennen sen käyttöönottoa.
 - Sisällön luominen ei vaadi käyttäjältä pelimoottorin sisäisen arkkitehtuurin tuntemusta.
 
-## 12. Suositeltu toteutuslinja
+### 12. Suositeltu toteutuslinja
 
 Hearthwood Dev Studio kannattaa rakentaa peliprojektin päälle toimivaksi sisältöeditoriksi, ei erilliseksi työkaluksi, joka ei tunne pelin oikeaa dataa.
 
@@ -225,25 +327,33 @@ Visuaaliset editorit ja datalähtöinen sisällönhallinta ovat vakiintuneita pe
 
 ---
 
-## Status (2026-10-19): what already exists vs. this PRD
+## Tila (2026-10-19): mitä on jo olemassa
 
-Already in the Studio (Patchbay pipeline, `server/services/hearthwoodPatchbay/`):
+Kartoitus (PRD v2.1 §7) tehtiin 2026-10-19. Tiivistelmä tässä; koko raportti julkaistaan erikseen.
 
-- **§7 save/publish:** preview → apply writes the real game files, makes an automatic snapshot and `.bak`, runs a fast check gate, commits to `hearthwood-patchbay/live`, keeps an audit row, and has one-click revert (Change history). There is not yet a separate test environment for unfinished changes (§7, last bullet).
-- **§9.1 content list:** about 55 tables are browsable and editable (Heroes, Enemies, Classes & Mana, Items, Relics, Events, Dialogues, Crossroads...), with clone (CloneEntityForm) and plain-English field editing.
-- **§4 Spacemonkey (partial):** NlChangeBox. You write in Finnish what to change, a local Ollama model proposes edits, and a hard validator checks them before any preview.
-- **§3.1 hero pictures (partial):** ImageUploadField swaps an existing hero's picture.
-- **§6 story (partial):** forms for new Map Events, Story Journal entries, Dialogues and Act Crossroads, plus Story Timeline.
+**Toimii (testattu):**
+- **Hearthwood HQ** (PR #655): 9 huonetta, selkeät napit, tekniset välilehdet "More tools" -kohdan alla (`verify_studio_home`).
+- **Patchbay-tallennus:** esikatselu → hyväksyntä → automaattinen varmuuskopio (.bak + snapshot) → nopea tarkistus (oxlint + koontitesti) → palautus yhdellä napilla.
+- **70 sisältölistaa, 1 363 kohdetta, noin 9 000 kenttää** (`scripts/hearthwood-read-entities.mjs`, jonka testit menevät läpi). Kopiointi (CloneEntityForm), taulukkonäkymä (SheetView), haku kaikkiin listoihin (Dashboard).
+- **First Song -tarina Studiossa + Story Writer** (PR #655): kohtaukset repliikki kerrallaan, aikajärjestyksessä.
+- **Object Maker** (PR #655): omat taistelukentän esineet (`verify_object_maker`, `verify_object_maker_studio`).
+- **Pelin sisäinen Quick Edit** (✎ Studio -kytkin, EditInStudioLink, DevDesk Päämajassa).
 
-Added by this round (Object Maker, `feat/hearthwood-object-maker`):
+**Osittain:**
+- **"Omin sanoin" -AI** (NlChangeBox): paikallinen Ollama `qwen2.5-coder:7b`. Osaa vain muuttaa yhden kohteen olemassa olevia arvoja (`set`). Ei kerro rajojaan etukäteen; mahdoton pyyntö näkyy vain hylättynä rivinä. Ei Spacemonkeyn AI:ta (Spacemonkey on vain tiedostojen kirjoittaja taustalla).
+- **Tasapainotesti** (BalancePanel): ajaa "realistic bot" -simulaation, joka on tunnetusti epäluotettava ja kelpaa vain ennen–jälkeen-vertailuun.
+- **Doctor:** tarkistaa vain työkalut (git, oxlint, vite, Ollama), ei pelin sisältöä.
+- **Live-esikatselu:** erillinen sandbox-Vite keskitason muutoksille. Käynnissä oleva taistelu ei näytä muutosta.
+- **Taidot datana:** vain ylennystaidot (8 lajia: smite, nova, volley, sanctuary, rally, blink, knock, zone) ja `fx`-lisävaikutukset (stun, root, poison, burn, chill, block...) toimivat pelkällä datalla. Luokkataidot (38 luokkaa, noin 101 taitoa) tarvitsevat jokainen oman koodinsa.
 
-- **§3.3 environment objects:** "+ Make a new battlefield object" (AddBattleObjectForm). It asks for the name, toughness, what happens when it breaks (just breaks / fire / poison / heals everyone / ice shards / falls like a tree), how strong the effect is, what it leaves on the ground, how many per battle and from which Act. The look is a symbol or your own picture. "Try it in a practice battle" opens it on a real board. Data lives in `src/data/heartwood/battleObjects.js`.
-
-Not built yet:
-
-- **Seed Studio (§2, §3.3):** builds on the Seed System already started in PR #429 (`docs/hearthwood-seed-playstyle-systems-prd.md`, `src/data/heartwood/seed.js`).
-  - Already working: every run has a copyable seed code (`HW-XXXX-XXXX`), you can type a seed when starting a run, and shops, items, loot, events and every battle map are rolled from named seed streams. Studio-made objects are placed through their own seed stream too.
-  - Not built yet: the seed run modes (Daily, Challenge and Dev seed, PRD §7) and the seed-based world (§10).
-  - Seeds that grow objects, and recipes that combine two seeds, would sit on top of this as a new game mechanic.
-- **§3.4 Maastostudio / Map Painter:** next PR (plan: `BATTLE_MAPS` data table + paint grid + "Try this map").
-- **§3.1 full hero editor**, **§3.2 skill editor from templates**, **§5 asset library**, and the **First Song story in the Studio** (Marc's queue, 2026-10-19).
+**Puuttuu:**
+- **Sisällön tarkistin:** esim. "tapahtuma viittaa viholliseen, jota ei ole".
+- **Erillinen testiympäristö** keskeneräisille muutoksille.
+- **Taitojen työpaja** (§7.1).
+- **Sankarieditori** kokonaisuutena.
+- **Karttamaalari.**
+- **Asset-kirjasto.**
+- **When/And/Then-säännöt.**
+- **"Mitä haluat tehdä tänään?" -pyyntö**, jossa rajat kerrotaan heti.
+- **Kehityspyyntöjen lista Studiossa.** Valmis tehtävämalli `HeartwoodTask` + `/heartwood/tasks` on olemassa ja voidaan käyttää.
+- **Seed Studio:** siemenajot ja kasvavat siemenet; seed-järjestelmän pohja #429 on olemassa.

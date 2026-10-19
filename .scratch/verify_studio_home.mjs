@@ -45,8 +45,12 @@ const home = {
   hScroll: await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
   bottom: await page.evaluate(() => Math.round(document.querySelector('[data-testid="studio-home"]').getBoundingClientRect().bottom)),
 }
+home.purpose = await page.locator('[data-testid="studio-purpose"]').textContent()
+await page.locator('[data-testid="studio-purpose"] button').click()
+home.purposeFull = await page.locator('[data-testid="studio-purpose"]').textContent()
 await page.screenshot({ path: new URL("./shots/studio_home.png", import.meta.url).pathname })
 out.home = home
+c(home.purpose?.includes("honest limits") && home.purposeFull?.includes("headquarters of its development"), "h0 purpose statement", home.purpose)
 c(home.title.includes("Hearthwood HQ") && home.rooms === 9 && home.nav === 4 && home.moreTools === 0 && home.history === 0 && !home.hScroll, "h1 HQ front door", home)
 
 // 2. Every Studio list lives in exactly one room.
