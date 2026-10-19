@@ -98,15 +98,35 @@ function GrowingText({ value, onChange, changed, italic, placeholder, testId }) 
       onChange={event => onChange(event.target.value)}
       placeholder={placeholder}
       data-testid={testId}
-      rows={Math.max(1, Math.ceil(value.length / 80))}
+      rows={Math.max(1, Math.ceil(value.length / 70))}
       className={`
-        w-full resize-y rounded-lg border bg-[var(--wood-bg)] px-3 py-2 text-sm leading-relaxed text-[var(--wood-text)] outline-none
+        w-full resize-y rounded-lg border bg-[var(--wood-bg)] px-3 py-2 text-base leading-relaxed text-[var(--wood-text)] outline-none
         focus:border-[var(--wood-accent)] ${italic ? "italic text-[var(--wood-muted)]" : ""}
         ${changed ? "border-[var(--wood-accent)]" : "border-[var(--wood-border)]"}
       `}
     />
   )
 }
+
+// Drafts survive leaving the page (Marc's comfort, 2026-10-19): kept per
+// entry in this browser until they're put into the game or thrown away.
+const draftKey = (type, id) => `hw-story-draft:${type}:${id}`
+function loadDraft(type, id) {
+  try {
+    return JSON.parse(localStorage.getItem(draftKey(type, id)) || "{}") || {}
+  } catch {
+    return {}
+  }
+}
+function saveDraft(type, id, draft) {
+  try {
+    if (Object.keys(draft).length) localStorage.setItem(draftKey(type, id), JSON.stringify(draft))
+    else localStorage.removeItem(draftKey(type, id))
+  } catch {
+    // storage blocked - the draft just lives until the page closes
+  }
+}
+const countWords = text => (String(text).match(/[\p{L}\p{N}'’-]+/gu) || []).length
 
 function StoryWriter({ type, entityId, entityDetail, onSelect, onApplied, onPreviewUrlChange }) {
   const leaves = useMemo(() => textLeaves(entityId, entityDetail?.fields), [entityId, entityDetail])
@@ -115,7 +135,24 @@ function StoryWriter({ type, entityId, entityDetail, onSelect, onApplied, onPrev
   const { result, applyMode, setApplyMode, previewing, applying, errorMessage, preview, discard, apply } =
     usePatchPreview({ onApplied, onPreviewUrlChange })
 
-  useEffect(() => { setDraft({}) }, [type, entityId, entityDetail])
+  const [restored, setRestored] = useState(false)
+
+  // Open an entry: bring back its unsaved draft, if any (only lines still different).
+  useEffect(() => {
+    const saved = loadDraft(type, entityId)
+    const live = Object.fromEntries(leaves.map(leaf => [pathKey(leaf.path), leaf.value]))
+    const still = Object.fromEntries(Object.entries(saved).filter(([key, value]) => key in live && live[key] !== value))
+    setDraft(still)
+    setRestored(Object.keys(still).length > 0)
+    saveDraft(type, entityId, still)
+  }, [type, entityId, entityDetail, leaves])
+
+  // Put into the game -> the draft is done.
+  useEffect(() => {
+    function onApplied() { saveDraft(type, entityId, {}) }
+    window.addEventListener("hw-studio-applied", onApplied)
+    return () => window.removeEventListener("hw-studio-applied", onApplied)
+  }, [type, entityId])
 
   // The list in file order = story order for every story file.
   useEffect(() => {
@@ -127,7 +164,17 @@ function StoryWriter({ type, entityId, entityDetail, onSelect, onApplied, onPrev
   }, [type])
 
   const valueOf = leaf => draft[pathKey(leaf.path)] ?? leaf.value
-  const setLeaf = (leaf, value) => setDraft(previous => ({ ...previous, [pathKey(leaf.path)]: value }))
+  const setLeaf = (leaf, value) => setDraft(previous => {
+    const next = { ...previous, [pathKey(leaf.path)]: value }
+    if (value === leaf.value) delete next[pathKey(leaf.path)]
+    saveDraft(type, entityId, next)
+    return next
+  })
+  const startOver = () => {
+    saveDraft(type, entityId, {})
+    setDraft({})
+    setRestored(false)
+  }
   const changedLeaves = leaves.filter(leaf => draft[pathKey(leaf.path)] !== undefined && draft[pathKey(leaf.path)] !== leaf.value)
   const changed = leaf => changedLeaves.includes(leaf)
 
@@ -142,6 +189,8 @@ function StoryWriter({ type, entityId, entityDetail, onSelect, onApplied, onPrev
   const chapter = here?.chapter || chapterOf(type, entityDetail)
   const chapterInfo = STORY_CHAPTERS.find(c => c.chapter === chapter)
   const sameChapter = chapter ? order.filter(entry => entry.chapter === chapter) : []
+  const chapters = [...new Set(order.map(entry => entry.chapter).filter(Boolean))].sort((a, b) => a - b)
+  const words = leaves.reduce((sum, leaf) => sum + countWords(valueOf(leaf)), 0)
   const prev = position > 0 ? order[position - 1] : null
   const next = position >= 0 && position < order.length - 1 ? order[position + 1] : null
 
@@ -182,11 +231,40 @@ function StoryWriter({ type, entityId, entityDetail, onSelect, onApplied, onPrev
           {chapter ? <>Chapter <span className="font-semibold text-[var(--wood-text)]">{chapter} of {MAX_CHAPTER}</span>{chapterInfo ? ` — ${chapterInfo.title}` : ""}</> : <>Entry <span className="font-semibold text-[var(--wood-text)]">{position + 1} of {order.length}</span></>}
           {sameChapter.length > 1 && <span> · one of {sameChapter.length} versions of this chapter (which one plays depends on earlier choices)</span>}
         </div>
+        <span className="text-xs tabular-nums text-[var(--wood-muted)]" data-testid="story-writer-words">{words.toLocaleString("en")} words</span>
         <div className="flex gap-2">
           <button type="button" disabled={!prev} onClick={() => prev && onSelect(type, prev.id)} data-testid="story-writer-prev" className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-text)] hover:border-[var(--wood-accent)] disabled:opacity-30">◀ Previous</button>
           <button type="button" disabled={!next} onClick={() => next && onSelect(type, next.id)} data-testid="story-writer-next" className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-text)] hover:border-[var(--wood-accent)] disabled:opacity-30">Next ▶</button>
         </div>
       </div>
+
+      {
+        chapters.length > 1 && (
+          <div className="flex flex-wrap items-center gap-1" data-testid="story-writer-chapters">
+            <span className="mr-1 text-[11px] text-[var(--wood-muted)]">Go to chapter</span>
+            {
+              chapters.map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => { const first = order.find(entry => entry.chapter === n); if (first) onSelect(type, first.id) }}
+                  className={`h-7 w-7 rounded-full border text-xs font-semibold ${n === chapter ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]" : "border-[var(--wood-border)] text-[var(--wood-text)] hover:border-[var(--wood-accent)]"}`}
+                >
+                  {n}
+                </button>
+              ))
+            }
+          </div>
+        )
+      }
+
+      {
+        restored && changedLeaves.length > 0 && (
+          <div className="rounded-lg border border-[var(--wood-accent)] bg-[var(--wood-bg)] px-3 py-2 text-xs text-[var(--wood-text)]" data-testid="story-writer-restored">
+            Welcome back - your {changedLeaves.length} unsaved change{changedLeaves.length === 1 ? " is" : "s are"} still here. They aren't in the game until you press "Preview my changes" and then "Put it in the game".
+          </div>
+        )
+      }
 
       {
         plain.map(leaf => (
@@ -239,8 +317,8 @@ function StoryWriter({ type, entityId, entityDetail, onSelect, onApplied, onPrev
       }
 
       <div className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-[var(--wood-border)] bg-[var(--wood-panel)] py-2">
-        {changedLeaves.length > 0 && <span className="text-xs text-[var(--wood-accent)]">{changedLeaves.length} changed</span>}
-        {changedLeaves.length > 0 && <button type="button" onClick={() => setDraft({})} className="text-xs text-[var(--wood-muted)] hover:text-[var(--wood-text)]">Start over</button>}
+        {changedLeaves.length > 0 && <span className="text-xs text-[var(--wood-accent)]" data-testid="story-writer-unsaved">{changedLeaves.length} change{changedLeaves.length === 1 ? "" : "s"} not in the game yet · kept safe while you look around</span>}
+        {changedLeaves.length > 0 && <button type="button" onClick={startOver} className="text-xs text-[var(--wood-muted)] hover:text-[var(--wood-text)]">Throw my changes away</button>}
         <button
           type="button"
           disabled={!changedLeaves.length || previewing}
