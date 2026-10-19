@@ -26,6 +26,7 @@ import { TraitEditor, PromotionEditor, HeroIdentityEditor } from "../components/
 import GearEditor from "../components/hearthwood-studio/GearEditor"
 import StudioHome from "../components/hearthwood-studio/StudioHome"
 import StudioToast from "../components/hearthwood-studio/StudioToast"
+import StoryMap from "../components/hearthwood-studio/StoryMap"
 import { plainName } from "../components/hearthwood-studio/plainWords"
 import { labelFor } from "../components/hearthwood-studio/entityTypes"
 // The game's own "details open on hover" pop-up style (Marc: "käytä samaa pop up tyyliä paljolle tiedolle kuin pelissäkin").
@@ -84,7 +85,7 @@ function HearthwoodStudio() {
     const view = new URLSearchParams(window.location.search).get("view")
     if (view === "resources" || view === "mutations" || view === "gear" || view === "traits" || view === "promotions" || view === "identity") return view
     // the in-game dev desk deep-links straight to these too
-    if (view === "theme" || view === "sheet" || view === "dashboard") return view
+    if (view === "theme" || view === "sheet" || view === "dashboard" || view === "storyMap") return view
     return deepLink ? "single" : "home"
   })
   // Hearthwood HQ (studioRooms.js): the room you're in limits the left
@@ -528,6 +529,20 @@ function HearthwoodStudio() {
       }
 
       {
+        viewMode === "storyMap" && (
+          <StoryMap
+            onOpen={(type, id) => {
+              setRoom(roomById("story"))
+              setRoomHint("")
+              handleSelect(type, id)
+              setBrowsingType(type)
+              setViewMode("single")
+            }}
+          />
+        )
+      }
+
+      {
         viewMode === "dashboard" && (
           <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
             <Dashboard onNavigate={handleNavigateFromDashboard} onSelectEntity={handleSelectFromDashboard} />
@@ -629,7 +644,7 @@ function HearthwoodStudio() {
           </button>
         </div>
       )}
-      {viewMode !== "home" && viewMode !== "history" && viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && viewMode !== "mutations" && viewMode !== "gear" && viewMode !== "traits" && viewMode !== "promotions" && viewMode !== "identity" && (
+      {viewMode !== "home" && viewMode !== "history" && viewMode !== "storyMap" && viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && viewMode !== "mutations" && viewMode !== "gear" && viewMode !== "traits" && viewMode !== "promotions" && viewMode !== "identity" && (
       <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" && gameVisible ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
         <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <EntityBrowser
