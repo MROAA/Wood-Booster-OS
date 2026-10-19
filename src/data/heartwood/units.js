@@ -230,6 +230,7 @@ import willowmendImg2 from "../../assets/heartwood/units/willowmend-2.jpg"
 import rimefangImg2 from "../../assets/heartwood/units/rimefang-2.jpg"
 import hollowquillImg2 from "../../assets/heartwood/units/hollowquill-2.jpg"
 import stoneknollImg2 from "../../assets/heartwood/units/stoneknoll-2.jpg"
+import quarrywardenImg2 from "../../assets/heartwood/units/quarrywarden-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1210,7 +1211,7 @@ const BASE_UNITS = {
     // adjacent allies at battle start instead of Strength/Ward/Revive/
     // Execute.
     rallyAdjacent: { id: "shatter", amount: 2 },
-    image: quarrywardenImg,
+    image: quarrywardenImg2,
   }),
   // Regen (effects.js's tickRegen) - a genuinely new mechanic this
   // round: a decaying heal-over-time stack, Poison's mirror on the
