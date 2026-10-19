@@ -847,7 +847,7 @@ const BASE_UNITS = {
     // was an enemy - no enemy carries any cold/ice flavor today).
     frosty: true,
   }),
-  glimmerward: unit("glimmerward", "Glimmerward", "shield", 2, "support", [
+  glimmerward: unit("glimmerward", "Zebra", "shield", 2, "support", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 3 },
   ], {
