@@ -1,5 +1,8 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
+import { apiGet } from "../../api/client"
+
+import { labelFor } from "./entityTypes"
 import { STUDIO_ROOMS } from "./studioRooms"
 import StudioWishBox from "./StudioWishBox"
 
@@ -23,6 +26,23 @@ const plaque = "rounded-full border border-[var(--wood-border)] px-3 py-1 text-x
 
 function StudioHome({ onEnterRoom, onAction, onWish }) {
   const [showPurpose, setShowPurpose] = useState(false)
+  // How many things each room holds (Marc: "haluan etusivun lohkoille
+  // numerot että kuinka paljon niitä asioita on") - from /overview.
+  const [counts, setCounts] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    apiGet("/hearthwood-patchbay/overview")
+      .then(data => { if (!cancelled) setCounts(Object.fromEntries((data.types || []).map(entry => [entry.type, entry.count]))) })
+      .catch(() => { if (!cancelled) setCounts({}) })
+    return () => { cancelled = true }
+  }, [])
+
+  const roomCount = room => {
+    if (!counts) return null
+    const parts = room.types.filter(type => counts[type] > 0).map(type => ({ type, count: counts[type] })).sort((a, b) => b.count - a.count)
+    return { total: parts.reduce((sum, part) => sum + part.count, 0), parts }
+  }
 
   return (
     <div className="space-y-4" data-testid="studio-home">
@@ -59,10 +79,28 @@ function StudioHome({ onEnterRoom, onAction, onWish }) {
             >
               <button type="button" onClick={() => onEnterRoom(room)} className="flex items-start gap-3 text-left" data-testid={`room-${room.id}`}>
                 <span className="text-3xl leading-none text-[var(--wood-accent)] opacity-80" aria-hidden="true">{room.rune}</span>
-                <span>
-                  <span className="block text-lg font-semibold text-[var(--wood-text)]">{room.title}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="block text-lg font-semibold text-[var(--wood-text)]">{room.title}</span>
+                    {
+                      roomCount(room)?.total > 0 && (
+                        <span className="shrink-0 text-right" data-testid={`room-count-${room.id}`}>
+                          <span className="block text-2xl font-bold leading-none tabular-nums text-[var(--wood-accent)]">{roomCount(room).total.toLocaleString("en")}</span>
+                          <span className="block text-[10px] uppercase tracking-wide text-[var(--wood-muted)]">things</span>
+                        </span>
+                      )
+                    }
+                  </span>
                   {/* the explanation opens on hover, like the game's cards (heartwood-reveal.css) */}
                   <span className="hw-reveal-more mt-1 block text-xs leading-snug text-[var(--wood-muted)]">{room.blurb}</span>
+                  {
+                    roomCount(room)?.parts.length > 1 && (
+                      <span className="hw-reveal-more mt-1 block text-[11px] leading-snug text-[var(--wood-text)]" data-testid={`room-breakdown-${room.id}`}>
+                        {roomCount(room).parts.slice(0, 6).map(part => `${part.count} ${labelFor(part.type)}`).join(" · ")}
+                        {roomCount(room).parts.length > 6 ? ` · +${roomCount(room).parts.length - 6} more lists` : ""}
+                      </span>
+                    )
+                  }
                 </span>
               </button>
 
