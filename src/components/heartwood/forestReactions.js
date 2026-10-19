@@ -44,7 +44,7 @@ export function feetOfTile(pos) {
 }
 
 // Pieces that rise over the cards; everything else is ground level.
-const OVER = new Set(["wisp", "ember", "spore"])
+const OVER = new Set(["wisp", "ember", "spore", "manamote"])
 function make(kind, at, html = "") {
   const el = document.createElement("div")
   el.className = "hwt-fr"
@@ -196,6 +196,21 @@ const REACTIONS = {
     for (let i = 0; i < 3; i++) {
       const el = make("dust", { x: at.x + (i - 1) * 22, y: at.y })
       run(el, [{ scale: 0.5, opacity: 0.65 }, { scale: 1.8, opacity: 0, translate: `${(i - 1) * 10}px -8px` }], { duration: 600, easing: "ease-out" })
+    }
+  },
+  // battlefield piece 6: a mana crystal shatters - violet shards fly out
+  // along the ground and motes of mana rise over the cards
+  mana(at) {
+    const ring = make("manaring", at)
+    run(ring, [{ scale: 0.3, opacity: 0.9 }, { scale: 1.6, opacity: 0 }], { duration: 700, easing: "ease-out" })
+    for (let i = 0; i < 6; i++) {
+      const a = spread(i, 6, Math.PI * 2)
+      const el = make("shard", at)
+      run(el, [{ translate: "0 0", rotate: "0deg", opacity: 1 }, { translate: `${Math.cos(a) * 44}px ${Math.sin(a) * 14 - 6}px`, rotate: `${120 + i * 50}deg`, opacity: 0 }], { duration: 520 + (i % 3) * 60, easing: "cubic-bezier(.2,.7,.4,1)" })
+    }
+    for (let i = 0; i < 5; i++) {
+      const el = make("manamote", { x: at.x + (i - 2) * 14, y: at.y - 6 })
+      run(el, [{ translate: "0 0", opacity: 0 }, { translate: `${(i - 2) * 3}px -26px`, opacity: 1, offset: 0.3 }, { translate: `${(i - 2) * 5}px ${-60 - (i % 2) * 12}px`, opacity: 0 }], { duration: 1100 + i * 70, easing: "ease-out" })
     }
   },
   // a unit falls: a forest spirit rises from where it stood

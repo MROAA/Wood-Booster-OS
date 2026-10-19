@@ -41,6 +41,7 @@ export const TERRAIN = {
   gravel: { cost: 1 },
   stone: { cost: Infinity, obj: true },
   glowcap: { cost: Infinity, obj: true },
+  crystal: { cost: Infinity, obj: true },
 }
 
 export const WALL_MAX_HP = 8
@@ -75,8 +76,9 @@ export const TERRAIN_INFO = {
   roots: { name: "Roots", text: "Old roots - cost 2 movement to cross, and ending a move here snags you: no more moving until your next turn. Fire burns them away." },
   branches: { name: "Branches", text: "What's left of a splintered log - walkable, HALF cover for a hero next to it. Burns easily." },
   gravel: { name: "Gravel", text: "Crushed stone - walkable, no cover." },
-  stone: { name: "Runestone", text: "An old mossy standing stone - blocks movement, FULL cover for a hero next to it. Very tough (10 HP); cracks into rubble." },
+  stone: { name: "Runestone", text: "An old mossy standing stone - blocks movement, FULL cover for a hero next to it. Very tough (10 HP); cracks into rubble. A Juggernaut or Bruiser can TOPPLE it over from right next to it - it crushes the next tile (4 damage) and leaves rubble." },
   glowcap: { name: "Glowcap", text: "Glowing mushrooms. Any hit pops them: healing spores restore 4 HP to EVERY unit around them - yours and theirs. Pop them at the right moment." },
+  crystal: { name: "Mana crystal", text: "A humming crystal - blocks movement, FULL cover for a hero next to it. Break it (4 HP) and its mana bursts out: +15 resource to EVERY hero within 1 tile, yours and theirs. Leaves gravel." },
 }
 
 export function terrainAt(state, pos) {

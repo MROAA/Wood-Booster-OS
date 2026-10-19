@@ -277,7 +277,10 @@ const engine = await page.evaluate(async () => {
     const lb = cast(s, h, b, "lingering-bloom")
     ok(U(lb, b).hp === 32 && U(lb, b).hot === 2, "Lingering Bloom heals 2 + sets a bloom")
     const next = E.endPlayerTurn(lb)
-    ok(U(next, b).hp === 34 && U(next, b).hot === 1, "Lingering Bloom ticks at turn start", { hp: U(next, b).hp })
+    // 32 + 2 bloom tick + 1 from the moss Lingering Bloom grows under the ally
+    // (battlefield piece 6, tacticsForest FOREST_SHAPING; moss heals 1 at turn end).
+    ok(U(lb, b).pos && lb.terrain[`${U(lb, b).pos.row}-${U(lb, b).pos.col}`] === "moss", "Lingering Bloom grows moss under the ally")
+    ok(U(next, b).hp === 35 && U(next, b).hot === 1, "Lingering Bloom ticks at turn start (+1 moss)", { hp: U(next, b).hp })
   }
   // 14 Medic -----------------------------------------------------------------
   {

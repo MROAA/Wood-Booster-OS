@@ -216,7 +216,16 @@ comes before the new rules.
    mist). Each biome = palette + hill colours + floor details + trees +
    ambient + its own strategic forest pieces (`dressing`). Set on the battle
    in `buildRunTacticsBattle`. Suite `.scratch/verify_act_biomes.mjs`.
-6. Forest-shaping class skills (manipulation part 2).
+6. ✅ **Heroes shape the forest** (manipulation part 2; `tacticsForest.js`
+   `FOREST_SHAPING` + `forestShape`): Thorn Boundary / Growing Wall /
+   Grove Sanctum grow roots, Group Renewal / Lingering Bloom / Wellspring
+   grow healing moss, Overgrow sprouts a glowcap, Whirlwind kicks up dry
+   leaves (a fire trap). Skills that shape the forest wear a 🌿 in the skill
+   bar. A Juggernaut or Bruiser TOPPLES a runestone (4 damage on the next
+   tile, rubble on both; into water = a stepping-stone crossing). Ground
+   Breaker quakes the ground. Mana crystals (Sunspire, The Echo) burst +15
+   resource to every hero within 1. The ground answers elements: ash +1
+   Burn, ice +1 Chill. Suite `.scratch/verify_forest_shaping.mjs`.
 7. Readability + performance pass with a full board (many units, many FX).
 
 ## 8. Acceptance (PRD §10, checked every piece)

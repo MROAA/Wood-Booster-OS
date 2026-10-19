@@ -29,8 +29,8 @@ import { hasMana, profileOf, manaRole, gainExternal, burnMana, scaleAmount, reso
 import { roleOf } from "./tacticsRoles"
 import { enemySkillsFor } from "./tacticsEnemyAbilities"
 import { applyElement } from "./tacticsElements"
-import { forestSpellStrike } from "./tacticsObjects"
-import { forestSpell } from "./tacticsForest"
+import { forestSpellStrike, forestShape } from "./tacticsObjects"
+import { forestSpell, forestShaping } from "./tacticsForest"
 
 export const ULT_MAX = 100
 // A hit this big (share of max HP) staggers a channeling enemy.
@@ -442,6 +442,8 @@ export function castHeroUltimate(state, unitId, targetId = null) {
     const center = forestSpell(info.id).shape === "target" ? getUnit(state, targetId)?.pos : u.pos
     next = forestSpellStrike(next, info.id, center, u.pos, info.radius)
   }
+  // Battlefield piece 6: growing ultimates (Wellspring, Grove Sanctum).
+  if (forestShaping(info.id) && !over(next)) next = forestShape(next, info.id, getUnit(next, unitId)?.pos || u.pos, targetId ? getUnit(next, targetId)?.pos : null, u.side)
   const live = getUnit(next, unitId)
   if (live) {
     const spent = live.mana + (live.overcharge || 0)

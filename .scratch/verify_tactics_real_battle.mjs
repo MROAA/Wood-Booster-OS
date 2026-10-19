@@ -1158,7 +1158,7 @@ function newPage() {
   await startTactics(page21)
   await page21.waitForTimeout(400)
   // Battlefield sprint: + the map-template tile types.
-  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble", "tree", "barrel", "sporepod", "boulder", "icepillar", "moss", "leaves", "roots", "stone", "glowcap"] // + destructibles + living-forest pieces (battlefield piece 3)
+  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble", "tree", "barrel", "sporepod", "boulder", "icepillar", "moss", "leaves", "roots", "stone", "glowcap", "crystal"] // + destructibles + living-forest pieces (battlefield piece 3)
   const countsByType = {}
   for (const type of terrainTypes) {
     countsByType[type] = await page21.locator(`.hwt-cell[data-terrain="${type}"]`).count()
@@ -1811,7 +1811,7 @@ function newPage() {
   // counts (check21's own established pattern) is the correct way to
   // count only genuine hazard/forest cells.
   // Battlefield sprint: + the map-template tile types.
-  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble", "tree", "barrel", "sporepod", "boulder", "icepillar", "moss", "leaves", "roots", "stone", "glowcap"] // + destructibles + living-forest pieces (battlefield piece 3)
+  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble", "tree", "barrel", "sporepod", "boulder", "icepillar", "moss", "leaves", "roots", "stone", "glowcap", "crystal"] // + destructibles + living-forest pieces (battlefield piece 3)
   let renderedCount = 0
   for (const type of terrainTypes) {
     renderedCount += await page34.locator(`.hwt-cell[data-terrain="${type}"]`).count()
@@ -1973,7 +1973,7 @@ function newPage() {
   await startTactics(page36)
   await page36.waitForTimeout(400)
   // Battlefield sprint: + the map-template tile types.
-  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble", "tree", "barrel", "sporepod", "boulder", "icepillar", "moss", "leaves", "roots", "stone", "glowcap"] // + destructibles + living-forest pieces (battlefield piece 3)
+  const terrainTypes = ["rock", "water", "poison", "forest", "high", "wall", "bridge", "bush", "lava", "ice", "rubble", "tree", "barrel", "sporepod", "boulder", "icepillar", "moss", "leaves", "roots", "stone", "glowcap", "crystal"] // + destructibles + living-forest pieces (battlefield piece 3)
   const countsByType = {}
   for (const type of terrainTypes) {
     countsByType[type] = await page36.locator(`.hwt-cell[data-terrain="${type}"]`).count()

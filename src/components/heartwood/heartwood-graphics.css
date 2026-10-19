@@ -962,6 +962,28 @@ html body .hw-layout-tools-toggle {
   border-radius: 50%;
   background: radial-gradient(rgba(190, 236, 110, 0.75), rgba(140, 200, 70, 0) 70%);
 }
+/* battlefield piece 6: a mana crystal's burst */
+.hwt-fr[data-fr="manaring"] {
+  width: 92px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(196, 160, 255, 0.8);
+  box-shadow: 0 0 14px rgba(170, 130, 255, 0.6), inset 0 0 10px rgba(143, 216, 240, 0.4);
+}
+.hwt-fr[data-fr="shard"] {
+  width: 7px;
+  height: 12px;
+  background: linear-gradient(#e6d8ff, #8a62d8);
+  clip-path: polygon(50% 0, 100% 40%, 50% 100%, 0 40%);
+  filter: drop-shadow(0 0 3px rgba(190, 160, 255, 0.9));
+}
+.hwt-fr[data-fr="manamote"] {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #efe4ff;
+  box-shadow: 0 0 7px 2px rgba(170, 130, 255, 0.85);
+}
 .hwt-fr[data-fr="wisp"] {
   width: 14px;
   height: 18px;
@@ -1063,4 +1085,32 @@ html body .hw-layout-tools-toggle {
 .hw-reduce-motion .hwt-ambience-mist span { animation: none; }
 @media (prefers-reduced-motion: reduce) {
   .hwt-ambience-mist span { animation: none; }
+}
+
+/* Battlefield piece 6: a skill that shapes the forest wears a small leaf */
+.hwt-skill-forest {
+  font-size: 0.72rem;
+  line-height: 1;
+  padding: 1px 4px;
+  border-radius: 999px;
+  background: rgba(79, 107, 46, 0.35);
+  border: 1px solid rgba(143, 176, 122, 0.45);
+}
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-grow"]::after { background: radial-gradient(circle, rgba(160, 210, 120, 0.7), rgba(80, 120, 50, 0.25) 55%, transparent 78%); }
+.hwt-obj-fx[data-kind="grow"] { color: #c6e8a0; border-color: #6f9a4a; }
+
+/* Battlefield piece 6: toppled runestones + mana crystals */
+.hwt-object[data-object="crystal"] .hwt-object-art { width: 62px; height: 62px; }
+.hwt-art-crystal-core { animation: hwt-gfx-crystal 3.6s ease-in-out infinite; }
+@keyframes hwt-gfx-crystal {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-crystal"]::after { background: radial-gradient(circle, rgba(200, 170, 255, 0.85), rgba(120, 90, 210, 0.3) 55%, transparent 78%); }
+.hwt-cell.hwt-combo-flash[data-combo-flash="obj-topple"]::after { background: radial-gradient(circle, rgba(200, 190, 170, 0.75), rgba(110, 100, 80, 0.3) 55%, transparent 78%); }
+.hwt-obj-fx[data-kind="crystal"] { color: #e0d0ff; border-color: #8a62d8; }
+.hwt-obj-fx[data-kind="topple"] { color: #e0d6c0; border-color: #8a7a5a; }
+.hw-reduce-motion .hwt-art-crystal-core { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hwt-art-crystal-core { animation: none; }
 }
