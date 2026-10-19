@@ -1227,7 +1227,7 @@ const BASE_UNITS = {
     rallyAdjacent: { id: "regen", amount: 2 },
     image: fernwakeImg2,
   }),
-  duskbramble: unit("duskbramble", "Duskbramble", "root", 1, "dps", [{ type: "attack", amount: 6 }], {
+  duskbramble: unit("duskbramble", "Snail", "root", 1, "dps", [{ type: "attack", amount: 6 }], {
     // Sunder on hit - a dps-side echo of Oakwarden's identity at a
     // different cost/role context, strips a target's own buff.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } }],
