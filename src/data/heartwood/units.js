@@ -177,6 +177,7 @@ import theHierophantImg2 from "../../assets/heartwood/units/the-hierophant-2.jpg
 import theLoversImg2 from "../../assets/heartwood/units/the-lovers-2.jpg"
 import theChariotImg2 from "../../assets/heartwood/units/the-chariot.jpg"
 import strengthImg2 from "../../assets/heartwood/units/strength-2.jpg"
+import theHermitImg2 from "../../assets/heartwood/units/the-hermit.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -504,7 +505,7 @@ const BASE_UNITS = {
   ], {
     // Self-Ward - "hermit" bends and retreats rather than breaking.
     passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
-    image: theHermitImg,
+    image: theHermitImg2,
     // Retreat Step round (Hearthwood Frontier, tacticsEngine.js only):
     // this own already-existing comment above ("bends and retreats
     // rather than breaking") is the real, hand-authored justification
