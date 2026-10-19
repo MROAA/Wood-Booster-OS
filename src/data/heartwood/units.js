@@ -1219,7 +1219,7 @@ const BASE_UNITS = {
   // support side. Fernwake is the first unit built around it, spreading
   // it to its neighbors at battle start instead of only healing itself
   // every cycle the way Willowmend/Cragmoss already do.
-  fernwake: unit("fernwake", "Fernwake", "leaf", 2, "support", [
+  fernwake: unit("fernwake", "Bird", "leaf", 2, "support", [
     { type: "heal", amount: 3 },
     { type: "attack", amount: 3 },
   ], {
