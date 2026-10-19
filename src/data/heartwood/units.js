@@ -1084,7 +1084,7 @@ const BASE_UNITS = {
   // autoBattleEngine.js's startAutoBattle. Kept to plain attacks itself
   // (no Chain/Haste/etc layered on) since the summoned Spirit Wolf is
   // already a second body's worth of value on top of one recruit.
-  beastcaller: unit("beastcaller", "Beastcaller", "leaf", 3, "support", [
+  beastcaller: unit("beastcaller", "Hippo", "leaf", 3, "support", [
     { type: "attack", amount: 5 },
     { type: "attack", amount: 5 },
   ], {
