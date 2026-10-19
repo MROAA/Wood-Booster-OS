@@ -196,6 +196,7 @@ import bishopsSlashImg2 from "../../assets/heartwood/units/bishops-slash.jpg"
 import emberStagImg2 from "../../assets/heartwood/units/ember-stag-2.jpg"
 import grovekeeperImg2 from "../../assets/heartwood/units/grovekeeper-2.jpg"
 import stormwingImg2 from "../../assets/heartwood/units/stormwing-2.jpg"
+import stoneheartImg2 from "../../assets/heartwood/units/stoneheart-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -670,7 +671,7 @@ const BASE_UNITS = {
       { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 6 } },
       { type: "applyBuff", id: "taunt", amount: 1 },
     ],
-    image: stoneheartImg,
+    image: stoneheartImg2,
   }),
   forgehowl: unit("forgehowl", "Forgehowl", "forgehowl", 3, "dps", [
     { type: "attack", amount: 20 },
