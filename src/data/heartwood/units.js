@@ -825,7 +825,7 @@ const BASE_UNITS = {
     // already established, just a third status through the same door.
     image: runeveilImg2,
   }),
-  frostbind: unit("frostbind", "Frostbind", "moonGlyph", 3, "support", [
+  frostbind: unit("frostbind", "Egret", "moonGlyph", 3, "support", [
     { type: "attack", amount: 3 },
     { type: "debuff", id: "stun", amount: 1, target: "target" },
     { type: "attack", amount: 3 },
