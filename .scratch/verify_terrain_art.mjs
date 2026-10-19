@@ -155,11 +155,13 @@ const sp = await newPage()
 await sp.goto(`http://localhost:${PORT}/heartwood-tactics?objects=1`, { waitUntil: "domcontentloaded" })
 await sp.waitForSelector(".hwt-board", { timeout: 20000 })
 await sp.waitForTimeout(400)
-const show = await sp.evaluate(() => ({
+// Studio-made objects (battleObjects.js) join the showcase too.
+const show = await sp.evaluate(async () => ({
   objects: document.querySelectorAll(".hwt-object").length,
   sprites: document.querySelectorAll(".hwt-object svg[data-art-object]").length,
+  expected: 12 + (await import("/src/services/heartwood/tacticsTerrain.js")).CUSTOM_OBJECT_IDS.length,
 }))
-if (!(show.objects === 12 && show.sprites === 12)) out.errors.push(`c6 showcase sprites ${JSON.stringify(show)}`)
+if (!(show.objects === show.expected && show.sprites === show.expected)) out.errors.push(`c6 showcase sprites ${JSON.stringify(show)}`)
 await sp.goto(`http://localhost:${PORT}/heartwood-tactics?boss=wyrmgall`, { waitUntil: "domcontentloaded" })
 await sp.waitForSelector(".hwt-board", { timeout: 20000 })
 await sp.waitForTimeout(400)

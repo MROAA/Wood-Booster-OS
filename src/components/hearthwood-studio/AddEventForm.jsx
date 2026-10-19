@@ -45,8 +45,9 @@ function emptyChoice() {
   return { label: "", result: "" }
 }
 
-function AddEventForm({ type, onApplied, onPreviewUrlChange }) {
-  const [open, setOpen] = useState(false)
+// autoOpen: an HQ room button ("Write a new event"...) opens it straight away.
+function AddEventForm({ type, onApplied, onPreviewUrlChange, autoOpen = false }) {
+  const [open, setOpen] = useState(autoOpen)
   const [title, setTitle] = useState("")
   const [act, setAct] = useState("1")
   const [body, setBody] = useState("")

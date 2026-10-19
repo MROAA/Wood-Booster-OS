@@ -22,6 +22,25 @@ function pathKey(pathSegments) {
   return pathSegments.join(".")
 }
 
+// What an input shows for a field: a narrator line's `null` speaker is
+// just an empty box, never the word "null".
+function shown(field) {
+  return field.kind === "null" ? "" : String(field.value)
+}
+
+// Tuple lists (hearthwood-read-entities.mjs isListOfTuples): positions
+// get plain names. Marc, 2026-10-19: he rewrites the First Song's
+// dialogue line by line - "0"/"1" would mean nothing to him.
+const TUPLE_LABELS = {
+  lines: ["Who speaks (empty = the narrator)", "What they say"],
+  stakes: ["Kind (story / good / bad...)", "What it means"],
+}
+
+function fieldLabel(listName, key, tuple) {
+  if (!tuple) return key
+  return TUPLE_LABELS[listName]?.[Number(key)] || `Part ${Number(key) + 1}`
+}
+
 function initialDraftFor(items, prefix, draft) {
   items.forEach((item, index) => {
     const itemPrefix = [...prefix, index]
@@ -31,7 +50,7 @@ function initialDraftFor(items, prefix, draft) {
         if (field.kind === "list") {
           initialDraftFor(field.items, [...itemPrefix, key], draft)
         } else if (field.kind !== "complex") {
-          draft[pathKey([...itemPrefix, key])] = String(field.value)
+          draft[pathKey([...itemPrefix, key])] = shown(field)
         }
       }
     } else {
@@ -40,7 +59,7 @@ function initialDraftFor(items, prefix, draft) {
   })
 }
 
-function ItemFields({ fields, prefix, draft, setDraft }) {
+function ItemFields({ fields, prefix, draft, setDraft, listName = "", tuple = false }) {
   const entries = Object.entries(fields).filter(([, field]) => field.kind !== "complex")
 
   return (
@@ -57,7 +76,7 @@ function ItemFields({ fields, prefix, draft, setDraft }) {
 
           const fullPath = [...prefix, key]
           const draftKey = pathKey(fullPath)
-          const changed = draft[draftKey] !== undefined && draft[draftKey] !== String(field.value)
+          const changed = draft[draftKey] !== undefined && draft[draftKey] !== shown(field)
           const isLong = field.kind === "string" && field.value && field.value.length > 60
 
           const inputProps = {
@@ -74,7 +93,7 @@ function ItemFields({ fields, prefix, draft, setDraft }) {
           return (
             <label key={key} className={isLong ? "col-span-2 space-y-1" : "space-y-1"}>
               <div className="flex items-center gap-1 text-[10px] text-[var(--wood-muted)]">
-                {key}
+                {fieldLabel(listName, key, tuple)}
                 {changed && <span className="text-[var(--wood-accent)]">●</span>}
               </div>
 
@@ -105,7 +124,7 @@ function NestedList({ label, field, prefix, draft, setDraft }) {
               <div className="flex-1">
                 {
                   item.fields
-                    ? <ItemFields fields={item.fields} prefix={itemPrefix} draft={draft} setDraft={setDraft} />
+                    ? <ItemFields fields={item.fields} prefix={itemPrefix} draft={draft} setDraft={setDraft} listName={label} tuple={item.tuple} />
                     : (
                       <input
                         value={draft[pathKey(itemPrefix)] ?? ""}
@@ -205,7 +224,7 @@ function collectEdits(items, prefix, draft, entityId, fieldKeyRoot) {
         const draftKey = pathKey([...itemPrefix, key])
         const raw = draft[draftKey]
 
-        if (raw === undefined || raw === String(field.value)) {
+        if (raw === undefined || raw === shown(field)) {
           continue
         }
 
@@ -213,7 +232,10 @@ function collectEdits(items, prefix, draft, entityId, fieldKeyRoot) {
           : field.kind === "boolean" ? raw === "true"
           : raw
 
-        edits.push({ path: [entityId, fieldKeyRoot, ...itemPrefix, key], op: "set", value })
+        // A `rootList` (a map entry that IS the list, STORY_BEATS) has no
+        // field name in its path.
+        const root = fieldKeyRoot === null ? [entityId] : [entityId, fieldKeyRoot]
+        edits.push({ path: [...root, ...itemPrefix, key], op: "set", value })
       }
     } else {
       const draftKey = pathKey(itemPrefix)
@@ -223,7 +245,8 @@ function collectEdits(items, prefix, draft, entityId, fieldKeyRoot) {
         return
       }
 
-      edits.push({ path: [entityId, fieldKeyRoot, ...itemPrefix], op: "set", value: raw })
+      const root = fieldKeyRoot === null ? [entityId] : [entityId, fieldKeyRoot]
+      edits.push({ path: [...root, ...itemPrefix], op: "set", value: raw })
     }
   })
 
@@ -251,7 +274,7 @@ function ListFieldEditor({ type, entityId, fieldKey, field, onApplied, onPreview
     apply,
   } = usePatchPreview({ onApplied, onPreviewUrlChange })
 
-  const edits = collectEdits(field.items, [], draft, entityId, fieldKey)
+  const edits = collectEdits(field.items, [], draft, entityId, field.rootList ? null : fieldKey)
 
   async function handlePreview() {
     if (edits.length === 0) {
@@ -278,7 +301,7 @@ function ListFieldEditor({ type, entityId, fieldKey, field, onApplied, onPreview
               <div className="flex-1">
                 {
                   item.fields
-                    ? <ItemFields fields={item.fields} prefix={[index]} draft={draft} setDraft={setDraft} />
+                    ? <ItemFields fields={item.fields} prefix={[index]} draft={draft} setDraft={setDraft} listName={fieldKey} tuple={item.tuple} />
                     : (
                       <input
                         value={draft[pathKey([index])] ?? ""}
