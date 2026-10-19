@@ -876,7 +876,7 @@ const BASE_UNITS = {
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 2 } }],
     image: wraithcallerImg2,
   }),
-  hexmother: unit("hexmother", "Hexmother", "root", 3, "support", [
+  hexmother: unit("hexmother", "Bird", "root", 3, "support", [
     { type: "attack", amount: 5 },
     { type: "debuff", id: "poison", amount: 2, target: "target" },
     { type: "debuff", id: "weak", amount: 1, target: "target" },
