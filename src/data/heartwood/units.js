@@ -1109,7 +1109,7 @@ const BASE_UNITS = {
   // rather than a new archetype, reusing Chain/Rally exactly as
   // Grimtusk/Ashenhorn already established rather than inventing
   // anything new.
-  foxfire: unit("foxfire", "Foxfire", "fox", 1, "dps", [
+  foxfire: unit("foxfire", "Elephant", "fox", 1, "dps", [
     { type: "attack", amount: 4 },
     { type: "attack", amount: 4 },
   ], {
