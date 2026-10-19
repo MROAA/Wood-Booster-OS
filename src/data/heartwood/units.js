@@ -1178,7 +1178,7 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "strength", amount: 1 }],
     image: duskwrenImg,
   }),
-  rimefang: unit("rimefang", "Rimefang", "moonGlyph", 2, "dps", [{ type: "attack", amount: 7 }], {
+  rimefang: unit("rimefang", "Lemur", "moonGlyph", 2, "dps", [{ type: "attack", amount: 7 }], {
     className: "Frostblade",
     // Chain (autoBattleEngine.js's actSide), same mechanism Grimtusk/
     // Foxfire already established - a bonus hit on a different living
