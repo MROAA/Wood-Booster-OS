@@ -200,6 +200,7 @@ import stoneheartImg2 from "../../assets/heartwood/units/stoneheart-2.jpg"
 import forgehowlImg2 from "../../assets/heartwood/units/forgehowl-2.jpg"
 import duskclawImg2 from "../../assets/heartwood/units/duskclaw.jpg"
 import ashenhornImg2 from "../../assets/heartwood/units/ashenhorn-2.jpg"
+import rootfangImg2 from "../../assets/heartwood/units/rootfang-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -726,7 +727,7 @@ const BASE_UNITS = {
     // debuff-movePattern shape Stormwing already uses for Weak, just a
     // different status id, so no new engine code needed to give the
     // player its own source of the mechanic.
-    image: rootfangImg,
+    image: rootfangImg2,
   }),
   wraithbriar: unit("wraithbriar", "Wraithbriar", "root", 3, "tank", [
     { type: "block", amount: 8 },
