@@ -568,7 +568,7 @@ const BASE_UNITS = {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "heal", amount: 3 } }],
     image: theStarImg2,
   }),
-  "the-moon": unit("the-moon", "Nightbloom", "the-moon", 1, "support", [
+  "the-moon": unit("the-moon", "Squirrel", "the-moon", 1, "support", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 5 },
   ], {
