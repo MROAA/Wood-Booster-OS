@@ -188,6 +188,7 @@ import theTowerImg2 from "../../assets/heartwood/units/the-tower-2.jpg"
 import theStarImg2 from "../../assets/heartwood/units/the-star-2.jpg"
 import theMoonImg2 from "../../assets/heartwood/units/the-moon-2.jpg"
 import theSunImg2 from "../../assets/heartwood/units/the-sun-2.jpg"
+import judgementImg2 from "../../assets/heartwood/units/judgement.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -586,7 +587,7 @@ const BASE_UNITS = {
     // Shatter - "judgement" as a reckoning against whatever's still
     // hiding behind its own guard.
     passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
-    image: judgementImg,
+    image: judgementImg2,
   }),
   "the-world": unit("the-world", "Rootcrown", "the-world", 3, "dps", [{ type: "attack", amount: 20 }], {
     image: theWorldImg,
