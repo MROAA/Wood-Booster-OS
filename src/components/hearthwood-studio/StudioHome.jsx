@@ -45,7 +45,7 @@ function StudioHome({ onEnterRoom, onAction, onWish }) {
       <ol className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-[var(--wood-muted)]">
         <li><span className="text-[var(--wood-accent)]">1.</span> Pick a room below</li>
         <li><span className="text-[var(--wood-accent)]">2.</span> Make your change and look at the preview</li>
-        <li><span className="text-[var(--wood-accent)]">3.</span> Press Apply - it's in the game. Changed your mind? <span className="text-[var(--wood-text)]">↩ Undo a change</span></li>
+        <li><span className="text-[var(--wood-accent)]">3.</span> Press "Put it in the game". Changed your mind? <span className="text-[var(--wood-text)]">↩ Undo a change</span></li>
       </ol>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">

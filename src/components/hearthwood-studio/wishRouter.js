@@ -109,7 +109,7 @@ export function routeWish(text, searchResults = []) {
 
   if (found && (changing || !creating)) {
     return changing
-      ? { kind: "change", entity: found, why: `This is a change to ${found.name || found.id}. The AI prepares it for you to check - nothing is saved before you press Apply.` }
+      ? { kind: "change", entity: found, why: `This is a change to ${found.name || found.id}. The AI prepares it for you to check - nothing is saved before you press "Put it in the game".` }
       : { kind: "open", entity: found, why: `Found ${found.name || found.id}.` }
   }
 

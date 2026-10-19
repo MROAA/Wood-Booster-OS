@@ -55,7 +55,7 @@ await page.waitForTimeout(1200)
 w2.bar = await bar()
 w2.aiBox = await page.locator("textarea").evaluateAll((els) => els.map((el) => el.value).find((v) => v.includes("tougher")) || null)
 out.w2 = w2
-c(w2.kind === "change" && w2.text.includes("nothing is saved before you press Apply") && w2.bar?.includes("Enemies") && w2.aiBox === "make the Rotwood Husk tougher", "w2 change wish -> AI box prefilled", w2)
+c(w2.kind === "change" && w2.text.includes("nothing is saved before you press") && w2.bar?.includes("Enemies") && w2.aiBox === "make the Rotwood Husk tougher", "w2 change wish -> AI box prefilled", w2)
 
 // 3. A form wish opens the form already open.
 await home()
