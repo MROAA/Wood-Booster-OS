@@ -1068,7 +1068,7 @@ const BASE_UNITS = {
   // one plain attack) since it's a free bonus body on top of whatever
   // Beastcaller itself already costs - see the summon field's own
   // comment in the unit() helper for why this can't be full-strength.
-  "spirit-wolf": unit("spirit-wolf", "Spirit Wolf", "wolf", 0, "dps", [
+  "spirit-wolf": unit("spirit-wolf", "Bird", "wolf", 0, "dps", [
     { type: "attack", amount: 3 },
   ], {
     maxHpOverride: 16,
