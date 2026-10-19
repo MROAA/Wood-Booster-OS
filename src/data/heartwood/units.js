@@ -202,6 +202,7 @@ import duskclawImg2 from "../../assets/heartwood/units/duskclaw.jpg"
 import ashenhornImg2 from "../../assets/heartwood/units/ashenhorn-2.jpg"
 import rootfangImg2 from "../../assets/heartwood/units/rootfang-2.jpg"
 import wraithbriarImg2 from "../../assets/heartwood/units/wraithbriar-2.jpg"
+import grimtuskImg2 from "../../assets/heartwood/units/grimtusk-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -760,7 +761,7 @@ const BASE_UNITS = {
     chainDamage: 6,
     // Round 3: a lava-demon image finally read close enough to "tusked
     // brute" to retire round 2's skip note above.
-    image: grimtuskImg,
+    image: grimtuskImg2,
   }),
   thornguard: unit("thornguard", "Thornguard", "shield", 2, "tank", [
     { type: "block", amount: 6 },
