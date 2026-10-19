@@ -448,7 +448,7 @@ const BASE_UNITS = {
     // what was already there.
     className: "Dreamweaver",
   }),
-  "the-high-priestess": unit("the-high-priestess", "Silverbloom", "the-high-priestess", 1, "support", [
+  "the-high-priestess": unit("the-high-priestess", "Jaguar", "the-high-priestess", 1, "support", [
     { type: "heal", amount: 4 },
     { type: "attack", amount: 5 },
   ], {

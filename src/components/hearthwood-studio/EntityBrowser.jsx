@@ -31,7 +31,7 @@ const STORY_TIMELINE_TYPE = "storyTimeline"
 // `allowedTypes` (Hearthwood HQ rooms, studioRooms.js): only that room's
 // lists are offered; null = every type (the "More tools" view).
 // showIds: the raw id under each name - only in "More tools".
-function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onCreateNew, allowedTypes = null, showIds = false }) {
+function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onCreateNew, allowedTypes = null, showIds = false, reloadKey = 0 }) {
   const [entities, setEntities] = useState([])
   const [query, setQuery] = useState("")
   const [typeFilter, setTypeFilter] = useState("")
@@ -94,7 +94,7 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onC
     return () => {
       cancelled = true
     }
-  }, [type, query, isStoryTimeline])
+  }, [type, query, isStoryTimeline, reloadKey])
 
   return (
     <div className="flex h-full min-h-0 flex-col">
