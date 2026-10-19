@@ -1120,7 +1120,7 @@ const BASE_UNITS = {
     chainDamage: 3,
     image: foxfireImg2,
   }),
-  loamguard: unit("loamguard", "Loamguard", "root", 2, "tank", [
+  loamguard: unit("loamguard", "Bison", "root", 2, "tank", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 4 },
   ], {
