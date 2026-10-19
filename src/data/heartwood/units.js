@@ -174,6 +174,7 @@ import theHighPriestessImg2 from "../../assets/heartwood/units/the-high-priestes
 import theEmpressImg2 from "../../assets/heartwood/units/the-empress-2.jpg"
 import theEmperorImg2 from "../../assets/heartwood/units/the-emperor-2.jpg"
 import theHierophantImg2 from "../../assets/heartwood/units/the-hierophant-2.jpg"
+import theLoversImg2 from "../../assets/heartwood/units/the-lovers-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -486,7 +487,7 @@ const BASE_UNITS = {
     // Chain - "twin" as a bonus strike on a second target, the
     // cheapest possible read of the name.
     chainDamage: 3,
-    image: theLoversImg,
+    image: theLoversImg2,
   }),
   "the-chariot": unit("the-chariot", "Thornram", "the-chariot", 2, "dps", [{ type: "attack", amount: 14 }], {
     image: theChariotImg,
