@@ -182,6 +182,7 @@ import wheelOfFortuneImg2 from "../../assets/heartwood/units/wheel-of-fortune.jp
 import justiceImg2 from "../../assets/heartwood/units/justice-2.jpg"
 import theHangedManImg2 from "../../assets/heartwood/units/the-hanged-man-2.jpg"
 import deathImg2 from "../../assets/heartwood/units/death-2.jpg"
+import temperanceImg2 from "../../assets/heartwood/units/temperance.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -546,7 +547,7 @@ const BASE_UNITS = {
     { type: "attack", amount: 5 },
   ], {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "block", amount: 3 } }],
-    image: temperanceImg,
+    image: temperanceImg2,
   }),
   "the-devil": unit("the-devil", "Hollowmaw", "the-devil", 1, "dps", [{ type: "attack", amount: 16 }], {
     // Already the roster's biggest single hit at its cost - kept that
