@@ -590,7 +590,7 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
     image: judgementImg2,
   }),
-  "the-world": unit("the-world", "Rootcrown", "the-world", 3, "dps", [{ type: "attack", amount: 20 }], {
+  "the-world": unit("the-world", "Bird", "the-world", 3, "dps", [{ type: "attack", amount: 20 }], {
     image: theWorldImg2,
   }),
 
