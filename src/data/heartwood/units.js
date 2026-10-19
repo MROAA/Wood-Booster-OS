@@ -730,7 +730,7 @@ const BASE_UNITS = {
     // player its own source of the mechanic.
     image: rootfangImg2,
   }),
-  wraithbriar: unit("wraithbriar", "Wraithbriar", "root", 3, "tank", [
+  wraithbriar: unit("wraithbriar", "Hummingbird", "root", 3, "tank", [
     { type: "block", amount: 8 },
     { type: "attack", amount: 6 },
   ], {
