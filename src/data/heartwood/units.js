@@ -1155,7 +1155,7 @@ const BASE_UNITS = {
   // instead of an enemy's positive ones. Willowmend cleanses itself
   // every cycle before healing and attacking - a real answer to a
   // long Poison/Weak fight instead of just outlasting it.
-  willowmend: unit("willowmend", "Willowmend", "leaf", 2, "support", [
+  willowmend: unit("willowmend", "Beetle", "leaf", 2, "support", [
     { type: "cleanse" },
     { type: "heal", amount: 4 },
     { type: "attack", amount: 4 },
