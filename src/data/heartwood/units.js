@@ -28,6 +28,8 @@ import justiceImg from "../../assets/heartwood/units/justice.jpg"
 import deathImg from "../../assets/heartwood/units/death.jpg"
 import theEmpressImg from "../../assets/heartwood/units/the-empress.jpg"
 import theDevilImg from "../../assets/heartwood/units/the-devil.webp"
+import worldAshElderImg from "../../assets/heartwood/units/world-ash-elder.webp"
+import theThornThroneImg from "../../assets/heartwood/units/the-thorn-throne.webp"
 import theLoversImg from "../../assets/heartwood/units/the-lovers.jpg"
 import theEmperorImg from "../../assets/heartwood/units/the-emperor.jpg"
 import theSunImg from "../../assets/heartwood/units/the-sun.jpg"
@@ -1574,7 +1576,8 @@ const BASE_UNITS = {
   // conditionalPassive) and a deliberately modest stat line - the pick
   // is "which direction is my squad going," not "biggest numbers." All
   // three hooks reuse the existing effect vocabulary; nothing invented.
-  // Placeholder glyph art (cardArt.jsx fallback), no new image assets.
+  // World-Ash Elder + The Thorn Throne have Marc's paintings; the other
+  // two still use the placeholder glyph art (cardArt.jsx fallback).
   "world-ash-elder": unit("world-ash-elder", "World-Ash Elder", "wood", 4, "support", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 4 },
@@ -1587,6 +1590,7 @@ const BASE_UNITS = {
     // biggest hitter. Wants Grove menders and Warden walls around it.
     // (+3 was too strong for a bot's long fights - see TIER_HP note.)
     growth: { amount: 2 },
+    image: worldAshElderImg,
   }),
   "the-thorn-throne": unit("the-thorn-throne", "The Thorn Throne", "flame", 4, "dps", [
     { type: "attack", amount: 7 },
@@ -1600,6 +1604,7 @@ const BASE_UNITS = {
       when: { tribeCount: { tribe: "thorn", min: 3 } },
       effect: [{ type: "applyBuff", id: "strength", amount: 5 }],
     },
+    image: theThornThroneImg,
   }),
   "bulwark-of-ages": unit("bulwark-of-ages", "Bulwark of Ages", "stone", 4, "tank", [
     { type: "block", amount: 7 },
