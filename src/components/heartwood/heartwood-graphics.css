@@ -604,18 +604,29 @@ html:not(.hw-layout-tools) .hw-studio-edit-link {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 25%, transparent), inset 0 0 24px rgba(0, 0, 0, 0.55);
 }
 
-/* Continue: the plaque art (vines, candles) stays as the frame, but its
-   centre carries baked "CONFIRM" + "Quick Sale 150" lettering that
-   fought the real label. A dark lacquered inset panel now covers that
-   centre, so only "Continue" reads. */
-.hw-end-turn.hw-shop-confirm-btn {
-  background:
-    linear-gradient(180deg, #5a230e, #2e0d06) center / 58% 66% no-repeat,
-    url("../../assets/heartwood/buttons/shop-confirm-plaque.png") center / cover no-repeat;
-  font-family: var(--hw-font-display);
-  letter-spacing: 0.06em;
-  color: #ffe6a8;
-  text-shadow: 0 0 8px rgba(255, 190, 90, 0.45), 0 1px 2px #000;
+/* Continue: Marc's own painted plaque (continue.png, 2026-10-19) - the
+   word is painted in, so the button is the picture alone. The label
+   stays in the button for screen readers, just invisible. */
+.hw-end-turn.hw-shop-confirm-btn,
+.hw-end-turn.hw-shop-confirm-btn.hwm-continue {
+  background: url("../../assets/heartwood/buttons/continue-plaque.webp") center / contain no-repeat;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 68px;
+  min-width: 206px;
+  padding: 0;
+  color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55));
+  transition: filter 160ms ease, translate 160ms ease, scale 120ms ease;
+}
+.hw-end-turn.hw-shop-confirm-btn:not(:disabled):hover {
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 10px rgba(255, 176, 80, 0.45)) brightness(1.08);
+  translate: 0 -2px;
+}
+.hw-end-turn.hw-shop-confirm-btn:not(:disabled):active {
+  scale: 0.97;
 }
 
 /* ---------- No "error" cursor anywhere (Marc: "kun käytän pop up

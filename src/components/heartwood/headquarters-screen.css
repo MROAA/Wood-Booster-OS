@@ -250,3 +250,30 @@ html:not(.hw-layout-tools) .hwq-devdesk {
   align-items: center;
   text-align: center;
 }
+/* ...drawn as Marc's own painted "Back" plaque (back.png, 2026-10-19);
+   the words stay inside for screen readers, just invisible. */
+.hwq-visit.hwq-return {
+  min-height: 68px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: url("../../assets/heartwood/buttons/back-plaque.webp") center / contain no-repeat;
+  box-shadow: none;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55));
+  transition: filter 160ms ease, translate 160ms ease, scale 120ms ease;
+}
+.hwq-visit.hwq-return:hover {
+  box-shadow: none;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 10px rgba(255, 176, 80, 0.45)) brightness(1.08);
+}
+.hwq-visit.hwq-return:active {
+  scale: 0.97;
+}
+.hwq-visit.hwq-return > * {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
