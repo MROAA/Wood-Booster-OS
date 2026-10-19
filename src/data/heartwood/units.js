@@ -173,6 +173,7 @@ import theMagicianImg2 from "../../assets/heartwood/units/the-magician.jpg"
 import theHighPriestessImg2 from "../../assets/heartwood/units/the-high-priestess.jpg"
 import theEmpressImg2 from "../../assets/heartwood/units/the-empress-2.jpg"
 import theEmperorImg2 from "../../assets/heartwood/units/the-emperor-2.jpg"
+import theHierophantImg2 from "../../assets/heartwood/units/the-hierophant-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -479,7 +480,7 @@ const BASE_UNITS = {
     { type: "attack", amount: 4 },
   ], {
     passive: [{ type: "applyBuff", id: "strength", amount: 1 }],
-    image: theHierophantImg,
+    image: theHierophantImg2,
   }),
   "the-lovers": unit("the-lovers", "Twinbriar", "the-lovers", 1, "dps", [{ type: "attack", amount: 6 }], {
     // Chain - "twin" as a bonus strike on a second target, the
