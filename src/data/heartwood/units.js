@@ -175,6 +175,7 @@ import theEmpressImg2 from "../../assets/heartwood/units/the-empress-2.jpg"
 import theEmperorImg2 from "../../assets/heartwood/units/the-emperor-2.jpg"
 import theHierophantImg2 from "../../assets/heartwood/units/the-hierophant-2.jpg"
 import theLoversImg2 from "../../assets/heartwood/units/the-lovers-2.jpg"
+import theChariotImg2 from "../../assets/heartwood/units/the-chariot.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -490,7 +491,7 @@ const BASE_UNITS = {
     image: theLoversImg2,
   }),
   "the-chariot": unit("the-chariot", "Thornram", "the-chariot", 2, "dps", [{ type: "attack", amount: 14 }], {
-    image: theChariotImg,
+    image: theChariotImg2,
   }),
   strength: unit("strength", "Ironclaw", "strength", 1, "dps", [{ type: "attack", amount: 5 }], {
     passive: [{ type: "applyBuff", id: "strength", amount: 2 }],
