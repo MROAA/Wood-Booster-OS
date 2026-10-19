@@ -432,7 +432,7 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "regen", amount: 2 }],
     image: theFoolImg2,
   }),
-  "the-magician": unit("the-magician", "Duskweaver", "the-magician", 1, "hybrid", [
+  "the-magician": unit("the-magician", "Mongoose", "the-magician", 1, "hybrid", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 3 },
   ], {
