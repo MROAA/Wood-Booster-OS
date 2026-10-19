@@ -653,7 +653,7 @@ const BASE_UNITS = {
     // Spacemonkey all already use it against the player).
     image: stormwingImg2,
   }),
-  stoneheart: unit("stoneheart", "Stoneheart", "stoneheart", 3, "tank", [
+  stoneheart: unit("stoneheart", "Spider", "stoneheart", 3, "tank", [
     { type: "block", amount: 10 },
     { type: "attack", amount: 7 },
   ], {
