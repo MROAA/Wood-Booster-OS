@@ -216,6 +216,7 @@ import trueshotImg2 from "../../assets/heartwood/units/trueshot-2.jpg"
 import motleyImg2 from "../../assets/heartwood/units/motley-2.jpg"
 import thornwardenImg2 from "../../assets/heartwood/units/thornwarden.jpg"
 import bloomcallerImg2 from "../../assets/heartwood/units/bloomcaller-2.jpg"
+import mosswalkerImg2 from "../../assets/heartwood/units/mosswalker-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -986,7 +987,7 @@ const BASE_UNITS = {
     // the third unit-level Ward source (after Thornguard/Glimmerward),
     // "vanishing" from up to 2 hits' worth of danger instead of one.
     passive: [{ type: "applyBuff", id: "ward", amount: 2 }],
-    image: mosswalkerImg,
+    image: mosswalkerImg2,
   }),
   ironbark: unit("ironbark", "Ironbark", "shield", 2, "tank", [
     { type: "block", amount: 7 },
