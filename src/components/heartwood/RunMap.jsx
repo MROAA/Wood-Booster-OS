@@ -118,7 +118,7 @@ export function RoadAhead({ runState }) {
   )
 }
 
-function RunRail({ runState, onScout }) {
+function RunRail({ runState, onScout, onBelieve }) {
   const nodeIndex = runState.nodeIndex
   const total = RUN_PATH.length
   const currentTier = difficultyTierForNode(nodeIndex, total)
@@ -249,12 +249,12 @@ function RunRail({ runState, onScout }) {
           </div>
         )
       })}
-      <StoryJournal runState={runState} />
+      <StoryJournal runState={runState} onBelieve={onBelieve} />
     </div>
   )
 }
 
-export default function RunMap({ runState, mode, onScout }) {
+export default function RunMap({ runState, mode, onScout, onBelieve }) {
   const trackRef = useRef(null)
   const currentRef = useRef(null)
 
@@ -268,7 +268,7 @@ export default function RunMap({ runState, mode, onScout }) {
     currentRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
   }, [runState.nodeIndex])
 
-  if (mode === "rail") return <RunRail runState={runState} onScout={onScout} />
+  if (mode === "rail") return <RunRail runState={runState} onScout={onScout} onBelieve={onBelieve} />
 
   // RUN_PATH.length, not runState.path.length: since the branching-path
   // work, `path` only holds nodes actually visited so far (it grows as
@@ -337,7 +337,7 @@ export default function RunMap({ runState, mode, onScout }) {
           )
         })}
       </div>
-      <StoryJournal runState={runState} />
+      <StoryJournal runState={runState} onBelieve={onBelieve} />
     </div>
   )
 }

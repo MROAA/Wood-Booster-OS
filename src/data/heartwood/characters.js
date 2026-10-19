@@ -19,6 +19,9 @@ import { scaleEffect } from "./units"
 // portrait / board token uses; `splash` = the whole painting.
 import tommyFaceImg from "../../assets/heartwood/commanders/tommy-face.webp"
 import tommySplashImg from "../../assets/heartwood/commanders/tommy.webp"
+// `figure` = the whole hero cut out of the painting (transparent), the
+// battle-board figure.
+import tommyFigureImg from "../../assets/heartwood/commanders/tommy-figure.webp"
 
 export const CHARACTERS = {
   tommy: {
@@ -27,6 +30,7 @@ export const CHARACTERS = {
     art: "cat",
     image: tommyFaceImg,
     splash: tommySplashImg,
+    figure: tommyFigureImg,
     maxHp: 60,
     tagline: "Agile and quick - always looking for the fast opening.",
     description: "Cat's Reflexes: every hero in the squad strikes a little harder, lands on its feet, and leaves what it hits swinging softer.",

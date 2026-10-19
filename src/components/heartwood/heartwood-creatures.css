@@ -143,3 +143,36 @@
 .hw-forest-choice-path[data-path="newverse"]:not([data-locked]) {
   box-shadow: 0 0 22px -6px var(--hw-goldleaf, #e0b04a);
 }
+
+/* The Four Tellings (myths.js) - in the Story Journal + on the Forest's Choice */
+.hw-tellings-lede { margin: 2px 0 8px; font-size: 0.85em; font-style: italic; color: var(--hw-muted, #a8a089); }
+.hw-telling {
+  --hw-telling: #a8a089;
+  margin: 6px 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--hw-telling);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--hw-telling) 6%, transparent);
+}
+.hw-telling[data-unheard] { opacity: 0.5; }
+.hw-telling[data-believed] {
+  background: color-mix(in srgb, var(--hw-telling) 16%, transparent);
+  box-shadow: 0 0 14px -6px var(--hw-telling);
+}
+.hw-telling-head { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.hw-telling-teller { color: var(--hw-muted, #a8a089); font-size: 0.85em; }
+.hw-telling-count { margin-left: auto; font-size: 0.8em; color: var(--hw-telling); }
+.hw-telling-text { margin: 4px 0; font-size: 0.88em; font-style: italic; line-height: 1.45; }
+.hw-telling-evidence { margin: 4px 0 6px 18px; padding: 0; font-size: 0.82em; line-height: 1.4; color: var(--hw-muted, #a8a089); }
+.hw-telling-believe {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--hw-telling);
+  background: transparent;
+  color: var(--hw-text, #e8dfc8);
+  font-size: 0.82em;
+  cursor: pointer;
+}
+.hw-telling[data-believed] .hw-telling-believe { background: color-mix(in srgb, var(--hw-telling) 30%, transparent); }
+.hw-telling-thin { font-size: 0.8em; color: var(--hw-muted, #a8a089); }
+.hw-forest-choice-belief { margin-top: 6px; font-size: 11px; color: #e8dfc8; opacity: 0.85; }

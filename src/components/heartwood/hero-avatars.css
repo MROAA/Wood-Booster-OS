@@ -249,28 +249,90 @@ svg.hwh-avatar.hwh-avatar { stroke: none; color: inherit; }
   height: 100%;
 }
 
-/* Marc's own Commander paintings react too (HeroToken / CommanderArt). */
-img.hw-commander-look-art { border-radius: 50%; object-fit: cover; display: block; }
+/* Marc's own Commander paintings react too (HeroToken / CommanderArt).
+   Calm, readable reactions - no colour-shifting the painting (Marc found
+   the old red/sepia tint ugly). */
 img[data-commander-image][data-mood="joy"],
 img[data-commander-image][data-mood="victory"],
 .hwh-painted[data-mood="joy"],
 .hwh-painted[data-mood="victory"] {
   animation: hwh-hop 0.6s ease-out 1;
-  filter: brightness(1.12) saturate(1.1);
 }
 .hwh-painted[data-mood="hurt"] {
-  animation: hwh-shake 0.45s ease-in-out 1;
-  filter: sepia(0.35) hue-rotate(-25deg) saturate(1.6);
+  animation: hwh-shake 0.4s ease-in-out 1;
 }
 img[data-commander-image][data-mood="defeat"],
 .hwh-painted[data-mood="defeat"] {
-  filter: grayscale(0.85) brightness(0.75);
+  filter: grayscale(0.8) brightness(0.8);
 }
-.hw-reduce-motion .hwh-painted, .hw-reduce-motion img[data-commander-image] { animation: none !important; }
+
+/* ---------- The board figure: the whole hero cut out of the painting,
+   standing in its tile on a soft pool of light, breathing gently. ---------- */
+.hwt-token-art[data-has-image="figure"] {
+  padding: 0;
+  overflow: hidden;
+  display: block;
+  background:
+    radial-gradient(ellipse 60% 22% at 50% 88%, rgba(0, 0, 0, 0.45), transparent 70%),
+    radial-gradient(circle at 50% 45%, rgba(255, 196, 120, 0.28), transparent 65%),
+    linear-gradient(180deg, #3b2c1b, #1c150d);
+}
+.hwt-token-art[data-has-image="figure"]::after { display: none; }
+/* Framed chest-up: the tile's top badges and bottom name/HP bar cover the
+   edges, so the face sits in the clear middle band. */
+.hwh-figure-img {
+  position: absolute;
+  left: 50%;
+  top: 4%;
+  height: 165%;
+  width: auto;
+  max-width: none;
+  transform: translateX(-50%);
+  transform-origin: 50% 40%;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+  animation: hwh-figure-breathe 3.6s ease-in-out infinite;
+}
+@keyframes hwh-figure-breathe {
+  0%, 100% { transform: translateX(-50%) scale(1, 1); }
+  50% { transform: translateX(-50%) scale(1.012, 1.03); }
+}
+.hwh-figure-img[data-mood="hurt"] { animation: hwh-figure-hit 0.42s ease-out 1; }
+@keyframes hwh-figure-hit {
+  0%, 100% { transform: translateX(-50%); }
+  20% { transform: translateX(calc(-50% - 3px)) rotate(-3deg); }
+  55% { transform: translateX(calc(-50% + 2px)) rotate(2deg); }
+}
+.hwh-figure-img[data-mood="joy"],
+.hwh-figure-img[data-mood="victory"] { animation: hwh-figure-hop 0.7s ease-out 1; }
+@keyframes hwh-figure-hop {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  35% { transform: translateX(-50%) translateY(-5px) scale(1.02, 0.99); }
+}
+.hwh-figure-img[data-mood="defeat"] {
+  animation: none;
+  transform: translateX(-50%) rotate(-6deg) translateY(2px);
+  filter: grayscale(0.8) brightness(0.75) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6));
+}
+/* A short warm flash on the tile when hit, instead of tinting the painting. */
+.hwt-token-art[data-has-image="figure"][data-hero-mood="hurt"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 90, 60, 0.35), transparent 70%);
+  animation: hwh-hit-flash 0.5s ease-out forwards;
+  z-index: 1;
+  pointer-events: none;
+}
+@keyframes hwh-hit-flash { from { opacity: 1; } to { opacity: 0; } }
+.hw-reduce-motion .hwh-painted, .hw-reduce-motion img[data-commander-image], .hw-reduce-motion .hwh-figure-img { animation: none !important; }
 @media (prefers-reduced-motion: reduce) {
-  .hwh-painted, img[data-commander-image] { animation: none !important; }
+  .hwh-painted, img[data-commander-image], .hwh-figure-img { animation: none !important; }
 }
+
 /* Marc's paintings get the same gold medallion ring as the drawn heroes. */
 .hw-commander-select .hw-commander-portrait[data-has-image] {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--hw-goldleaf, #d8b25a) 70%, transparent), 0 4px 12px rgba(0, 0, 0, 0.55);
 }
+/* The figure breathes on its own; the tile itself stays still. */
+.hwt-token .hwt-token-art[data-has-image="figure"] { animation: none !important; }
