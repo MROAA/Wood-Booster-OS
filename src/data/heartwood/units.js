@@ -223,6 +223,7 @@ import sapkeeperImg2 from "../../assets/heartwood/units/sapkeeper.jpg"
 import spiritWolfImg2 from "../../assets/heartwood/units/spirit-wolf-2.jpg"
 import beastcallerImg2 from "../../assets/heartwood/units/beastcaller-2.jpg"
 import foxfireImg2 from "../../assets/heartwood/units/foxfire-2.jpg"
+import loamguardImg2 from "../../assets/heartwood/units/loamguard-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1127,7 +1128,7 @@ const BASE_UNITS = {
     // Ashenhorn already established - grants adjacent allies Strength
     // at battle start, not itself.
     rallyAdjacent: { id: "strength", amount: 1 },
-    image: loamguardImg,
+    image: loamguardImg2,
   }),
   willowfang: unit("willowfang", "Willowfang", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
     // Haste (autoBattleEngine.js's actSide), same mechanism Swiftclaw
