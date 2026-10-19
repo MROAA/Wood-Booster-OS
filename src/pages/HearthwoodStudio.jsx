@@ -27,6 +27,7 @@ import GearEditor from "../components/hearthwood-studio/GearEditor"
 import StudioHome from "../components/hearthwood-studio/StudioHome"
 import StudioToast from "../components/hearthwood-studio/StudioToast"
 import StoryMap from "../components/hearthwood-studio/StoryMap"
+import SkillWorkshop from "../components/hearthwood-studio/SkillWorkshop"
 import CardGallery from "../components/hearthwood-studio/CardGallery"
 import { plainName } from "../components/hearthwood-studio/plainWords"
 import { labelFor } from "../components/hearthwood-studio/entityTypes"
@@ -88,7 +89,7 @@ function HearthwoodStudio() {
     const view = new URLSearchParams(window.location.search).get("view")
     if (view === "resources" || view === "mutations" || view === "gear" || view === "traits" || view === "promotions" || view === "identity") return view
     // the in-game dev desk deep-links straight to these too
-    if (view === "theme" || view === "sheet" || view === "dashboard" || view === "storyMap" || view === "history") return view
+    if (view === "theme" || view === "sheet" || view === "dashboard" || view === "storyMap" || view === "history" || view === "skills") return view
     return deepLink ? "single" : "home"
   })
   // Hearthwood HQ (studioRooms.js): the room you're in limits the left
@@ -566,6 +567,10 @@ function HearthwoodStudio() {
       }
 
       {
+        viewMode === "skills" && <SkillWorkshop onApplied={handleApplied} reloadKey={reloadKey} />
+      }
+
+      {
         viewMode === "storyMap" && (
           <StoryMap
             onOpen={(type, id) => {
@@ -681,7 +686,7 @@ function HearthwoodStudio() {
           </button>
         </div>
       )}
-      {viewMode !== "home" && viewMode !== "history" && viewMode !== "storyMap" && viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && viewMode !== "mutations" && viewMode !== "gear" && viewMode !== "traits" && viewMode !== "promotions" && viewMode !== "identity" && (
+      {viewMode !== "home" && viewMode !== "history" && viewMode !== "storyMap" && viewMode !== "skills" && viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && viewMode !== "mutations" && viewMode !== "gear" && viewMode !== "traits" && viewMode !== "promotions" && viewMode !== "identity" && (
       <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" && gameVisible ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
         <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <EntityBrowser

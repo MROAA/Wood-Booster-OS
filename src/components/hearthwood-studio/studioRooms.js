@@ -35,6 +35,7 @@ export const STUDIO_ROOMS = [
     title: "Skills & Mana",
     blurb: "What each class can do: skills, mana costs, damage and the hero resources.",
     actions: [
+      { label: "Skill workshop", kind: "view", view: "skills" },
       { label: "Edit a class's skills & mana", kind: "type", type: "classes" },
       { label: "Hero resources", kind: "view", view: "resources" },
     ],
