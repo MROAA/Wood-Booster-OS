@@ -542,7 +542,7 @@ const BASE_UNITS = {
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } }],
     image: deathImg2,
   }),
-  temperance: unit("temperance", "Stillbark", "temperance", 1, "tank", [
+  temperance: unit("temperance", "Mermaid", "temperance", 1, "tank", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 5 },
   ], {
