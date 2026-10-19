@@ -224,6 +224,7 @@ import spiritWolfImg2 from "../../assets/heartwood/units/spirit-wolf-2.jpg"
 import beastcallerImg2 from "../../assets/heartwood/units/beastcaller-2.jpg"
 import foxfireImg2 from "../../assets/heartwood/units/foxfire-2.jpg"
 import loamguardImg2 from "../../assets/heartwood/units/loamguard-2.jpg"
+import willowfangImg2 from "../../assets/heartwood/units/willowfang-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1135,7 +1136,7 @@ const BASE_UNITS = {
     // already established - two smaller hits a round instead of one
     // big one.
     haste: true,
-    image: willowfangImg,
+    image: willowfangImg2,
   }),
   cragmoss: unit("cragmoss", "Cragmoss", "leaf", 3, "tank", [
     { type: "block", amount: 6 },
