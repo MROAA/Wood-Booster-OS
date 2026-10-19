@@ -1234,7 +1234,7 @@ const BASE_UNITS = {
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } }],
     image: duskbrambleImg2,
   }),
-  hollowmere: unit("hollowmere", "Hollowmere", "shield", 2, "tank", [
+  hollowmere: unit("hollowmere", "Goat", "shield", 2, "tank", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 4 },
   ], {
