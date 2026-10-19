@@ -499,7 +499,7 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "strength", amount: 2 }],
     image: strengthImg2,
   }),
-  "the-hermit": unit("the-hermit", "Hollowreed", "the-hermit", 1, "support", [
+  "the-hermit": unit("the-hermit", "Bog", "the-hermit", 1, "support", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 6 },
   ], {
