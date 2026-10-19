@@ -1131,7 +1131,7 @@ const BASE_UNITS = {
     rallyAdjacent: { id: "strength", amount: 1 },
     image: loamguardImg2,
   }),
-  willowfang: unit("willowfang", "Willowfang", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
+  willowfang: unit("willowfang", "Chameleon", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
     // Haste (autoBattleEngine.js's actSide), same mechanism Swiftclaw
     // already established - two smaller hits a round instead of one
     // big one.
