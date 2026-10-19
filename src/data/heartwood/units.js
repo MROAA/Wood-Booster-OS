@@ -699,7 +699,7 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "execute", amount: 4 }],
     image: duskclawImg2,
   }),
-  ashenhorn: unit("ashenhorn", "Ashenhorn", "leaf", 2, "support", [
+  ashenhorn: unit("ashenhorn", "Deer", "leaf", 2, "support", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 5 },
   ], {
