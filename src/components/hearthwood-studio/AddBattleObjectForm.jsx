@@ -83,8 +83,9 @@ function emptyForm() {
   return { name: "", icon: "🐝", hp: 3, onBreak: "crumble", power: 4, leaves: "rubble", perBattle: 1, fromAct: 1, note: "" }
 }
 
-function AddBattleObjectForm({ type, onApplied, onPreviewUrlChange }) {
-  const [open, setOpen] = useState(false)
+// autoOpen: an HQ room button ("Write a new event"...) opens it straight away.
+function AddBattleObjectForm({ type, onApplied, onPreviewUrlChange, autoOpen = false }) {
+  const [open, setOpen] = useState(autoOpen)
   const [form, setForm] = useState(emptyForm)
   const [picture, setPicture] = useState(null)
   const [checkError, setCheckError] = useState("")
