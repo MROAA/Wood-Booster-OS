@@ -205,6 +205,7 @@ import wraithbriarImg2 from "../../assets/heartwood/units/wraithbriar-2.jpg"
 import grimtuskImg2 from "../../assets/heartwood/units/grimtusk-2.jpg"
 import thornguardImg2 from "../../assets/heartwood/units/thornguard-2.jpg"
 import swiftclawImg2 from "../../assets/heartwood/units/swiftclaw-2.jpg"
+import emberwispImg2 from "../../assets/heartwood/units/emberwisp-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -808,7 +809,7 @@ const BASE_UNITS = {
     // also can't combo with Chain or Haste (both scoped to
     // attackPattern "single" attacks only), a natural ceiling that
     // came for free rather than needing its own guard.
-    image: emberwispImg,
+    image: emberwispImg2,
   }),
   runeveil: unit("runeveil", "Runeveil", "rune", 2, "dps", [
     { type: "attack", amount: 4 },
