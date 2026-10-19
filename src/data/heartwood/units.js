@@ -201,6 +201,7 @@ import forgehowlImg2 from "../../assets/heartwood/units/forgehowl-2.jpg"
 import duskclawImg2 from "../../assets/heartwood/units/duskclaw.jpg"
 import ashenhornImg2 from "../../assets/heartwood/units/ashenhorn-2.jpg"
 import rootfangImg2 from "../../assets/heartwood/units/rootfang-2.jpg"
+import wraithbriarImg2 from "../../assets/heartwood/units/wraithbriar-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -742,7 +743,7 @@ const BASE_UNITS = {
     // deterministic (no revive chance, no coin flip) per Marc's "easy
     // to play but hard to master".
     passive: [{ type: "applyBuff", id: "revive", amount: 1 }],
-    image: wraithbriarImg,
+    image: wraithbriarImg2,
   }),
   grimtusk: unit("grimtusk", "Grimtusk", "flame", 3, "dps", [
     { type: "attack", amount: 9 },
