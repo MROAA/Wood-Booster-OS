@@ -54,28 +54,34 @@ function StudioHome({ onEnterRoom, onAction, onWish }) {
             <article
               key={room.id}
               data-room={room.id}
-              className="flex flex-col rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] p-4 transition-colors hover:border-[var(--wood-accent)]"
+              tabIndex={-1}
+              className="hw-reveal flex flex-col rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] p-4 transition-colors hover:border-[var(--wood-accent)]"
             >
               <button type="button" onClick={() => onEnterRoom(room)} className="flex items-start gap-3 text-left" data-testid={`room-${room.id}`}>
                 <span className="text-3xl leading-none text-[var(--wood-accent)] opacity-80" aria-hidden="true">{room.rune}</span>
                 <span>
                   <span className="block text-lg font-semibold text-[var(--wood-text)]">{room.title}</span>
-                  <span className="mt-1 block text-xs leading-snug text-[var(--wood-muted)]">{room.blurb}</span>
+                  {/* the explanation opens on hover, like the game's cards (heartwood-reveal.css) */}
+                  <span className="hw-reveal-more mt-1 block text-xs leading-snug text-[var(--wood-muted)]">{room.blurb}</span>
                 </span>
               </button>
 
-              <div className="mt-auto flex flex-wrap gap-1.5 pt-3">
+              <div className="mt-auto pt-3">
+                <button type="button" onClick={() => onAction(room, room.actions[0])} className={plaque}>
+                  {room.actions[0].label}
+                </button>
                 {
-                  room.actions.map(action => (
-                    <button
-                      key={action.label}
-                      type="button"
-                      onClick={() => onAction(room, action)}
-                      className={plaque}
-                    >
-                      {action.label}
-                    </button>
-                  ))
+                  room.actions.length > 1 && (
+                    <div className="hw-reveal-more flex flex-wrap gap-1.5 pt-1.5">
+                      {
+                        room.actions.slice(1).map(action => (
+                          <button key={action.label} type="button" onClick={() => onAction(room, action)} className={plaque}>
+                            {action.label}
+                          </button>
+                        ))
+                      }
+                    </div>
+                  )
                 }
               </div>
             </article>

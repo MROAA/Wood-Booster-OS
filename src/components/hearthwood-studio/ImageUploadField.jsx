@@ -107,25 +107,27 @@ function ImageUploadField({ type, entityId, fieldName, currentImagePath, onAppli
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2">
+      {/* Marc is a visual person: the picture is big, the button says what it does. */}
+      <div className="flex items-end gap-3" data-testid="picture-field">
         {
           displayedImageUrl
             ? (
               <img
                 src={displayedImageUrl}
                 alt={fieldName}
-                className="h-14 w-14 shrink-0 rounded-lg border border-[var(--wood-border)] object-cover bg-[var(--wood-bg)]"
+                className="h-44 w-32 shrink-0 rounded-xl border border-[var(--wood-accent)] object-cover bg-[var(--wood-bg)] shadow-lg"
               />
             )
             : (
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-dashed border-[var(--wood-border)] text-[10px] text-[var(--wood-muted)]">
-                No image
+              <div className="flex h-44 w-32 shrink-0 items-center justify-center rounded-xl border border-dashed border-[var(--wood-border)] text-xs text-[var(--wood-muted)]">
+                No picture yet
               </div>
             )
         }
 
         <div className="flex flex-col gap-1">
-          <span className="text-[10px] uppercase tracking-wide text-[var(--wood-muted)]">{fieldName}</span>
+          <span className="text-xs font-medium text-[var(--wood-text)]">Picture</span>
+          <span className="max-w-[14rem] text-[11px] text-[var(--wood-muted)]">A JPG, PNG or WEBP from your computer. You'll see it before it goes into the game.</span>
 
           <button
             type="button"
@@ -137,7 +139,7 @@ function ImageUploadField({ type, entityId, fieldName, currentImagePath, onAppli
               hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]
             "
           >
-            {uploading ? "Uploading..." : "🖼 Change image"}
+            {uploading ? "Loading the picture..." : "🖼 Choose a new picture"}
           </button>
         </div>
 
