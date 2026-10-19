@@ -746,7 +746,7 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "revive", amount: 1 }],
     image: wraithbriarImg2,
   }),
-  grimtusk: unit("grimtusk", "Grimtusk", "flame", 3, "dps", [
+  grimtusk: unit("grimtusk", "Butterfly", "flame", 3, "dps", [
     { type: "attack", amount: 9 },
     { type: "attack", amount: 9 },
   ], {
