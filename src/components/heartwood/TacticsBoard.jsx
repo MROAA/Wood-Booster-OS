@@ -17,7 +17,6 @@ import { auraTiles, AURA_LABEL } from "../../services/heartwood/gear"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CardGlyph } from "./cardArt"
 import HeroToken, { heroIdOfUnit } from "./HeroToken"
-import { commanderShowsImage } from "./CommanderArt"
 import { ElementBadges, ElementHelp } from "./TacticsElementsUi"
 // Combat depth sprint: round timeline, stances, reactions, combos.
 import { TurnTimeline, DepthActions, DepthTokenChips, IntentReactionMarks, DepthHelp } from "./TacticsDepthUi"
@@ -253,12 +252,11 @@ function portraitOf(unit) {
 // Portrait (or glyph fallback) - shared by the live token, the fading
 // fallen-unit ghost and the panel's selected-unit card.
 function TokenArt({ unit, battle, speak = false }) {
-  // Drawn Commanders (heroes.js) react and speak - see HeroToken.jsx.
-  // Marc's own painting (characters.js `image`) wins in the default look,
-  // the same rule CommanderArt uses everywhere else ("the animated one is
-  // not Tommy - use the painting").
+  // Commanders react and speak - see HeroToken.jsx. HeroToken itself picks
+  // Marc's painting (from characters.js, so old saves get it too: the cut-out
+  // figure on the board, the face crop in small portraits) over the drawing.
   const heroId = heroIdOfUnit(unit)
-  if (heroId && !commanderShowsImage({ image: unit.image, art: unit.art })) return <HeroToken unit={unit} heroId={heroId} battle={battle} speak={speak} />
+  if (heroId) return <HeroToken unit={unit} heroId={heroId} battle={battle} speak={speak} />
   const src = portraitOf(unit)
   return (
     <div className="hwt-token-art" data-has-image={!!src}>
