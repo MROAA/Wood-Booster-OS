@@ -37,6 +37,9 @@ import lehvaFigureImg from "../../assets/heartwood/commanders/lehva-figure.webp"
 import kaskiFaceImg from "../../assets/heartwood/commanders/kaski-face.webp"
 import kaskiSplashImg from "../../assets/heartwood/commanders/kaski.webp"
 import kaskiFigureImg from "../../assets/heartwood/commanders/kaski-figure.webp"
+import louhiFaceImg from "../../assets/heartwood/commanders/louhi-face.webp"
+import louhiSplashImg from "../../assets/heartwood/commanders/louhi.webp"
+import louhiFigureImg from "../../assets/heartwood/commanders/louhi-figure.webp"
 
 export const CHARACTERS = {
   tommy: {
@@ -439,6 +442,9 @@ export const CHARACTERS = {
     id: "louhi",
     name: "Louhi",
     art: "stone",
+    image: louhiFaceImg,
+    splash: louhiSplashImg,
+    figure: louhiFigureImg,
     locked: true,
     unlockCost: 90,
     maxHp: 70,
