@@ -232,6 +232,7 @@ import hollowquillImg2 from "../../assets/heartwood/units/hollowquill-2.jpg"
 import stoneknollImg2 from "../../assets/heartwood/units/stoneknoll-2.jpg"
 import quarrywardenImg2 from "../../assets/heartwood/units/quarrywarden-2.jpg"
 import fernwakeImg2 from "../../assets/heartwood/units/fernwake-2.jpg"
+import duskbrambleImg2 from "../../assets/heartwood/units/duskbramble-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1230,7 +1231,7 @@ const BASE_UNITS = {
     // Sunder on hit - a dps-side echo of Oakwarden's identity at a
     // different cost/role context, strips a target's own buff.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } }],
-    image: duskbrambleImg,
+    image: duskbrambleImg2,
   }),
   hollowmere: unit("hollowmere", "Hollowmere", "shield", 2, "tank", [
     { type: "block", amount: 6 },
