@@ -595,7 +595,7 @@ const BASE_UNITS = {
     image: theWorldImg2,
   }),
 
-  "knights-leap": unit("knights-leap", "Knight's Leap", "spark", 2, "dps", [{ type: "attack", amount: 12 }], {
+  "knights-leap": unit("knights-leap", "Chameleon", "spark", 2, "dps", [{ type: "attack", amount: 12 }], {
     attackPattern: "knight",
     image: knightsLeapImg2,
   }),
