@@ -75,13 +75,13 @@ function StudioHome({ onEnterRoom, onAction, onWish }) {
               key={room.id}
               data-room={room.id}
               tabIndex={-1}
-              className="hw-reveal flex flex-col rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] p-4 transition-colors hover:border-[var(--wood-accent)]"
+              className="hws-card hw-reveal flex flex-col rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] p-4 transition-colors hover:border-[var(--wood-accent)]"
             >
               <button type="button" onClick={() => onEnterRoom(room)} className="flex items-start gap-3 text-left" data-testid={`room-${room.id}`}>
-                <span className="text-3xl leading-none text-[var(--wood-accent)] opacity-80" aria-hidden="true">{room.rune}</span>
+                <span className="hws-rune text-3xl leading-none text-[var(--wood-accent)] opacity-90" aria-hidden="true">{room.rune}</span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline justify-between gap-2">
-                    <span className="block text-lg font-semibold text-[var(--wood-text)]">{room.title}</span>
+                    <span className="hws-display block text-2xl font-semibold leading-tight text-[var(--wood-text)]">{room.title}</span>
                     {
                       roomCount(room)?.total > 0 && (
                         <span className="shrink-0 text-right" data-testid={`room-count-${room.id}`}>

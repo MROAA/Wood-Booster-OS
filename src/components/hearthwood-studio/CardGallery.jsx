@@ -70,17 +70,15 @@ function CardGallery({ type, onSelect, reloadKey = 0 }) {
                 type="button"
                 onClick={() => onSelect(type, entity.id)}
                 data-card={entity.id}
-                className="hw-reveal flex flex-col overflow-hidden rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] text-left transition-colors hover:border-[var(--wood-accent)] focus:border-[var(--wood-accent)]"
+                className="hws-card hw-reveal flex flex-col overflow-hidden rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] text-left transition-colors hover:border-[var(--wood-accent)] focus:border-[var(--wood-accent)]"
               >
-                <div className="flex w-full items-center justify-center overflow-hidden bg-[var(--wood-panel)]" style={{ aspectRatio: "3 / 4" }}>
-                  {
-                    image
-                      ? <img src={`/${image}`} alt="" loading="lazy" className="h-full w-full object-cover" />
-                      : <span className="text-5xl text-[var(--wood-accent)]" aria-hidden="true">{symbolFor(entity)}</span>
-                  }
+                <div className="hws-card-art flex w-full items-center justify-center overflow-hidden bg-[var(--wood-panel)]" style={{ aspectRatio: "3 / 4" }}>
+                  {/* A missing picture falls back to the symbol - never a broken-image mark. */}
+                  {image && <img src={`/${image}`} alt="" loading="lazy" className="h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; event.currentTarget.nextElementSibling.style.display = "" }} />}
+                  <span className="text-5xl text-[var(--wood-accent)]" aria-hidden="true" style={image ? { display: "none" } : undefined}>{symbolFor(entity)}</span>
                 </div>
                 <div className="space-y-1 p-2">
-                  <div className="truncate text-sm font-semibold text-[var(--wood-text)]">{plainName(entity, labelFor(type))}</div>
+                  <div className="hws-display truncate text-base font-semibold text-[var(--wood-text)]">{plainName(entity, labelFor(type))}</div>
                   {
                     stats.length > 0 && (
                       <div className="flex flex-wrap gap-x-2 text-xs tabular-nums text-[var(--wood-muted)]">
