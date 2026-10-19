@@ -219,6 +219,7 @@ import bloomcallerImg2 from "../../assets/heartwood/units/bloomcaller-2.jpg"
 import mosswalkerImg2 from "../../assets/heartwood/units/mosswalker-2.jpg"
 import ironbarkImg2 from "../../assets/heartwood/units/ironbark-2.jpg"
 import briarbladeImg2 from "../../assets/heartwood/units/briarblade-2.jpg"
+import sapkeeperImg2 from "../../assets/heartwood/units/sapkeeper.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1040,7 +1041,7 @@ const BASE_UNITS = {
     // again; rallyHeal every round to adjacent allies is a direct hit
     // on Marc's Healing/Support class description.
     className: "Sapkeeper",
-    image: sapkeeperImg,
+    image: sapkeeperImg2,
   }),
   mycelist: unit("mycelist", "Mycelist", "leaf", 3, "support", [
     { type: "attack", amount: 4 },
