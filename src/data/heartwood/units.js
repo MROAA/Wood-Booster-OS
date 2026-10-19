@@ -467,7 +467,7 @@ const BASE_UNITS = {
     { type: "block", amount: 4 },
     { type: "attack", amount: 6 },
   ], { image: theEmpressImg2 }),
-  "the-emperor": unit("the-emperor", "Stonecrown", "the-emperor", 2, "tank", [
+  "the-emperor": unit("the-emperor", "Viking", "the-emperor", 2, "tank", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 5 },
   ], {
