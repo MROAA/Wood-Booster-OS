@@ -461,7 +461,7 @@ const BASE_UNITS = {
     passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } }],
     image: theHighPriestessImg2,
   }),
-  "the-empress": unit("the-empress", "Thistlequeen", "the-empress", 2, "support", [
+  "the-empress": unit("the-empress", "Kangaroo", "the-empress", 2, "support", [
     { type: "heal", amount: 5 },
     { type: "block", amount: 4 },
     { type: "attack", amount: 6 },
