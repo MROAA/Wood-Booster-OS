@@ -812,7 +812,7 @@ const BASE_UNITS = {
     // came for free rather than needing its own guard.
     image: emberwispImg2,
   }),
-  runeveil: unit("runeveil", "Runeveil", "rune", 2, "dps", [
+  runeveil: unit("runeveil", "Wildebeest", "rune", 2, "dps", [
     { type: "attack", amount: 4 },
     { type: "debuff", id: "vulnerable", amount: 1, target: "target" },
     { type: "attack", amount: 4 },
