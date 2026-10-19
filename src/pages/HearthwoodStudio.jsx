@@ -25,6 +25,7 @@ import MutationEditor from "../components/hearthwood-studio/MutationEditor"
 import { TraitEditor, PromotionEditor, HeroIdentityEditor } from "../components/hearthwood-studio/HeroDataEditor"
 import GearEditor from "../components/hearthwood-studio/GearEditor"
 import StudioHome from "../components/hearthwood-studio/StudioHome"
+import StudioToast from "../components/hearthwood-studio/StudioToast"
 import StoryWriter, { STORY_WRITER_TYPES } from "../components/hearthwood-studio/StoryWriter"
 import { roomById, roomForType } from "../components/hearthwood-studio/studioRooms"
 
@@ -308,6 +309,7 @@ function HearthwoodStudio() {
 
   return (
     <div className="space-y-6">
+      <StudioToast />
       <header className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -315,7 +317,7 @@ function HearthwoodStudio() {
               <span className="mr-2 text-[var(--wood-accent)]" aria-hidden="true">ᛞ</span>Hearthwood HQ
             </h1>
             <p className="mt-1 text-[var(--wood-muted)]">
-              Your workshop for building the game. Nothing changes until you press Apply, and every change can be undone.
+              Your workshop for building the game. Nothing changes until you press "Put it in the game", and every change can be undone.
             </p>
           </div>
 
@@ -608,6 +610,7 @@ function HearthwoodStudio() {
             onAddNew={handleAddNew}
             onCreateNew={handleCreateNew}
             allowedTypes={room ? room.types : null}
+            showIds={showMoreTools}
           />
         </section>
 

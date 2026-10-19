@@ -29,7 +29,8 @@ const STORY_TIMELINE_TYPE = "storyTimeline"
  */
 // `allowedTypes` (Hearthwood HQ rooms, studioRooms.js): only that room's
 // lists are offered; null = every type (the "More tools" view).
-function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onCreateNew, allowedTypes = null }) {
+// showIds: the raw id under each name - only in "More tools".
+function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onCreateNew, allowedTypes = null, showIds = false }) {
   const [entities, setEntities] = useState([])
   const [query, setQuery] = useState("")
   const [typeFilter, setTypeFilter] = useState("")
@@ -279,7 +280,7 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onC
                         )
                       }
                       <div className="truncate font-medium">{entity.name || entity.id}</div>
-                      <div className="truncate font-mono text-[10px] opacity-70">{entity.id}</div>
+                      {(showIds || !entity.name) && <div className="truncate font-mono text-[10px] opacity-70">{entity.id}</div>}
                     </div>
                   </button>
                 )

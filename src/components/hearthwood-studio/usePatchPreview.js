@@ -65,10 +65,14 @@ export function usePatchPreview({ onApplied, onPreviewUrlChange } = {}) {
     setErrorMessage("")
 
     try {
-      await apiPost(`/hearthwood-patchbay/${result.patchId}/apply`, {
+      const row = await apiPost(`/hearthwood-patchbay/${result.patchId}/apply`, {
         applyMode: "live",
         confirm: true,
       })
+
+      // Tell the Studio page how it went (StudioToast in HearthwoodStudio.jsx):
+      // Marc needs a plain "it's in the game" - or "it was undone".
+      window.dispatchEvent(new CustomEvent("hw-studio-applied", { detail: { status: row?.status || "applied", patchId: result.patchId } }))
 
       onPreviewUrlChange?.(null)
       setResult(null)
