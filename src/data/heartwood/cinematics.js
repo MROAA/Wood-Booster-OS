@@ -141,6 +141,22 @@ export const CINEMATICS = {
     ],
   },
 
+  // New Game+ only (forestMemory.js): the PRD's hardest ending.
+  "ending-newverse": {
+    id: "ending-newverse",
+    title: "The New Verse",
+    subtitle: "Not the old song. Not silence. Something with room after it.",
+    fade: "gold",
+    lines: [
+      { speaker: "The Crownless", line: "You have been here before. I remember your footsteps. You remember mine." },
+      { speaker: "You", line: "I'm not going to finish your song. I'm going to sing a different line." },
+      { speaker: "The forest", tone: "whisper", line: "No one has ever answered that way." },
+      { speaker: "The Crownless", line: "Then sing. And leave room after it - for the next one who comes." },
+      { speaker: "The forest", tone: "gentle", line: "The laws bend. Nothing is perfect. Everything can still grow." },
+      { speaker: "Spacemonkey", tone: "quiet", line: "...Huh. So that's what the last verse was for. Leaving it open." },
+    ],
+  },
+
   // Plays once, right after the chosen ending cinematic. A teaser for
   // the Echo Age (bible: "explicitly NOT Heartwood 2"), no new
   // gameplay - it just tells you the story isn't quite finished.

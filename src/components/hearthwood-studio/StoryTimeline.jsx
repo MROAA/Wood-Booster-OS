@@ -71,6 +71,7 @@ const CINEMATIC_POSITIONS = {
   "ending-rooted": { act: 8, priority: 0 },
   "ending-ember": { act: 8, priority: 0 },
   "ending-hollow": { act: 8, priority: 0 },
+  "ending-newverse": { act: 8, priority: 1 },
   "echo-epilogue": { act: 9, priority: 0 },
 }
 

@@ -86,6 +86,18 @@ export const FOREST_PATHS = [
   },
 ]
 
+// New Game+ (forestMemory.js NEW_VERSE): the PRD's hardest ending. Shown
+// on the Forest's Choice locked until a return journey knows enough truths.
+FOREST_PATHS.push({
+  id: "newverse",
+  name: "The New Verse",
+  tagline: "Change the forest's laws. Leave room after.",
+  blurb:
+    "Neither restore the old song nor bind it nor let it go quiet: sing a new verse of your own - not a perfect order, just a different one, with room left after it. Only someone who has walked the forest more than once knows enough to try.",
+  endingId: "ending-newverse",
+  requiresNewVerse: true,
+})
+
 export function forestPathByEndingId(endingId) {
   return FOREST_PATHS.find((p) => p.endingId === endingId) || null
 }

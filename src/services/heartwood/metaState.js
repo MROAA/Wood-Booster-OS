@@ -11,6 +11,8 @@
 //
 // Key: heartwood-meta-v1  (see runSaveState.js's key registry)
 
+import { freshForestMemory, sanitizeForestMemory } from "./forestMemory"
+
 const META_KEY = "heartwood-meta-v1"
 const META_VERSION = 1
 
@@ -30,6 +32,9 @@ function freshMeta() {
     // unioned in when a run ends (HeartwoodBattle). Additive - a store
     // without it just starts empty, no META_VERSION bump.
     almanac: { units: [], enemies: [], relics: [], events: [] },
+    // New Game+ (forestMemory.js): what the forest remembers between runs -
+    // cycle (runs won), truths learned, endings seen, last regard. Additive.
+    forestMemory: freshForestMemory(),
   }
 }
 
@@ -57,6 +62,7 @@ export function loadMeta() {
         relics: Array.isArray(parsed.almanac?.relics) ? parsed.almanac.relics : [],
         events: Array.isArray(parsed.almanac?.events) ? parsed.almanac.events : [],
       },
+      forestMemory: sanitizeForestMemory(parsed.forestMemory),
     }
   } catch {
     return freshMeta()
