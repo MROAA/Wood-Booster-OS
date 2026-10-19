@@ -563,7 +563,7 @@ const BASE_UNITS = {
   "the-tower": unit("the-tower", "Elephant", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }], {
     image: theTowerImg2,
   }),
-  "the-star": unit("the-star", "Glowmoss", "the-star", 1, "support", [{ type: "attack", amount: 4 }], {
+  "the-star": unit("the-star", "Grasshopper", "the-star", 1, "support", [{ type: "attack", amount: 4 }], {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "heal", amount: 3 } }],
     image: theStarImg2,
   }),
