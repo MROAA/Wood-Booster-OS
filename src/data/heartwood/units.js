@@ -862,7 +862,7 @@ const BASE_UNITS = {
     rallyAdjacent: { id: "ward", amount: 1 },
     image: glimmerwardImg2,
   }),
-  wraithcaller: unit("wraithcaller", "Wraithcaller", "moonGlyph", 3, "hybrid", [{ type: "attack", amount: 6 }], {
+  wraithcaller: unit("wraithcaller", "Duck", "moonGlyph", 3, "hybrid", [{ type: "attack", amount: 6 }], {
     className: "Soulbinder",
     // A fifth mage, a life-drain caster - Lifesteal's first UNIT-level
     // source (previously only Vampiric Bloom, a relic). Every other
