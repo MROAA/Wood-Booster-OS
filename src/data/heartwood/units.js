@@ -227,6 +227,7 @@ import loamguardImg2 from "../../assets/heartwood/units/loamguard-2.jpg"
 import willowfangImg2 from "../../assets/heartwood/units/willowfang-2.jpg"
 import cragmossImg2 from "../../assets/heartwood/units/cragmoss-2.jpg"
 import willowmendImg2 from "../../assets/heartwood/units/willowmend-2.jpg"
+import rimefangImg2 from "../../assets/heartwood/units/rimefang-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1183,7 +1184,7 @@ const BASE_UNITS = {
     // Foxfire already established - a bonus hit on a different living
     // enemy when this unit's own attack lands the killing blow.
     chainDamage: 4,
-    image: rimefangImg,
+    image: rimefangImg2,
   }),
   hollowquill: unit("hollowquill", "Hollowquill", "rune", 2, "dps", [
     { type: "attack", amount: 8 },
