@@ -628,7 +628,7 @@ const BASE_UNITS = {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "applyBuff", id: "strength", amount: 1 } }],
     image: emberStagImg2,
   }),
-  grovekeeper: unit("grovekeeper", "Grovekeeper", "grovekeeper", 2, "tank", [
+  grovekeeper: unit("grovekeeper", "Lizard", "grovekeeper", 2, "tank", [
     { type: "block", amount: 8 },
     { type: "attack", amount: 6 },
   ], {
