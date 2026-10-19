@@ -63,6 +63,12 @@ const BASICS = {
   blurb: { label: "Short description", icon: "📜" },
   persona: { label: "Personality", icon: "🎭" },
   quirk: { label: "Quirk", icon: "🎭" },
+  value: { label: "Amount", icon: "🔢", help: "The number the game uses for this." },
+  manaPool: { label: "Mana pool", icon: "💧", help: "How much mana this class can hold." },
+  desc: { label: "Description", icon: "📜" },
+  effect: { label: "What it does", icon: "✨" },
+  unlockLevel: { label: "Unlocks at market level", icon: "🔓" },
+  priceMult: { label: "Price ×", icon: "🪙", help: "1 = normal price, 0.75 = a quarter cheaper, 1.5 = half more." },
 }
 
 function Stepper({ value, onChange, changed }) {

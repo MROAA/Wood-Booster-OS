@@ -5,6 +5,7 @@ import { apiGet } from "../../api/client"
 import { actLabel } from "./actNames"
 import { ALL_TYPES } from "./entityTypes"
 import { chapterOf } from "./StoryWriter"
+import { plainName } from "./plainWords"
 import { STORY_CHAPTERS } from "../../data/heartwood/campaign"
 import StoryTimeline from "./StoryTimeline"
 
@@ -279,8 +280,8 @@ function EntityBrowser({ type, onTypeChange, selectedId, onSelect, onAddNew, onC
                           </div>
                         )
                       }
-                      <div className="truncate font-medium">{entity.name || entity.id}</div>
-                      {(showIds || !entity.name) && <div className="truncate font-mono text-[10px] opacity-70">{entity.id}</div>}
+                      <div className="truncate font-medium">{plainName(entity, ALL_TYPES.find(entry => entry.type === type)?.label)}</div>
+                      {showIds && <div className="truncate font-mono text-[10px] opacity-70">{entity.id}</div>}
                     </div>
                   </button>
                 )

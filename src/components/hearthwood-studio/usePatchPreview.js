@@ -35,7 +35,9 @@ export function usePatchPreview({ onApplied, onPreviewUrlChange } = {}) {
     try {
       await stopActivePreview()
 
-      const data = await apiPost("/hearthwood-patchbay/preview", body)
+      // The sandbox game is only wanted while the live game panel is open
+      // (HearthwoodStudio "More tools" -> Show the game).
+      const data = await apiPost("/hearthwood-patchbay/preview", { ...body, livePreview: window.__hwStudioLiveGame === true })
 
       setResult(data)
       setApplyMode(data.risk?.allowedModes?.includes("live") ? "live" : "pr")
