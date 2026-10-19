@@ -1043,7 +1043,7 @@ const BASE_UNITS = {
     className: "Sapkeeper",
     image: sapkeeperImg2,
   }),
-  mycelist: unit("mycelist", "Mycelist", "leaf", 3, "support", [
+  mycelist: unit("mycelist", "Mushrooms", "leaf", 3, "support", [
     { type: "attack", amount: 4 },
     { type: "debuff", id: "poison", amount: 2, target: "target" },
     { type: "attack", amount: 4 },
