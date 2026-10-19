@@ -605,7 +605,7 @@ const BASE_UNITS = {
     attackPattern: "rook",
     image: rooksChargeImg2,
   }),
-  "bishops-slash": unit("bishops-slash", "Bishop's Slash", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
+  "bishops-slash": unit("bishops-slash", "Swan", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
     attackPattern: "bishop",
     image: bishopsSlashImg2,
   }),
