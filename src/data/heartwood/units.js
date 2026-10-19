@@ -583,7 +583,7 @@ const BASE_UNITS = {
   "the-sun": unit("the-sun", "Lemurs", "the-sun", 2, "dps", [{ type: "attack", amount: 16 }], {
     image: theSunImg2,
   }),
-  judgement: unit("judgement", "Stoneknell", "judgement", 1, "dps", [{ type: "attack", amount: 7 }], {
+  judgement: unit("judgement", "Giraffe", "judgement", 1, "dps", [{ type: "attack", amount: 7 }], {
     // Shatter - "judgement" as a reckoning against whatever's still
     // hiding behind its own guard.
     passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
