@@ -206,6 +206,7 @@ import grimtuskImg2 from "../../assets/heartwood/units/grimtusk-2.jpg"
 import thornguardImg2 from "../../assets/heartwood/units/thornguard-2.jpg"
 import swiftclawImg2 from "../../assets/heartwood/units/swiftclaw-2.jpg"
 import emberwispImg2 from "../../assets/heartwood/units/emberwisp-2.jpg"
+import runeveilImg2 from "../../assets/heartwood/units/runeveil.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -821,7 +822,7 @@ const BASE_UNITS = {
     // Sundering Mark's onDealDamage trigger granted it). Same
     // debuff-movePattern shape Stormwing (Weak) and Rootfang (Poison)
     // already established, just a third status through the same door.
-    image: runeveilImg,
+    image: runeveilImg2,
   }),
   frostbind: unit("frostbind", "Frostbind", "moonGlyph", 3, "support", [
     { type: "attack", amount: 3 },
