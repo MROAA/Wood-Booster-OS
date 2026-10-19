@@ -28,6 +28,7 @@ import justiceImg from "../../assets/heartwood/units/justice.jpg"
 import deathImg from "../../assets/heartwood/units/death.jpg"
 import theEmpressImg from "../../assets/heartwood/units/the-empress.jpg"
 import theDevilImg from "../../assets/heartwood/units/the-devil.webp"
+import starHeraldImg from "../../assets/heartwood/units/star-herald.webp"
 import voidHeraldImg from "../../assets/heartwood/units/void-herald.webp"
 import worldAshElderImg from "../../assets/heartwood/units/world-ash-elder.webp"
 import theThornThroneImg from "../../assets/heartwood/units/the-thorn-throne.webp"
@@ -1567,6 +1568,7 @@ const BASE_UNITS = {
       { type: "applyBuff", id: "ascendant", amount: 1 },
       { type: "applyBuff", id: "ward", amount: 1 },
     ],
+    image: starHeraldImg,
   }),
   "goldenbough-ascendant": unit("goldenbough-ascendant", "Goldenbough Ascendant", "leaf", 2, "dps", [{ type: "attack", amount: 7 }], {
     evolvedFrom: "the-hierophant",
