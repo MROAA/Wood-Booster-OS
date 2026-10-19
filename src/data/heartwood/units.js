@@ -898,7 +898,7 @@ const BASE_UNITS = {
     // shape already supports back-to-back entries.
     image: hexmotherImg2,
   }),
-  wispkeeper: unit("wispkeeper", "Wispkeeper", "heart", 3, "support", [
+  wispkeeper: unit("wispkeeper", "Monkey", "heart", 3, "support", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 4 },
   ], {
