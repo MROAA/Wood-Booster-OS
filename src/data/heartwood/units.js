@@ -186,6 +186,7 @@ import temperanceImg2 from "../../assets/heartwood/units/temperance.jpg"
 import theDevilImg2 from "../../assets/heartwood/units/the-devil.jpg"
 import theTowerImg2 from "../../assets/heartwood/units/the-tower-2.jpg"
 import theStarImg2 from "../../assets/heartwood/units/the-star-2.jpg"
+import theMoonImg2 from "../../assets/heartwood/units/the-moon-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -575,7 +576,7 @@ const BASE_UNITS = {
     // common-tier taste of the mechanic (previously uncommon+:
     // Willowmend/Cragmoss).
     rallyHeal: 2,
-    image: theMoonImg,
+    image: theMoonImg2,
   }),
   "the-sun": unit("the-sun", "Sunthorn", "the-sun", 2, "dps", [{ type: "attack", amount: 16 }], {
     image: theSunImg,
