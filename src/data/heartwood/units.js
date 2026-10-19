@@ -197,6 +197,7 @@ import emberStagImg2 from "../../assets/heartwood/units/ember-stag-2.jpg"
 import grovekeeperImg2 from "../../assets/heartwood/units/grovekeeper-2.jpg"
 import stormwingImg2 from "../../assets/heartwood/units/stormwing-2.jpg"
 import stoneheartImg2 from "../../assets/heartwood/units/stoneheart-2.jpg"
+import forgehowlImg2 from "../../assets/heartwood/units/forgehowl-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -682,7 +683,7 @@ const BASE_UNITS = {
     // gimmick" shape as The World/The Tower. The roster's single
     // highest per-hit attack number after The World's 20 (tied) - a
     // slow, hard-swinging identity rather than a sustained one.
-    image: forgehowlImg,
+    image: forgehowlImg2,
   }),
   duskclaw: unit("duskclaw", "Duskclaw", "flame", 3, "dps", [
     { type: "attack", amount: 8 },
