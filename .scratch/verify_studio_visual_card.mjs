@@ -46,15 +46,31 @@ await page.screenshot({ path: new URL("./shots/studio_visual_card.png", import.m
 await page.getByRole("button", { name: /Check my 1 change/ }).click()
 await page.locator('[data-testid="patch-review"]').waitFor({ timeout: 8000 })
 r.edit = previewBody?.edits
+r.toggleHidden = (await page.locator('[data-testid="studio-toggle-game"]').count()) === 0
+r.livePreviewFlag = previewBody?.livePreview
+await page.locator('[data-testid="studio-nav-more"]').click()
 await page.locator('[data-testid="studio-toggle-game"]').click()
 await page.waitForTimeout(400)
 r.gameAfterToggle = await page.getByText("Live game").count()
+
+// Economy lever: a readable name, its number in "The basics".
+await page.goto(`http://localhost:${PORT}/hearthwood-studio?type=economyLevers&id=winEssence`, { waitUntil: "domcontentloaded" })
+await page.locator('[data-testid="entity-title"]').waitFor({ timeout: 20000 })
+await page.waitForTimeout(500)
+r.leverTitle = await page.locator('[data-testid="entity-title"]').textContent()
+r.leverBasic = await page.locator('[data-basic="value"] input[type="number"]').count()
+r.leverListNames = await page.locator("section button").allTextContents()
+// Traits tool: no live game column either.
+await page.goto(`http://localhost:${PORT}/hearthwood-studio?view=traits`, { waitUntil: "domcontentloaded" })
+await page.waitForTimeout(1500)
+r.traitsGame = await page.getByText("Live game").count()
 out.r = r
 c(r.basics.includes("name") && r.basics.includes("maxHp") && !r.basics.includes("art") && !r.basics.includes("moveSelect") && r.labels.includes("Health") && !r.labels.includes("maxHp"), "v1 basics in plain words only", r.basics)
 c(r.advancedOpen === false && /more settings/.test(r.advancedText), "v2 technical fields folded", r.advancedText)
 c(r.helpBefore === false && r.helpAfter === true, "v3 help opens on hover (game pop-up style)", { before: r.helpBefore, after: r.helpAfter })
 c(Number(r.hpAfter) === Number(r.hpBefore) + 1 && r.edit?.[0]?.path.join() === "rotwood-husk,maxHp" && r.edit[0].value === Number(r.hpAfter), "v4 stepper -> one plain edit", r.edit)
-c(r.gamePanel === 0 && r.gameAfterToggle === 1, "v5 live game hidden until asked", { before: r.gamePanel, after: r.gameAfterToggle })
+c(r.gamePanel === 0 && r.toggleHidden && r.livePreviewFlag === false && r.gameAfterToggle === 1 && r.traitsGame === 0, "v5 live game off everywhere (More tools only), no sandbox started", { before: r.gamePanel, toggleHidden: r.toggleHidden, flag: r.livePreviewFlag, after: r.gameAfterToggle, traits: r.traitsGame })
+c(r.leverTitle === "Essence for winning a fight" && r.leverBasic === 1 && r.leverListNames.some((t) => t.includes("Cost of a gamble")) && !r.leverListNames.some((t) => t.includes("winEssence")), "v7 plain names + lever number in basics", { title: r.leverTitle, basic: r.leverBasic })
 c(r.picture === 1 && r.pictureBox >= 150, "v6 big picture", r.pictureBox)
 out.blockedWrites = blocked
 out.pageErrors = errs

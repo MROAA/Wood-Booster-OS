@@ -230,7 +230,10 @@ export async function preview({ prisma, body }) {
 
     let previewUrl = null
 
-    if (risk.tier === "MEDIUM" && diff) {
+    // The sandbox game (a whole extra Vite process) only starts when the
+    // Studio is showing the live game panel - Marc doesn't use it, and on
+    // his 14 GB machine an extra Vite per preview is real weight.
+    if (risk.tier === "MEDIUM" && diff && body && body.livePreview === true) {
 
         try {
 

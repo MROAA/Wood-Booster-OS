@@ -26,6 +26,8 @@ import { TraitEditor, PromotionEditor, HeroIdentityEditor } from "../components/
 import GearEditor from "../components/hearthwood-studio/GearEditor"
 import StudioHome from "../components/hearthwood-studio/StudioHome"
 import StudioToast from "../components/hearthwood-studio/StudioToast"
+import { plainName } from "../components/hearthwood-studio/plainWords"
+import { labelFor } from "../components/hearthwood-studio/entityTypes"
 // The game's own "details open on hover" pop-up style (Marc: "käytä samaa pop up tyyliä paljolle tiedolle kuin pelissäkin").
 import "../components/heartwood/heartwood-reveal.css"
 import StoryWriter, { STORY_WRITER_TYPES } from "../components/hearthwood-studio/StoryWriter"
@@ -115,7 +117,11 @@ function HearthwoodStudio() {
   // The live game panel takes a third of the screen and mostly shows the
   // title screen - hidden until asked for, or while a change is previewed.
   const [showGame, setShowGame] = useState(false)
-  const gameVisible = showGame || !!previewUrl
+  // Marc, 2026-10-19: "live game ei ole mielestäni tärkeä" - off
+  // everywhere; only "More tools" offers it.
+  const gameVisible = showMoreTools && showGame
+  // usePatchPreview reads this to decide whether to start the sandbox game.
+  useEffect(() => { window.__hwStudioLiveGame = gameVisible || viewMode === "theme" }, [gameVisible, viewMode])
   const [reloadKey, setReloadKey] = useState(0)
   const [historyKey, setHistoryKey] = useState(0)
   // Set only by the entity list's own "+ Add new" button - tells
@@ -536,44 +542,51 @@ function HearthwoodStudio() {
               <ThemePanel onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
             </section>
 
+            {/* colours are the one place where seeing the game helps */}
+            {(
             <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
               <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
             </section>
+            )}
           </div>
         )
       }
 
       {
         viewMode === "resources" && (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+          <div className={`grid grid-cols-1 gap-4 ${gameVisible ? "lg:grid-cols-[1fr_360px]" : ""}`}>
             <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
               <ResourceEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
             </section>
 
+            {gameVisible && (
             <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
               <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
             </section>
+            )}
           </div>
         )
       }
 
       {
         viewMode === "mutations" && (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+          <div className={`grid grid-cols-1 gap-4 ${gameVisible ? "lg:grid-cols-[1fr_360px]" : ""}`}>
             <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
               <MutationEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
             </section>
 
+            {gameVisible && (
             <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
               <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
             </section>
+            )}
           </div>
         )
       }
 
       {
         (viewMode === "traits" || viewMode === "promotions" || viewMode === "identity") && (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+          <div className={`grid grid-cols-1 gap-4 ${gameVisible ? "lg:grid-cols-[1fr_360px]" : ""}`}>
             <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
               {viewMode === "identity" ? (
                 <HeroIdentityEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
@@ -584,28 +597,32 @@ function HearthwoodStudio() {
               )}
             </section>
 
+            {gameVisible && (
             <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
               <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
             </section>
+            )}
           </div>
         )
       }
 
       {
         viewMode === "gear" && (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+          <div className={`grid grid-cols-1 gap-4 ${gameVisible ? "lg:grid-cols-[1fr_360px]" : ""}`}>
             <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
               <GearEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
             </section>
 
+            {gameVisible && (
             <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
               <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
             </section>
+            )}
           </div>
         )
       }
 
-      {viewMode === "single" && (
+      {showMoreTools && viewMode !== "home" && viewMode !== "history" && viewMode !== "dashboard" && (
         <div className="-mb-2 flex justify-end">
           <button type="button" onClick={() => setShowGame(open => !open)} data-testid="studio-toggle-game" className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-muted)] hover:text-[var(--wood-text)]">
             {gameVisible ? "Hide the game" : "▶ Show the game next to it"}
@@ -718,8 +735,8 @@ function HearthwoodStudio() {
                   {
                     entityId && entityDetail && (
                       <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3 space-y-3">
-                        <div className="text-sm font-semibold text-[var(--wood-text)]">
-                          {entityDetail.name || entityDetail.id}
+                        <div className="text-lg font-semibold text-[var(--wood-text)]" data-testid="entity-title">
+                          {plainName(entityDetail, labelFor(entityType))}
                         </div>
 
                         {
