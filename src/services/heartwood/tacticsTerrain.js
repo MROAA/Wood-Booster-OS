@@ -2,6 +2,7 @@
 // the seeded map-template generator. Pure: no engine import (the engine
 // imports THIS), so there is no cycle.
 import { isOnBoard } from "./targeting"
+import { BATTLE_OBJECTS, BREAK_EFFECTS } from "../../data/heartwood/battleObjects"
 
 // cost: move cost to ENTER (Infinity = never). Flags drive the rules below.
 export const TERRAIN = {
@@ -77,6 +78,17 @@ export const TERRAIN_INFO = {
   gravel: { name: "Gravel", text: "Crushed stone - walkable, no cover." },
   stone: { name: "Runestone", text: "An old mossy standing stone - blocks movement, FULL cover for a hero next to it. Very tough (10 HP); cracks into rubble." },
   glowcap: { name: "Glowcap", text: "Glowing mushrooms. Any hit pops them: healing spores restore 4 HP to EVERY unit around them - yours and theirs. Pop them at the right moment." },
+}
+
+// Studio-made objects (data/heartwood/battleObjects.js) join the terrain
+// table as blocking objects. A built-in id always wins, so a Studio entry
+// can never change a hand-made tile's rules.
+export const CUSTOM_OBJECT_IDS = Object.keys(BATTLE_OBJECTS).filter((id) => !TERRAIN[id] && BREAK_EFFECTS[BATTLE_OBJECTS[id]?.onBreak])
+for (const id of CUSTOM_OBJECT_IDS) {
+  const def = BATTLE_OBJECTS[id]
+  TERRAIN[id] = { cost: Infinity, obj: true }
+  const effect = BREAK_EFFECTS[def.onBreak].text.replace("{power}", def.power ?? 0)
+  TERRAIN_INFO[id] = { name: def.name || id, text: `Blocks movement, FULL cover. ${effect}${def.note ? ` ${def.note}` : ""}` }
 }
 
 export function terrainAt(state, pos) {

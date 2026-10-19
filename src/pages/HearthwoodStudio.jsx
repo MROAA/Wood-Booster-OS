@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { apiGet } from "../api/client"
 
 import AddCrossroadsForm from "../components/hearthwood-studio/AddCrossroadsForm"
+import AddBattleObjectForm from "../components/hearthwood-studio/AddBattleObjectForm"
 import AddDialogueForm from "../components/hearthwood-studio/AddDialogueForm"
 import AddEventForm from "../components/hearthwood-studio/AddEventForm"
 import AddStoryEntryForm from "../components/hearthwood-studio/AddStoryEntryForm"
@@ -505,6 +506,16 @@ function HearthwoodStudio() {
                   {
                     entityType === "dialogues" && (
                       <AddDialogueForm
+                        type={entityType}
+                        onApplied={handleApplied}
+                        onPreviewUrlChange={setPreviewUrl}
+                      />
+                    )
+                  }
+
+                  {
+                    entityType === "battleObjects" && (
+                      <AddBattleObjectForm
                         type={entityType}
                         onApplied={handleApplied}
                         onPreviewUrlChange={setPreviewUrl}

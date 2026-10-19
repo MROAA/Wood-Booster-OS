@@ -27,8 +27,9 @@ import { resolveFormation } from "../../data/heartwood/formations"
 import { ENEMIES } from "../../data/heartwood/enemies"
 import { UNITS } from "../../data/heartwood/units"
 import { streamRng } from "../../data/heartwood/seed"
+import { BATTLE_OBJECTS } from "../../data/heartwood/battleObjects"
 import { GRID, createRunTacticsBattle } from "./tacticsEngine"
-import { TERRAIN, buildTemplateTerrain, pickTemplate, sidesConnected } from "./tacticsTerrain"
+import { TERRAIN, CUSTOM_OBJECT_IDS, buildTemplateTerrain, pickTemplate, sidesConnected } from "./tacticsTerrain"
 import { biomeForAct } from "../../data/heartwood/battleBiomes"
 import { effectiveUnitDef } from "./autoBattleEngine"
 import { objectiveForNode, applyObjective } from "./tacticsObjectives"
@@ -164,7 +165,29 @@ export function mapTemplateForNode(seed, nodeIndex) {
 // Guaranteed crossable: if a scatter tile ever cuts every route
 // (walls/water counted as blocking), scatter blockers are dropped.
 export function generateRealTerrain(seed, nodeIndex) {
-  return generateForestDressing(seed, nodeIndex, generateBaseTerrain(seed, nodeIndex))
+  return withStudioObjects(seed, nodeIndex, generateForestDressing(seed, nodeIndex, generateBaseTerrain(seed, nodeIndex)))
+}
+
+// Objects Marc made in the Studio (battleObjects.js): `perBattle` of each
+// on free middle tiles from its `fromAct` on. Own seeded salt and LAST, so
+// every earlier layer stays identical; blockers only where sides stay joined.
+export function withStudioObjects(seed, nodeIndex, terrain) {
+  const act = actIndexForNode(nodeIndex, RUN_PATH.length)
+  const ids = CUSTOM_OBJECT_IDS.filter((id) => (BATTLE_OBJECTS[id].perBattle || 0) > 0 && act >= (BATTLE_OBJECTS[id].fromAct || 1))
+  if (!ids.length) return terrain
+  const rng = streamRng(seed, "combat", `${nodeIndex}:studio-objects`)
+  const out = { ...terrain }
+  for (const id of ids) {
+    const count = Math.min(6, Math.round(BATTLE_OBJECTS[id].perBattle))
+    for (let placed = 0, tries = 0; placed < count && tries < count * 8; tries++) {
+      const key = `${Math.floor(rng() * GRID.rows)}-${3 + Math.floor(rng() * (GRID.cols - 6))}`
+      if (out[key]) continue
+      out[key] = id
+      if (sidesConnected(out, GRID)) placed++
+      else delete out[key]
+    }
+  }
+  return out
 }
 
 // Battlefield piece 3: the Act's biome scatters its living-forest pieces

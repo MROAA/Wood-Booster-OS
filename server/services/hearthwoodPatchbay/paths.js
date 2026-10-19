@@ -237,6 +237,8 @@ export const ENTITY_TYPES = {
     threats: { file: "counterplay.js", exportName: "THREATS" },
     dialogues: { file: "dialogues.js", exportName: "DIALOGUES" },
     shopLayout: { file: "shopLayout.js", exportName: "SHOP_LAYOUT" },
+    // Object Maker: battlefield objects Marc makes himself (AddBattleObjectForm).
+    battleObjects: { file: "battleObjects.js", exportName: "BATTLE_OBJECTS" },
 }
 
 /**

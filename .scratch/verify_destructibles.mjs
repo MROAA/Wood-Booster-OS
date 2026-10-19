@@ -229,6 +229,8 @@ if (!(r.qa.terrain === 0 && r.qa.fire === 0)) e.push("c10 QA hook flattens objec
   await p.waitForTimeout(500)
   const cellOf = (row, col) => p.locator(".hwt-cell").nth(row * 12 + col)
   const sprites = await p.locator(".hwt-object").count()
+  // Studio-made objects (battleObjects.js) join the showcase too.
+  const customCount = await p.evaluate(async () => (await import("/src/services/heartwood/tacticsTerrain.js")).CUSTOM_OBJECT_IDS.length)
   const treeTitle = await cellOf(0, 4).getAttribute("title")
   const pips = await cellOf(0, 4).locator(".hwt-obj-pip").count()
   const legend = await p.locator(".hwt-terrain-legend-item").allTextContents()
@@ -270,7 +272,7 @@ if (!(r.qa.terrain === 0 && r.qa.fire === 0)) e.push("c10 QA hook flattens objec
   await p.screenshot({ path: new URL("./shots/destructibles_ui.png", import.meta.url).pathname }).catch(() => {})
   await p.close()
   out.ui = { sprites, treeTitle, pips, legend, active, hitBarrel, boom, after, fireTitle }
-  if (!(sprites === 12 && treeTitle?.startsWith("Tree (6/6 HP)") && pips === 6 && legend.includes("Tree") && legend.includes("Powder barrel") && active === "true"))
+  if (!(sprites === 12 + customCount && treeTitle?.startsWith("Tree (6/6 HP)") && pips === 6 && legend.includes("Tree") && legend.includes("Powder barrel") && active === "true"))
     e.push("c11a showcase render / tooltip / pips / legend")
   if (!(hitBarrel && boom === "Boom!" && after === "fire" && fireTitle?.startsWith("Flames:"))) e.push("c11b click barrel -> Boom! + fire tile")
 }

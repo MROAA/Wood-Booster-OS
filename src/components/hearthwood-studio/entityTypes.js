@@ -42,6 +42,8 @@ export const ALL_TYPES = [
   { type: "evolutions", label: "Evolutions", category: "Content" },
   { type: "upgradeBranches", label: "Upgrade Branches", category: "Content" },
   { type: "arenas", label: "Arenas", category: "Content" },
+  // Marc, 2026-10-19: "haluan dev toolilla luoda uutta peliin" - his own battlefield objects.
+  { type: "battleObjects", label: "Battlefield Objects", category: "Content" },
 
   // Marc, 2026-09-19: "en löydä mistä voin muokkaa pelin tarinaa"
   { type: "storyJournal", label: "Story Journal", category: "Story" },

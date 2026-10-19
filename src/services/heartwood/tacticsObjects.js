@@ -13,7 +13,8 @@
 // Forest creatures: a Shapeshifter hides as a tree (tacticsCreatures.js).
 import { revealShapeshifter, creaturesTurnEnd } from "./tacticsCreatures"
 import { isOnBoard, samePos, kingAdjacent } from "./targeting"
-import { TERRAIN, terrainAt, WALL_MAX_HP } from "./tacticsTerrain"
+import { TERRAIN, terrainAt, WALL_MAX_HP, CUSTOM_OBJECT_IDS } from "./tacticsTerrain"
+import { BATTLE_OBJECTS, BREAK_EFFECTS } from "../../data/heartwood/battleObjects"
 import { coverAgainst } from "./tacticsCover"
 import { emit, getUnit, setUnit, applyDamageWithBlock, checkTacticsBattleEnd, checkEnemyPhase, trySpawnBrood } from "./tacticsEngine"
 import { applyElement, abilityElement } from "./tacticsElements"
@@ -28,6 +29,30 @@ export const OBJECTS = {
   // Battlefield piece 3 - the living forest.
   stone: { name: "Runestone", hp: 10, icon: "🗿" },
   glowcap: { name: "Glowcap", hp: 1, icon: "🍄" },
+}
+// Studio-made objects (data/heartwood/battleObjects.js): `custom` routes
+// them through damageCustomObject; blasts also carry `explosive` so fire
+// chains, the AI and the chaos knockbacks treat them like barrels/pods.
+const BLAST_KIND = { fireBlast: "fire", poisonBurst: "poison" }
+for (const id of CUSTOM_OBJECT_IDS) {
+  const d = BATTLE_OBJECTS[id]
+  OBJECTS[id] = {
+    name: d.name || id,
+    hp: Math.max(1, Math.min(20, Math.round(Number(d.hp) || 1))),
+    icon: d.icon || "❖",
+    image: d.image || "",
+    custom: true,
+    onBreak: d.onBreak,
+    power: Math.max(0, Math.round(Number(d.power) || 0)),
+    leaves: TERRAIN[d.leaves] && !TERRAIN[d.leaves].obj && TERRAIN[d.leaves].cost !== Infinity ? d.leaves : "rubble",
+    ...(BLAST_KIND[d.onBreak] ? { explosive: BLAST_KIND[d.onBreak] } : {}),
+  }
+}
+// How hard a blast object hits (built-ins keep their constants).
+export function blastDamage(type) {
+  const def = OBJECTS[type]
+  if (def?.custom) return def.power
+  return def?.explosive === "fire" ? BARREL_DAMAGE : SPORE_DAMAGE
 }
 export const TREE_FALL_DAMAGE = 4
 export const TREE_BURN_TURNS = 2
@@ -220,16 +245,16 @@ export function crushTiles(state, tiles) {
 
 // Glowcaps pop into healing spores: every unit in the 3x3 heals (both
 // sides - timing is the choice); soft moss is left where they grew.
-export function bloomGlowcap(state, pos) {
-  let next = addLog(setTile(state, pos, BREAKS_TO.glowcap), "The glowcaps burst in a cloud of healing spores!")
+export function bloomGlowcap(state, pos, heal = GLOWCAP_HEAL, leaves = BREAKS_TO.glowcap, line = "The glowcaps burst in a cloud of healing spores!") {
+  let next = addLog(setTile(state, pos, leaves), line)
   const area = spellAreaTiles(pos, 1, state.grid)
   next = objEvent(next, "bloom", pos, "Healing spores!", { tiles: area })
   for (const p of area) {
     const u = unitAt(next, p)
     if (!u || u.structure) continue
-    const heal = Math.min(u.maxHp - u.hp, GLOWCAP_HEAL)
-    if (heal <= 0) continue
-    next = emit(setUnit(next, u.id, { hp: u.hp + heal }), { kind: "heal", actorId: u.id, targetId: u.id, amount: heal })
+    const amount = Math.min(u.maxHp - u.hp, heal)
+    if (amount <= 0) continue
+    next = emit(setUnit(next, u.id, { hp: u.hp + amount }), { kind: "heal", actorId: u.id, targetId: u.id, amount })
   }
   return next
 }
@@ -311,6 +336,7 @@ export function damageObject(state, pos, amount, dir = null, opts = {}) {
   }
   const def = OBJECTS[type]
   if (!def) return state
+  if (def.custom) return damageCustomObject(state, pos, amount, dir)
   if (type === "glowcap") return bloomGlowcap(state, pos)
   if (def.explosive) return explode(state, pos)
   if (type === "icepillar" && isChilled(state, pos)) return shatterPillar(state, pos)
@@ -326,11 +352,24 @@ export function damageObject(state, pos, amount, dir = null, opts = {}) {
   return next
 }
 
+// A Studio-made object takes the hit; at 0 HP its chosen effect fires.
+function damageCustomObject(state, pos, amount, dir) {
+  const def = OBJECTS[terrainAt(state, pos)]
+  const hp = Math.max(0, objectHpAt(state, pos) - amount)
+  if (hp > 0) return objEvent({ ...state, objHp: { ...(state.objHp || {}), [k(pos)]: hp } }, "hit", pos, `-${amount}`)
+  const name = def.name.toLowerCase()
+  if (def.explosive) return explode(state, pos)
+  if (def.onBreak === "healBurst") return bloomGlowcap(state, pos, def.power, def.leaves, `The ${name} bursts - healing spores fill the air!`)
+  if (def.onBreak === "iceShards") return shatterPillar(state, pos, def.power, def.leaves, `The ${name} shatters into ice shards!`)
+  if (def.onBreak === "fall") return fellTree(state, pos, dir, def.leaves, `Timber! The ${name} comes crashing down.`)
+  return objEvent(addLog(setTile(state, pos, def.leaves), `The ${name} cracks apart.`), "break", pos, "Crumbles!")
+}
+
 // Timber! The tree topples along `dir`, hitting the next 2 tiles; a
 // fallen log is left where it lands, a stump where it stood.
-export function fellTree(state, pos, dir) {
+export function fellTree(state, pos, dir, leaves = "stump", line = "Timber! The tree comes crashing down.") {
   const d = dir && (dir.row || dir.col) ? { row: sign(dir.row), col: sign(dir.col) } : { row: 0, col: -1 }
-  let next = addLog(setTile(state, pos, "stump"), `Timber! The tree comes crashing down.`)
+  let next = addLog(setTile(state, pos, leaves), line)
   const tiles = []
   for (let i = 1; i <= 2; i++) {
     const p = { row: pos.row + d.row * i, col: pos.col + d.col * i }
@@ -366,8 +405,8 @@ function chillPillar(state, pos) {
 }
 
 // Shatter: shards hit every unit next to it and Chill them; ice is left behind.
-export function shatterPillar(state, pos) {
-  let next = addLog(setTile(state, pos, "ice"), "The ice pillar shatters!")
+export function shatterPillar(state, pos, damage = SHATTER_DAMAGE, leaves = "ice", line = "The ice pillar shatters!") {
+  let next = addLog(setTile(state, pos, leaves), line)
   const around = []
   for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) if (dr || dc) around.push({ row: pos.row + dr, col: pos.col + dc })
   next = objEvent(next, "shatter", pos, "Shatter!", { tiles: [pos, ...around.filter((p) => isOnBoard(p, state.grid))] })
@@ -375,7 +414,7 @@ export function shatterPillar(state, pos) {
     if (ended(next)) break
     const u = unitAt(next, p)
     if (!u) continue
-    next = hurt(next, u.id, SHATTER_DAMAGE, "ice shards")
+    next = hurt(next, u.id, damage, "ice shards")
     if (getUnit(next, u.id)?.hp > 0 && !ended(next)) next = applyElement(next, u.id, "frost", 1)
   }
   return checkTacticsBattleEnd(next)
@@ -387,14 +426,15 @@ export function explode(state, pos) {
   const def = OBJECTS[type]
   if (!def?.explosive) return state
   const fire = def.explosive === "fire"
-  const dmg = fire ? BARREL_DAMAGE : SPORE_DAMAGE
-  let next = setTile(state, pos, fire ? "ash" : "path")
+  const dmg = blastDamage(type)
+  let next = setTile(state, pos, def.custom ? def.leaves : fire ? "ash" : "path")
   const area = []
   for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
     const p = { row: pos.row + dr, col: pos.col + dc }
     if (isOnBoard(p, state.grid)) area.push(p)
   }
-  next = objEvent(addLog(next, fire ? "Boom! The powder barrel explodes!" : "Pop! The spore pod bursts in a toxic cloud!"), fire ? "boom" : "spore", pos, fire ? "Boom!" : "Spores!", { tiles: area })
+  const line = def.custom ? (fire ? `Boom! The ${def.name.toLowerCase()} explodes!` : `Pop! The ${def.name.toLowerCase()} bursts in a toxic cloud!`) : fire ? "Boom! The powder barrel explodes!" : "Pop! The spore pod bursts in a toxic cloud!"
+  next = objEvent(addLog(next, line), fire ? "boom" : "spore", pos, fire ? "Boom!" : "Spores!", { tiles: area })
   for (const p of area) {
     if (ended(next)) break
     const u = unitAt(next, p)
@@ -602,7 +642,7 @@ export function aiExplosiveTargets(state, enemy, pos, range) {
     if (!OBJECTS[t]?.explosive) continue
     const at = fromKey(key)
     if (cheb(pos, at) > range) continue
-    const dmg = t === "barrel" ? BARREL_DAMAGE : SPORE_DAMAGE
+    const dmg = blastDamage(t)
     let value = 0
     let players = 0
     let allies = 0
@@ -639,6 +679,12 @@ export function describeObjectTile(state, pos) {
   if (type === "boulder") return `Boulder (${hp}/${max} HP): blocks movement. Hit it from right next to it (1 AP) to SHOVE it - it rolls away until something stops it, dealing ${BOULDER_DAMAGE} to what it hits.`
   if (type === "stone") return `Runestone (${hp}/${max} HP): an old mossy standing stone - blocks movement, FULL cover for a hero right next to it. The toughest thing on the field; it cracks into rubble (half cover).`
   if (type === "glowcap") return `Glowcap: any hit pops it - healing spores restore ${GLOWCAP_HEAL} HP to EVERY unit in the 3x3 around it (yours and theirs), leaving soft moss. Pop it when your heroes are close and theirs aren't.`
+  if (OBJECTS[type].custom) {
+    const def = OBJECTS[type]
+    const src = BATTLE_OBJECTS[type]
+    const effect = BREAK_EFFECTS[def.onBreak].text.replace("{power}", def.power)
+    return `${def.name} (${hp}/${max} HP): blocks movement. FULL cover for a hero right next to it. Break it: ${effect}${src?.note ? ` ${src.note}` : ""}`
+  }
   if (type === "icepillar") return `Ice pillar (${hp}/${max} HP): Frost (a Frost attack, or Chill landing next to it) makes it brittle; the next hit shatters it - ${SHATTER_DAMAGE} damage + 1 Chill to every hero around it.${isChilled(state, pos) ? " BRITTLE: the next hit shatters it!" : ""}`
   return null
 }
@@ -659,6 +705,10 @@ const SHOWCASE_CHARS = { T: "tree", B: "barrel", S: "sporepod", O: "boulder", Y:
 export function objectShowcaseTerrain() {
   const terrain = {}
   OBJECT_SHOWCASE_ROWS.forEach((line, r) => [...line].forEach((ch, c) => { if (SHOWCASE_CHARS[ch]) terrain[`${r}-${c}`] = SHOWCASE_CHARS[ch] }))
+  // Studio-made objects ("Try it in a practice battle"): along the open
+  // bottom row, then the free middle tiles.
+  const slots = ["8-4", "8-6", "8-8", "8-10", "2-4", "6-4", "0-8", "3-9", "6-9", "2-10"]
+  CUSTOM_OBJECT_IDS.forEach((id, i) => { if (slots[i]) terrain[slots[i]] = id })
   return terrain
 }
 export function withObjectShowcase(state) {
