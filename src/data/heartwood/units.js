@@ -179,6 +179,7 @@ import theChariotImg2 from "../../assets/heartwood/units/the-chariot.jpg"
 import strengthImg2 from "../../assets/heartwood/units/strength-2.jpg"
 import theHermitImg2 from "../../assets/heartwood/units/the-hermit.jpg"
 import wheelOfFortuneImg2 from "../../assets/heartwood/units/wheel-of-fortune.jpg"
+import justiceImg2 from "../../assets/heartwood/units/justice-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -524,7 +525,7 @@ const BASE_UNITS = {
     // a 3rd move rather than an on-hit trigger (Warden's own first
     // common-tier Sunder source).
     { type: "sunder" },
-  ], { image: justiceImg }),
+  ], { image: justiceImg2 }),
   "the-hanged-man": unit("the-hanged-man", "Snarevine", "the-hanged-man", 0, "dps", [
     { type: "attack", amount: 6 },
   ], {
