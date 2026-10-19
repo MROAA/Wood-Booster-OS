@@ -1160,7 +1160,7 @@ const BASE_UNITS = {
     { type: "heal", amount: 4 },
     { type: "attack", amount: 4 },
   ], { image: willowmendImg2 }),
-  sparrowthorn: unit("sparrowthorn", "Sparrowthorn", "spark", 1, "dps", [{ type: "attack", amount: 6 }], {
+  sparrowthorn: unit("sparrowthorn", "Bird", "spark", 1, "dps", [{ type: "attack", amount: 6 }], {
     // Wounded Fury - a scrappy fighter that gets meaner once it's
     // cornered, fitting "sparrow" over a heavier bruiser identity.
     passive: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
