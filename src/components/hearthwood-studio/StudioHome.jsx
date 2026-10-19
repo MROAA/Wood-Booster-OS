@@ -1,6 +1,7 @@
 import { useState } from "react"
 
 import { STUDIO_ROOMS } from "./studioRooms"
+import StudioWishBox from "./StudioWishBox"
 
 /*
  * Hearthwood HQ - the Studio's front door (studioRooms.js has the why).
@@ -20,7 +21,7 @@ const PURPOSE_FULL = [
 
 const plaque = "rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-text)] transition-colors hover:border-[var(--wood-accent)] hover:bg-[var(--wood-card)]"
 
-function StudioHome({ onEnterRoom, onAction }) {
+function StudioHome({ onEnterRoom, onAction, onWish }) {
   const [showPurpose, setShowPurpose] = useState(false)
 
   return (
@@ -38,6 +39,8 @@ function StudioHome({ onEnterRoom, onAction }) {
           )
         }
       </div>
+
+      <StudioWishBox onGo={onWish} />
 
       <ol className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-[var(--wood-muted)]">
         <li><span className="text-[var(--wood-accent)]">1.</span> Pick a room below</li>
