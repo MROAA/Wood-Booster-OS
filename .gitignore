@@ -10,7 +10,7 @@ dist-ssr/
 
 # Server
 server/node_modules/
-server/generated/
+server/generated
 server/uploads/
 
 # Prisma ja SQLite-tietokannat

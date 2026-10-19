@@ -256,6 +256,17 @@ export const ENTITY_TYPES = {
     regardBands: { file: "creatures.js", exportName: "REGARD_BANDS" },
     loreTruths: { file: "forestMemory.js", exportName: "LORE_TRUTHS" },
     fates: { file: "fates.js", exportName: "FATES" },
+    // Campaign story text (Marc, 2026-10-19: "haluan ensimmäiseksi
+    // päivitetyn tarinan dev tooliin") - chapter + world events, mission
+    // briefs, boss fights, biomes, the commanders' spoken lines.
+    chapterEvents: { file: "campaignContent.js", exportName: "CHAPTER_EVENTS" },
+    worldEvents: { file: "campaignContent.js", exportName: "WORLD_EVENTS" },
+    missionBriefs: { file: "campaignContent.js", exportName: "MISSION_BRIEFS" },
+    chapterContent: { file: "campaignContent.js", exportName: "CHAPTER_CONTENT" },
+    campaignBossFights: { file: "campaignBosses.js", exportName: "CAMPAIGN_BOSS_FIGHTS" },
+    campaignEnemies: { file: "campaignEnemies.js", exportName: "CAMPAIGN_ENEMIES" },
+    biomes: { file: "battleBiomes.js", exportName: "BIOMES" },
+    commanders: { file: "heroes.js", exportName: "HEROES" },
 }
 
 /**

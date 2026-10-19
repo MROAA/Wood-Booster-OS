@@ -22,6 +22,24 @@ import tommySplashImg from "../../assets/heartwood/commanders/tommy.webp"
 // `figure` = the whole hero cut out of the painting (transparent), the
 // battle-board figure.
 import tommyFigureImg from "../../assets/heartwood/commanders/tommy-figure.webp"
+import aatosFaceImg from "../../assets/heartwood/commanders/aatos-face.webp"
+import aatosSplashImg from "../../assets/heartwood/commanders/aatos.webp"
+import aatosFigureImg from "../../assets/heartwood/commanders/aatos-figure.webp"
+import fenrirFaceImg from "../../assets/heartwood/commanders/fenrir-face.webp"
+import fenrirSplashImg from "../../assets/heartwood/commanders/fenrir.webp"
+import fenrirFigureImg from "../../assets/heartwood/commanders/fenrir-figure.webp"
+import repoFaceImg from "../../assets/heartwood/commanders/repo-face.webp"
+import repoSplashImg from "../../assets/heartwood/commanders/repo.webp"
+import repoFigureImg from "../../assets/heartwood/commanders/repo-figure.webp"
+import lehvaFaceImg from "../../assets/heartwood/commanders/lehva-face.webp"
+import lehvaSplashImg from "../../assets/heartwood/commanders/lehva.webp"
+import lehvaFigureImg from "../../assets/heartwood/commanders/lehva-figure.webp"
+import kaskiFaceImg from "../../assets/heartwood/commanders/kaski-face.webp"
+import kaskiSplashImg from "../../assets/heartwood/commanders/kaski.webp"
+import kaskiFigureImg from "../../assets/heartwood/commanders/kaski-figure.webp"
+import louhiFaceImg from "../../assets/heartwood/commanders/louhi-face.webp"
+import louhiSplashImg from "../../assets/heartwood/commanders/louhi.webp"
+import louhiFigureImg from "../../assets/heartwood/commanders/louhi-figure.webp"
 
 export const CHARACTERS = {
   tommy: {
@@ -111,6 +129,9 @@ export const CHARACTERS = {
     id: "aatos",
     name: "Aatos",
     art: "reindeer",
+    image: aatosFaceImg,
+    splash: aatosSplashImg,
+    figure: aatosFigureImg,
     maxHp: 66,
     tagline: "Steady and patient - built to outlast a fight.",
     // The Strength+1 half of this description was missing until now -
@@ -189,6 +210,9 @@ export const CHARACTERS = {
     id: "fenrir",
     name: "Fenrir",
     art: "wolf",
+    image: fenrirFaceImg,
+    splash: fenrirSplashImg,
+    figure: fenrirFigureImg,
     // Bumped 56 -> 60 (still lowest of the 4, matching Tommy - Aatos's
     // 66 and Repo's 62 stay clearly above) after the new enemy-scaling
     // system's own fairness pass kept landing Fenrir well below the
@@ -269,6 +293,9 @@ export const CHARACTERS = {
     id: "repo",
     name: "Repo",
     art: "fox",
+    image: repoFaceImg,
+    splash: repoSplashImg,
+    figure: repoFigureImg,
     maxHp: 62,
     tagline: "Careful and cunning - never takes a hit it didn't plan for.",
     description: "Fox's Guard: every hero gains Block, strikes a little harder, and strips whatever it strikes of its own strongest edge.",
@@ -378,6 +405,9 @@ export const CHARACTERS = {
     id: "kaski",
     name: "Kaski",
     art: "shadow",
+    image: kaskiFaceImg,
+    splash: kaskiSplashImg,
+    figure: kaskiFigureImg,
     locked: true,
     unlockCost: 70,
     maxHp: 58,
@@ -412,6 +442,9 @@ export const CHARACTERS = {
     id: "louhi",
     name: "Louhi",
     art: "stone",
+    image: louhiFaceImg,
+    splash: louhiSplashImg,
+    figure: louhiFigureImg,
     locked: true,
     unlockCost: 90,
     maxHp: 70,
@@ -460,6 +493,9 @@ export const CHARACTERS = {
     id: "lehva",
     name: "Lehva",
     art: "grove",
+    image: lehvaFaceImg,
+    splash: lehvaSplashImg,
+    figure: lehvaFigureImg,
     locked: true,
     unlockCost: 80,
     maxHp: 62,
