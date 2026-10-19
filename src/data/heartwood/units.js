@@ -233,6 +233,7 @@ import stoneknollImg2 from "../../assets/heartwood/units/stoneknoll-2.jpg"
 import quarrywardenImg2 from "../../assets/heartwood/units/quarrywarden-2.jpg"
 import fernwakeImg2 from "../../assets/heartwood/units/fernwake-2.jpg"
 import duskbrambleImg2 from "../../assets/heartwood/units/duskbramble-2.jpg"
+import hollowmereImg2 from "../../assets/heartwood/units/hollowmere-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -1240,7 +1241,7 @@ const BASE_UNITS = {
     // Self-Ward - a 2nd "Hollow-" unit sharing Hollowreed's defensive
     // motif, at tank role/uncommon cost instead of support/common.
     passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
-    image: hollowmereImg,
+    image: hollowmereImg2,
   }),
   thistlemaw: unit("thistlemaw", "Thistlemaw", "spark", 1, "dps", [
     { type: "attack", amount: 4 },
