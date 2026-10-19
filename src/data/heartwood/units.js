@@ -1009,7 +1009,7 @@ const BASE_UNITS = {
     className: "Ironbark",
     image: ironbarkImg2,
   }),
-  briarblade: unit("briarblade", "Briarblade", "root", 3, "dps", [{ type: "attack", amount: 10 }], {
+  briarblade: unit("briarblade", "Penguin", "root", 3, "dps", [{ type: "attack", amount: 10 }], {
     // The first Assassin ("iskee heikkoihin kohteisiin" - strikes weak
     // targets) - Chain's second unit-level source (after Grimtusk),
     // with a heavier single hit (10, vs Grimtusk's 9+9 split across two
