@@ -26,6 +26,8 @@ import { TraitEditor, PromotionEditor, HeroIdentityEditor } from "../components/
 import GearEditor from "../components/hearthwood-studio/GearEditor"
 import StudioHome from "../components/hearthwood-studio/StudioHome"
 import StudioToast from "../components/hearthwood-studio/StudioToast"
+// The game's own "details open on hover" pop-up style (Marc: "käytä samaa pop up tyyliä paljolle tiedolle kuin pelissäkin").
+import "../components/heartwood/heartwood-reveal.css"
 import StoryWriter, { STORY_WRITER_TYPES } from "../components/hearthwood-studio/StoryWriter"
 import { roomById, roomForType } from "../components/hearthwood-studio/studioRooms"
 
@@ -110,6 +112,10 @@ function HearthwoodStudio() {
   const [entityDetail, setEntityDetail] = useState(null)
   const [entityLoading, setEntityLoading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState(null)
+  // The live game panel takes a third of the screen and mostly shows the
+  // title screen - hidden until asked for, or while a change is previewed.
+  const [showGame, setShowGame] = useState(false)
+  const gameVisible = showGame || !!previewUrl
   const [reloadKey, setReloadKey] = useState(0)
   const [historyKey, setHistoryKey] = useState(0)
   // Set only by the entity list's own "+ Add new" button - tells
@@ -599,8 +605,15 @@ function HearthwoodStudio() {
         )
       }
 
+      {viewMode === "single" && (
+        <div className="-mb-2 flex justify-end">
+          <button type="button" onClick={() => setShowGame(open => !open)} data-testid="studio-toggle-game" className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-muted)] hover:text-[var(--wood-text)]">
+            {gameVisible ? "Hide the game" : "▶ Show the game next to it"}
+          </button>
+        </div>
+      )}
       {viewMode !== "home" && viewMode !== "history" && viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && viewMode !== "mutations" && viewMode !== "gear" && viewMode !== "traits" && viewMode !== "promotions" && viewMode !== "identity" && (
-      <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
+      <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" && gameVisible ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
         <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
           <EntityBrowser
             type={browsingType}
@@ -778,9 +791,11 @@ function HearthwoodStudio() {
                   />
                 </section>
 
+                {gameVisible && (
                 <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
                   <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
                 </section>
+                )}
               </>
             )
         }

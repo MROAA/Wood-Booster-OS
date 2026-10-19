@@ -32,6 +32,12 @@ const go = async (qs = "") => {
   await page.waitForTimeout(400)
 }
 const chips = () => page.locator("button[title]").evaluateAll((els) => els.map((el) => el.textContent.trim()))
+// Room cards open their extra buttons on hover, like the game's cards.
+const roomAction = async (room, label) => {
+  await page.locator(`[data-room="${room}"]`).hover()
+  await page.waitForTimeout(350)
+  await page.locator(`[data-room="${room}"] button`, { hasText: label }).click()
+}
 const roomBar = () => page.locator('[data-testid="studio-room-bar"]').textContent().catch(() => null)
 
 // 1. Opens on HQ: 8 rooms, 4 nav buttons, old tabs + history hidden.
@@ -45,11 +51,17 @@ const home = {
   hScroll: await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
   bottom: await page.evaluate(() => Math.round(document.querySelector('[data-testid="studio-home"]').getBoundingClientRect().bottom)),
 }
+const extraShown = () => page.locator('[data-room="story"] .hw-reveal-more').last().evaluate((el) => Number(getComputedStyle(el).opacity) > 0.5 && el.getBoundingClientRect().height > 10)
+home.storyBeforeHover = await extraShown()
+await page.locator('[data-room="story"]').hover()
+await page.waitForTimeout(450)
+home.storyAfterHover = await extraShown()
 home.purpose = await page.locator('[data-testid="studio-purpose"]').textContent()
 await page.locator('[data-testid="studio-purpose"] button').click()
 home.purposeFull = await page.locator('[data-testid="studio-purpose"]').textContent()
 await page.screenshot({ path: new URL("./shots/studio_home.png", import.meta.url).pathname })
 out.home = home
+c(home.storyBeforeHover === false && home.storyAfterHover === true, "h0b room details open on hover", { before: home.storyBeforeHover, after: home.storyAfterHover })
 c(home.purpose?.includes("honest limits") && home.purposeFull?.includes("headquarters of its development"), "h0 purpose statement", home.purpose)
 c(home.title.includes("Hearthwood HQ") && home.rooms === 9 && home.nav === 4 && home.moreTools === 0 && home.history === 0 && !home.hScroll, "h1 HQ front door", home)
 
@@ -68,7 +80,7 @@ out.coverage = coverage
 c(!coverage.missing.length && !coverage.unknown.length && !coverage.badActions.length, "h2 every list in exactly one room", coverage)
 
 // 2b. The Story Writer: the First Song, chronological, line by line.
-await page.locator('[data-room="story"] button', { hasText: "Rewrite scenes & dialogue" }).click()
+await roomAction("story", "Rewrite scenes & dialogue")
 await page.waitForTimeout(900)
 const sw = { bar: await roomBar(), badges: await page.locator("[data-chapter]").evaluateAll((els) => els.map((el) => el.textContent.trim())) }
 await page.locator("[data-chapter]").first().click()
@@ -134,7 +146,7 @@ await page.locator('[data-testid="studio-nav-home"]').click()
 await page.waitForTimeout(300)
 
 // 3. Heroes room: only hero lists, picture hint, no Story Timeline.
-await page.locator('[data-room="heroes"] button', { hasText: "Change a hero's picture" }).click()
+await roomAction("heroes", "Change a hero's picture")
 await page.waitForTimeout(400)
 const heroes = { bar: await roomBar(), chips: await chips(), timeline: await page.getByRole("button", { name: /Story Timeline/ }).count() }
 out.heroes = heroes
@@ -142,7 +154,7 @@ c(heroes.bar?.includes("Heroes") && heroes.bar.includes("Pick a hero on the left
 
 // 4. Battlefield: "Make a new object" opens the form straight away.
 await page.locator('[data-testid="studio-nav-home"]').click()
-await page.locator('[data-room="battlefield"] button', { hasText: "Make a new object" }).click()
+await roomAction("battlefield", "Make a new object")
 await page.waitForTimeout(400)
 const bf = { form: await page.locator('[data-testid="add-battle-object-form"]').count(), bar: await roomBar(), chips: await chips() }
 out.battlefield = bf
@@ -151,7 +163,7 @@ await page.screenshot({ path: new URL("./shots/studio_room_battlefield.png", imp
 
 // 5. Story: timeline + "Write a new event" opens the event form.
 await page.locator('[data-testid="studio-nav-home"]').click()
-await page.locator('[data-room="story"] button', { hasText: "Write a new event" }).click()
+await roomAction("story", "Write a new event")
 await page.waitForTimeout(400)
 const story = { eventForm: await page.getByText("New Map Event").count(), timelineBtn: await page.getByRole("button", { name: /Story Timeline/ }).count() }
 await page.getByRole("button", { name: /Story Timeline/ }).click()
@@ -162,7 +174,7 @@ c(story.eventForm === 1 && story.timelineBtn === 1 && story.timelineShown > 0, "
 
 // 6. Look & Colours opens the theme panel; clicking a room title opens its list.
 await page.locator('[data-testid="studio-nav-home"]').click()
-await page.locator('[data-room="look"] button', { hasText: "Change colours & fonts" }).click()
+await roomAction("look", "Change colours & fonts")
 await page.waitForTimeout(400)
 const look = { bar: await roomBar(), more: await page.locator('[data-testid="studio-more-tools"]').count() }
 await page.locator('[data-testid="studio-nav-home"]').click()
