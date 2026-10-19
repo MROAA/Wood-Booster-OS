@@ -25,6 +25,7 @@ import MutationEditor from "../components/hearthwood-studio/MutationEditor"
 import { TraitEditor, PromotionEditor, HeroIdentityEditor } from "../components/hearthwood-studio/HeroDataEditor"
 import GearEditor from "../components/hearthwood-studio/GearEditor"
 import StudioHome from "../components/hearthwood-studio/StudioHome"
+import StudioToast from "../components/hearthwood-studio/StudioToast"
 import StoryWriter, { STORY_WRITER_TYPES } from "../components/hearthwood-studio/StoryWriter"
 import { roomById, roomForType } from "../components/hearthwood-studio/studioRooms"
 
@@ -89,6 +90,8 @@ function HearthwoodStudio() {
   // An HQ "add" button opens that type's compose form already open; the
   // nonce re-mounts it so pressing the button again re-opens it.
   const [compose, setCompose] = useState({ type: null, nonce: 0 })
+  // An HQ wish that is a change: its words pre-fill the AI box.
+  const [wishText, setWishText] = useState({ text: "", nonce: 0 })
   // The old tab row (Single / Sheet / Mutations / ...) lives behind this.
   const [showMoreTools, setShowMoreTools] = useState(() => {
     const view = new URLSearchParams(window.location.search).get("view")
@@ -261,6 +264,42 @@ function HearthwoodStudio() {
     setViewMode("single")
   }
 
+  // HQ "What do you want today?" (StudioWishBox/wishRouter): go where the answer says.
+  async function handleWish(answer, text) {
+    const type = answer.entity?.type || answer.type
+    const nextRoom = answer.kind === "view" ? roomById("look") : roomForType(type)
+    setRoom(nextRoom)
+    setRoomHint(answer.why || "")
+    if (answer.kind === "view") {
+      setViewMode(answer.view)
+      return
+    }
+    if (answer.kind === "add") {
+      setBrowsingType(type)
+      handleAddNew(type)
+      setCompose(previous => ({ type, nonce: previous.nonce + 1 }))
+      return
+    }
+    if (answer.kind === "clone") {
+      try {
+        const data = await apiGet(`/hearthwood-patchbay/entities?type=${type}`)
+        const first = data.entities?.[0]
+        if (first) {
+          handleCreateNew(type, first.id)
+          setViewMode("single")
+        }
+      } catch {
+        handleTypeChange(type)
+        setViewMode("single")
+      }
+      return
+    }
+    setWishText(previous => ({ text: answer.kind === "change" ? text : "", nonce: previous.nonce + 1 }))
+    handleSelect(type, answer.entity.id)
+    setBrowsingType(type)
+    setViewMode("single")
+  }
+
   // A "More tools" tab: every list again, no room.
   function openTool(view) {
     setRoom(null)
@@ -270,6 +309,7 @@ function HearthwoodStudio() {
 
   return (
     <div className="space-y-6">
+      <StudioToast />
       <header className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -277,7 +317,7 @@ function HearthwoodStudio() {
               <span className="mr-2 text-[var(--wood-accent)]" aria-hidden="true">ᛞ</span>Hearthwood HQ
             </h1>
             <p className="mt-1 text-[var(--wood-muted)]">
-              Your workshop for building the game. Nothing changes until you press Apply, and every change can be undone.
+              Your workshop for building the game. Nothing changes until you press "Put it in the game", and every change can be undone.
             </p>
           </div>
 
@@ -471,7 +511,7 @@ function HearthwoodStudio() {
 
       {
         viewMode === "home" && (
-          <StudioHome onEnterRoom={enterRoom} onAction={runRoomAction} />
+          <StudioHome onEnterRoom={enterRoom} onAction={runRoomAction} onWish={handleWish} />
         )
       }
 
@@ -570,6 +610,7 @@ function HearthwoodStudio() {
             onAddNew={handleAddNew}
             onCreateNew={handleCreateNew}
             allowedTypes={room ? room.types : null}
+            showIds={showMoreTools}
           />
         </section>
 
@@ -727,6 +768,8 @@ function HearthwoodStudio() {
                   }
 
                   <NlChangeBox
+                    key={`nl-${entityType}-${entityId}-${wishText.nonce}`}
+                    initialInstruction={wishText.text}
                     type={entityType}
                     entityId={entityId}
                     entityLabel={entityDetail?.name}

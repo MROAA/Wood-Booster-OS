@@ -10,8 +10,9 @@ import PatchPreviewPanel from "./PatchPreviewPanel"
  * kuin mitään sovelletaan (aina preview+confirm, ks. nlEditPlanner.js:n
  * kova validaattori - Ollama ei koskaan kirjoita suoraan).
  */
-function NlChangeBox({ type, entityId, entityLabel, onApplied, onPreviewUrlChange }) {
-  const [instruction, setInstruction] = useState("")
+// initialInstruction: an HQ wish ("make the Rotwood Husk tougher") lands here pre-filled.
+function NlChangeBox({ type, entityId, entityLabel, onApplied, onPreviewUrlChange, initialInstruction = "" }) {
+  const [instruction, setInstruction] = useState(initialInstruction)
 
   const {
     result,

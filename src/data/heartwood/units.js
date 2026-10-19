@@ -28,8 +28,13 @@ import justiceImg from "../../assets/heartwood/units/justice.jpg"
 import deathImg from "../../assets/heartwood/units/death.jpg"
 import theEmpressImg from "../../assets/heartwood/units/the-empress.jpg"
 import theDevilImg from "../../assets/heartwood/units/the-devil.webp"
+import saplingwardImg from "../../assets/heartwood/units/saplingward.webp"
+import starHeraldImg from "../../assets/heartwood/units/star-herald.webp"
+import voidHeraldImg from "../../assets/heartwood/units/void-herald.webp"
 import worldAshElderImg from "../../assets/heartwood/units/world-ash-elder.webp"
 import theThornThroneImg from "../../assets/heartwood/units/the-thorn-throne.webp"
+import bulwarkOfAgesImg from "../../assets/heartwood/units/bulwark-of-ages.webp"
+import deepwoodSovereignImg from "../../assets/heartwood/units/deepwood-sovereign.webp"
 import theLoversImg from "../../assets/heartwood/units/the-lovers.jpg"
 import theEmperorImg from "../../assets/heartwood/units/the-emperor.jpg"
 import theSunImg from "../../assets/heartwood/units/the-sun.jpg"
@@ -1553,6 +1558,7 @@ const BASE_UNITS = {
       { type: "applyBuff", id: "execute", amount: 2 },
       { type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } },
     ],
+    image: voidHeraldImg,
   }),
   "star-herald": unit("star-herald", "Star Herald", "cosmic", 3, "support", [
     { type: "block", amount: 5 },
@@ -1563,6 +1569,7 @@ const BASE_UNITS = {
       { type: "applyBuff", id: "ascendant", amount: 1 },
       { type: "applyBuff", id: "ward", amount: 1 },
     ],
+    image: starHeraldImg,
   }),
   "goldenbough-ascendant": unit("goldenbough-ascendant", "Goldenbough Ascendant", "leaf", 2, "dps", [{ type: "attack", amount: 7 }], {
     evolvedFrom: "the-hierophant",
@@ -1576,8 +1583,7 @@ const BASE_UNITS = {
   // conditionalPassive) and a deliberately modest stat line - the pick
   // is "which direction is my squad going," not "biggest numbers." All
   // three hooks reuse the existing effect vocabulary; nothing invented.
-  // World-Ash Elder + The Thorn Throne have Marc's paintings; the other
-  // two still use the placeholder glyph art (cardArt.jsx fallback).
+  // All four legendaries use Marc's own paintings.
   "world-ash-elder": unit("world-ash-elder", "World-Ash Elder", "wood", 4, "support", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 4 },
@@ -1616,6 +1622,7 @@ const BASE_UNITS = {
     // clumped formation (deploy carries beside it, not spread out).
     // (block 3 stacked too much attrition value for a generic squad.)
     aura: { effect: { type: "block", amount: 2 } },
+    image: bulwarkOfAgesImg,
   }),
   "deepwood-sovereign": unit("deepwood-sovereign", "Deepwood Sovereign", "shadow", 4, "dps", [
     { type: "attack", amount: 7 },
@@ -1632,6 +1639,7 @@ const BASE_UNITS = {
         { type: "applyBuff", id: "execute", amount: 3 },
       ],
     },
+    image: deepwoodSovereignImg,
   }),
 
   // --- Rare additions: smaller tastes of the same three hooks --------
@@ -1645,6 +1653,7 @@ const BASE_UNITS = {
     // Growth, rare-scale: +1 Strength/round. A slow build that pays off
     // in a long fight without warping the squad the way the Elder does.
     growth: { amount: 1 },
+    image: saplingwardImg,
   }),
   "emberbanner": unit("emberbanner", "Emberbanner", "ember", 3, "hybrid", [
     { type: "attack", amount: 5 },
