@@ -111,7 +111,7 @@ sw.speaker2 = await page.locator('[data-testid="story-writer-dialogue"] input').
 sw.fold = await page.locator('[data-testid="all-fields-fold"]').evaluate((el) => el.open).catch(() => null)
 await page.locator('[data-testid="story-writer-line"]').first().fill("...You. You are not the rot.")
 await page.locator('[data-testid="story-writer-dialogue"] input').nth(2).fill("Narrator")
-sw.changed = await page.getByText(/2 changed/).count()
+sw.changed = await page.getByText(/2 changes not in the game yet/).count()
 await page.screenshot({ path: new URL("./shots/story_writer.png", import.meta.url).pathname })
 await page.locator('[data-testid="story-writer-preview"]').click()
 await page.waitForTimeout(500)
