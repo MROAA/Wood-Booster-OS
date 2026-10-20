@@ -8,7 +8,10 @@
     "start": "node index.js",
     "brain:import": "node scripts/import-brain.js",
     "brain:watch": "node scripts/watch-brain.js",
-    "build:sidecar": "node scripts/prepare-sidecar.js"
+    "build:sidecar": "node scripts/prepare-sidecar.js",
+    "test:spacemonkey": "node --experimental-test-module-mocks --test services/hearthwood*.test.js routes/hearthwoodDevStudio.test.js ../spacemonkey-verified-planner.test.mjs ../spacemonkey-autopilot-inspection.test.mjs ../spacemonkey-safety-supervisor.test.mjs ../spacemonkey-readiness.test.mjs",
+    "check:spacemonkey": "npx --no-install oxlint routes/hearthwoodDevStudio.js services/hearthwood*.js && python3 -m py_compile services/hearthwoodImageTool.py && npm run test:spacemonkey",
+    "spacemonkey:probe": "node scripts/spacemonkey-probe.js"
   },
   "keywords": [],
   "type": "module",
