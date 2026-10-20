@@ -1,179 +1,209 @@
-const OLLAMA_BASE_URL =
-  process.env.OLLAMA_URL ||
-  "http://localhost:11434"
-
-const OLLAMA_URL =
-  "http://localhost:11434/api/generate"
-
-
-
 /**
- * Wood-Booster AI Brain
- *
+ * Wood-Booster / Hearthwood
  * Ollama Client
  *
- * Kommunikoi paikallisen Ollama-palvelimen kanssa.
+ * Yhteinen asiakas paikalliselle Ollama-palvelimelle.
+ *
+ * Ominaisuudet:
+ * - yhteysosoite ympäristömuuttujasta
+ * - aikakatkaisu
+ * - selkeät virheilmoitukset
+ * - generate- ja chat-rajapinnat
+ *
+ * Ei muuta AI Brainin toimintalogiikkaa.
  */
 
+const OLLAMA_BASE_URL = (
+  process.env.OLLAMA_URL ||
+  "http://127.0.0.1:11434"
+).replace(/\/+$/, "")
 
-export async function generateWithOllama({
+const DEFAULT_TIMEOUT_MS = 60000
 
-  prompt,
+function getTimeoutMs() {
+  const configured = Number(
+    process.env.OLLAMA_TIMEOUT_MS,
+  )
 
-  model = "qwen2.5:7b"
-
-}) {
-
-
-  try {
-
-
-    console.log(
-      "Sending request to Ollama:",
-      model
-    )
-
-
-
-    const response =
-      await fetch(
-        OLLAMA_URL,
-        {
-
-          method: "POST",
-
-          headers: {
-
-            "Content-Type":
-              "application/json"
-
-          },
-
-
-          body: JSON.stringify({
-
-            model,
-
-            prompt,
-
-            stream: false
-
-          })
-
-        }
-      )
-
-
-
-
-    if (!response.ok) {
-
-      throw new Error(
-        `Ollama error: ${response.status}`
-      )
-
-    }
-
-
-
-    const data =
-      await response.json()
-
-
-
-    return {
-
-      success: true,
-
-      response:
-        data.response
-
-    }
-
-
-
-  } catch(error) {
-
-
-    console.error(
-      "OLLAMA CONNECTION ERROR:",
-      error.message
-    )
-
-
-    return {
-
-      success: false,
-
-      error:
-        error.message
-
-    }
-
+  if (
+    Number.isFinite(configured) &&
+    configured > 0
+  ) {
+    return configured
   }
 
+  return DEFAULT_TIMEOUT_MS
 }
 
+async function requestOllama(endpoint, payload) {
+  const timeoutMs = getTimeoutMs()
 
+  let response
+  let data
 
-/*
- * chat-tyylinen Ollama-kutsu (/api/chat, messages-taulukko, lukee
- * data.message.content) - eri rajapinta kuin generateWithOllama
- * yllä (/api/generate, pelkkä prompt-merkkijono, lukee
- * data.response), joten ei korvaa sitä vaan on oma rinnakkainen
- * export. Yhdistää 7 palvelutiedoston (codeChangeGenerator.js,
- * changePlanGenerator.js, pythonCodeGenerator.js,
- * pythonCodeRefactorer.js, pythonCodeDebugger.js,
- * pythonCodeExplainer.js, pythonCodeReviewer.js) aiemmin
- * identtisenä toistuneen paikallisen askOllama()-funktion yhdeksi
- * jaetuksi toteutukseksi - vain num_ctx vaihteli tiedostojen välillä,
- * joten se on ainoa parametroitu asetus.
- */
-export async function chatWithOllama({
-
-  model,
-
-  systemPrompt,
-
-  userMessage,
-
-  numCtx = 4096,
-
-}) {
-
-  const response =
-    await fetch(
-      `${OLLAMA_BASE_URL}/api/chat`,
+  try {
+    response = await fetch(
+      `${OLLAMA_BASE_URL}${endpoint}`,
       {
-
         method: "POST",
 
         headers: {
           "Content-Type": "application/json",
         },
 
-        body: JSON.stringify({
-          model,
-          stream: false,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userMessage },
-          ],
-          options: {
-            temperature: 0.2,
-            num_ctx: numCtx,
-          },
-        }),
+        body: JSON.stringify(payload),
 
+        signal: AbortSignal.timeout(timeoutMs),
       },
     )
 
-  const data = await response.json()
+    data = await response.json()
+  } catch (error) {
+    if (
+      error?.name === "TimeoutError" ||
+      error?.name === "AbortError"
+    ) {
+      throw new Error(
+        `Ollama ei vastannut ${Math.round(
+          timeoutMs / 1000,
+        )} sekunnissa.`,
+      )
+    }
 
-  if (!response.ok) {
-    throw new Error(data.error || "Ollama error")
+    if (error instanceof SyntaxError) {
+      throw new Error(
+        "Ollama palautti virheellisen JSON-vastauksen.",
+      )
+    }
+
+    throw new Error(
+      `Ollama-yhteys epäonnistui (${OLLAMA_BASE_URL}): ${
+        error?.message || "tuntematon virhe"
+      }`,
+    )
   }
 
-  return String(data.message?.content || "").trim()
+  if (!response.ok) {
+    throw new Error(
+      data?.error ||
+        `Ollama palautti HTTP-virheen ${response.status}.`,
+    )
+  }
 
+  return data
+}
+
+/**
+ * Perinteinen tekstigenerointi.
+ *
+ * Säilyttää aiemman paluuarvorakenteen.
+ */
+
+export async function generateWithOllama({
+  prompt,
+  model = "qwen2.5:7b",
+}) {
+  try {
+    console.log(
+      "[Ollama] Generating:",
+      model,
+    )
+
+    const data = await requestOllama(
+      "/api/generate",
+      {
+        model,
+        prompt,
+        stream: false,
+      },
+    )
+
+    return {
+      success: true,
+      response: String(data.response || ""),
+    }
+  } catch (error) {
+    console.error(
+      "[Ollama] Generate failed:",
+      error.message,
+    )
+
+    return {
+      success: false,
+      error: error.message,
+    }
+  }
+}
+
+/**
+ * Keskustelurajapinta.
+ *
+ * Hearthwood Code Analyst käyttää tätä.
+ *
+ * Virheet välitetään kutsujalle selkeinä
+ * virheilmoituksina.
+ */
+
+export async function chatWithOllama({
+  model,
+  systemPrompt,
+  userMessage,
+  numCtx = 4096,
+}) {
+  console.log(
+    "[Ollama] Chat started:",
+    model,
+  )
+
+  try {
+    const data = await requestOllama(
+      "/api/chat",
+      {
+        model,
+
+        stream: false,
+
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt,
+          },
+          {
+            role: "user",
+            content: userMessage,
+          },
+        ],
+
+        options: {
+          temperature: 0.2,
+          num_ctx: numCtx,
+        },
+      },
+    )
+
+    const answer = String(
+      data.message?.content || "",
+    ).trim()
+
+    if (!answer) {
+      throw new Error(
+        "Ollama palautti tyhjän vastauksen.",
+      )
+    }
+
+    console.log(
+      "[Ollama] Chat completed:",
+      model,
+    )
+
+    return answer
+  } catch (error) {
+    console.error(
+      "[Ollama] Chat failed:",
+      model,
+      error.message,
+    )
+
+    throw error
+  }
 }
