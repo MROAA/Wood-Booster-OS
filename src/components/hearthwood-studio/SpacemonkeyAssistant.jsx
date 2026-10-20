@@ -1,3 +1,4 @@
+
 import { useRef, useState } from "react"
 
 const API_BASE =
@@ -65,17 +66,14 @@ function MessageContent({ content }) {
 
         if (heading) {
           return (
-            <p
-              key={index}
-              className="pt-2 font-bold"
-            >
+            <p key={index} className="pt-2 font-bold">
               {inlineMarkdown(heading[1])}
             </p>
           )
         }
 
         const bullet = trimmed.match(
-          /^(?:[-*]|\d+[.)])\s+(.+)/,
+          /^(?:[-*•]|\d+[.)])\s*(.+)/,
         )
 
         if (bullet) {
@@ -150,55 +148,124 @@ async function postJson(endpoint, body) {
   return result
 }
 
+function CodeExcerpt({ title, filePath, content, partial }) {
+  return (
+    <div className="space-y-2 rounded-xl border border-[var(--wood-border)] bg-[var(--wood-panel)] p-3">
+      <p className="font-bold text-[var(--wood-accent)]">
+        {title}
+      </p>
+
+      <p className="break-all font-mono text-xs text-[var(--wood-muted)]">
+        {filePath}
+      </p>
+
+      <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-lg bg-[var(--wood-bg)] p-3 font-mono text-xs leading-relaxed text-[var(--wood-text)]">
+        <code>{content || "Lähdekoodikatkelma puuttuu."}</code>
+      </pre>
+
+      {partial && (
+        <p className="text-xs text-[var(--wood-muted)]">
+          Katkelma on osittainen.
+        </p>
+      )}
+    </div>
+  )
+}
+
 function SourceDetails({ analysis }) {
   if (!analysis) return null
 
+  const verified = analysis.verifiedSources || []
+  const dependencies = analysis.dependencySources || []
+  const unresolved = analysis.unresolvedDependencies || []
+  const inspected = analysis.inspectedFiles || []
+
   return (
     <details className="mt-3 rounded-xl border border-[var(--wood-border)] p-3 text-xs">
-      <summary className="cursor-pointer text-[var(--wood-accent)]">
+      <summary className="cursor-pointer font-semibold text-[var(--wood-accent)]">
         Näytä lähdekoodin tarkistustiedot
       </summary>
 
-      <div className="mt-3 space-y-3">
-        {analysis.verifiedSources?.map((item, index) => (
-          <div
-            key={`${item.symbol}-${index}`}
-            className="rounded-lg border border-[var(--wood-border)] p-2"
-          >
-            <p className="font-bold">
-              {item.symbol}
-            </p>
+      <div className="mt-3 space-y-4">
+        <p className="text-[var(--wood-muted)]">
+          Lähdekoodikatkelmat ovat suoraan Hearthwoodin
+          tiedostoista. Spacemonkeyn sanallinen tulkinta
+          ei ole automaattisesti täysin varmennettu.
+        </p>
 
-            <p className="break-all text-[var(--wood-muted)]">
-              {item.filePath}
-            </p>
+        {verified.length > 0 && (
+          <section className="space-y-2">
+            <h3 className="font-bold text-[var(--wood-text)]">
+              Todennetut funktiot ({verified.length})
+            </h3>
 
-            <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs">
-              {item.source}
-            </pre>
-          </div>
-        ))}
+            {verified.map((item, index) => (
+              <CodeExcerpt
+                key={`${item.filePath}-${item.symbol}-${index}`}
+                title={item.symbol}
+                filePath={item.filePath}
+                content={item.source}
+                partial={item.truncated}
+              />
+            ))}
+          </section>
+        )}
 
-        {analysis.inspectedFiles?.length > 0 && (
-          <div>
-            <p className="mb-1 font-semibold">
-              Tutkitut tiedostot
-            </p>
+        {dependencies.length > 0 && (
+          <section className="space-y-2">
+            <h3 className="font-bold text-[var(--wood-text)]">
+              Todennetut riippuvuudet ({dependencies.length})
+            </h3>
 
-            {analysis.inspectedFiles.map((item, index) => (
+            {dependencies.map((item, index) => (
+              <CodeExcerpt
+                key={`${item.filePath}-${item.symbol}-${index}`}
+                title={item.symbol}
+                filePath={item.filePath}
+                content={item.excerpt}
+                partial={item.partial}
+              />
+            ))}
+          </section>
+        )}
+
+        {unresolved.length > 0 && (
+          <section className="space-y-2">
+            <h3 className="font-bold text-[var(--wood-text)]">
+              Selvittämättömät riippuvuudet
+            </h3>
+
+            {unresolved.map((item, index) => (
               <p
                 key={index}
-                className="break-all text-[var(--wood-muted)]"
+                className="break-words text-[var(--wood-muted)]"
+              >
+                {item.symbol} — {item.reason}
+              </p>
+            ))}
+          </section>
+        )}
+
+        {inspected.length > 0 && (
+          <section className="space-y-2">
+            <h3 className="font-bold text-[var(--wood-text)]">
+              Tutkitut tiedostot
+            </h3>
+
+            {inspected.map((item, index) => (
+              <p
+                key={index}
+                className="break-all font-mono text-xs text-[var(--wood-muted)]"
               >
                 {item.filePath}
                 {item.truncated ? " (osittainen)" : ""}
               </p>
             ))}
-          </div>
+          </section>
         )}
 
         {analysis.warning && (
-          <p className="text-[var(--wood-muted)]">
+          <p className="border-t border-[var(--wood-border)] pt-3 text-[var(--wood-muted)]">
             {analysis.warning}
           </p>
         )}
@@ -254,20 +321,15 @@ export default function SpacemonkeyAssistant() {
           "Tämä tehtävä vaatii hyväksynnän. " +
           "Mitään muutoksia ei tehty.",
         )
-
         return
       }
 
-      if (
-        !route.matched ||
-        !route.apiReady
-      ) {
+      if (!route.matched || !route.apiReady) {
         addMessage(
           "assistant",
           "En löytänyt tähän tehtävään vielä " +
           "käytettävissä olevaa työkalua.",
         )
-
         return
       }
 
@@ -282,11 +344,8 @@ export default function SpacemonkeyAssistant() {
           "assistant",
           result.answer ||
             "Analyysia ei voitu muodostaa.",
-          {
-            analysis: result,
-          },
+          { analysis: result },
         )
-
         return
       }
 
@@ -300,7 +359,6 @@ export default function SpacemonkeyAssistant() {
           result.explanation ||
             "Muutossuunnitelma valmistui.",
         )
-
         return
       }
 
@@ -314,9 +372,7 @@ export default function SpacemonkeyAssistant() {
       addMessage(
         "assistant",
         `Tehtävä epäonnistui: ${error.message}`,
-        {
-          error: true,
-        },
+        { error: true },
       )
     } finally {
       busy.current = false
@@ -360,7 +416,9 @@ export default function SpacemonkeyAssistant() {
 
             <div
               className={
-                message.error ? "text-red-400" : "text-[var(--wood-text)]"
+                message.error
+                  ? "text-red-400"
+                  : "text-[var(--wood-text)]"
               }
             >
               <MessageContent content={message.content} />
@@ -377,7 +435,10 @@ export default function SpacemonkeyAssistant() {
         )}
       </div>
 
-      <form onSubmit={send} className="flex flex-col gap-2 sm:flex-row">
+      <form
+        onSubmit={send}
+        className="flex flex-col gap-2 sm:flex-row"
+      >
         <textarea
           value={input}
           onChange={event => setInput(event.target.value)}
