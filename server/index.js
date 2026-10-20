@@ -388,6 +388,7 @@ import createDevStudioRouter from "./routes/devStudio.js"
 
 import createDevCodeChangeRouter from "./routes/devCodeChangeStudio.js"
 import createDevMultiFileChangeRouter from "./routes/devMultiFileChangeStudio.js"
+import createHearthwoodDevStudioRouter from "./routes/hearthwoodDevStudio.js"
 import createSavedPromptsRouter from "./routes/savedPrompts.js"
 import createHeartwoodAssistantRouter from "./routes/heartwoodAssistant.js"
 import createHearthwoodPatchbayRouter from "./routes/hearthwoodPatchbay.js"
@@ -1307,6 +1308,7 @@ app.use(
 )
 
 
+app.use("/api", createHearthwoodDevStudioRouter())
 
 app.use(
   "/api",
