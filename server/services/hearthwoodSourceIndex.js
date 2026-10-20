@@ -32,6 +32,9 @@ const STOP_WORDS = new Set([
   "älä", "muuta", "aiempia", "onko", "toteutettu", "ehdota", "turhia",
   "todisteet", "riitä", "ilmoita", "epävarmuus", "miten", "kuinka", "mikä",
   "mitä", "missä", "toimii", "sekä", "joka", "jos", "ovat", "kerro",
+  // question and filler words: they say how to answer, not what to find
+  "milloin", "syntyy", "kattaa", "kattavat", "toiminto", "toiminnon", "mitkä",
+  "niitä", "niiden", "toimivat", "testit", "pelikoodi", "pelikoodista", "lähdekoodia",
   "this", "that", "with", "from", "have", "does", "should", "what", "where",
   "which", "work", "works", "check", "code", "source", "implemented",
   "function", "const",
@@ -51,7 +54,7 @@ const FI_EN_TERMS = [
   ["viholli", ["enemy"]], ["sankari", ["hero"]], ["esine", ["item"]], ["varust", ["gear", "equipment"]],
   ["kauppa", ["shop", "market"]], ["kartta", ["map"]], ["resurssi", ["resource"]],
   ["palkin", ["reward"]], ["kulta", ["gold"]], ["kokemus", ["experience"]], ["taso", ["level"]],
-  ["myrky", ["poison"]], ["tainnut", ["stun"]], ["kuolema", ["death"]], ["elvyt", ["revive"]],
+  ["myrk", ["poison"]], ["tainnut", ["stun"]], ["kuolema", ["death"]], ["elvyt", ["revive"]],
   ["maasto", ["terrain"]], ["ansa", ["trap"]], ["pomo", ["boss"]], ["tehtäv", ["quest"]],
   ["lyhty", ["lantern"]], ["valo", ["light"]], ["ääni", ["sound"]], ["kortti", ["card"]],
   ["raja", ["max", "limit"]], ["kesto", ["duration"]], ["nopeus", ["speed"]],
@@ -79,20 +82,51 @@ export function taskTerms(task) {
   const text = String(task || "")
   const base = (text.toLowerCase().match(/[\p{L}\p{N}_]+/gu) || [])
     .filter(word => word.length >= 4 && !STOP_WORDS.has(word))
-  const expanded = base.flatMap(word => FI_EN_TERMS
-    .filter(([stem]) => word.includes(stem))
-    .flatMap(([, english]) => english))
+  // "Intercept-kykyä", "Guardian-luokan": a Finnish word hyphenated to a
+  // name says what KIND of thing the name is - it is not a search topic of
+  // its own, so it is not expanded (it pulled in every ability / class).
+  const descriptors = new Set((text.toLowerCase().match(/[\p{L}\p{N}_]+ ?-[\p{L}]+/gu) || [])
+    .map(compound => compound.split("-").pop()))
+  // Names the user wrote with a capital letter (not just because a
+  // sentence starts): "Guardianin", "Intercept", "Holy Power". They are
+  // the strongest sign of what is asked and weigh double.
+  const anchors = new Set()
+  for (const match of text.matchAll(/(^|[.!?:]\s+|\s+|[("“])([\p{Lu}][\p{L}\p{N}_]*)/gu)) {
+    const sentenceStart = match.index === 0 || /[.!?:]\s+$/.test(match[1])
+    if (!sentenceStart) anchors.add(match[2].toLowerCase())
+  }
+  const expanded = base
+    .filter(word => !descriptors.has(word))
+    .flatMap(word => FI_EN_TERMS
+      .filter(([stem]) => word.includes(stem))
+      .flatMap(([, english]) => english))
   // English expansions first: they are what identifiers are made of.
   const words = [...expanded, ...base]
   const symbols = (text.match(/\b[A-Za-z_$][\w$]*\b/g) || [])
     .filter(word => /[a-z][A-Z]/.test(word))
-  const kept = [...new Set(words)].slice(0, 20)
+  // One term per word: inflected forms of the same word ("Power",
+  // "Poweria"; "guardian", "guardianin") count once, as the shortest form,
+  // so a word the user repeated does not weigh twice.
+  const unique = []
+  for (const word of [...new Set(words)].sort((a, b) => a.length - b.length)) {
+    if (!unique.some(kept => wordMatches(kept, word))) unique.push(word)
+  }
+  const order = new Map(words.map((word, index) => [word, words.indexOf(word) === index ? index : words.indexOf(word)]))
+  const kept = unique.sort((a, b) => order.get(a) - order.get(b)).slice(0, 20)
   return {
     words: kept,
     // Glossary guesses about intent weigh half of what the user wrote.
     inferred: kept.filter(word => expanded.includes(word) && !base.includes(word)),
+    anchors: kept.filter(word => [...anchors].some(anchor => wordMatches(anchor, word))),
     symbols: [...new Set(symbols)].slice(0, 8),
   }
+}
+
+/** Named by the user: x2; guessed from the glossary: x0.5; otherwise x1. */
+export function intentWeight(term, inferred = [], anchors = []) {
+  if (anchors.includes(term)) return 2
+  if (inferred.includes(term)) return 0.5
+  return 1
 }
 
 /** A word matches a term exactly or as a prefix (intercept ↔ intercepts). */
@@ -182,12 +216,12 @@ export function definitionBody(lines, definition) {
  * Rarity weight per term within one file: a term mentioned by most
  * definitions ("power") says little; a rare one ("intercept") a lot.
  */
-export function termWeights(bodies, words, inferred = []) {
+export function termWeights(bodies, words, inferred = [], anchors = []) {
   const weights = new Map()
   for (const term of words) {
     const df = bodies.filter(body => termHits(body, [term]).length).length
     const rarity = df <= 2 ? 1 : df <= 8 ? 0.6 : df <= 25 ? 0.35 : 0.2
-    weights.set(term, inferred.includes(term) ? rarity / 2 : rarity)
+    weights.set(term, rarity * intentWeight(term, inferred, anchors))
   }
   return weights
 }

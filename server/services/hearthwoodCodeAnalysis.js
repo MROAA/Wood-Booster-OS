@@ -8,6 +8,7 @@
 
 import { chatWithOllama } from "./ollamaClient.js"
 import { readHearthwoodCode, readHearthwoodSourceFile } from "./hearthwoodCodeReader.js"
+import { extractDefinitions, taskTerms, termHits } from "./hearthwoodSourceIndex.js"
 import { extractHearthwoodEvidence } from "./hearthwoodEvidenceValidator.js"
 import { verifyHearthwoodSources } from "./hearthwoodSourceVerification.js"
 import { resolveHearthwoodImports } from "./hearthwoodImportResolver.js"
@@ -27,21 +28,55 @@ const MAX_FILE_CHARS = 1000
 
 // The reader's most relevant functions, with their whole file read through
 // the same guards (verification extracts them from the real source).
-async function readerCandidates(files) {
-  const ranked = files
+// The best matches, then functions with a verified call to or from one of
+// the three best ("attackUnit calls onGuard": the same mechanic), then the
+// rest by relevance. A loose chain elsewhere does not jump the queue.
+async function readerCandidates(files, sourceFacts = [], task = "") {
+  const byScore = files
     .flatMap(file => (file.excerpts || []).map(excerpt => ({ ...excerpt, filePath: file.filePath })))
     .sort((a, b) => (b.score || 0) - (a.score || 0))
-    .slice(0, 8)
+  const best = new Set(byScore.slice(0, 3).map(item => item.symbol))
+  const linked = new Set(sourceFacts
+    .filter(fact => fact.kind === "call" && (best.has(fact.symbol) || best.has(fact.callee)))
+    .flatMap(fact => [fact.symbol, fact.callee]))
+  const rank = item => (best.has(item.symbol) ? 2 : linked.has(item.symbol) ? 1 : 0)
+  const ranked = [...byScore]
+    .sort((a, b) => rank(b) - rank(a) || (b.score || 0) - (a.score || 0))
+    .slice(0, 12)
   const contents = new Map()
-  const candidates = []
+  const pool = []
   for (const item of ranked) {
     if (!contents.has(item.filePath)) {
       contents.set(item.filePath, await readHearthwoodSourceFile(item.filePath))
     }
     const content = contents.get(item.filePath)
-    if (content) candidates.push({ symbol: item.symbol, filePath: item.filePath, content })
+    if (!content) continue
+    const lines = content.split("\n")
+    const definition = extractDefinitions(content).find(d => d.name === item.symbol)
+    const text = definition ? lines.slice(definition.commentStart - 1, definition.endLine).join("\n") : ""
+    pool.push({ symbol: item.symbol, filePath: item.filePath, content, text })
   }
-  return candidates
+  // Cover what the user named: each next source is the best-ranked one that
+  // adds a named thing ("Guardian", "Intercept", "Holy", "Power") not yet
+  // covered; once everything named is covered, plain rank order decides.
+  const anchors = taskTerms(task).anchors
+  const covered = new Set()
+  const ordered = []
+  while (pool.length) {
+    let pick = 0
+    let gain = 0
+    pool.forEach((item, index) => {
+      const fresh = termHits(item.text, anchors).filter(term => !covered.has(term)).length
+      if (fresh > gain) {
+        gain = fresh
+        pick = index
+      }
+    })
+    const [chosen] = pool.splice(pick, 1)
+    termHits(chosen.text, anchors).forEach(term => covered.add(term))
+    ordered.push({ symbol: chosen.symbol, filePath: chosen.filePath, content: chosen.content })
+  }
+  return ordered
 }
 
 function searchTerms(question) {
@@ -615,7 +650,7 @@ export async function analyzeHearthwoodCode({
   const verification = verifyHearthwoodSources(
     task,
     result.files,
-    { candidates: await readerCandidates(result.files) },
+    { candidates: await readerCandidates(result.files, result.sourceFacts, task) },
   )
 
   const resolution = await resolveHearthwoodImports(

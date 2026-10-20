@@ -46,3 +46,10 @@ test("at most four candidates are taken", () => {
   const many = Array.from({ length: 9 }, () => ({ symbol: "onShield", filePath: "src/services/heartwood/pool.js", content }))
   assert.equal(verifyHearthwoodSources("x", files, { candidates: many }).verified.length, 1, "duplicates collapse")
 })
+
+test("a candidate that cannot be offered does not use up one of the four places", () => {
+  const ok = n => ({ symbol: "onShield", filePath: `src/services/heartwood/p${n}.js`, content: content.replace(/onShield/g, `fn${n}`) })
+  const list = [{ symbol: "hugeThing", filePath: "src/services/heartwood/pool.js", content }, ...[1, 2, 3, 4, 5].map(n => ({ ...ok(n), symbol: `fn${n}` }))]
+  const verified = verifyHearthwoodSources("x", files, { candidates: list }).verified.map(item => item.symbol)
+  assert.deepEqual(verified, ["fn1", "fn2", "fn3", "fn4"])
+})

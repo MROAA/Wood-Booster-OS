@@ -126,7 +126,11 @@ export function verifyHearthwoodSources(
     }
   }
 
-  for (const candidate of candidates.slice(0, 4)) {
+  // Up to 4 reader functions; one that cannot be offered (too long, not a
+  // function) does not use up a place - the next candidate gets it.
+  let fromReader = 0
+  for (const candidate of candidates.slice(0, 12)) {
+    if (fromReader >= 4) break
     if (
       typeof candidate?.symbol !== "string" ||
       typeof candidate?.filePath !== "string" ||
@@ -144,6 +148,7 @@ export function verifyHearthwoodSources(
       truncated: false,
       origin: "reader",
     })
+    fromReader += 1
   }
 
   return {

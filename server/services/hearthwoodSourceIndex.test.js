@@ -44,3 +44,20 @@ test('plain Finnish finds English identifiers; glossary guesses are marked infer
   // A word the user wrote in English is never downgraded to inferred.
   assert.ok(!taskTerms('herb yrtti').inferred.includes('herb'))
 })
+
+test('a Finnish word hyphenated to a name describes it and is not expanded', () => {
+  const terms = taskTerms('Tutki Guardianin Intercept-kykyä, Guardian-luokan tiedot ja resurssit')
+  assert.ok(!terms.words.includes('ability') && !terms.words.includes('skill'), terms.words.join(','))
+  assert.ok(!terms.words.includes('class'), 'luokan after a hyphen is a descriptor')
+  assert.ok(terms.words.includes('resource'), 'a free-standing word is still expanded')
+  assert.ok(taskTerms('Paranna sankarin kykyjä').words.includes('ability'))
+})
+
+test('names the user capitalised are anchors; inflected forms of one word count once', () => {
+  const terms = taskTerms('Tutki Guardianin Intercept-kykyä ja Holy Power -resurssia. Milloin Holy Poweria syntyy?')
+  assert.deepEqual(terms.anchors, ['guardianin', 'intercept', 'holy', 'power'])
+  assert.ok(!terms.words.includes('poweria'), 'Poweria merged into power')
+  assert.ok(!terms.words.includes('milloin') && !terms.words.includes('syntyy'), 'question words dropped')
+  assert.ok(!terms.anchors.includes('tutki'), 'a capital at a sentence start is not a name')
+  assert.ok(taskTerms('Miten myrkky toimii?').words.includes('poison'))
+})

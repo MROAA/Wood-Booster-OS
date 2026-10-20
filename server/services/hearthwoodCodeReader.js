@@ -95,7 +95,7 @@ export function selectRelevantCode(content, { filePath = "", terms, boosted = ne
   const names = new Set([...terms.symbols, ...boosted])
   const definitions = extractDefinitions(content)
   const bodies = definitions.map(definition => definitionBody(lines, definition))
-  const weights = termWeights(bodies, terms.words, terms.inferred)
+  const weights = termWeights(bodies, terms.words, terms.inferred, terms.anchors)
   const scores = definitions.map((definition, i) =>
     scoreDefinition(definition, bodies[i], terms, boosted, weights))
 
