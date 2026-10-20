@@ -25,6 +25,11 @@ import {
   buildHearthwoodFocusedEvidenceIndex,
 } from "./hearthwoodPlanningContext.js"
 
+import {
+  formatSourceFacts,
+  classifyReferences,
+} from "./hearthwoodSourceFacts.js"
+
 const DEFAULT_MODEL =
   process.env.CODE_OLLAMA_MODEL ||
   process.env.OLLAMA_MODEL ||
@@ -113,6 +118,7 @@ function createSystemPrompt(
   matches,
   codeFiles,
   task,
+  sourceFacts = [],
 ) {
   return `
 Olet Spacemonkey, Hearthwood Dev Studion
@@ -169,6 +175,10 @@ samalla kirjoitusasulla.
 TUNNISTETUT FUNKTIOT JA VAKIOT:
 ${buildHearthwoodFocusedEvidenceIndex(codeFiles, task)}
 
+VAHVISTETUT LÄHDEFAKTAT (konelaskettu lähdekoodista, ei AI:n päätelmä):
+${formatSourceFacts(sourceFacts)}
+Käytä näitä faktoja perusteluna. Älä väitä mitään, mikä on ristiriidassa niiden kanssa.
+
 TEHTÄVÄÄN LIITTYVÄT TIEDOSTOT:
 ${matches.length ? matches.join("\n") : "Ei osumia."}
 
@@ -212,6 +222,35 @@ SELITYS: Mitä pitää vielä tutkia: ...
 
 Älä käytä Markdown-koodiaitoja.
 `
+}
+
+/**
+ * Four kinds of knowledge, kept apart (PRD D): machine-verified source
+ * facts, tested behaviour (none unless tests were run), the model's
+ * inference, and what remains unknown. Informational, never an approval.
+ */
+function buildEvidenceReport({ sourceFacts, codeFiles, decision, references }) {
+  const { strong, weak } = classifyReferences(references, codeFiles, sourceFacts)
+  const unknown = []
+  for (const file of codeFiles) {
+    if (file.omittedSymbols?.length) {
+      unknown.push(`${file.filePath}: lukematta ${file.omittedSymbols.join(", ")}`)
+    }
+    if (file.truncated) unknown.push(`${file.filePath}: luettu vain katkelmina`)
+  }
+  let qualityNote = null
+  if (decision !== "INSUFFICIENT_EVIDENCE" && !strong.length) {
+    qualityNote = weak.length
+      ? `Perustelu nojaa vain sivulähteisiin (${weak.join(", ")}), ei tehtävän keskeiseen koodiin. Tarkista ennen päätöstä.`
+      : "Perustelu ei viittaa yhteenkään luettuun lähdesymboliin."
+  }
+  return {
+    sourceFacts,
+    testedBehaviour: [],
+    inference: { decision, strongReferences: strong, weakReferences: weak },
+    unknown: unknown.slice(0, 12),
+    qualityNote,
+  }
 }
 
 function validatePlan(files, existingFiles) {
@@ -306,11 +345,14 @@ export async function generateHearthwoodChangePlan({
     )
   }
 
+  const sourceFacts = codeResult.sourceFacts || []
+
   const systemPrompt = createSystemPrompt(
     allFiles,
     matches,
     codeFiles,
     task,
+    sourceFacts,
   )
 
   let lastError = null
@@ -366,6 +408,12 @@ ${buildHearthwoodFocusedEvidenceIndex(codeFiles, task)}
             matchedFiles: matches,
           }),
           model,
+          evidenceReport: buildEvidenceReport({
+            sourceFacts,
+            codeFiles,
+            decision: proposedDecision,
+            references: reviewedEvidence.references || [],
+          }),
         }
       } catch (error) {
         lastError = error
@@ -412,6 +460,12 @@ ${buildHearthwoodFocusedEvidenceIndex(codeFiles, task)}
           warning: evidence.warning,
         },
         status: "plan_ready",
+        evidenceReport: buildEvidenceReport({
+          sourceFacts,
+          codeFiles,
+          decision: "CHANGE_REQUIRED",
+          references: evidence.references,
+        }),
       }
     } catch (error) {
       lastError = error

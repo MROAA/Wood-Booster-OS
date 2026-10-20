@@ -19,6 +19,8 @@ import {
   termHits,
 } from "./hearthwoodSourceIndex.js"
 
+import { buildSourceFacts } from "./hearthwoodSourceFacts.js"
+
 const MAX_FILES = 6
 const MAX_CHARACTERS = 4000
 const MAX_FILE_BYTES = 512000
@@ -128,7 +130,7 @@ export function selectRelevantCode(content, { filePath = "", terms, boosted = ne
   const calls = new Set()
   let used = 0
 
-  for (const { definition } of ranked) {
+  for (const { definition, score } of ranked) {
     if (excerpts.length < MAX_EXCERPTS) {
       const rendered = renderExcerpt(lines, definition, terms, names)
       const header = `// ${filePath}:${definition.startLine}-${definition.endLine} ${definition.name}` +
@@ -138,7 +140,7 @@ export function selectRelevantCode(content, { filePath = "", terms, boosted = ne
         blocks.push(block)
         used += block.length + 2
         excerpts.push({ symbol: definition.name, startLine: definition.startLine,
-          endLine: definition.endLine, clipped: rendered.clipped })
+          endLine: definition.endLine, clipped: rendered.clipped, score: Math.round(score * 10) / 10 })
         for (const name of calledNames(rendered.hitLines.join("\n"))) calls.add(name)
         continue
       }
@@ -269,5 +271,7 @@ export async function readHearthwoodCode(prompt, { requiredFiles = [] } = {}) {
     mode: "read-only",
     files,
     count: files.length,
+    // Machine-verified definition and call facts from the read sources.
+    sourceFacts: buildSourceFacts(raw, files),
   }
 }
