@@ -168,6 +168,73 @@ import runeveilImg from "../../assets/heartwood/units/runeveil.png"
 import trueshotImg from "../../assets/heartwood/units/trueshot.jpg"
 import beastcallerImg from "../../assets/heartwood/units/beastcaller.jpg"
 import { applyBranch } from "./upgrades"
+import theFoolImg2 from "../../assets/heartwood/units/the-fool.jpg"
+import theMagicianImg2 from "../../assets/heartwood/units/the-magician.jpg"
+import theHighPriestessImg2 from "../../assets/heartwood/units/the-high-priestess.jpg"
+import theEmpressImg2 from "../../assets/heartwood/units/the-empress-2.jpg"
+import theEmperorImg2 from "../../assets/heartwood/units/the-emperor-2.jpg"
+import theHierophantImg2 from "../../assets/heartwood/units/the-hierophant-2.jpg"
+import theLoversImg2 from "../../assets/heartwood/units/the-lovers-2.jpg"
+import theChariotImg2 from "../../assets/heartwood/units/the-chariot.jpg"
+import strengthImg2 from "../../assets/heartwood/units/strength-2.jpg"
+import theHermitImg2 from "../../assets/heartwood/units/the-hermit.jpg"
+import wheelOfFortuneImg2 from "../../assets/heartwood/units/wheel-of-fortune.jpg"
+import justiceImg2 from "../../assets/heartwood/units/justice-2.jpg"
+import theHangedManImg2 from "../../assets/heartwood/units/the-hanged-man-2.jpg"
+import deathImg2 from "../../assets/heartwood/units/death-2.jpg"
+import temperanceImg2 from "../../assets/heartwood/units/temperance.jpg"
+import theDevilImg2 from "../../assets/heartwood/units/the-devil.jpg"
+import theTowerImg2 from "../../assets/heartwood/units/the-tower-2.jpg"
+import theStarImg2 from "../../assets/heartwood/units/the-star-2.jpg"
+import theMoonImg2 from "../../assets/heartwood/units/the-moon-2.jpg"
+import theSunImg2 from "../../assets/heartwood/units/the-sun-2.jpg"
+import judgementImg2 from "../../assets/heartwood/units/judgement.jpg"
+import theWorldImg2 from "../../assets/heartwood/units/the-world-2.jpg"
+import knightsLeapImg2 from "../../assets/heartwood/units/knights-leap.jpg"
+import rooksChargeImg2 from "../../assets/heartwood/units/rooks-charge.jpg"
+import bishopsSlashImg2 from "../../assets/heartwood/units/bishops-slash.jpg"
+import emberStagImg2 from "../../assets/heartwood/units/ember-stag-2.jpg"
+import grovekeeperImg2 from "../../assets/heartwood/units/grovekeeper-2.jpg"
+import stormwingImg2 from "../../assets/heartwood/units/stormwing-2.jpg"
+import stoneheartImg2 from "../../assets/heartwood/units/stoneheart-2.jpg"
+import forgehowlImg2 from "../../assets/heartwood/units/forgehowl-2.jpg"
+import duskclawImg2 from "../../assets/heartwood/units/duskclaw.jpg"
+import ashenhornImg2 from "../../assets/heartwood/units/ashenhorn-2.jpg"
+import rootfangImg2 from "../../assets/heartwood/units/rootfang-2.jpg"
+import wraithbriarImg2 from "../../assets/heartwood/units/wraithbriar-2.jpg"
+import grimtuskImg2 from "../../assets/heartwood/units/grimtusk-2.jpg"
+import thornguardImg2 from "../../assets/heartwood/units/thornguard-2.jpg"
+import swiftclawImg2 from "../../assets/heartwood/units/swiftclaw-2.jpg"
+import emberwispImg2 from "../../assets/heartwood/units/emberwisp-2.jpg"
+import runeveilImg2 from "../../assets/heartwood/units/runeveil.jpg"
+import frostbindImg2 from "../../assets/heartwood/units/frostbind-2.jpg"
+import glimmerwardImg2 from "../../assets/heartwood/units/glimmerward.jpg"
+import wraithcallerImg2 from "../../assets/heartwood/units/wraithcaller-2.jpg"
+import hexmotherImg2 from "../../assets/heartwood/units/hexmother-2.jpg"
+import wispkeeperImg2 from "../../assets/heartwood/units/wispkeeper-2.jpg"
+import trueshotImg2 from "../../assets/heartwood/units/trueshot-2.jpg"
+import motleyImg2 from "../../assets/heartwood/units/motley-2.jpg"
+import thornwardenImg2 from "../../assets/heartwood/units/thornwarden.jpg"
+import bloomcallerImg2 from "../../assets/heartwood/units/bloomcaller-2.jpg"
+import mosswalkerImg2 from "../../assets/heartwood/units/mosswalker-2.jpg"
+import ironbarkImg2 from "../../assets/heartwood/units/ironbark-2.jpg"
+import briarbladeImg2 from "../../assets/heartwood/units/briarblade-2.jpg"
+import sapkeeperImg2 from "../../assets/heartwood/units/sapkeeper.jpg"
+import spiritWolfImg2 from "../../assets/heartwood/units/spirit-wolf-2.jpg"
+import beastcallerImg2 from "../../assets/heartwood/units/beastcaller-2.jpg"
+import foxfireImg2 from "../../assets/heartwood/units/foxfire-2.jpg"
+import loamguardImg2 from "../../assets/heartwood/units/loamguard-2.jpg"
+import willowfangImg2 from "../../assets/heartwood/units/willowfang-2.jpg"
+import cragmossImg2 from "../../assets/heartwood/units/cragmoss-2.jpg"
+import willowmendImg2 from "../../assets/heartwood/units/willowmend-2.jpg"
+import rimefangImg2 from "../../assets/heartwood/units/rimefang-2.jpg"
+import hollowquillImg2 from "../../assets/heartwood/units/hollowquill-2.jpg"
+import stoneknollImg2 from "../../assets/heartwood/units/stoneknoll-2.jpg"
+import quarrywardenImg2 from "../../assets/heartwood/units/quarrywarden-2.jpg"
+import fernwakeImg2 from "../../assets/heartwood/units/fernwake-2.jpg"
+import duskbrambleImg2 from "../../assets/heartwood/units/duskbramble-2.jpg"
+import hollowmereImg2 from "../../assets/heartwood/units/hollowmere-2.jpg"
+import thistlemawImg2 from "../../assets/heartwood/units/thistlemaw-2.jpg"
 
 // Bumped ~20-25% from the first pass after testing showed a 3-unit
 // starter squad (78 total HP) losing consistently to the 4-piece Rune
@@ -422,30 +489,30 @@ const BASE_UNITS = {
   // proven mechanic vocabulary (nothing invented from scratch) rather
   // than a from-scratch new system - the same discipline every combo
   // item/relic/enemy this session has followed.
-  "the-fool": unit("the-fool", "Mosskit", "the-fool", 0, "support", [
+  "the-fool": unit("the-fool", "Wild boar", "the-fool", 0, "support", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 4 },
   ], {
     // Regen - a free-tier unit's first taste of sustain, fitting
     // "moss" (things that regrow).
     passive: [{ type: "applyBuff", id: "regen", amount: 2 }],
-    image: theFoolImg,
+    image: theFoolImg2,
   }),
-  "the-magician": unit("the-magician", "Duskweaver", "the-magician", 1, "hybrid", [
+  "the-magician": unit("the-magician", "Mongoose", "the-magician", 1, "hybrid", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 3 },
   ], {
     // Weak on hit - a weaver of illusions/curses draining a target's
     // own strength, not raw force.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "weak", target: "target", amount: 1 } }],
-    image: theMagicianImg,
+    image: theMagicianImg2,
     // Guild Identity v1: Dreamweaver (Illusions/Control) - the existing
     // "weaver of illusions/curses" flavor above already IS Marc's
     // Dreamweaver class, word for word. No kit change, just naming
     // what was already there.
     className: "Dreamweaver",
   }),
-  "the-high-priestess": unit("the-high-priestess", "Silverbloom", "the-high-priestess", 1, "support", [
+  "the-high-priestess": unit("the-high-priestess", "Jaguar", "the-high-priestess", 1, "support", [
     { type: "heal", amount: 4 },
     { type: "attack", amount: 5 },
   ], {
@@ -455,101 +522,101 @@ const BASE_UNITS = {
     // (previously only Rootward on the enemy side, Willowmend
     // uncommon on the player side).
     passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "cleanse" } }],
-    image: theHighPriestessImg,
+    image: theHighPriestessImg2,
   }),
-  "the-empress": unit("the-empress", "Thistlequeen", "the-empress", 2, "support", [
+  "the-empress": unit("the-empress", "Kangaroo", "the-empress", 2, "support", [
     { type: "heal", amount: 5 },
     { type: "block", amount: 4 },
     { type: "attack", amount: 6 },
-  ], { image: theEmpressImg }),
-  "the-emperor": unit("the-emperor", "Stonecrown", "the-emperor", 2, "tank", [
+  ], { image: theEmpressImg2 }),
+  "the-emperor": unit("the-emperor", "Viking", "the-emperor", 2, "tank", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 5 },
   ], {
     className: "Crownguard",
     passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 5 } }],
-    image: theEmperorImg,
+    image: theEmperorImg2,
   }),
-  "the-hierophant": unit("the-hierophant", "Goldenbough", "the-hierophant", 1, "dps", [
+  "the-hierophant": unit("the-hierophant", "Chipmunk", "the-hierophant", 1, "dps", [
     { type: "attack", amount: 4 },
   ], {
     passive: [{ type: "applyBuff", id: "strength", amount: 1 }],
-    image: theHierophantImg,
+    image: theHierophantImg2,
   }),
-  "the-lovers": unit("the-lovers", "Twinbriar", "the-lovers", 1, "dps", [{ type: "attack", amount: 6 }], {
+  "the-lovers": unit("the-lovers", "Lemming", "the-lovers", 1, "dps", [{ type: "attack", amount: 6 }], {
     // Chain - "twin" as a bonus strike on a second target, the
     // cheapest possible read of the name.
     chainDamage: 3,
-    image: theLoversImg,
+    image: theLoversImg2,
   }),
-  "the-chariot": unit("the-chariot", "Thornram", "the-chariot", 2, "dps", [{ type: "attack", amount: 14 }], {
-    image: theChariotImg,
+  "the-chariot": unit("the-chariot", "Fox", "the-chariot", 2, "dps", [{ type: "attack", amount: 14 }], {
+    image: theChariotImg2,
   }),
-  strength: unit("strength", "Ironclaw", "strength", 1, "dps", [{ type: "attack", amount: 5 }], {
+  strength: unit("strength", "A spark of flame", "strength", 1, "dps", [{ type: "attack", amount: 5 }], {
     passive: [{ type: "applyBuff", id: "strength", amount: 2 }],
-    image: strengthImg,
+    image: strengthImg2,
   }),
-  "the-hermit": unit("the-hermit", "Hollowreed", "the-hermit", 1, "support", [
+  "the-hermit": unit("the-hermit", "Bog", "the-hermit", 1, "support", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 6 },
   ], {
     // Self-Ward - "hermit" bends and retreats rather than breaking.
     passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
-    image: theHermitImg,
+    image: theHermitImg2,
     // Retreat Step round (Hearthwood Frontier, tacticsEngine.js only):
     // this own already-existing comment above ("bends and retreats
     // rather than breaking") is the real, hand-authored justification
     // for this new portable trait - not invented flavor.
     wary: true,
   }),
-  "wheel-of-fortune": unit("wheel-of-fortune", "Windshift", "wheel-of-fortune", 1, "hybrid", [
+  "wheel-of-fortune": unit("wheel-of-fortune", "Trail", "wheel-of-fortune", 1, "hybrid", [
     { type: "attack", amount: 10, weight: 1 },
     { type: "block", amount: 10, weight: 1 },
-  ], { moveSelect: "weightedRandom", image: wheelOfFortuneImg }),
-  justice: unit("justice", "Oakwarden", "justice", 1, "tank", [
+  ], { moveSelect: "weightedRandom", image: wheelOfFortuneImg2 }),
+  justice: unit("justice", "Guardian angel", "justice", 1, "tank", [
     { type: "block", amount: 7 },
     { type: "attack", amount: 6 },
     // Sunder - "justice" stripping away an ill-gotten edge, added as
     // a 3rd move rather than an on-hit trigger (Warden's own first
     // common-tier Sunder source).
     { type: "sunder" },
-  ], { image: justiceImg }),
-  "the-hanged-man": unit("the-hanged-man", "Snarevine", "the-hanged-man", 0, "dps", [
+  ], { image: justiceImg2 }),
+  "the-hanged-man": unit("the-hanged-man", "roots", "the-hanged-man", 0, "dps", [
     { type: "attack", amount: 6 },
   ], {
     // Vulnerable on hit - "snare" reads directly as marking a target
     // for what comes after.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "vulnerable", target: "target", amount: 1 } }],
-    image: theHangedManImg,
+    image: theHangedManImg2,
   }),
-  death: unit("death", "Bonewither", "death", 1, "dps", [{ type: "attack", amount: 7 }], {
+  death: unit("death", "Ghost", "death", 1, "dps", [{ type: "attack", amount: 7 }], {
     // Poison on hit - "wither" is decay given a mechanic.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "applyBuff", id: "poison", target: "target", amount: 1 } }],
-    image: deathImg,
+    image: deathImg2,
   }),
-  temperance: unit("temperance", "Stillbark", "temperance", 1, "tank", [
+  temperance: unit("temperance", "Mermaid", "temperance", 1, "tank", [
     { type: "block", amount: 3 },
     { type: "attack", amount: 5 },
   ], {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "block", amount: 3 } }],
-    image: temperanceImg,
+    image: temperanceImg2,
   }),
-  "the-devil": unit("the-devil", "Hollowmaw", "the-devil", 1, "dps", [{ type: "attack", amount: 16 }], {
+  "the-devil": unit("the-devil", "Giraffe", "the-devil", 1, "dps", [{ type: "attack", amount: 16 }], {
     // Already the roster's biggest single hit at its cost - kept that
     // glass-cannon identity intact and added only a small Execute,
     // the roster's first COMMON-tier source (previously rare-only:
     // Duskclaw/Trueshot) - "the devil claims what's already dying."
     passive: [{ type: "applyBuff", id: "execute", amount: 2 }],
-    image: theDevilImg,
+    image: theDevilImg2,
   }),
-  "the-tower": unit("the-tower", "Bramblespire", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }], {
-    image: theTowerImg,
+  "the-tower": unit("the-tower", "Elephant", "the-tower", 2, "dps", [{ type: "attack", amount: 18 }], {
+    image: theTowerImg2,
   }),
-  "the-star": unit("the-star", "Glowmoss", "the-star", 1, "support", [{ type: "attack", amount: 4 }], {
+  "the-star": unit("the-star", "Grasshopper", "the-star", 1, "support", [{ type: "attack", amount: 4 }], {
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "heal", amount: 3 } }],
-    image: theStarImg,
+    image: theStarImg2,
   }),
-  "the-moon": unit("the-moon", "Nightbloom", "the-moon", 1, "support", [
+  "the-moon": unit("the-moon", "Squirrel", "the-moon", 1, "support", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 5 },
   ], {
@@ -557,32 +624,32 @@ const BASE_UNITS = {
     // common-tier taste of the mechanic (previously uncommon+:
     // Willowmend/Cragmoss).
     rallyHeal: 2,
-    image: theMoonImg,
+    image: theMoonImg2,
   }),
-  "the-sun": unit("the-sun", "Sunthorn", "the-sun", 2, "dps", [{ type: "attack", amount: 16 }], {
-    image: theSunImg,
+  "the-sun": unit("the-sun", "Lemurs", "the-sun", 2, "dps", [{ type: "attack", amount: 16 }], {
+    image: theSunImg2,
   }),
-  judgement: unit("judgement", "Stoneknell", "judgement", 1, "dps", [{ type: "attack", amount: 7 }], {
+  judgement: unit("judgement", "Giraffe", "judgement", 1, "dps", [{ type: "attack", amount: 7 }], {
     // Shatter - "judgement" as a reckoning against whatever's still
     // hiding behind its own guard.
     passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
-    image: judgementImg,
+    image: judgementImg2,
   }),
-  "the-world": unit("the-world", "Rootcrown", "the-world", 3, "dps", [{ type: "attack", amount: 20 }], {
-    image: theWorldImg,
+  "the-world": unit("the-world", "Bird", "the-world", 3, "dps", [{ type: "attack", amount: 20 }], {
+    image: theWorldImg2,
   }),
 
-  "knights-leap": unit("knights-leap", "Knight's Leap", "spark", 2, "dps", [{ type: "attack", amount: 12 }], {
+  "knights-leap": unit("knights-leap", "Chameleon", "spark", 2, "dps", [{ type: "attack", amount: 12 }], {
     attackPattern: "knight",
-    image: knightsLeapImg,
+    image: knightsLeapImg2,
   }),
-  "rooks-charge": unit("rooks-charge", "Rook's Charge", "spark", 2, "dps", [{ type: "attack", amount: 6 }], {
+  "rooks-charge": unit("rooks-charge", "Bird", "spark", 2, "dps", [{ type: "attack", amount: 6 }], {
     attackPattern: "rook",
-    image: rooksChargeImg,
+    image: rooksChargeImg2,
   }),
-  "bishops-slash": unit("bishops-slash", "Bishop's Slash", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
+  "bishops-slash": unit("bishops-slash", "Swan", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
     attackPattern: "bishop",
-    image: bishopsSlashImg,
+    image: bishopsSlashImg2,
   }),
 
   // First two non-Tarot, non-chess-pattern units - same "new
@@ -590,7 +657,7 @@ const BASE_UNITS = {
   // applied to the recruit pool instead: forest creatures alongside
   // the Arcana, matching the enemy roster's own crude-doodle register
   // rather than the Tarot line-art style.
-  "ember-stag": unit("ember-stag", "Ember Stag", "emberStag", 3, "dps", [
+  "ember-stag": unit("ember-stag", "Flamingo", "emberStag", 3, "dps", [
     { type: "attack", amount: 11 },
     { type: "attack", amount: 11 },
     { type: "block", amount: 6 },
@@ -599,19 +666,19 @@ const BASE_UNITS = {
     // Fenrir's woundedFury (HP-conditional): this ramps unconditionally
     // every round, "burning brighter" rather than "hurts more when hurt".
     passive: [{ type: "addTrigger", trigger: "turnEnd", effect: { type: "applyBuff", id: "strength", amount: 1 } }],
-    image: emberStagImg,
+    image: emberStagImg2,
   }),
-  grovekeeper: unit("grovekeeper", "Grovekeeper", "grovekeeper", 2, "tank", [
+  grovekeeper: unit("grovekeeper", "Lizard", "grovekeeper", 2, "tank", [
     { type: "block", amount: 8 },
     { type: "attack", amount: 6 },
   ], {
-    image: grovekeeperImg,
+    image: grovekeeperImg2,
     // The Emperor already does turnStart block - this is the roster's
     // first unit with its own unconditional turnStart self-heal
     // (previously only Aatos's Commander passive did that, squad-wide).
     passive: [{ type: "addTrigger", trigger: "turnStart", effect: { type: "heal", amount: 3 } }],
   }),
-  stormwing: unit("stormwing", "Stormwing", "stormwing", 3, "dps", [
+  stormwing: unit("stormwing", "Frog", "stormwing", 3, "dps", [
     { type: "attack", amount: 9 },
     { type: "debuff", id: "weak", amount: 2, target: "target" },
     { type: "attack", amount: 9 },
@@ -622,9 +689,9 @@ const BASE_UNITS = {
     // first player-side unit with a repeating Weak debuff, previously
     // only an enemy move (Moss Troll, Rune Warden, Mist Growler,
     // Spacemonkey all already use it against the player).
-    image: stormwingImg,
+    image: stormwingImg2,
   }),
-  stoneheart: unit("stoneheart", "Stoneheart", "stoneheart", 3, "tank", [
+  stoneheart: unit("stoneheart", "Spider", "stoneheart", 3, "tank", [
     { type: "block", amount: 10 },
     { type: "attack", amount: 7 },
   ], {
@@ -642,9 +709,9 @@ const BASE_UNITS = {
       { type: "addTrigger", trigger: "turnStart", effect: { type: "block", amount: 6 } },
       { type: "applyBuff", id: "taunt", amount: 1 },
     ],
-    image: stoneheartImg,
+    image: stoneheartImg2,
   }),
-  forgehowl: unit("forgehowl", "Forgehowl", "forgehowl", 3, "dps", [
+  forgehowl: unit("forgehowl", "Insect", "forgehowl", 3, "dps", [
     { type: "attack", amount: 20 },
     { type: "block", amount: 8 },
   ], {
@@ -653,9 +720,9 @@ const BASE_UNITS = {
     // gimmick" shape as The World/The Tower. The roster's single
     // highest per-hit attack number after The World's 20 (tied) - a
     // slow, hard-swinging identity rather than a sustained one.
-    image: forgehowlImg,
+    image: forgehowlImg2,
   }),
-  duskclaw: unit("duskclaw", "Duskclaw", "flame", 3, "dps", [
+  duskclaw: unit("duskclaw", "Moose", "flame", 3, "dps", [
     { type: "attack", amount: 8 },
   ], {
     className: "Nightblade",
@@ -665,9 +732,9 @@ const BASE_UNITS = {
     // Culling Strike relic (relics.js), for a squad that wants Execute
     // without spending a relic slot on it.
     passive: [{ type: "applyBuff", id: "execute", amount: 4 }],
-    image: duskclawImg,
+    image: duskclawImg2,
   }),
-  ashenhorn: unit("ashenhorn", "Ashenhorn", "leaf", 2, "support", [
+  ashenhorn: unit("ashenhorn", "Deer", "leaf", 2, "support", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 5 },
   ], {
@@ -681,9 +748,9 @@ const BASE_UNITS = {
     // reaches - a real placement decision, not just "recruit it and
     // forget it", matching Marc's "easy to play but hard to master".
     rallyAdjacent: { id: "strength", amount: 2 },
-    image: ashenhornImg,
+    image: ashenhornImg2,
   }),
-  rootfang: unit("rootfang", "Rootfang", "root", 3, "dps", [
+  rootfang: unit("rootfang", "Seagull", "root", 3, "dps", [
     { type: "attack", amount: 7 },
     { type: "debuff", id: "poison", amount: 3, target: "target" },
     { type: "attack", amount: 7 },
@@ -694,9 +761,9 @@ const BASE_UNITS = {
     // debuff-movePattern shape Stormwing already uses for Weak, just a
     // different status id, so no new engine code needed to give the
     // player its own source of the mechanic.
-    image: rootfangImg,
+    image: rootfangImg2,
   }),
-  wraithbriar: unit("wraithbriar", "Wraithbriar", "root", 3, "tank", [
+  wraithbriar: unit("wraithbriar", "Hummingbird", "root", 3, "tank", [
     { type: "block", amount: 8 },
     { type: "attack", amount: 6 },
   ], {
@@ -709,9 +776,9 @@ const BASE_UNITS = {
     // deterministic (no revive chance, no coin flip) per Marc's "easy
     // to play but hard to master".
     passive: [{ type: "applyBuff", id: "revive", amount: 1 }],
-    image: wraithbriarImg,
+    image: wraithbriarImg2,
   }),
-  grimtusk: unit("grimtusk", "Grimtusk", "flame", 3, "dps", [
+  grimtusk: unit("grimtusk", "Butterfly", "flame", 3, "dps", [
     { type: "attack", amount: 9 },
     { type: "attack", amount: 9 },
   ], {
@@ -726,9 +793,9 @@ const BASE_UNITS = {
     chainDamage: 6,
     // Round 3: a lava-demon image finally read close enough to "tusked
     // brute" to retire round 2's skip note above.
-    image: grimtuskImg,
+    image: grimtuskImg2,
   }),
-  thornguard: unit("thornguard", "Thornguard", "shield", 2, "tank", [
+  thornguard: unit("thornguard", "Goat", "shield", 2, "tank", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 5 },
   ], {
@@ -746,9 +813,9 @@ const BASE_UNITS = {
     // effective invulnerability rather than the fixed, readable
     // resource every other status stays.
     passive: [{ type: "applyBuff", id: "ward", amount: 2 }],
-    image: thornguardImg,
+    image: thornguardImg2,
   }),
-  swiftclaw: unit("swiftclaw", "Swiftclaw", "spark", 2, "dps", [{ type: "attack", amount: 4 }], {
+  swiftclaw: unit("swiftclaw", "Dog", "spark", 2, "dps", [{ type: "attack", amount: 4 }], {
     className: "Skirmisher",
     // Haste - a genuinely different shape of DPS from every other
     // attacker: two small hits a round instead of one big one, at
@@ -758,9 +825,9 @@ const BASE_UNITS = {
     // per round with a Vampiric Bloom/Sundering Mark/Bramble Ward
     // build) rather than raw total damage).
     haste: true,
-    image: swiftclawImg,
+    image: swiftclawImg2,
   }),
-  emberwisp: unit("emberwisp", "Emberwisp", "spark", 3, "dps", [{ type: "aoe", amount: 5 }], {
+  emberwisp: unit("emberwisp", "Cat", "spark", 3, "dps", [{ type: "aoe", amount: 5 }], {
     // The roster's first player-side AoE (autoBattleEngine.js's aoe
     // branch, previously only Spacemonkey's signature move) - a real
     // mage identity: every round, it blasts every living enemy at
@@ -771,9 +838,9 @@ const BASE_UNITS = {
     // also can't combo with Chain or Haste (both scoped to
     // attackPattern "single" attacks only), a natural ceiling that
     // came for free rather than needing its own guard.
-    image: emberwispImg,
+    image: emberwispImg2,
   }),
-  runeveil: unit("runeveil", "Runeveil", "rune", 2, "dps", [
+  runeveil: unit("runeveil", "Wildebeest", "rune", 2, "dps", [
     { type: "attack", amount: 4 },
     { type: "debuff", id: "vulnerable", amount: 1, target: "target" },
     { type: "attack", amount: 4 },
@@ -783,9 +850,9 @@ const BASE_UNITS = {
     // Sundering Mark's onDealDamage trigger granted it). Same
     // debuff-movePattern shape Stormwing (Weak) and Rootfang (Poison)
     // already established, just a third status through the same door.
-    image: runeveilImg,
+    image: runeveilImg2,
   }),
-  frostbind: unit("frostbind", "Frostbind", "moonGlyph", 3, "support", [
+  frostbind: unit("frostbind", "Egret", "moonGlyph", 3, "support", [
     { type: "attack", amount: 3 },
     { type: "debuff", id: "stun", amount: 1, target: "target" },
     { type: "attack", amount: 3 },
@@ -797,7 +864,7 @@ const BASE_UNITS = {
     // even Rootbind Thicket's 4) for the same reason Rootbind Thicket
     // itself stays low - losing an entire action is a strong effect
     // on its own, this isn't meant to also hit hard.
-    image: frostbindImg,
+    image: frostbindImg2,
     // Frost Zone round (Hearthwood Frontier, tacticsEngine.js only):
     // the roster's own icy control-mage identity (already grants
     // Stun) is the real, existing flavor this new portable trait is
@@ -806,7 +873,7 @@ const BASE_UNITS = {
     // was an enemy - no enemy carries any cold/ice flavor today).
     frosty: true,
   }),
-  glimmerward: unit("glimmerward", "Glimmerward", "shield", 2, "support", [
+  glimmerward: unit("glimmerward", "Zebra", "shield", 2, "support", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 3 },
   ], {
@@ -818,9 +885,9 @@ const BASE_UNITS = {
     // code - rallyAdjacent was already generic on the buff id, not
     // hardcoded to Strength.
     rallyAdjacent: { id: "ward", amount: 1 },
-    image: glimmerwardImg,
+    image: glimmerwardImg2,
   }),
-  wraithcaller: unit("wraithcaller", "Wraithcaller", "moonGlyph", 3, "hybrid", [{ type: "attack", amount: 6 }], {
+  wraithcaller: unit("wraithcaller", "Duck", "moonGlyph", 3, "hybrid", [{ type: "attack", amount: 6 }], {
     className: "Soulbinder",
     // A fifth mage, a life-drain caster - Lifesteal's first UNIT-level
     // source (previously only Vampiric Bloom, a relic). Every other
@@ -831,9 +898,9 @@ const BASE_UNITS = {
     // Vampiric Bloom already proved, just as a self-targeting passive
     // instead of a relic effect.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "heal", amount: 2 } }],
-    image: wraithcallerImg,
+    image: wraithcallerImg2,
   }),
-  hexmother: unit("hexmother", "Hexmother", "root", 3, "support", [
+  hexmother: unit("hexmother", "Bird", "root", 3, "support", [
     { type: "attack", amount: 5 },
     { type: "debuff", id: "poison", amount: 2, target: "target" },
     { type: "debuff", id: "weak", amount: 1, target: "target" },
@@ -852,9 +919,9 @@ const BASE_UNITS = {
     // enemy ends up rotting AND hitting softer at once. No new engine
     // code - both debuffs already exist and the debuff-movePattern
     // shape already supports back-to-back entries.
-    image: hexmotherImg,
+    image: hexmotherImg2,
   }),
-  wispkeeper: unit("wispkeeper", "Wispkeeper", "heart", 3, "support", [
+  wispkeeper: unit("wispkeeper", "Monkey", "heart", 3, "support", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 4 },
   ], {
@@ -866,9 +933,9 @@ const BASE_UNITS = {
     // support that protects its neighbors, not its own hide. Zero new
     // engine code.
     rallyAdjacent: { id: "revive", amount: 1 },
-    image: wispkeeperImg,
+    image: wispkeeperImg2,
   }),
-  trueshot: unit("trueshot", "Trueshot", "spark", 3, "dps", [{ type: "attack", amount: 6 }], {
+  trueshot: unit("trueshot", "Arctic fox", "spark", 3, "dps", [{ type: "attack", amount: 6 }], {
     className: "Marksman",
     // The first Hunter - a precision tracker rather than a blaster:
     // knight's-leap targeting (bypasses shielding, same as Knight's
@@ -884,9 +951,9 @@ const BASE_UNITS = {
     // the bare glyph, so this borrows a battle-mage casting a bolt of
     // arcane light: not literally "true shot," but a precision ranged
     // strike is the closest visual read available.
-    image: trueshotImg,
+    image: trueshotImg2,
   }),
-  motley: unit("motley", "Motley", "moonGlyph", 2, "hybrid", [
+  motley: unit("motley", "Hedgehog", "moonGlyph", 2, "hybrid", [
     { type: "attack", amount: 5 },
     { type: "block", amount: 4 },
     { type: "debuff", id: "weak", amount: 1, target: "target" },
@@ -900,9 +967,9 @@ const BASE_UNITS = {
     // roll on damage, just on move order) - chaos in sequencing, not
     // in outcome, matching Marc's "easy to play but hard to master".
     moveSelect: "weightedRandom",
-    image: motleyImg,
+    image: motleyImg2,
   }),
-  thornwarden: unit("thornwarden", "Thornwarden", "root", 2, "dps", [{ type: "attack", amount: 6 }], {
+  thornwarden: unit("thornwarden", "Deer", "root", 2, "dps", [{ type: "attack", amount: 6 }], {
     className: "Bruiser",
     // The first Bruiser ("saa voimaa vahingoittumisesta" - gains power
     // from being damaged) - WoundedFury's first UNIT-level source
@@ -912,9 +979,9 @@ const BASE_UNITS = {
     // 50% HP) - a real risk/reward tank-adjacent DPS identity, not
     // just a flat number.
     passive: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
-    image: thornwardenImg,
+    image: thornwardenImg2,
   }),
-  bloomcaller: unit("bloomcaller", "Bloomcaller", "leaf", 3, "support", [
+  bloomcaller: unit("bloomcaller", "Bird", "leaf", 3, "support", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 4 },
   ], {
@@ -926,9 +993,9 @@ const BASE_UNITS = {
     // already-proven mechanisms rather than a new one. Whoever stands
     // next to Bloomcaller finishes wounded enemies faster.
     rallyAdjacent: { id: "execute", amount: 2 },
-    image: bloomcallerImg,
+    image: bloomcallerImg2,
   }),
-  mosswalker: unit("mosswalker", "Mosswalker", "moonGlyph", 2, "support", [{ type: "attack", amount: 4 }], {
+  mosswalker: unit("mosswalker", "Cow", "moonGlyph", 2, "support", [{ type: "attack", amount: 4 }], {
     // The first Evasion class ("väistelee ja katoaa taistelusta" -
     // dodges and vanishes from battle) - deliberately NOT a dodge-
     // chance/miss-chance roll (Marc's own "easy to play but hard to
@@ -938,9 +1005,9 @@ const BASE_UNITS = {
     // the third unit-level Ward source (after Thornguard/Glimmerward),
     // "vanishing" from up to 2 hits' worth of danger instead of one.
     passive: [{ type: "applyBuff", id: "ward", amount: 2 }],
-    image: mosswalkerImg,
+    image: mosswalkerImg2,
   }),
-  ironbark: unit("ironbark", "Ironbark", "shield", 2, "tank", [
+  ironbark: unit("ironbark", "Bird", "shield", 2, "tank", [
     { type: "block", amount: 7 },
     { type: "attack", amount: 4 },
   ], {
@@ -956,9 +1023,9 @@ const BASE_UNITS = {
     // uncommon tier + battle-start Taunt) is exactly Marc's
     // Defense/Tank class. Naming what was already built, not a stretch.
     className: "Ironbark",
-    image: ironbarkImg,
+    image: ironbarkImg2,
   }),
-  briarblade: unit("briarblade", "Briarblade", "root", 3, "dps", [{ type: "attack", amount: 10 }], {
+  briarblade: unit("briarblade", "Penguin", "root", 3, "dps", [{ type: "attack", amount: 10 }], {
     // The first Assassin ("iskee heikkoihin kohteisiin" - strikes weak
     // targets) - Chain's second unit-level source (after Grimtusk),
     // with a heavier single hit (10, vs Grimtusk's 9+9 split across two
@@ -971,9 +1038,9 @@ const BASE_UNITS = {
     // blow Chain bonus is this roster's closest existing analogue to
     // "assassin/critical" (no true crit-chance mechanic exists yet).
     className: "Briarblade",
-    image: briarbladeImg,
+    image: briarbladeImg2,
   }),
-  sapkeeper: unit("sapkeeper", "Sapkeeper", "leaf", 2, "support", [
+  sapkeeper: unit("sapkeeper", "Camel", "leaf", 2, "support", [
     { type: "block", amount: 4 },
     { type: "attack", amount: 3 },
   ], {
@@ -989,9 +1056,9 @@ const BASE_UNITS = {
     // again; rallyHeal every round to adjacent allies is a direct hit
     // on Marc's Healing/Support class description.
     className: "Sapkeeper",
-    image: sapkeeperImg,
+    image: sapkeeperImg2,
   }),
-  mycelist: unit("mycelist", "Mycelist", "leaf", 3, "support", [
+  mycelist: unit("mycelist", "Mushrooms", "leaf", 3, "support", [
     { type: "attack", amount: 4 },
     { type: "debuff", id: "poison", amount: 2, target: "target" },
     { type: "attack", amount: 4 },
@@ -1015,12 +1082,12 @@ const BASE_UNITS = {
   // one plain attack) since it's a free bonus body on top of whatever
   // Beastcaller itself already costs - see the summon field's own
   // comment in the unit() helper for why this can't be full-strength.
-  "spirit-wolf": unit("spirit-wolf", "Spirit Wolf", "wolf", 0, "dps", [
+  "spirit-wolf": unit("spirit-wolf", "Bird", "wolf", 0, "dps", [
     { type: "attack", amount: 3 },
   ], {
     maxHpOverride: 16,
     summonOnly: true,
-    image: spiritWolfImg,
+    image: spiritWolfImg2,
   }),
   // Beastcaller ("kutsuu avukseen metsän henkiolentoja" - calls forest
   // spirit-creatures to its aid) - the last of the 12 base classes,
@@ -1030,7 +1097,7 @@ const BASE_UNITS = {
   // autoBattleEngine.js's startAutoBattle. Kept to plain attacks itself
   // (no Chain/Haste/etc layered on) since the summoned Spirit Wolf is
   // already a second body's worth of value on top of one recruit.
-  beastcaller: unit("beastcaller", "Beastcaller", "leaf", 3, "support", [
+  beastcaller: unit("beastcaller", "Hippo", "leaf", 3, "support", [
     { type: "attack", amount: 5 },
     { type: "attack", amount: 5 },
   ], {
@@ -1047,14 +1114,14 @@ const BASE_UNITS = {
     // available read is a figure confronting/calling forth a beast
     // version of themselves, a loose placeholder per Marc's "even a
     // placeholder, but everything needs an image" bar.
-    image: beastcallerImg,
+    image: beastcallerImg2,
   }),
   // Plain roster reinforcements - all 12 base classes are covered
   // already, so these just add more bodies at common/uncommon tier
   // rather than a new archetype, reusing Chain/Rally exactly as
   // Grimtusk/Ashenhorn already established rather than inventing
   // anything new.
-  foxfire: unit("foxfire", "Foxfire", "fox", 1, "dps", [
+  foxfire: unit("foxfire", "Elephant", "fox", 1, "dps", [
     { type: "attack", amount: 4 },
     { type: "attack", amount: 4 },
   ], {
@@ -1062,9 +1129,9 @@ const BASE_UNITS = {
     // Grimtusk's rare-tier 6 to a common-tier 3 - same finishing-blow
     // payoff, proportionally smaller at a cheaper recruit cost.
     chainDamage: 3,
-    image: foxfireImg,
+    image: foxfireImg2,
   }),
-  loamguard: unit("loamguard", "Loamguard", "root", 2, "tank", [
+  loamguard: unit("loamguard", "Bison", "root", 2, "tank", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 4 },
   ], {
@@ -1072,16 +1139,16 @@ const BASE_UNITS = {
     // Ashenhorn already established - grants adjacent allies Strength
     // at battle start, not itself.
     rallyAdjacent: { id: "strength", amount: 1 },
-    image: loamguardImg,
+    image: loamguardImg2,
   }),
-  willowfang: unit("willowfang", "Willowfang", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
+  willowfang: unit("willowfang", "Chameleon", "spark", 2, "dps", [{ type: "attack", amount: 5 }], {
     // Haste (autoBattleEngine.js's actSide), same mechanism Swiftclaw
     // already established - two smaller hits a round instead of one
     // big one.
     haste: true,
-    image: willowfangImg,
+    image: willowfangImg2,
   }),
-  cragmoss: unit("cragmoss", "Cragmoss", "leaf", 3, "tank", [
+  cragmoss: unit("cragmoss", "Deer", "leaf", 3, "tank", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 5 },
   ], {
@@ -1089,19 +1156,19 @@ const BASE_UNITS = {
     // Sapkeeper already established - a second, tankier unit built
     // around mending adjacent allies every round instead of just once.
     rallyHeal: 2,
-    image: cragmossImg,
+    image: cragmossImg2,
   }),
   // Cleanse (effects.js) - Sunder's mirror, the roster's first tool
   // against its OWN negative statuses (Poison/Weak/Vulnerable/Stun)
   // instead of an enemy's positive ones. Willowmend cleanses itself
   // every cycle before healing and attacking - a real answer to a
   // long Poison/Weak fight instead of just outlasting it.
-  willowmend: unit("willowmend", "Willowmend", "leaf", 2, "support", [
+  willowmend: unit("willowmend", "Beetle", "leaf", 2, "support", [
     { type: "cleanse" },
     { type: "heal", amount: 4 },
     { type: "attack", amount: 4 },
-  ], { image: willowmendImg }),
-  sparrowthorn: unit("sparrowthorn", "Sparrowthorn", "spark", 1, "dps", [{ type: "attack", amount: 6 }], {
+  ], { image: willowmendImg2 }),
+  sparrowthorn: unit("sparrowthorn", "Bird", "spark", 1, "dps", [{ type: "attack", amount: 6 }], {
     // Wounded Fury - a scrappy fighter that gets meaner once it's
     // cornered, fitting "sparrow" over a heavier bruiser identity.
     passive: [{ type: "applyBuff", id: "woundedFury", amount: 1 }],
@@ -1109,7 +1176,7 @@ const BASE_UNITS = {
     // swapped in over the initial dragon-golem placeholder.
     image: sparrowthornImg,
   }),
-  duskwren: unit("duskwren", "Duskwren", "spark", 1, "dps", [
+  duskwren: unit("duskwren", "Bird", "spark", 1, "dps", [
     { type: "attack", amount: 5 },
     { type: "attack", amount: 3 },
   ], {
@@ -1118,27 +1185,27 @@ const BASE_UNITS = {
     passive: [{ type: "applyBuff", id: "strength", amount: 1 }],
     image: duskwrenImg,
   }),
-  rimefang: unit("rimefang", "Rimefang", "moonGlyph", 2, "dps", [{ type: "attack", amount: 7 }], {
+  rimefang: unit("rimefang", "Lemur", "moonGlyph", 2, "dps", [{ type: "attack", amount: 7 }], {
     className: "Frostblade",
     // Chain (autoBattleEngine.js's actSide), same mechanism Grimtusk/
     // Foxfire already established - a bonus hit on a different living
     // enemy when this unit's own attack lands the killing blow.
     chainDamage: 4,
-    image: rimefangImg,
+    image: rimefangImg2,
   }),
-  hollowquill: unit("hollowquill", "Hollowquill", "rune", 2, "dps", [
+  hollowquill: unit("hollowquill", "Piglet", "rune", 2, "dps", [
     { type: "attack", amount: 8 },
-  ], { image: hollowquillImg }),
+  ], { image: hollowquillImg2 }),
   // Shatter (effects.js) - a genuinely new mechanic, Execute's mirror:
   // bonus damage against a target currently holding Block instead of
   // one below an HP threshold. Stoneknoll is the first unit built
   // around it, rewarding a squad that keeps pressing a defensive
   // enemy instead of waiting out its Block.
-  stoneknoll: unit("stoneknoll", "Stoneknoll", "shield", 2, "dps", [{ type: "attack", amount: 6 }], {
+  stoneknoll: unit("stoneknoll", "Bird", "shield", 2, "dps", [{ type: "attack", amount: 6 }], {
     passive: [{ type: "applyBuff", id: "shatter", amount: 3 }],
-    image: stoneknollImg,
+    image: stoneknollImg2,
   }),
-  quarrywarden: unit("quarrywarden", "Quarrywarden", "shield", 2, "tank", [
+  quarrywarden: unit("quarrywarden", "Bird", "shield", 2, "tank", [
     { type: "block", amount: 5 },
     { type: "attack", amount: 4 },
   ], {
@@ -1148,43 +1215,43 @@ const BASE_UNITS = {
     // adjacent allies at battle start instead of Strength/Ward/Revive/
     // Execute.
     rallyAdjacent: { id: "shatter", amount: 2 },
-    image: quarrywardenImg,
+    image: quarrywardenImg2,
   }),
   // Regen (effects.js's tickRegen) - a genuinely new mechanic this
   // round: a decaying heal-over-time stack, Poison's mirror on the
   // support side. Fernwake is the first unit built around it, spreading
   // it to its neighbors at battle start instead of only healing itself
   // every cycle the way Willowmend/Cragmoss already do.
-  fernwake: unit("fernwake", "Fernwake", "leaf", 2, "support", [
+  fernwake: unit("fernwake", "Bird", "leaf", 2, "support", [
     { type: "heal", amount: 3 },
     { type: "attack", amount: 3 },
   ], {
     rallyAdjacent: { id: "regen", amount: 2 },
-    image: fernwakeImg,
+    image: fernwakeImg2,
   }),
-  duskbramble: unit("duskbramble", "Duskbramble", "root", 1, "dps", [{ type: "attack", amount: 6 }], {
+  duskbramble: unit("duskbramble", "Snail", "root", 1, "dps", [{ type: "attack", amount: 6 }], {
     // Sunder on hit - a dps-side echo of Oakwarden's identity at a
     // different cost/role context, strips a target's own buff.
     passive: [{ type: "addTrigger", trigger: "onDealDamage", effect: { type: "sunder", target: "target" } }],
-    image: duskbrambleImg,
+    image: duskbrambleImg2,
   }),
-  hollowmere: unit("hollowmere", "Hollowmere", "shield", 2, "tank", [
+  hollowmere: unit("hollowmere", "Goat", "shield", 2, "tank", [
     { type: "block", amount: 6 },
     { type: "attack", amount: 4 },
   ], {
     // Self-Ward - a 2nd "Hollow-" unit sharing Hollowreed's defensive
     // motif, at tank role/uncommon cost instead of support/common.
     passive: [{ type: "applyBuff", id: "ward", amount: 1 }],
-    image: hollowmereImg,
+    image: hollowmereImg2,
   }),
-  thistlemaw: unit("thistlemaw", "Thistlemaw", "spark", 1, "dps", [
+  thistlemaw: unit("thistlemaw", "Cow", "spark", 1, "dps", [
     { type: "attack", amount: 4 },
     { type: "attack", amount: 4 },
   ], {
     // Chain - a 2-hit unit where either swing can trigger the bonus,
     // "thistle catches on everything nearby."
     chainDamage: 3,
-    image: thistlemawImg,
+    image: thistlemawImg2,
   }),
   brackenveil: unit("brackenveil", "Brackenveil", "leaf", 2, "hybrid", [
     { type: "block", amount: 4 },
