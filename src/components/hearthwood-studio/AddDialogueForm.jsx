@@ -4,6 +4,7 @@ import { apiGet } from "../../api/client"
 
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * Marc's top priority this whole round: "aijon itse kirjoittaa pelin
@@ -49,6 +50,8 @@ function AddDialogueForm({ type, onApplied, onPreviewUrlChange, autoOpen = false
   const [exchanges, setExchanges] = useState([emptyExchange(), emptyExchange()])
   const [checkError, setCheckError] = useState("")
   const [checking, setChecking] = useState(false)
+  // Typed-in but not yet saved: the workspace warns before the tab closes.
+  useReportUnsaved(open && Boolean(npc.trim() || greeting.trim()))
 
   const {
     result,

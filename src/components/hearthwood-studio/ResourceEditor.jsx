@@ -4,6 +4,7 @@ import { RESOURCES, GAIN_TEXT, GAUGE_STYLES } from "../../data/heartwood/resourc
 import { CLASSES } from "../../data/heartwood/classes"
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * Resources step 2 - the RESOURCE EDITOR (Mana & Skill Resource PRD
@@ -114,6 +115,7 @@ function ResourceEditor({ onApplied, onPreviewUrlChange }) {
   }
   const valueOf = (key) => (draft[key] !== undefined ? draft[key] : String(current(key) ?? ""))
   const changedKeys = Object.keys(draft).filter((k) => String(current(k) ?? "") !== draft[k])
+  useReportUnsaved(changedKeys.length > 0) // editor's own "changed" count: unsaved work for the tab
   const changedClasses = Object.entries(classDraft).filter(([cid, r]) => (CLASSES[cid].resource || "arcane") !== r)
 
   const kindOf = (key) => {

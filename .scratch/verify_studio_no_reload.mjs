@@ -1,5 +1,9 @@
 import { chromium } from "playwright"
 import fs from "node:fs"
+// Sprint 4: editors live in workspace tabs; several can be mounted at once,
+// so editor-content lookups are scoped to the visible tab (VISIBLE).
+const VISIBLE = 'section[role="tabpanel"]:not([hidden]) '
+
 
 // A Studio save changes a src/data/heartwood file. The Studio page must NOT
 // reload (vite.config.js hearthwoodDataHmr) but refresh what it shows; a game
@@ -19,7 +23,7 @@ try {
   const studio = await ctx.newPage()
   studio.on("pageerror", (e) => errs.push(String(e)))
   await studio.goto(`http://localhost:${PORT}/hearthwood-studio?type=storyScenes&id=rootkeeper-gate`, { waitUntil: "domcontentloaded" })
-  await studio.locator('[data-testid="story-writer-line"]').first().waitFor({ timeout: 20000 })
+  await studio.locator(VISIBLE + '[data-testid="story-writer-line"]').first().waitFor({ timeout: 20000 })
   await studio.evaluate(() => { window.__mark = "still-here"; window.__events = 0; window.addEventListener("hw-data-changed", () => { window.__events++ }) })
   const game = await ctx.newPage()
   await game.goto(`http://localhost:${PORT}/heartwood-tactics`, { waitUntil: "domcontentloaded" })
@@ -30,7 +34,7 @@ try {
   const r = {
     studioMark: await studio.evaluate(() => window.__mark).catch(() => null),
     studioEvents: await studio.evaluate(() => window.__events).catch(() => null),
-    studioStillShows: await studio.locator('[data-testid="story-writer-line"]').count(),
+    studioStillShows: await studio.locator(VISIBLE + '[data-testid="story-writer-line"]').count(),
   }
   await game.waitForTimeout(2500)
   r.gameMark = await game.evaluate(() => window.__mark ?? null).catch(() => null)
@@ -40,14 +44,16 @@ try {
   // A manual refresh comes back to the same place, not the HQ home.
   const p2 = await ctx.newPage()
   await p2.goto(`http://localhost:${PORT}/hearthwood-studio`, { waitUntil: "domcontentloaded" })
+  // Sprint 4 restores the last active tab; the front door is the pinned Studio Home tab.
+  await p2.locator('[data-testid="workspace-tab-home"]').click()
   await p2.locator('[data-room="story"]').waitFor({ timeout: 20000 })
   await p2.locator('[data-room="story"] button', { hasText: "Read the whole story" }).click()
-  await p2.locator('[data-testid="map-scene-ley-wound"]').click()
-  await p2.locator('[data-testid="story-writer-where"]').waitFor({ timeout: 10000 })
+  await p2.locator(VISIBLE + '[data-testid="map-scene-ley-wound"]').click()
+  await p2.locator(VISIBLE + '[data-testid="story-writer-where"]').waitFor({ timeout: 10000 })
   const url = p2.url()
   await p2.reload({ waitUntil: "domcontentloaded" })
-  await p2.locator('[data-testid="story-writer-where"]').waitFor({ timeout: 20000 }).catch(() => {})
-  const after = { url, where: await p2.locator('[data-testid="story-writer-where"]').textContent().catch(() => null), bar: await p2.locator('[data-testid="studio-room-bar"]').textContent().catch(() => null) }
+  await p2.locator(VISIBLE + '[data-testid="story-writer-where"]').waitFor({ timeout: 20000 }).catch(() => {})
+  const after = { url, where: await p2.locator(VISIBLE + '[data-testid="story-writer-where"]').textContent().catch(() => null), bar: await p2.locator(VISIBLE + '[data-testid="studio-room-bar"]').textContent().catch(() => null) }
   out.refresh = after
   c(url.includes("type=storyScenes") && url.includes("id=ley-wound") && after.where?.includes("Chapter 3 of 7") && after.bar?.includes("Story"), "n4 refresh keeps your place", after)
 } finally {

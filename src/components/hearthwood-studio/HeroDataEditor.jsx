@@ -7,6 +7,7 @@ import { SIGNATURES } from "../../data/heartwood/signatures"
 import { QUIRKS, QUIRK_KINDS, SCARS } from "../../data/heartwood/quirks"
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * Promotions / Traits sprint - the 🧬 TRAITS and ⚜ PROMOTIONS editors.
@@ -53,6 +54,7 @@ function SimpleDataEditor({ type, items, title, testId, friendly, advanced, list
   const current = (key) => get(item, key)
   const valueOf = (key) => (draft[key] !== undefined ? draft[key] : String(current(key) ?? ""))
   const changedKeys = Object.keys(draft).filter((k) => String(current(k) ?? "") !== draft[k])
+  useReportUnsaved(changedKeys.length > 0) // editor's own "changed" count: unsaved work for the tab
   const kindOf = (key) => (typeof current(key) === "number" ? "number" : "text")
   const fields = (list) =>
     list.map(([key, label, kind, wide]) => (

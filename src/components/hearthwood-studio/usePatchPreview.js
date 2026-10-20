@@ -1,6 +1,7 @@
 import { useState } from "react"
 
 import { apiPost, apiDelete } from "../../api/client"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * Yhteinen preview -> review -> apply/discard -tila. NlChangeBox
@@ -15,6 +16,9 @@ export function usePatchPreview({ onApplied, onPreviewUrlChange } = {}) {
   const [previewing, setPreviewing] = useState(false)
   const [applying, setApplying] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
+  // A previewed change not yet put in the game or discarded is unsaved
+  // work: the workspace warns before its tab is closed.
+  useReportUnsaved(result !== null)
 
   async function stopActivePreview(current) {
     const row = current ?? result

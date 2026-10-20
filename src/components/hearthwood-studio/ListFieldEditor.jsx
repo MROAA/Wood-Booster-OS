@@ -2,6 +2,7 @@ import { useState } from "react"
 
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * Marc: "valintaikkunan ja muut tarinanhaarat ei vielä ole
@@ -275,6 +276,7 @@ function ListFieldEditor({ type, entityId, fieldKey, field, onApplied, onPreview
   } = usePatchPreview({ onApplied, onPreviewUrlChange })
 
   const edits = collectEdits(field.items, [], draft, entityId, field.rootList ? null : fieldKey)
+  useReportUnsaved(edits.length > 0) // editor's own "changed" count: unsaved work for the tab
 
   async function handlePreview() {
     if (edits.length === 0) {

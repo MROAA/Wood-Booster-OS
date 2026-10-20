@@ -7,6 +7,7 @@ import { TERRAIN, CUSTOM_OBJECT_IDS } from "../../services/heartwood/tacticsTerr
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
 import { ACT_NAMES } from "./actNames"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * Marc, 2026-10-19: "haluaisin dev toolilla luoda uutta peliin" /
@@ -90,6 +91,8 @@ function AddBattleObjectForm({ type, onApplied, onPreviewUrlChange, autoOpen = f
   const [picture, setPicture] = useState(null)
   const [checkError, setCheckError] = useState("")
   const [checking, setChecking] = useState(false)
+  // Typed-in but not yet saved: the workspace warns before the tab closes.
+  useReportUnsaved(open && (JSON.stringify(form) !== JSON.stringify(emptyForm()) || Boolean(picture)))
 
   const { result, applyMode, setApplyMode, previewing, applying, errorMessage, preview, discard, apply } =
     usePatchPreview({ onApplied, onPreviewUrlChange })

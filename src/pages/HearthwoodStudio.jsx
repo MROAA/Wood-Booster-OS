@@ -1,905 +1,440 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
-import { apiGet } from "../api/client"
-
-import AddCrossroadsForm from "../components/hearthwood-studio/AddCrossroadsForm"
-import AddBattleObjectForm from "../components/hearthwood-studio/AddBattleObjectForm"
-import AddDialogueForm from "../components/hearthwood-studio/AddDialogueForm"
-import AddEventForm from "../components/hearthwood-studio/AddEventForm"
-import AddStoryEntryForm from "../components/hearthwood-studio/AddStoryEntryForm"
-import BalancePanel from "../components/hearthwood-studio/BalancePanel"
-import CloneEntityForm from "../components/hearthwood-studio/CloneEntityForm"
-import Dashboard from "../components/hearthwood-studio/Dashboard"
-import DoctorPanel from "../components/hearthwood-studio/DoctorPanel"
-import EntityBrowser from "../components/hearthwood-studio/EntityBrowser"
-import EntityChangeLog from "../components/hearthwood-studio/EntityChangeLog"
-import EntityFieldEditor from "../components/hearthwood-studio/EntityFieldEditor"
-import ImageUploadField from "../components/hearthwood-studio/ImageUploadField"
-import NlChangeBox from "../components/hearthwood-studio/NlChangeBox"
-import LivePreviewPane from "../components/hearthwood-studio/LivePreviewPane"
-import PatchHistoryList from "../components/hearthwood-studio/PatchHistoryList"
-import SheetView from "../components/hearthwood-studio/SheetView"
-import ThemePanel from "../components/hearthwood-studio/ThemePanel"
-import ResourceEditor from "../components/hearthwood-studio/ResourceEditor"
-import MutationEditor from "../components/hearthwood-studio/MutationEditor"
-import { TraitEditor, PromotionEditor, HeroIdentityEditor } from "../components/hearthwood-studio/HeroDataEditor"
-import GearEditor from "../components/hearthwood-studio/GearEditor"
 import StudioHome from "../components/hearthwood-studio/StudioHome"
+import StudioPane from "../components/hearthwood-studio/StudioPane"
 import StudioToast from "../components/hearthwood-studio/StudioToast"
-import StoryMap from "../components/hearthwood-studio/StoryMap"
-import SkillWorkshop from "../components/hearthwood-studio/SkillWorkshop"
-import CardGallery from "../components/hearthwood-studio/CardGallery"
-import { plainName } from "../components/hearthwood-studio/plainWords"
+import SpacemonkeyAssistant from "../components/hearthwood-studio/SpacemonkeyAssistant"
+import WorkspaceNav from "../components/hearthwood-studio/WorkspaceNav"
 import { labelFor } from "../components/hearthwood-studio/entityTypes"
+import { t } from "../components/hearthwood-studio/studioText"
+import {
+  HOME_TAB_ID, STORAGE_KEY, TOOL_VIEWS, activateTab, closeTab, createWorkspace, locationForAction,
+  locationForEntity, locationForRoom, locationForWish, locationFromUrl, openTab,
+  restoreWorkspace, serializeWorkspace, updateTab,
+} from "../components/hearthwood-studio/workspaceTabs"
+import { roomById } from "../components/hearthwood-studio/studioRooms"
 // The game's own "details open on hover" pop-up style (Marc: "käytä samaa pop up tyyliä paljolle tiedolle kuin pelissäkin").
 import "../components/heartwood/heartwood-reveal.css"
 // The Studio wears the game's own look (Marc: "esimerkki sille laadulle mitä peli tulee olemaan").
 import "../components/hearthwood-studio/hearthwood-studio.css"
-import StoryWriter, { STORY_WRITER_TYPES } from "../components/hearthwood-studio/StoryWriter"
-import { roomById, roomForType } from "../components/hearthwood-studio/studioRooms"
 
 /*
- * Hearthwood Studio - oma Dev Studio pelille, ei pilleri geneerisellä
- * /dev-studio:lla (Marc 2026-08-30: "luot pelille dev studion
- * patchbaysta"). Vaiheen 1 MVP: entiteettiselain + "omin sanoin"
- * -laatikko + live-esikatselu + historia. Kenttäeditori ja
- * tasapaino/doctor-paneelit ovat Vaiheen 2 laajennuksia
- * (heartwood-patchbay-vast-giraffe.md), ei tässä.
+ * Hearthwood Dev Studio - the workspace (Sprint 4, "Nordic fantasy
+ * workstation", PRD V1.0 §3): workspace navigation on the left, editor
+ * tabs in the middle, Spacemonkey permanently on the right (resizable,
+ * kept alive when hidden so the conversation survives). Studio Home is a
+ * pinned first tab; every editor opens in
+ * its own tab (StudioPane) and stays alive while hidden, so switching tabs
+ * never loses what is open. Re-opening an editor activates its tab.
+ * Open tabs and the active one are restored after a restart (validated by
+ * workspaceTabs.restoreWorkspace - storage is never trusted); old deep
+ * links (?type=&id=, ?view=) open their editor as a tab. Closing a tab
+ * that holds a previewed-but-not-applied change asks first.
  */
-// Marc, 2026-09-20: "haluan jotenkin livenä muokata peliä sitä
-// pelatessani... että pelaan peliä ja muokkaan sitä pelatessa... se
-// olisi minulle helpoin tapa tehdä tarinaa" (I want to somehow edit
-// the game live while playing it - play and edit as I go - that would
-// be the easiest way for me to make the story). A story screen
-// in-game (EventScreen.jsx, DialogueScreen.jsx) carries a small
-// EditInStudioLink pointing at `/hearthwood-studio?type=&id=` - read
-// once on load so opening that link lands directly on the exact thing
-// Marc just saw, instead of the Dashboard he'd have to navigate away
-// from by hand.
-function deepLinkFromUrl() {
-  const params = new URLSearchParams(window.location.search)
-  const type = params.get("type")
-  const id = params.get("id")
 
-  // `type` alone opens that type's list (the in-game dev desk links to
-  // whole categories, e.g. "all relics"); `type` + `id` opens one entry.
-  return type ? { type, id: id || null } : null
+function loadWorkspace() {
+  let workspace = createWorkspace()
+  try {
+    workspace = restoreWorkspace(window.localStorage.getItem(STORAGE_KEY))
+  } catch {
+    // storage unavailable (private window): start fresh
+  }
+  const linked = locationFromUrl(window.location.search)
+  return linked ? openTab(workspace, linked).workspace : workspace
 }
 
-// Story entries open in the Story Writer; their raw fields fold away.
-function AdvancedFold({ fold, children }) {
-  if (!fold) return <>{children}</>
+const LAYOUT_KEY = "hws.layout.v1"
+// Hidden tabs kept alive besides the active one (PRD §6.3: heavy editors
+// are not kept in memory needlessly). A tab with unsaved work is ALWAYS
+// kept; an unloaded tab re-opens at the same place from its location.
+// Measured with 12 tabs: 65 MB heap / 17k DOM nodes / 458 images all mounted.
+const KEEP_ALIVE = 4
+const ASSISTANT_MIN = 300
+const ASSISTANT_MAX = 600
+
+function loadLayout() {
+  const fallback = { navCollapsed: false, assistantOpen: true, assistantWidth: 380 }
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(LAYOUT_KEY) || "null")
+    if (!saved || typeof saved !== "object") return fallback
+    const width = Number(saved.assistantWidth)
+    return {
+      navCollapsed: saved.navCollapsed === true,
+      assistantOpen: saved.assistantOpen !== false,
+      assistantWidth: Number.isFinite(width) ? Math.min(ASSISTANT_MAX, Math.max(ASSISTANT_MIN, width)) : fallback.assistantWidth,
+    }
+  } catch {
+    return fallback
+  }
+}
+
+// What the active editor is, for Spacemonkey (PRD §11.5) - only what the
+// tab really knows; no entry is guessed when none is selected.
+function contextForTab(tab) {
+  if (!tab || tab.pinned || !tab.location) return null
+  const { view, type, id } = tab.location
+  const listView = view === "single" || view === "sheet"
+  return {
+    view,
+    type: listView ? type : undefined,
+    id: view === "single" ? id : undefined,
+    editorLabel: listView ? `${labelFor(type)}${view === "sheet" ? ` (${TOOL_VIEWS.sheet})` : ""}` : TOOL_VIEWS[view],
+    entityName: view === "single" && id ? tab.title : undefined,
+  }
+}
+
+function TabCloseDialog({ tab, onCancel, onConfirm }) {
+  const cancelRef = useRef(null)
+  useEffect(() => {
+    cancelRef.current?.focus()
+    const onKey = event => { if (event.key === "Escape") onCancel() }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [onCancel])
   return (
-    <details className="rounded-lg border border-[var(--wood-border)] p-2" data-testid="all-fields-fold">
-      <summary className="cursor-pointer text-xs text-[var(--wood-muted)]">All fields (advanced)</summary>
-      <div className="mt-3 space-y-3">{children}</div>
-    </details>
+    <div className="hws-modal-backdrop" role="presentation" onClick={onCancel}>
+      <div
+        className="hws-modal"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="hws-close-title"
+        aria-describedby="hws-close-text"
+        data-testid="unsaved-close-dialog"
+        onClick={event => event.stopPropagation()}
+      >
+        <h2 id="hws-close-title" className="hws-display text-2xl font-semibold text-[var(--wood-text)]">
+          {t("closeTitle", { title: tab.title })}
+        </h2>
+        <p id="hws-close-text" className="mt-2 text-sm text-[var(--wood-muted)]">
+          {t("closeText")}
+        </p>
+        <div className="mt-5 flex justify-end gap-2">
+          <button ref={cancelRef} type="button" className="hws-button" onClick={onCancel} data-testid="unsaved-close-cancel">
+            {t("keepOpen")}
+          </button>
+          <button type="button" className="hws-button hws-button-danger" onClick={onConfirm} data-testid="unsaved-close-confirm">
+            {t("closeDiscard")}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
-const navClass = active => `
-  rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
-  ${active ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]" : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"}
-`
-
 function HearthwoodStudio() {
-  const deepLink = deepLinkFromUrl()
-
-  const [viewMode, setViewMode] = useState(() => {
-    const view = new URLSearchParams(window.location.search).get("view")
-    if (view === "resources" || view === "mutations" || view === "gear" || view === "traits" || view === "promotions" || view === "identity") return view
-    // the in-game dev desk deep-links straight to these too
-    if (view === "theme" || view === "sheet" || view === "dashboard" || view === "storyMap" || view === "history" || view === "skills") return view
-    return deepLink ? "single" : "home"
-  })
-  // Hearthwood HQ (studioRooms.js): the room you're in limits the left
-  // list to that room's things; null = every list ("More tools").
-  const [room, setRoom] = useState(() => roomById(new URLSearchParams(window.location.search).get("room")) || (deepLink ? roomForType(deepLink.type) : null))
-  const [roomHint, setRoomHint] = useState("")
-  // An HQ "add" button opens that type's compose form already open; the
-  // nonce re-mounts it so pressing the button again re-opens it.
-  const [compose, setCompose] = useState({ type: null, nonce: 0 })
-  // An HQ wish that is a change: its words pre-fill the AI box.
-  const [wishText, setWishText] = useState({ text: "", nonce: 0 })
-  // The old tab row (Single / Sheet / Mutations / ...) lives behind this.
-  const [showMoreTools, setShowMoreTools] = useState(() => {
-    const view = new URLSearchParams(window.location.search).get("view")
-    return view === "sheet" || view === "dashboard"
-  })
-  // `browsingType` drives what the LEFT panel shows; `entityType` drives
-  // what the DETAIL panel fetches. Normally the same value - split only
-  // matters for the Story Timeline (Marc: "en tiedä missä jaotellut
-  // paikat on" - a cross-type chronological list), where clicking a row
-  // whose real type is e.g. "events" must open THAT entity in the
-  // detail panel without silently kicking the left panel back to a
-  // flat per-type list and losing the chronological browsing context.
-  const [browsingType, setBrowsingType] = useState(deepLink?.type || "enemies")
-  const [entityType, setEntityType] = useState(deepLink?.type || "enemies")
-  const [entityId, setEntityId] = useState(deepLink?.id || null)
-  const [entityDetail, setEntityDetail] = useState(null)
-  const [entityLoading, setEntityLoading] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState(null)
-  // The live game panel takes a third of the screen and mostly shows the
-  // title screen - hidden until asked for, or while a change is previewed.
-  const [showGame, setShowGame] = useState(false)
-  // Marc, 2026-10-19: "live game ei ole mielestäni tärkeä" - off
-  // everywhere; only "More tools" offers it.
-  const gameVisible = showMoreTools && showGame
-  // usePatchPreview reads this to decide whether to start the sandbox game.
-  useEffect(() => { window.__hwStudioLiveGame = gameVisible || viewMode === "theme" }, [gameVisible, viewMode])
-  const [reloadKey, setReloadKey] = useState(0)
-  const [historyKey, setHistoryKey] = useState(0)
-  // Set only by the entity list's own "+ Add new" button - tells
-  // CloneEntityForm (keyed by entityId below) to open itself pre-filled
-  // immediately instead of the normal collapsed "⧉ Clone as new"
-  // toggle. Cleared on any ordinary selection so navigating to a
-  // DIFFERENT entity afterward doesn't leave a stale auto-open behind.
-  const [autoOpenCloneId, setAutoOpenCloneId] = useState(null)
-
+  const [workspace, setWorkspace] = useState(loadWorkspace)
+  const [dirty, setDirty] = useState(() => new Set())
+  const [closing, setClosing] = useState(null)
+  const [notice, setNotice] = useState("")
+  const dirtyRef = useRef(dirty)
+  dirtyRef.current = dirty
+  const [layout, setLayout] = useState(loadLayout)
   useEffect(() => {
-    if (!entityId) {
-      setEntityDetail(null)
-      return
+    try {
+      window.localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout))
+    } catch {
+      // layout just won't be remembered
     }
+  }, [layout])
 
-    let cancelled = false
+  function startResize(event) {
+    event.preventDefault()
+    const startX = event.clientX
+    const startWidth = layout.assistantWidth
+    const onMove = move => {
+      const width = Math.min(ASSISTANT_MAX, Math.max(ASSISTANT_MIN, startWidth + (startX - move.clientX)))
+      setLayout(current => ({ ...current, assistantWidth: width }))
+    }
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", onUp)
+    }
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", onUp)
+  }
 
-    async function load() {
-      setEntityLoading(true)
+  function resizeByKey(event) {
+    const step = event.shiftKey ? 48 : 16
+    const delta = event.key === "ArrowLeft" ? step : event.key === "ArrowRight" ? -step : 0
+    if (!delta) return
+    event.preventDefault()
+    setLayout(current => ({ ...current, assistantWidth: Math.min(ASSISTANT_MAX, Math.max(ASSISTANT_MIN, current.assistantWidth + delta)) }))
+  }
 
-      try {
-        const data = await apiGet(`/hearthwood-patchbay/entity/${entityType}/${entityId}`)
 
-        if (!cancelled) {
-          setEntityDetail(data)
-        }
-      } catch {
-        if (!cancelled) {
-          setEntityDetail(null)
-        }
-      } finally {
-        if (!cancelled) {
-          setEntityLoading(false)
-        }
+  // Persist open tabs + the active one (restored on the next visit).
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, serializeWorkspace(workspace))
+    } catch {
+      // storage full or blocked: tabs just won't come back after a restart
+    }
+  }, [workspace])
+
+  // Home tab active: the address bar shows the plain Studio address.
+  useEffect(() => {
+    if (workspace.activeId === HOME_TAB_ID && window.location.search) {
+      window.history.replaceState(null, "", window.location.pathname)
+    }
+  }, [workspace.activeId])
+
+  // Leaving the page with an unapplied preview open asks the browser to warn.
+  useEffect(() => {
+    if (!dirty.size) return undefined
+    const onBeforeUnload = event => {
+      event.preventDefault()
+      event.returnValue = ""
+    }
+    window.addEventListener("beforeunload", onBeforeUnload)
+    return () => window.removeEventListener("beforeunload", onBeforeUnload)
+  }, [dirty])
+
+  const open = useCallback(location => {
+    if (!location) return
+    setWorkspace(current => {
+      const result = openTab(current, location, { dirtyIds: dirtyRef.current })
+      if (result.refused === "all-tabs-have-unsaved-work") {
+        setNotice(t("tabsFull"))
       }
-    }
-
-    load()
-
-    return () => {
-      cancelled = true
-    }
-    // reloadKey: refetch after a save / a data file change (no page reload any more).
-  }, [entityType, entityId, reloadKey])
-
-  function handleTypeChange(nextType) {
-    setBrowsingType(nextType)
-    setEntityType(nextType)
-    setEntityId(null)
-    setPreviewUrl(null)
-  }
-
-  function handleSelect(type, id) {
-    setEntityType(type)
-    setEntityId(id)
-    setPreviewUrl(null)
-    setAutoOpenCloneId(null)
-
-    // Stay on the Story Timeline after picking a row - its rows span
-    // several real types, so syncing browsingType here would bounce
-    // back to a flat per-type list after every single click.
-    if (browsingType !== "storyTimeline") {
-      setBrowsingType(type)
-    }
-  }
-
-  // The entity list's own "+ Add new" button - clones whichever entity
-  // it's given (the list's own first entry) and lands directly on that
-  // entity's Clone form, already open. See CloneEntityForm.jsx's own
-  // `autoOpen` comment for why Marc needed this at all.
-  function handleCreateNew(type, baseId) {
-    setEntityType(type)
-    setEntityId(baseId)
-    setPreviewUrl(null)
-    setAutoOpenCloneId(baseId)
-
-    if (browsingType !== "storyTimeline") {
-      setBrowsingType(type)
-    }
-  }
-
-  // Story Timeline's own "+ New Event/Dialogue/Journal Entry" row -
-  // switches the detail panel to that type's existing compose form
-  // (AddEventForm/AddDialogueForm/AddStoryEntryForm, all rendered
-  // below whenever entityType matches) without leaving the Timeline
-  // itself: browsingType deliberately stays untouched, same reasoning
-  // as handleSelect's own "stay on the Story Timeline" comment. Forces
-  // viewMode to "single" since the compose forms only render there
-  // (Sheet/Dashboard/Theme have no such slot) - clicking one of these
-  // buttons from Sheet view otherwise did nothing visible.
-  function handleAddNew(type) {
-    setEntityType(type)
-    setEntityId(null)
-    setPreviewUrl(null)
-    setViewMode("single")
-  }
-
-  function handleApplied() {
-    setReloadKey(previous => previous + 1)
-    setHistoryKey(previous => previous + 1)
-  }
-
-  // Dashboard's own two "take me there" actions - both land in Single
-  // view, the one place that actually shows a picked entity's own editor.
-  function handleNavigateFromDashboard(type) {
-    handleTypeChange(type)
-    setViewMode("single")
-  }
-
-  function handleSelectFromDashboard(type, id) {
-    handleSelect(type, id)
-    setViewMode("single")
-  }
-
-  function handleReverted() {
-    setReloadKey(previous => previous + 1)
-  }
-
-  // Keep where you are in the address bar, so even a manual refresh (F5)
-  // comes back to the same page instead of the HQ home (Marc: "se vie
-  // minut aina takaisin etusivulle"). deepLinkFromUrl/room/view read it back.
-  useEffect(() => {
-    const params = new URLSearchParams()
-    if (viewMode !== "home") {
-      if (viewMode !== "single") params.set("view", viewMode)
-      if (viewMode === "single" && entityType) params.set("type", entityType)
-      if (viewMode === "single" && entityId) params.set("id", entityId)
-    }
-    if (room && viewMode !== "home") params.set("room", room.id)
-    const next = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`
-    if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, "", next)
-  }, [viewMode, entityType, entityId, room])
-
-  // A game data file changed (vite.config.js hearthwoodDataHmr): refresh, don't reload.
-  useEffect(() => {
-    const onDataChanged = () => setReloadKey(previous => previous + 1)
-    window.addEventListener("hw-data-changed", onDataChanged)
-    return () => window.removeEventListener("hw-data-changed", onDataChanged)
+      return result.workspace
+    })
   }, [])
 
-  // --- Hearthwood HQ ---------------------------------------------------
-  function goHome() {
-    setRoom(null)
-    setRoomHint("")
-    setViewMode("home")
+  const handleLocationChange = useCallback((tabId, location, title) => {
+    setWorkspace(current => updateTab(current, tabId, location, title))
+  }, [])
+
+  const handleDirtyChange = useCallback((tabId, isDirty) => {
+    setDirty(current => {
+      if (current.has(tabId) === isDirty) return current
+      const next = new Set(current)
+      if (isDirty) next.add(tabId)
+      else next.delete(tabId)
+      return next
+    })
+  }, [])
+
+  const goHome = useCallback(() => setWorkspace(current => activateTab(current, HOME_TAB_ID)), [])
+
+  function forgetTab(id) {
+    setWorkspace(current => closeTab(current, id))
+    handleDirtyChange(id, false)
   }
 
-  function enterRoom(nextRoom) {
-    setRoom(nextRoom)
-    setRoomHint("")
-    const first = nextRoom.actions.find(action => action.kind === "type") || nextRoom.actions[0]
-    runRoomAction(nextRoom, first)
+  function requestClose(tab) {
+    if (dirty.has(tab.id)) setClosing(tab)
+    else forgetTab(tab.id)
   }
 
-  function runRoomAction(nextRoom, action) {
-    setRoom(nextRoom)
-    setRoomHint(action.hint || "")
-    if (action.kind === "link") {
-      window.open(action.href, "_blank", "noopener")
-      return
+  function onTabKeyDown(event, index) {
+    const tabs = workspace.tabs
+    let next = null
+    if (event.key === "ArrowRight") next = tabs[(index + 1) % tabs.length]
+    if (event.key === "ArrowLeft") next = tabs[(index - 1 + tabs.length) % tabs.length]
+    if (event.key === "Home") next = tabs[0]
+    if (event.key === "End") next = tabs[tabs.length - 1]
+    if (next) {
+      event.preventDefault()
+      setWorkspace(current => activateTab(current, next.id))
+      document.getElementById(`hws-tab-${next.id}`)?.focus()
     }
-    if (action.kind === "view") {
-      setViewMode(action.view)
-      return
+    if ((event.key === "Delete" || (event.key === "w" && (event.ctrlKey || event.metaKey))) && !tabs[index].pinned) {
+      event.preventDefault()
+      requestClose(tabs[index])
     }
-    setBrowsingType(action.type)
-    setPreviewUrl(null)
-    if (action.kind === "add") {
-      handleAddNew(action.type)
-      setCompose(previous => ({ type: action.type, nonce: previous.nonce + 1 }))
-      return
-    }
-    setCompose(previous => ({ ...previous, type: null }))
-    handleTypeChange(action.type)
-    setViewMode("single")
   }
 
-  // HQ "What do you want today?" (StudioWishBox/wishRouter): go where the answer says.
-  async function handleWish(answer, text) {
-    const type = answer.entity?.type || answer.type
-    const nextRoom = answer.kind === "view" ? roomById("look") : roomForType(type)
-    setRoom(nextRoom)
-    setRoomHint(answer.why || "")
-    if (answer.kind === "view") {
-      setViewMode(answer.view)
-      return
-    }
-    if (answer.kind === "add") {
-      setBrowsingType(type)
-      handleAddNew(type)
-      setCompose(previous => ({ type, nonce: previous.nonce + 1 }))
-      return
-    }
-    if (answer.kind === "clone") {
-      try {
-        const data = await apiGet(`/hearthwood-patchbay/entities?type=${type}`)
-        const first = data.entities?.[0]
-        if (first) {
-          handleCreateNew(type, first.id)
-          setViewMode("single")
-        }
-      } catch {
-        handleTypeChange(type)
-        setViewMode("single")
+  // "Continue developing": the most recently used editor tab, if any.
+  const lastEditor = useMemo(() => {
+    const id = workspace.history.find(entry => entry !== HOME_TAB_ID)
+    return workspace.tabs.find(tab => tab.id === id) || null
+  }, [workspace])
+
+  const homeHandlers = useMemo(() => ({
+    onEnterRoom: room => open(locationForRoom(room)),
+    onAction: (room, action) => {
+      if (action.kind === "link") {
+        window.open(action.href, "_blank", "noopener")
+        return
       }
-      return
-    }
-    setWishText(previous => ({ text: answer.kind === "change" ? text : "", nonce: previous.nonce + 1 }))
-    handleSelect(type, answer.entity.id)
-    setBrowsingType(type)
-    setViewMode("single")
-  }
+      open(locationForAction(room, action))
+    },
+    onWish: (answer, text) => open(locationForWish(answer, text)),
+    onOpenEntity: (type, id) => open(locationForEntity(type, id)),
+    onOpenView: view => open({ view, roomId: view === "theme" ? roomById("look")?.id : undefined }),
+    onTool: tool => (tool.href ? window.open(tool.href, "_blank", "noopener") : open({ view: tool.view })),
+    onContinue: tab => setWorkspace(current => activateTab(current, tab.id)),
+  }), [open])
 
-  // A "More tools" tab: every list again, no room.
-  function openTool(view) {
-    setRoom(null)
-    setRoomHint("")
-    setViewMode(view)
-  }
+  const activeTab = workspace.tabs.find(tab => tab.id === workspace.activeId) || null
+  const mounted = new Set([
+    workspace.activeId,
+    ...dirty,
+    ...workspace.history.filter(id => id !== HOME_TAB_ID).slice(0, KEEP_ALIVE),
+  ])
+  const assistantContext = contextForTab(activeTab)
 
   return (
-    <div className="hws-root space-y-6">
+    <div
+      className={`hws-root hws-workstation ${layout.navCollapsed ? "nav-collapsed" : ""} ${layout.assistantOpen ? "assistant-open" : "assistant-closed"}`}
+      style={{ "--hws-assistant-width": `${layout.assistantWidth}px` }}
+      data-testid="studio-workspace"
+    >
       <StudioToast />
-      <header className="hws-header space-y-3">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="hws-display text-5xl font-bold text-[var(--wood-text)]">
-              <span className="hws-rune mr-2 text-[var(--wood-accent)]" aria-hidden="true">ᛞ</span>Hearthwood HQ
-            </h1>
-            <p className="mt-1 text-[var(--wood-muted)]">
-              Your workshop for building the game. Nothing changes until you press "Put it in the game", and every change can be undone.
-            </p>
-          </div>
 
-          <nav className="flex flex-wrap gap-2" data-testid="studio-nav">
-            <button type="button" onClick={goHome} data-testid="studio-nav-home" className={navClass(viewMode === "home")}>🏠 HQ</button>
-            <button type="button" onClick={() => openTool("dashboard")} data-testid="studio-nav-find" className={navClass(viewMode === "dashboard")}>🔎 Find anything</button>
-            <button type="button" onClick={() => openTool("history")} data-testid="studio-nav-undo" className={navClass(viewMode === "history")}>↩ Undo a change</button>
-            <button type="button" onClick={() => setShowMoreTools(previous => !previous)} data-testid="studio-nav-more" className={navClass(showMoreTools)}>⚙ More tools</button>
-          </nav>
-        </div>
+      <div className="hws-titlebar">
+        <button
+          type="button"
+          className="hws-icon-button"
+          onClick={() => setLayout(current => ({ ...current, navCollapsed: !current.navCollapsed }))}
+          aria-label={t("toggleNav")}
+          aria-expanded={!layout.navCollapsed}
+          title={t("toggleNav")}
+          data-testid="toggle-nav"
+        >
+          ☰
+        </button>
+        <span className="hws-rune hws-titlebar-rune" aria-hidden="true">ᛞ</span>
+        <span className="hws-display hws-titlebar-name">{t("studioName")}</span>
+        <span className="hws-titlebar-note">{t("safetyNote")}</span>
+        <button
+          type="button"
+          className={`hws-icon-button hws-monkey-toggle ${layout.assistantOpen ? "is-on" : ""}`}
+          onClick={() => setLayout(current => ({ ...current, assistantOpen: !current.assistantOpen }))}
+          aria-label={t("toggleAssistant")}
+          aria-expanded={layout.assistantOpen}
+          aria-controls="hws-assistant-panel"
+          title={t("toggleAssistant")}
+          data-testid="toggle-assistant"
+        >
+          ᛋ Spacemonkey
+        </button>
+      </div>
 
-        {
-          room && viewMode !== "home" && (
-            <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] px-4 py-2" data-testid="studio-room-bar">
-              <button type="button" onClick={goHome} className="text-sm text-[var(--wood-muted)] hover:text-[var(--wood-text)]">HQ</button>
-              <span className="text-[var(--wood-muted)]">›</span>
-              <span className="text-sm font-semibold text-[var(--wood-text)]"><span className="mr-1 text-[var(--wood-accent)]">{room.rune}</span>{room.title}</span>
-              <span className="mx-2 h-4 w-px bg-[var(--wood-border)]" />
-              {
-                room.actions.map(action => (
-                  <button key={action.label} type="button" onClick={() => runRoomAction(room, action)} className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-text)] hover:border-[var(--wood-accent)]">
-                    {action.label}
+      <div className="hws-body">
+        <WorkspaceNav
+          collapsed={layout.navCollapsed}
+          activeLocation={activeTab?.location}
+          homeActive={workspace.activeId === HOME_TAB_ID}
+          onHome={goHome}
+          onRoom={homeHandlers.onEnterRoom}
+          onTool={homeHandlers.onTool}
+        />
+
+        <main className="hws-main">
+          <div className="hws-tabstrip" role="tablist" aria-label={t("openEditors")} data-testid="workspace-tabs">
+            {workspace.tabs.map((tab, index) => {
+              const selected = tab.id === workspace.activeId
+              return (
+                <div key={tab.id} className={`hws-tab ${selected ? "is-active" : ""} ${tab.pinned ? "is-pinned" : ""}`} data-tab-id={tab.id}>
+                  <button
+                    id={`hws-tab-${tab.id}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    aria-controls={`hws-panel-${tab.id}`}
+                    tabIndex={selected ? 0 : -1}
+                    className="hws-tab-label"
+                    title={tab.title}
+                    data-testid={tab.pinned ? "workspace-tab-home" : "workspace-tab"}
+                    onClick={() => setWorkspace(current => activateTab(current, tab.id))}
+                    onKeyDown={event => onTabKeyDown(event, index)}
+                    onAuxClick={event => { if (event.button === 1 && !tab.pinned) requestClose(tab) }}
+                    ref={selected ? element => element?.scrollIntoView?.({ block: "nearest", inline: "nearest" }) : undefined}
+                  >
+                    {tab.pinned ? <span aria-hidden="true">ᚺ</span> : null}
+                    <span className="hws-tab-title">{tab.title}</span>
+                    {dirty.has(tab.id) && <span className="hws-tab-dirty" title={t("unsavedMark")} aria-label={t("unsavedMark")}>●</span>}
                   </button>
-                ))
-              }
-              {roomHint && <span className="w-full text-xs text-[var(--wood-accent)]">{roomHint}</span>}
+                  {!tab.pinned && (
+                    <button
+                      type="button"
+                      className="hws-tab-close"
+                      aria-label={t("closeNamed", { title: tab.title })}
+                      title={t("closeTab")}
+                      data-testid="workspace-tab-close"
+                      onClick={() => requestClose(tab)}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {notice && (
+            <div className="hws-notice" role="status" data-testid="workspace-notice">
+              {notice}
+              <button type="button" className="ml-3 underline" onClick={() => setNotice("")}>{t("ok")}</button>
             </div>
-          )
-        }
+          )}
 
-        {showMoreTools && (
-        <div className="mt-3 flex flex-wrap gap-2" data-testid="studio-more-tools">
-          <button
-            type="button"
-            onClick={() => openTool("dashboard")}
-            className={`
-              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
-              ${
-                viewMode === "dashboard"
-                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
-                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
-              }
-            `}
-          >
-            🏠 Dashboard
-          </button>
-
-          <button
-            type="button"
-            onClick={() => openTool("single")}
-            className={`
-              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
-              ${
-                viewMode === "single"
-                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
-                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
-              }
-            `}
-          >
-            Single
-          </button>
-
-          <button
-            type="button"
-            onClick={() => openTool("sheet")}
-            className={`
-              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
-              ${
-                viewMode === "sheet"
-                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
-                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
-              }
-            `}
-          >
-            Sheet
-          </button>
-
-          <button
-            type="button"
-            onClick={() => openTool("theme")}
-            className={`
-              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
-              ${
-                viewMode === "theme"
-                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
-                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
-              }
-            `}
-          >
-            🎨 Colors & Theme
-          </button>
-
-          <button
-            type="button"
-            data-testid="studio-resources-tab"
-            onClick={() => openTool("resources")}
-            className={`
-              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
-              ${
-                viewMode === "resources"
-                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
-                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
-              }
-            `}
-          >
-            ⚡ Hero Resources
-          </button>
-
-          <button
-            type="button"
-            data-testid="studio-mutations-tab"
-            onClick={() => openTool("mutations")}
-            className={`
-              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
-              ${
-                viewMode === "mutations"
-                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
-                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
-              }
-            `}
-          >
-            🧬 Mutations
-          </button>
-
-          <button
-            type="button"
-            data-testid="studio-traits-tab"
-            onClick={() => openTool("traits")}
-            className={`
-              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
-              ${
-                viewMode === "traits"
-                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
-                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
-              }
-            `}
-          >
-            🍀 Traits
-          </button>
-
-          <button
-            type="button"
-            data-testid="studio-promotions-tab"
-            onClick={() => openTool("promotions")}
-            className={`
-              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
-              ${
-                viewMode === "promotions"
-                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
-                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
-              }
-            `}
-          >
-            ⚜ Promotions
-          </button>
-
-          <button
-            type="button"
-            data-testid="studio-identity-tab"
-            onClick={() => openTool("identity")}
-            className={`
-              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
-              ${
-                viewMode === "identity"
-                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
-                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
-              }
-            `}
-          >
-            ✨ Hero Identity
-          </button>
-
-          <button
-            type="button"
-            data-testid="studio-gear-tab"
-            onClick={() => openTool("gear")}
-            className={`
-              rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
-              ${
-                viewMode === "gear"
-                  ? "border-[var(--wood-accent)] bg-[var(--wood-accent)] text-[#17120c]"
-                  : "border-[var(--wood-border)] text-[var(--wood-muted)] hover:text-[var(--wood-text)]"
-              }
-            `}
-          >
-            🎒 Gear
-          </button>
-        </div>
-        )}
-      </header>
-
-      {
-        viewMode === "home" && (
-          <StudioHome
-            onEnterRoom={enterRoom}
-            onAction={runRoomAction}
-            onWish={handleWish}
-            onOpenEntity={(type, id) => {
-              setRoom(roomForType(type))
-              setRoomHint("")
-              handleSelect(type, id)
-              setBrowsingType(type)
-              setViewMode("single")
-            }}
-          />
-        )
-      }
-
-      {
-        viewMode === "skills" && <SkillWorkshop onApplied={handleApplied} reloadKey={reloadKey} />
-      }
-
-      {
-        viewMode === "storyMap" && (
-          <StoryMap
-            onOpen={(type, id) => {
-              setRoom(roomById("story"))
-              setRoomHint("")
-              handleSelect(type, id)
-              setBrowsingType(type)
-              setViewMode("single")
-            }}
-          />
-        )
-      }
-
-      {
-        viewMode === "dashboard" && (
-          <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-            <Dashboard onNavigate={handleNavigateFromDashboard} onSelectEntity={handleSelectFromDashboard} />
-          </section>
-        )
-      }
-
-      {
-        viewMode === "theme" && (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
-            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-              <ThemePanel onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
+          <div className="hws-panels">
+            <section
+              id={`hws-panel-${HOME_TAB_ID}`}
+              role="tabpanel"
+              aria-labelledby={`hws-tab-${HOME_TAB_ID}`}
+              hidden={workspace.activeId !== HOME_TAB_ID}
+              className="hws-panel"
+            >
+              <StudioHome {...homeHandlers} lastEditor={lastEditor} />
             </section>
 
-            {/* colours are the one place where seeing the game helps */}
-            {(
-            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-              <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
-            </section>
-            )}
-          </div>
-        )
-      }
-
-      {
-        viewMode === "resources" && (
-          <div className={`grid grid-cols-1 gap-4 ${gameVisible ? "lg:grid-cols-[1fr_360px]" : ""}`}>
-            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-              <ResourceEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
-            </section>
-
-            {gameVisible && (
-            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-              <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
-            </section>
-            )}
-          </div>
-        )
-      }
-
-      {
-        viewMode === "mutations" && (
-          <div className={`grid grid-cols-1 gap-4 ${gameVisible ? "lg:grid-cols-[1fr_360px]" : ""}`}>
-            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-              <MutationEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
-            </section>
-
-            {gameVisible && (
-            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-              <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
-            </section>
-            )}
-          </div>
-        )
-      }
-
-      {
-        (viewMode === "traits" || viewMode === "promotions" || viewMode === "identity") && (
-          <div className={`grid grid-cols-1 gap-4 ${gameVisible ? "lg:grid-cols-[1fr_360px]" : ""}`}>
-            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-              {viewMode === "identity" ? (
-                <HeroIdentityEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
-              ) : viewMode === "traits" ? (
-                <TraitEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
-              ) : (
-                <PromotionEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
-              )}
-            </section>
-
-            {gameVisible && (
-            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-              <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
-            </section>
-            )}
-          </div>
-        )
-      }
-
-      {
-        viewMode === "gear" && (
-          <div className={`grid grid-cols-1 gap-4 ${gameVisible ? "lg:grid-cols-[1fr_360px]" : ""}`}>
-            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-              <GearEditor onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
-            </section>
-
-            {gameVisible && (
-            <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-              <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
-            </section>
-            )}
-          </div>
-        )
-      }
-
-      {showMoreTools && viewMode !== "home" && viewMode !== "history" && viewMode !== "dashboard" && (
-        <div className="-mb-2 flex justify-end">
-          <button type="button" onClick={() => setShowGame(open => !open)} data-testid="studio-toggle-game" className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-muted)] hover:text-[var(--wood-text)]">
-            {gameVisible ? "Hide the game" : "▶ Show the game next to it"}
-          </button>
-        </div>
-      )}
-      {viewMode !== "home" && viewMode !== "history" && viewMode !== "storyMap" && viewMode !== "skills" && viewMode !== "theme" && viewMode !== "dashboard" && viewMode !== "resources" && viewMode !== "mutations" && viewMode !== "gear" && viewMode !== "traits" && viewMode !== "promotions" && viewMode !== "identity" && (
-      <div className={`grid grid-cols-1 gap-4 ${viewMode === "single" && gameVisible ? "lg:grid-cols-[260px_1fr_360px]" : "lg:grid-cols-[260px_1fr]"}`}>
-        <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-          <EntityBrowser
-            type={browsingType}
-            onTypeChange={handleTypeChange}
-            selectedId={entityId}
-            onSelect={handleSelect}
-            onAddNew={handleAddNew}
-            onCreateNew={handleCreateNew}
-            allowedTypes={room ? room.types : null}
-            reloadKey={reloadKey}
-            showIds={showMoreTools}
-          />
-        </section>
-
-        {
-          viewMode === "sheet"
-            ? (
-              <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-                {
-                  browsingType === "storyTimeline"
-                    ? (
-                      <div className="p-5 text-sm text-[var(--wood-muted)]">
-                        Switch to Single view to browse the Story Timeline - it spans several types, so there's no one sheet to show.
-                      </div>
-                    )
-                    : <SheetView type={entityType} onApplied={handleApplied} onPreviewUrlChange={setPreviewUrl} />
-                }
+            {workspace.tabs.filter(tab => !tab.pinned).map(tab => (
+              <section
+                key={tab.id}
+                id={`hws-panel-${tab.id}`}
+                role="tabpanel"
+                aria-labelledby={`hws-tab-${tab.id}`}
+                hidden={workspace.activeId !== tab.id}
+                className="hws-panel"
+                data-mounted={mounted.has(tab.id) ? "yes" : "no"}
+              >
+                {mounted.has(tab.id) && <StudioPane
+                  tabId={tab.id}
+                  location={tab.location}
+                  intent={tab.intent}
+                  active={workspace.activeId === tab.id}
+                  onLocationChange={handleLocationChange}
+                  onOpenTab={open}
+                  onGoHome={goHome}
+                  onDirtyChange={handleDirtyChange}
+                />}
               </section>
-            )
-            : (
-              <>
-                <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-y-auto wood-scroll p-5 space-y-4">
-                  {
-                    entityType === "storyJournal" && (
-                      <AddStoryEntryForm
-                        type={entityType}
-                        onApplied={handleApplied}
-                        onPreviewUrlChange={setPreviewUrl}
-                      />
-                    )
-                  }
+            ))}
+          </div>
+        </main>
 
-                  {
-                    entityType === "events" && (
-                      <AddEventForm
-                        key={`events-${compose.nonce}`}
-                        autoOpen={compose.type === "events"}
-                        type={entityType}
-                        onApplied={handleApplied}
-                        onPreviewUrlChange={setPreviewUrl}
-                      />
-                    )
-                  }
+        <div
+          className="hws-resizer"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label={t("resizeAssistant")}
+          aria-valuemin={ASSISTANT_MIN}
+          aria-valuemax={ASSISTANT_MAX}
+          aria-valuenow={layout.assistantWidth}
+          tabIndex={layout.assistantOpen ? 0 : -1}
+          hidden={!layout.assistantOpen}
+          onPointerDown={startResize}
+          onKeyDown={resizeByKey}
+          data-testid="assistant-resizer"
+        />
 
-                  {
-                    entityType === "dialogues" && (
-                      <AddDialogueForm
-                        key={`dialogues-${compose.nonce}`}
-                        autoOpen={compose.type === "dialogues"}
-                        type={entityType}
-                        onApplied={handleApplied}
-                        onPreviewUrlChange={setPreviewUrl}
-                      />
-                    )
-                  }
-
-                  {
-                    entityType === "battleObjects" && (
-                      <AddBattleObjectForm
-                        key={`battleObjects-${compose.nonce}`}
-                        autoOpen={compose.type === "battleObjects"}
-                        type={entityType}
-                        onApplied={handleApplied}
-                        onPreviewUrlChange={setPreviewUrl}
-                      />
-                    )
-                  }
-
-                  {
-                    entityType === "crossroads" && (
-                      <AddCrossroadsForm
-                        type={entityType}
-                        onApplied={handleApplied}
-                        onPreviewUrlChange={setPreviewUrl}
-                      />
-                    )
-                  }
-
-                  {
-                    // No entry picked: the whole list as picture cards (Marc is a visual person).
-                    !entityId && entityType !== "storyTimeline" && (
-                      <CardGallery type={entityType} onSelect={handleSelect} reloadKey={reloadKey} />
-                    )
-                  }
-
-                  {
-                    entityId && entityLoading && (
-                      <div className="text-sm text-[var(--wood-muted)]">Loading...</div>
-                    )
-                  }
-
-                  {
-                    entityId && entityDetail && (
-                      <div className="rounded-xl border border-[var(--wood-border)] bg-[var(--wood-bg)] p-3 space-y-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="hws-display text-2xl font-semibold text-[var(--wood-text)]" data-testid="entity-title">
-                            {plainName(entityDetail, labelFor(entityType))}
-                          </div>
-                          <button type="button" onClick={() => setEntityId(null)} data-testid="back-to-cards" className="rounded-full border border-[var(--wood-border)] px-3 py-1 text-xs text-[var(--wood-muted)] hover:border-[var(--wood-accent)] hover:text-[var(--wood-text)]">
-                            ▦ Back to all cards
-                          </button>
-                        </div>
-
-                        {
-                          STORY_WRITER_TYPES.has(entityType) && (
-                            <StoryWriter
-                              type={entityType}
-                              entityId={entityId}
-                              entityDetail={entityDetail}
-                              onSelect={handleSelect}
-                              onApplied={handleApplied}
-                              onPreviewUrlChange={setPreviewUrl}
-                            />
-                          )
-                        }
-
-                        <AdvancedFold fold={STORY_WRITER_TYPES.has(entityType)}>
-                        {/* Picture first (Marc: hero pictures are the first thing he changes). */}
-                        {
-                          (entityDetail.identifierKeys || []).map(fieldName => (
-                            <ImageUploadField
-                              key={fieldName}
-                              type={entityType}
-                              entityId={entityId}
-                              fieldName={fieldName}
-                              currentImagePath={entityDetail.fields?.[fieldName]?.value}
-                              onApplied={handleApplied}
-                              onPreviewUrlChange={setPreviewUrl}
-                            />
-                          ))
-                        }
-
-                        <CloneEntityForm
-                          key={entityId}
-                          type={entityType}
-                          entityId={entityId}
-                          entityDetail={entityDetail}
-                          autoOpen={entityId === autoOpenCloneId}
-                          onApplied={handleApplied}
-                          onPreviewUrlChange={setPreviewUrl}
-                        />
-
-                        <EntityFieldEditor
-                          type={entityType}
-                          entityId={entityId}
-                          entityDetail={entityDetail}
-                          onApplied={handleApplied}
-                          onPreviewUrlChange={setPreviewUrl}
-                        />
-                        </AdvancedFold>
-
-                      </div>
-                    )
-                  }
-
-                  {
-                    entityId && !entityLoading && (
-                      <EntityChangeLog entityId={entityId} reloadKey={reloadKey} />
-                    )
-                  }
-
-                  <NlChangeBox
-                    key={`nl-${entityType}-${entityId}-${wishText.nonce}`}
-                    initialInstruction={wishText.text}
-                    type={entityType}
-                    entityId={entityId}
-                    entityLabel={entityDetail?.name}
-                    onApplied={handleApplied}
-                    onPreviewUrlChange={setPreviewUrl}
-                  />
-                </section>
-
-                {gameVisible && (
-                <section className="h-[620px] rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-                  <LivePreviewPane previewUrl={previewUrl} reloadKey={reloadKey} />
-                </section>
-                )}
-              </>
-            )
-        }
+        <aside id="hws-assistant-panel" className="hws-aside" hidden={!layout.assistantOpen} data-testid="assistant-panel">
+          <SpacemonkeyAssistant context={assistantContext} />
+        </aside>
       </div>
-      )}
 
-      {(viewMode === "history" || showMoreTools) && (
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]" data-testid="studio-history">
-        <section className="rounded-2xl border border-[var(--wood-border)] bg-[var(--wood-panel)] overflow-hidden">
-          <div className="border-b border-[var(--wood-border)] px-5 py-3 text-sm font-semibold text-[var(--wood-text)]">
-            Your changes - press Revert on any of them to undo it
-          </div>
-
-          <div className="h-[420px]">
-            <PatchHistoryList reloadKey={historyKey} onReverted={handleReverted} />
-          </div>
-        </section>
-
-        {showMoreTools && (
-          <div className="space-y-4">
-            <DoctorPanel />
-            <BalancePanel />
-          </div>
-        )}
-      </div>
+      {closing && (
+        <TabCloseDialog
+          tab={closing}
+          onCancel={() => setClosing(null)}
+          onConfirm={() => {
+            forgetTab(closing.id)
+            setClosing(null)
+          }}
+        />
       )}
     </div>
   )

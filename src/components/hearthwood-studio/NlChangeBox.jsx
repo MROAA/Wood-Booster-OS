@@ -2,6 +2,7 @@ import { useState } from "react"
 
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * Marcin ensisijainen syöttöpolku: "kerro suomeksi mitä haluat
@@ -13,6 +14,8 @@ import PatchPreviewPanel from "./PatchPreviewPanel"
 // initialInstruction: an HQ wish ("make the Rotwood Husk tougher") lands here pre-filled.
 function NlChangeBox({ type, entityId, entityLabel, onApplied, onPreviewUrlChange, initialInstruction = "" }) {
   const [instruction, setInstruction] = useState(initialInstruction)
+  // Typed-in but not yet saved: the workspace warns before the tab closes.
+  useReportUnsaved(instruction.trim() !== "" && instruction.trim() !== String(initialInstruction || "").trim())
 
   const {
     result,

@@ -1,4 +1,8 @@
 import { chromium } from "playwright"
+// Sprint 4: editors live in workspace tabs; several can be mounted at once,
+// so editor-content lookups are scoped to the visible tab (VISIBLE).
+const VISIBLE = 'section[role="tabpanel"]:not([hidden]) '
+
 
 // Hero/enemy page for a visual, non-coding user: big picture, "The basics"
 // in plain words with − / + steppers, help on hover, technical fields folded,
@@ -46,18 +50,18 @@ await page.screenshot({ path: new URL("./shots/studio_visual_card.png", import.m
 await page.getByRole("button", { name: /Check my 1 change/ }).click()
 await page.locator('[data-testid="patch-review"]').waitFor({ timeout: 8000 })
 r.edit = previewBody?.edits
-r.toggleHidden = (await page.locator('[data-testid="studio-toggle-game"]').count()) === 0
+r.toggleHidden = (await page.locator(VISIBLE + '[data-testid="studio-toggle-game"]').count()) === 0
 r.livePreviewFlag = previewBody?.livePreview
-await page.locator('[data-testid="studio-nav-more"]').click()
-await page.locator('[data-testid="studio-toggle-game"]').click()
+await page.locator(VISIBLE + '[data-testid="studio-nav-more"]').click()
+await page.locator(VISIBLE + '[data-testid="studio-toggle-game"]').click()
 await page.waitForTimeout(400)
 r.gameAfterToggle = await page.getByText("Live game").count()
 
 // Economy lever: a readable name, its number in "The basics".
 await page.goto(`http://localhost:${PORT}/hearthwood-studio?type=economyLevers&id=winEssence`, { waitUntil: "domcontentloaded" })
-await page.locator('[data-testid="entity-title"]').waitFor({ timeout: 20000 })
+await page.locator(VISIBLE + '[data-testid="entity-title"]').waitFor({ timeout: 20000 })
 await page.waitForTimeout(500)
-r.leverTitle = await page.locator('[data-testid="entity-title"]').textContent()
+r.leverTitle = await page.locator(VISIBLE + '[data-testid="entity-title"]').textContent()
 r.leverBasic = await page.locator('[data-basic="value"] input[type="number"]').count()
 r.leverListNames = await page.locator("section button").allTextContents()
 // Traits tool: no live game column either.

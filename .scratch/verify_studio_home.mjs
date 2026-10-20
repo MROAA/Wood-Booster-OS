@@ -1,4 +1,8 @@
 import { chromium } from "playwright"
+// Sprint 4: editors live in workspace tabs; several can be mounted at once,
+// so editor-content lookups are scoped to the visible tab (VISIBLE).
+const VISIBLE = 'section[role="tabpanel"]:not([hidden]) '
+
 
 // Hearthwood HQ - the Studio's rooms front door (studioRooms.js /
 // StudioHome.jsx) + the Story Writer. The page's hard-coded API
@@ -28,26 +32,29 @@ const page = await ctx.newPage()
 page.on("pageerror", (err) => errs.push(String(err)))
 const go = async (qs = "") => {
   await page.goto(`http://localhost:${PORT}/hearthwood-studio${qs}`, { waitUntil: "domcontentloaded" })
-  await page.locator('[data-testid="studio-nav"]').waitFor({ timeout: 20000 })
+  await page.locator('[data-testid="studio-workspace"]').waitFor({ timeout: 20000 })
+  // Sprint 4 restores the last active tab; a plain address shows the front door.
+  if (!qs) await page.locator('[data-testid="workspace-tab-home"]').click()
   await page.waitForTimeout(400)
 }
-const chips = () => page.locator("button[title]").evaluateAll((els) => els.map((el) => el.textContent.trim()))
+const chips = () => page.locator(VISIBLE + "button[title]").evaluateAll((els) => els.map((el) => el.textContent.trim()))
 // Room cards open their extra buttons on hover, like the game's cards.
 const roomAction = async (room, label) => {
   await page.locator(`[data-room="${room}"]`).hover()
   await page.waitForTimeout(350)
   await page.locator(`[data-room="${room}"] button`, { hasText: label }).click()
 }
-const roomBar = () => page.locator('[data-testid="studio-room-bar"]').textContent().catch(() => null)
+const roomBar = () => page.locator(VISIBLE + '[data-testid="studio-room-bar"]').textContent().catch(() => null)
 
-// 1. Opens on HQ: 8 rooms, 4 nav buttons, old tabs + history hidden.
+// 1. Opens on Studio Home (Sprint 4): 9 rooms, the workspace navigation
+//    (home + 9 rooms + 5 tools), old tabs + history hidden.
 await go()
 const home = {
-  title: await page.getByRole("heading", { name: "Hearthwood HQ" }).textContent(),
+  title: await page.locator('[data-testid="studio-workspace"] .hws-titlebar-name').textContent(),
   rooms: await page.locator("[data-room]").count(),
-  nav: await page.locator('[data-testid="studio-nav"] button').count(),
-  moreTools: await page.locator('[data-testid="studio-more-tools"]').count(),
-  history: await page.locator('[data-testid="studio-history"]').count(),
+  nav: await page.locator('[data-testid="workspace-nav"] button').count(),
+  moreTools: await page.locator(VISIBLE + '[data-testid="studio-more-tools"]').count(),
+  history: await page.locator(VISIBLE + '[data-testid="studio-history"]').count(),
   hScroll: await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
   bottom: await page.evaluate(() => Math.round(document.querySelector('[data-testid="studio-home"]').getBoundingClientRect().bottom)),
 }
@@ -80,8 +87,8 @@ await page.screenshot({ path: new URL("./shots/studio_home.png", import.meta.url
 out.home = home
 c(home.counts.every((x) => x.shown === x.expected) && home.counts.find((x) => x.room === "heroes").shown > 100 && home.heroBreakdown?.includes("Heroes"), "h0c room counts match the Studio + breakdown on hover", { counts: home.counts, breakdown: home.heroBreakdown })
 c(home.storyBeforeHover === false && home.storyAfterHover === true, "h0b room details open on hover", { before: home.storyBeforeHover, after: home.storyAfterHover })
-c(home.purpose?.includes("honest limits") && home.purposeFull?.includes("headquarters of its development"), "h0 purpose statement", home.purpose)
-c(home.title.includes("Hearthwood HQ") && home.rooms === 9 && home.nav === 4 && home.moreTools === 0 && home.history === 0 && !home.hScroll, "h1 HQ front door", home)
+c(home.purpose?.includes("rehellisin rajoin") && home.purposeFull?.includes("headquarters of its development"), "h0 purpose statement", home.purpose)
+c(home.title.includes("Hearthwood Dev Studio") && home.rooms === 9 && home.nav === 15 && home.moreTools === 0 && home.history === 0 && !home.hScroll, "h1 Studio Home front door", home)
 
 // 2. Every Studio list lives in exactly one room.
 const coverage = await page.evaluate(async () => {
@@ -102,31 +109,31 @@ await roomAction("story", "Rewrite scenes & dialogue")
 await page.waitForTimeout(900)
 const sw = { bar: await roomBar(), badges: await page.locator("[data-chapter]").evaluateAll((els) => els.map((el) => el.textContent.trim())) }
 await page.locator("[data-chapter]").first().click()
-await page.locator('[data-testid="story-writer"]').waitFor({ timeout: 10000 })
-sw.where = await page.locator('[data-testid="story-writer-where"]').textContent()
-sw.lines = await page.locator('[data-testid="story-writer-line"]').count()
-sw.narratorItalic = await page.locator('[data-testid="story-writer-line"]').nth(2).evaluate((el) => getComputedStyle(el).fontStyle)
-sw.speaker0 = await page.locator('[data-testid="story-writer-dialogue"] input').first().inputValue()
-sw.speaker2 = await page.locator('[data-testid="story-writer-dialogue"] input').nth(2).inputValue()
-sw.fold = await page.locator('[data-testid="all-fields-fold"]').evaluate((el) => el.open).catch(() => null)
-await page.locator('[data-testid="story-writer-line"]').first().fill("...You. You are not the rot.")
-await page.locator('[data-testid="story-writer-dialogue"] input').nth(2).fill("Narrator")
+await page.locator(VISIBLE + '[data-testid="story-writer"]').waitFor({ timeout: 10000 })
+sw.where = await page.locator(VISIBLE + '[data-testid="story-writer-where"]').textContent()
+sw.lines = await page.locator(VISIBLE + '[data-testid="story-writer-line"]').count()
+sw.narratorItalic = await page.locator(VISIBLE + '[data-testid="story-writer-line"]').nth(2).evaluate((el) => getComputedStyle(el).fontStyle)
+sw.speaker0 = await page.locator(VISIBLE + '[data-testid="story-writer-dialogue"] input').first().inputValue()
+sw.speaker2 = await page.locator(VISIBLE + '[data-testid="story-writer-dialogue"] input').nth(2).inputValue()
+sw.fold = await page.locator(VISIBLE + '[data-testid="all-fields-fold"]').evaluate((el) => el.open).catch(() => null)
+await page.locator(VISIBLE + '[data-testid="story-writer-line"]').first().fill("...You. You are not the rot.")
+await page.locator(VISIBLE + '[data-testid="story-writer-dialogue"] input').nth(2).fill("Narrator")
 sw.changed = await page.getByText(/2 changes not in the game yet/).count()
 await page.screenshot({ path: new URL("./shots/story_writer.png", import.meta.url).pathname })
-await page.locator('[data-testid="story-writer-preview"]').click()
+await page.locator(VISIBLE + '[data-testid="story-writer-preview"]').click()
 await page.waitForTimeout(500)
 sw.edits = previewBody?.edits
 sw.previewType = previewBody?.type
-await page.locator('[data-testid="story-writer-next"]').click()
+await page.locator(VISIBLE + '[data-testid="story-writer-next"]').click()
 await page.waitForTimeout(700)
-sw.nextWhere = await page.locator('[data-testid="story-writer-where"]').textContent()
-await page.locator('[data-testid="studio-room-bar"] button', { hasText: "Endings" }).click()
+sw.nextWhere = await page.locator(VISIBLE + '[data-testid="story-writer-where"]').textContent()
+await page.locator(VISIBLE + '[data-testid="studio-room-bar"] button', { hasText: "Endings" }).click()
 await page.waitForTimeout(700)
-await page.locator('[data-testid="studio-room-bar"]').waitFor()
+await page.locator(VISIBLE + '[data-testid="studio-room-bar"]').waitFor()
 const firstEnding = page.locator("aside button, section button").filter({ hasText: "The Song Restored" }).first()
 await firstEnding.click().catch(() => {})
 await page.waitForTimeout(700)
-sw.endingBoxes = await page.locator('[data-testid="story-writer"] textarea').count()
+sw.endingBoxes = await page.locator(VISIBLE + '[data-testid="story-writer"] textarea').count()
 out.storyWriter = sw
 const e0 = sw.edits?.find((x) => x.path.join() === "rootkeeper-gate,lines,0,1")
 const e2 = sw.edits?.find((x) => x.path.join() === "rootkeeper-gate,lines,2,0")
@@ -136,31 +143,31 @@ c(sw.changed === 1 && sw.previewType === "storyScenes" && sw.edits?.length === 2
 c(sw.nextWhere.includes("Chapter 2 of 7") && sw.endingBoxes >= 5, "s4 next scene + endings", { next: sw.nextWhere, boxes: sw.endingBoxes })
 
 // 2c. Campaign story: chapter events (chronological) + a commander's spoken lines.
-await page.locator('[data-testid="studio-nav-home"]').click()
+await page.locator('[data-testid="workspace-tab-home"]').click()
 await page.locator('[data-testid="room-story"]').click()
 await page.waitForTimeout(400)
-await page.locator("button[title]", { hasText: "Chapter Events" }).click()
+await page.locator(VISIBLE + "button[title]", { hasText: "Chapter Events" }).click()
 await page.waitForTimeout(800)
 const ce = { badges: await page.locator("[data-chapter]").evaluateAll((els) => els.map((el) => el.getAttribute("data-chapter"))) }
 await page.locator("[data-chapter]").first().click()
-await page.locator('[data-testid="story-writer"]').waitFor({ timeout: 10000 })
-ce.where = await page.locator('[data-testid="story-writer-where"]').textContent()
-ce.boxes = await page.locator('[data-testid="story-writer"] textarea').count()
-ce.hasWidow = await page.locator('[data-testid="story-writer"] textarea').evaluateAll((els) => els.some((el) => el.value.includes("The Rot took him in the spring")))
-await page.locator('[data-testid="studio-nav-home"]').click()
+await page.locator(VISIBLE + '[data-testid="story-writer"]').waitFor({ timeout: 10000 })
+ce.where = await page.locator(VISIBLE + '[data-testid="story-writer-where"]').textContent()
+ce.boxes = await page.locator(VISIBLE + '[data-testid="story-writer"] textarea').count()
+ce.hasWidow = await page.locator(VISIBLE + '[data-testid="story-writer"] textarea').evaluateAll((els) => els.some((el) => el.value.includes("The Rot took him in the spring")))
+await page.locator('[data-testid="workspace-tab-home"]').click()
 await page.locator('[data-testid="room-heroes"]').click()
 await page.waitForTimeout(400)
-await page.locator("button[title]", { hasText: "Commanders & Their Lines" }).click()
+await page.locator(VISIBLE + "button[title]", { hasText: "Commanders & Their Lines" }).click()
 await page.waitForTimeout(800)
 await page.locator("aside button, section button").filter({ hasText: "tommy" }).first().click()
-await page.locator('[data-testid="story-writer"]').waitFor({ timeout: 10000 })
-ce.tommy = await page.locator('[data-testid="story-writer"] textarea').evaluateAll((els) => els.map((el) => el.value))
-ce.tommyLabels = await page.locator('[data-testid="story-writer"] label').allTextContents()
+await page.locator(VISIBLE + '[data-testid="story-writer"]').waitFor({ timeout: 10000 })
+ce.tommy = await page.locator(VISIBLE + '[data-testid="story-writer"] textarea').evaluateAll((els) => els.map((el) => el.value))
+ce.tommyLabels = await page.locator(VISIBLE + '[data-testid="story-writer"] label').allTextContents()
 out.campaign = ce
 c(ce.badges.join() === "1,2,3,4,5,6,7" && ce.where.includes("Chapter 1 of 7") && ce.hasWidow && ce.boxes > 10, "s5 chapter events chronological", { badges: ce.badges, where: ce.where, boxes: ce.boxes })
 c(ce.tommy.includes("Called it.") && ce.tommyLabels.some((l) => l.includes("When things go well")), "s6 commander lines", ce.tommy)
 
-await page.locator('[data-testid="studio-nav-home"]').click()
+await page.locator('[data-testid="workspace-tab-home"]').click()
 await page.waitForTimeout(300)
 
 // 3. Heroes room: only hero lists, picture hint, no Story Timeline.
@@ -171,7 +178,7 @@ out.heroes = heroes
 c(heroes.bar?.includes("Heroes") && heroes.bar.includes("Pick a hero on the left") && heroes.chips.length === coverage.heroTypes && heroes.chips.includes("Heroes") && !heroes.chips.includes("Enemies") && heroes.timeline === 0, "h3 heroes room", heroes)
 
 // 4. Battlefield: "Make a new object" opens the form straight away.
-await page.locator('[data-testid="studio-nav-home"]').click()
+await page.locator('[data-testid="workspace-tab-home"]').click()
 await roomAction("battlefield", "Make a new object")
 await page.waitForTimeout(400)
 const bf = { form: await page.locator('[data-testid="add-battle-object-form"]').count(), bar: await roomBar(), chips: await chips() }
@@ -180,7 +187,7 @@ c(bf.form === 1 && bf.bar?.includes("Battlefield") && [...bf.chips].sort().join(
 await page.screenshot({ path: new URL("./shots/studio_room_battlefield.png", import.meta.url).pathname })
 
 // 5. Story: timeline + "Write a new event" opens the event form.
-await page.locator('[data-testid="studio-nav-home"]').click()
+await page.locator('[data-testid="workspace-tab-home"]').click()
 await roomAction("story", "Write a new event")
 await page.waitForTimeout(400)
 const story = { eventForm: await page.getByText("New Map Event").count(), timelineBtn: await page.getByRole("button", { name: /Story Timeline/ }).count() }
@@ -191,11 +198,11 @@ out.story = story
 c(story.eventForm === 1 && story.timelineBtn === 1 && story.timelineShown > 0, "h5 story room", story)
 
 // 6. Look & Colours opens the theme panel; clicking a room title opens its list.
-await page.locator('[data-testid="studio-nav-home"]').click()
+await page.locator('[data-testid="workspace-tab-home"]').click()
 await roomAction("look", "Change colours & fonts")
 await page.waitForTimeout(400)
-const look = { bar: await roomBar(), more: await page.locator('[data-testid="studio-more-tools"]').count() }
-await page.locator('[data-testid="studio-nav-home"]').click()
+const look = { bar: await roomBar(), more: await page.locator(VISIBLE + '[data-testid="studio-more-tools"]').count() }
+await page.locator('[data-testid="workspace-tab-home"]').click()
 await page.locator('[data-testid="room-enemies"]').click()
 await page.waitForTimeout(400)
 look.enemiesChips = await chips()
@@ -204,14 +211,14 @@ out.look = look
 c(look.bar?.includes("Look & Colours") && look.more === 0 && look.enemiesBar?.includes("Enemies"), "h6 look room + room title click", look)
 
 // 7. Undo a change shows the history; More tools brings back every tab + list.
-await page.locator('[data-testid="studio-nav-undo"]').click()
+await page.locator(VISIBLE + '[data-testid="studio-nav-undo"]').click()
 await page.waitForTimeout(300)
-const undo = { history: await page.locator('[data-testid="studio-history"]').count(), text: await page.locator('[data-testid="studio-history"]').textContent().catch(() => "") }
-await page.locator('[data-testid="studio-nav-more"]').click()
-await page.locator('[data-testid="studio-more-tools"] button', { hasText: "Single" }).click()
+const undo = { history: await page.locator(VISIBLE + '[data-testid="studio-history"]').count(), text: await page.locator(VISIBLE + '[data-testid="studio-history"]').textContent().catch(() => "") }
+await page.locator(VISIBLE + '[data-testid="studio-nav-more"]').click()
+await page.locator(VISIBLE + '[data-testid="studio-more-tools"] button', { hasText: "Single" }).click()
 await page.waitForTimeout(400)
 undo.allChips = (await chips()).length
-undo.roomBar = await page.locator('[data-testid="studio-room-bar"]').count()
+undo.roomBar = await page.locator(VISIBLE + '[data-testid="studio-room-bar"]').count()
 out.undo = undo
 c(undo.history === 1 && undo.text.includes("Revert") && undo.allChips >= 48 && undo.roomBar === 0, "h7 undo + more tools", undo)
 

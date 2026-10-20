@@ -4,6 +4,7 @@ import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
 import { ACT_NAMES } from "./actNames"
 import ListFieldEditor from "./ListFieldEditor"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * "Muokkaa tehokkaammin" / "haluan pystyä päivittämään Hearthwoodia
@@ -134,6 +135,7 @@ function EntityFieldEditor({ type, entityId, entityDetail, onApplied, onPreviewU
   const changedKeys = allFields
     .filter(([key, field]) => fieldChanged(key, field))
     .map(([key]) => key)
+  useReportUnsaved(changedKeys.length > 0) // editor's own "changed" count: unsaved work for the tab
 
   async function handlePreview() {
     if (changedKeys.length === 0 || !entityId) {

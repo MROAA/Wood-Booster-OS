@@ -6,6 +6,7 @@ import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
 import { actLabel } from "./actNames"
 import { insertionPointFor } from "./chronologicalInsert"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * Marc, 2026-09-20: "aijon itse kirjoittaa pelin tarinaa" / "eniten
@@ -54,6 +55,8 @@ function AddEventForm({ type, onApplied, onPreviewUrlChange, autoOpen = false })
   const [choices, setChoices] = useState([emptyChoice(), emptyChoice()])
   const [checkError, setCheckError] = useState("")
   const [checking, setChecking] = useState(false)
+  // Typed-in but not yet saved: the workspace warns before the tab closes.
+  useReportUnsaved(open && Boolean(title.trim() || body.trim()))
 
   const {
     result,

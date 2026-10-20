@@ -5,6 +5,7 @@ import { apiGet } from "../../api/client"
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
 import { ACT_NAMES } from "./actNames"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * Marc's story-authoring priority, continued. Cinematics were
@@ -77,6 +78,8 @@ function AddCrossroadsForm({ type, onApplied, onPreviewUrlChange }) {
   const [choices, setChoices] = useState([emptyChoice(), emptyChoice()])
   const [checkError, setCheckError] = useState("")
   const [checking, setChecking] = useState(false)
+  // Typed-in but not yet saved: the workspace warns before the tab closes.
+  useReportUnsaved(open && Boolean(kicker.trim() || body.trim()))
 
   const {
     result,

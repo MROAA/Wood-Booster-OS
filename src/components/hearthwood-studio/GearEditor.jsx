@@ -12,6 +12,7 @@ import { CLASSES } from "../../data/heartwood/classes"
 import { GEAR_FX_TEXT } from "../../services/heartwood/gear"
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * Gear sprint - the GEAR EDITOR. Marc edits every item, recipe and Class
@@ -225,6 +226,7 @@ function GearEditor({ onApplied, onPreviewUrlChange }) {
   const current = (key) => valueAt(e, pathOf(key))
   const valueOf = (key) => (draft[key] !== undefined ? draft[key] : String(current(key) ?? ""))
   const changedKeys = Object.keys(draft).filter((k) => String(current(k) ?? "") !== draft[k])
+  useReportUnsaved(changedKeys.length > 0) // editor's own "changed" count: unsaved work for the tab
 
   function pick(next) {
     setSelected((s) => ({ ...s, [kind]: next }))

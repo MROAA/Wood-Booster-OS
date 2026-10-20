@@ -7,7 +7,7 @@
  */
 
 import { chatWithOllama } from "./ollamaClient.js"
-import { readHearthwoodCode } from "./hearthwoodCodeReader.js"
+import { readHearthwoodCode, readHearthwoodSourceFile } from "./hearthwoodCodeReader.js"
 import { extractHearthwoodEvidence } from "./hearthwoodEvidenceValidator.js"
 import { verifyHearthwoodSources } from "./hearthwoodSourceVerification.js"
 import { resolveHearthwoodImports } from "./hearthwoodImportResolver.js"
@@ -24,6 +24,25 @@ const MAX_DEPENDENCY_CHARS = 2400
 const MAX_SOURCE_CONTEXT_CHARS = 7000
 const MAX_FILES = 6
 const MAX_FILE_CHARS = 1000
+
+// The reader's most relevant functions, with their whole file read through
+// the same guards (verification extracts them from the real source).
+async function readerCandidates(files) {
+  const ranked = files
+    .flatMap(file => (file.excerpts || []).map(excerpt => ({ ...excerpt, filePath: file.filePath })))
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .slice(0, 8)
+  const contents = new Map()
+  const candidates = []
+  for (const item of ranked) {
+    if (!contents.has(item.filePath)) {
+      contents.set(item.filePath, await readHearthwoodSourceFile(item.filePath))
+    }
+    const content = contents.get(item.filePath)
+    if (content) candidates.push({ symbol: item.symbol, filePath: item.filePath, content })
+  }
+  return candidates
+}
 
 function searchTerms(question) {
   const lower = String(question || "").toLowerCase()
@@ -596,6 +615,7 @@ export async function analyzeHearthwoodCode({
   const verification = verifyHearthwoodSources(
     task,
     result.files,
+    { candidates: await readerCandidates(result.files) },
   )
 
   const resolution = await resolveHearthwoodImports(

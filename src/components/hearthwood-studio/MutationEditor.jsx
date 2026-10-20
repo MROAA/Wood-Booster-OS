@@ -3,6 +3,7 @@ import { useState } from "react"
 import { MUTATIONS, MUTATION_KINDS } from "../../data/heartwood/mutations"
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * Breeding & Mutations sprint - the MUTATION EDITOR. Marc edits every
@@ -92,6 +93,7 @@ function MutationEditor({ onApplied, onPreviewUrlChange }) {
   }
   const valueOf = (key) => (draft[key] !== undefined ? draft[key] : String(current(key) ?? ""))
   const changedKeys = Object.keys(draft).filter((k) => String(current(k) ?? "") !== draft[k])
+  useReportUnsaved(changedKeys.length > 0) // editor's own "changed" count: unsaved work for the tab
   const kindOf = (key) => (typeof current(key) === "number" ? "number" : "text")
 
   function pick(id) {

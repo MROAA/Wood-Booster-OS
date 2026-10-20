@@ -4,6 +4,7 @@ import { apiGet } from "../../api/client"
 
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * Skill workshop (docs/hearthwood-dev-studio-prd.md §7 - "the Studio's
@@ -60,6 +61,7 @@ function SkillCard({ skill, typical, onApplied }) {
     return copy
   })
   const changed = Object.keys(draft)
+  useReportUnsaved(changed.length > 0) // editor's own "changed" count: unsaved work for the tab
   const numberKeys = Object.keys(NUMBERS).filter(key => fields[key]?.kind === "number")
 
   async function check() {

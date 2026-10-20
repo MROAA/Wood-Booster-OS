@@ -4,6 +4,7 @@ import { apiGet } from "../../api/client"
 
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
+import { useReportUnsaved } from "./unsavedWork"
 
 const ROOT_SELECTOR = ".hw-root"
 
@@ -188,6 +189,7 @@ function ThemePanel({ onApplied, onPreviewUrlChange }) {
     const decl = rules.find(d => d.prop === prop)
     return decl && edits[prop] !== decl.value
   }).length
+  useReportUnsaved(dirtyCount > 0) // editor's own "changed" count: unsaved work for the tab
 
   async function handlePreview() {
     const cssEdits = []

@@ -1,4 +1,5 @@
-const API_URL =
+// Exported so every Studio panel talks to the same backend.
+export const API_URL =
   "http://localhost:3001/api"
 
 

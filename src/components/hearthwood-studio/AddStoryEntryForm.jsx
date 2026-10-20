@@ -6,6 +6,7 @@ import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
 import { actLabel } from "./actNames"
 import { insertionPointFor } from "./chronologicalInsert"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * Marc: "haluan myös pystyä lisäämään tarinaa tarkkoihin kohtiin story
@@ -36,6 +37,8 @@ function AddStoryEntryForm({ type, onApplied, onPreviewUrlChange }) {
   const [text, setText] = useState("")
   const [checkError, setCheckError] = useState("")
   const [checking, setChecking] = useState(false)
+  // Typed-in but not yet saved: the workspace warns before the tab closes.
+  useReportUnsaved(open && Boolean(newId.trim() || text.trim()))
 
   const {
     result,

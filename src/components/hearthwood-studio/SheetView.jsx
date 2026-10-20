@@ -4,6 +4,7 @@ import { apiGet } from "../../api/client"
 
 import { usePatchPreview } from "./usePatchPreview"
 import PatchPreviewPanel from "./PatchPreviewPanel"
+import { useReportUnsaved } from "./unsavedWork"
 
 /*
  * "Haluan että dev toolissa on excelin kaltainen kasa kortteja mitä
@@ -159,6 +160,7 @@ function SheetView({ type, onApplied, onPreviewUrlChange }) {
     (total, fields) => total + Object.keys(fields).length,
     0,
   )
+  useReportUnsaved(dirtyCount > 0) // editor's own "changed" count: unsaved work for the tab
 
   async function handlePreview() {
     const ops = []

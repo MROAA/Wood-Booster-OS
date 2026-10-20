@@ -1,4 +1,8 @@
 import { chromium } from "playwright"
+// Sprint 4: editors live in workspace tabs; several can be mounted at once,
+// so editor-content lookups are scoped to the visible tab (VISIBLE).
+const VISIBLE = 'section[role="tabpanel"]:not([hidden]) '
+
 
 // Hearthwood HQ "What do you want to make or change today?" end to end.
 // Reads go to the real Studio API (API_PORT, default 3001); EVERY write is
@@ -25,6 +29,8 @@ const page = await ctx.newPage()
 page.on("pageerror", (e) => errs.push(String(e)))
 const home = async () => {
   await page.goto(`http://localhost:${PORT}/hearthwood-studio`, { waitUntil: "domcontentloaded" })
+  // Sprint 4 restores the last active tab; the front door is the pinned Studio Home tab.
+  await page.locator('[data-testid="workspace-tab-home"]').click()
   await page.locator('[data-testid="studio-wish-input"]').waitFor({ timeout: 20000 })
 }
 const ask = async (text) => {
@@ -34,7 +40,7 @@ const ask = async (text) => {
   await page.waitForTimeout(150)
   return { kind: await page.locator('[data-testid="studio-wish-answer"]').getAttribute("data-kind"), text: await page.locator('[data-testid="studio-wish-answer"]').textContent() }
 }
-const bar = () => page.locator('[data-testid="studio-room-bar"]').textContent().catch(() => null)
+const bar = () => page.locator(VISIBLE + '[data-testid="studio-room-bar"]').textContent().catch(() => null)
 
 // 1. A picture wish opens Tommy, in the Heroes room, with the hint.
 await home()

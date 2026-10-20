@@ -68,9 +68,23 @@ function extractFunction(content, symbol) {
   return remaining.slice(0, end).trim()
 }
 
+// A reader-found function longer than this is not offered as verified
+// source: the Reliability Gate refuses snippets over 12000 characters.
+const MAX_CANDIDATE_CHARS = 8000
+
+/**
+ * candidates: functions the Code Reader found relevant to a question
+ * written in plain words ({ symbol, filePath, content } with the FULL file
+ * content from a guarded read). Without them a natural-language question
+ * verified nothing and every answer was blocked (EVIDENCE_COUNT). They are
+ * extracted from the real file exactly like a named symbol; a candidate
+ * that cannot be extracted is skipped, never reported as "missing" (the
+ * user did not ask for it by name).
+ */
 export function verifyHearthwoodSources(
   prompt,
   codeFiles = [],
+  { candidates = [] } = {},
 ) {
   const requested = requestedSymbols(prompt)
   const verified = []
@@ -110,6 +124,26 @@ export function verifyHearthwoodSources(
     if (!found) {
       missing.push(symbol)
     }
+  }
+
+  for (const candidate of candidates.slice(0, 4)) {
+    if (
+      typeof candidate?.symbol !== "string" ||
+      typeof candidate?.filePath !== "string" ||
+      typeof candidate?.content !== "string" ||
+      verified.some(item => item.symbol === candidate.symbol)
+    ) {
+      continue
+    }
+    const source = extractFunction(candidate.content, candidate.symbol)
+    if (!source || source.length > MAX_CANDIDATE_CHARS) continue
+    verified.push({
+      symbol: candidate.symbol,
+      filePath: candidate.filePath,
+      source,
+      truncated: false,
+      origin: "reader",
+    })
   }
 
   return {
