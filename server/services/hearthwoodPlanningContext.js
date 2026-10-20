@@ -56,57 +56,66 @@ function focusedExcerpt(content, terms, maxChars = 1250) {
 const EXCERPT_HEADER = /\n\n(?=\/\/ \S+:\d+-\d+ )/
 
 const CONTEXT_CHARS = 7600
-const FILE_CHARS = 2400
-const MIN_FILE_CHARS = 300
+const FILE_HEADER_CHARS = 160
+const WHOLE_FILE_CHARS = 2400
 
 /**
- * Reader excerpts are kept whole and in strict priority order: once one
- * does not fit, lower-ranked helpers never take its place. Dropped ones
- * are named.
+ * Keep relevant, bounded source context near the end of the system prompt.
+ * The budget goes to excerpts in the reader's relevance order across ALL
+ * read files, so a strong excerpt is never pushed out by a weaker file
+ * that merely came first. Reader excerpts stay whole; what does not fit
+ * is named on a LUKEMATTA JÄI line, and files with nothing shown are listed.
  */
-function excerptBlocks(file, maxChars) {
-  const blocks = String(file.content || '').split(EXCERPT_HEADER)
-  const kept = []
-  const dropped = []
-  let used = 0
-  blocks.forEach((block, i) => {
-    if (!dropped.length && used + block.length + 2 <= maxChars) {
-      kept.push(block)
-      used += block.length + 2
-    } else if (file.excerpts[i]) {
-      dropped.push(file.excerpts[i].symbol)
-    }
-  })
-  const unread = [...dropped, ...(file.omittedSymbols || [])].slice(0, 12)
-  return kept.join('\n\n') +
-    (unread.length ? `\nLUKEMATTA JÄI: ${unread.join(', ')}` : '')
-}
-
-/** Keep relevant, bounded source context near the end of the system prompt. */
 export function buildHearthwoodFocusedPlanningContext(codeFiles, task) {
   const terms = termsFor(task)
-  const ordered = [...codeFiles].sort((a, b) => matchScore(b, terms) - matchScore(a, terms))
-  const sections = []
-  const unreadFiles = []
-  let remaining = CONTEXT_CHARS
-  for (const file of ordered) {
-    const budget = Math.min(FILE_CHARS, remaining - 150)
-    if (budget < MIN_FILE_CHARS) {
-      unreadFiles.push(file.filePath)
-      continue
+  const candidates = []
+  codeFiles.forEach((file, fileIndex) => {
+    const excerpts = Array.isArray(file.excerpts) ? file.excerpts : []
+    if (file.truncated && excerpts.length) {
+      String(file.content || '').split(EXCERPT_HEADER).forEach((block, i) => {
+        if (excerpts[i]) candidates.push({ fileIndex, block, symbol: excerpts[i].symbol, score: excerpts[i].score || 0 })
+      })
+    } else {
+      const best = Math.max(0, ...excerpts.map(e => e.score || 0))
+      candidates.push({ fileIndex, symbol: null, score: best || matchScore(file, terms) / 10,
+        block: focusedExcerpt(String(file.content || ''), terms, WHOLE_FILE_CHARS) })
     }
-    const section = [
+  })
+  candidates.sort((a, b) => b.score - a.score)
+
+  const chosen = new Map()
+  const dropped = new Map()
+  let used = 0
+  for (const item of candidates) {
+    const header = chosen.has(item.fileIndex) ? 0 : FILE_HEADER_CHARS
+    if (used + header + item.block.length + 2 <= CONTEXT_CHARS) {
+      if (!chosen.has(item.fileIndex)) chosen.set(item.fileIndex, [])
+      chosen.get(item.fileIndex).push(item.block)
+      used += header + item.block.length + 2
+    } else if (item.symbol) {
+      if (!dropped.has(item.fileIndex)) dropped.set(item.fileIndex, [])
+      dropped.get(item.fileIndex).push(item.symbol)
+    }
+  }
+
+  const sections = [...chosen].map(([fileIndex, blocks]) => {
+    const file = codeFiles[fileIndex]
+    const unread = [...(dropped.get(fileIndex) || []), ...(file.omittedSymbols || [])].slice(0, 12)
+    return [
       `TIEDOSTO: ${file.filePath}`,
       file.truncated ? 'HUOM: lähteen luku on katkaistu; älä väitä tuntevasi loppuosaa.' : 'Luettu lähde:',
-      Array.isArray(file.excerpts) && file.excerpts.length
-        ? excerptBlocks(file, budget)
-        : focusedExcerpt(String(file.content || ''), terms, Math.min(1250, budget)),
+      blocks.join('\n\n') + (unread.length ? `\nLUKEMATTA JÄI: ${unread.join(', ')}` : ''),
       'LÄHDEKATKELMA PÄÄTTYY.',
     ].join('\n')
-    sections.push(section)
-    remaining -= section.length + 2
-  }
-  if (unreadFiles.length) sections.push(`LUKEMATTA JÄIVÄT TIEDOSTOT: ${unreadFiles.join(', ')}`)
+  })
+  const unreadFiles = codeFiles
+    .map((file, i) => ({ file, i }))
+    .filter(({ i }) => !chosen.has(i))
+    .map(({ file, i }) => {
+      const unread = [...(dropped.get(i) || []), ...(file.omittedSymbols || [])].slice(0, 12)
+      return unread.length ? `${file.filePath} (LUKEMATTA JÄI: ${unread.join(', ')})` : file.filePath
+    })
+  if (unreadFiles.length) sections.push(`LUKEMATTA JÄIVÄT TIEDOSTOT: ${unreadFiles.join('; ')}`)
   return sections.join('\n\n').slice(0, 8000)
 }
 

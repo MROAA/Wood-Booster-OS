@@ -35,3 +35,12 @@ test('names, calls and camelCase-aware term hits', () => {
   assert.deepEqual(termHits('const g = eligibleGuardian(s)', ['guardian']), ['guardian'])
   assert.deepEqual(termHits('intercepts', ['intercept']), ['intercept'])
 })
+
+test('plain Finnish finds English identifiers; glossary guesses are marked inferred', () => {
+  const terms = taskTerms('Yrttipinoon mahtuu liikaa, kun yrtti kerätään')
+  for (const word of ['herb', 'stack', 'gather']) assert.ok(terms.words.includes(word), word)
+  assert.ok(terms.inferred.includes('herb'))
+  assert.ok(!terms.inferred.includes('yrtti'))
+  // A word the user wrote in English is never downgraded to inferred.
+  assert.ok(!taskTerms('herb yrtti').inferred.includes('herb'))
+})

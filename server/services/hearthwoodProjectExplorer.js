@@ -207,12 +207,14 @@ async function readSource(filePath) {
  * Project-wide term rarity (idf in 0..1): a word found in most files
  * ("power") says little about which file implements the task.
  */
-function projectTermWeights(contents, words) {
+function projectTermWeights(contents, words, inferred = []) {
   const total = contents.length
   const weights = new Map()
   for (const term of words) {
     const df = contents.filter(content => termHits(content, [term]).length).length
-    weights.set(term, Math.log((total + 1) / (df + 1)) / Math.log(total + 1))
+    const idf = Math.log((total + 1) / (df + 1)) / Math.log(total + 1)
+    // Glossary guesses about intent weigh half of what the user wrote.
+    weights.set(term, inferred.includes(term) ? idf / 2 : idf)
   }
   return weights
 }
@@ -315,7 +317,7 @@ export async function findHearthwoodProjectFiles(
   const terms = taskTerms(prompt)
   const contents = []
   for (const filePath of files) contents.push(await readSource(filePath))
-  const weights = projectTermWeights(contents, terms.words)
+  const weights = projectTermWeights(contents, terms.words, terms.inferred)
   const scored = []
   for (const [index, filePath] of files.entries()) {
     const item = scoreFile(filePath, topics, words)

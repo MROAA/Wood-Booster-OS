@@ -11,7 +11,8 @@
     "build:sidecar": "node scripts/prepare-sidecar.js",
     "test:spacemonkey": "node --experimental-test-module-mocks --test services/hearthwood*.test.js routes/hearthwoodDevStudio.test.js ../spacemonkey-verified-planner.test.mjs ../spacemonkey-autopilot-inspection.test.mjs ../spacemonkey-safety-supervisor.test.mjs ../spacemonkey-readiness.test.mjs",
     "check:spacemonkey": "npx --no-install oxlint routes/hearthwoodDevStudio.js services/hearthwood*.js && python3 -m py_compile services/hearthwoodImageTool.py && npm run test:spacemonkey",
-    "spacemonkey:probe": "node scripts/spacemonkey-probe.js"
+    "spacemonkey:probe": "node scripts/spacemonkey-probe.js",
+    "spacemonkey:eval": "node scripts/spacemonkey-eval.js"
   },
   "keywords": [],
   "type": "module",

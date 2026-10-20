@@ -43,7 +43,7 @@ kosketa Dev Studion korjausten yhteydessä.
 
 Haara `feat/spacemonkey-source-reader`, worktree
 `/home/marc/Wood-Booster-AI/Wood-Booster-OS-spacemonkey-reader`, PR #681
-(**draft**, ei mergetty). `check:spacemonkey`: **154/154** (baseline 131).
+(**draft**, ei mergetty). `check:spacemonkey`: 154/154 (baseline 131).
 
 - [x] **Sprintti 1: lähdekoodin lukija.** Sisältöperusteinen haku,
       rivinumeroidut katkelmat, yhden askeleen kutsuketju, `omittedSymbols`.
@@ -66,14 +66,50 @@ Haara `feat/spacemonkey-source-reader`, worktree
     | qwen2.5-coder:14b | **6/6**, vahva viite `onGuard` | **3/3**, viitteinä `attackUnit` ja `eligibleGuardian` | 9–31 s, ensimmäinen ajo 36 s |
 
     Oletusmalli on nyt `qwen2.5-coder:14b`. Sen voi vaihtaa muuttujalla `HEARTHWOOD_PLAN_MODEL`.
-- [ ] **Käyttöönotto (vahvistettava).** Marcin Studio
-      (`localhost:5173/hearthwood-studio`) pyörii päächeckoutista
-      (`hearthwood-stable`). Siellä `GET /api/hearthwood-dev/status`
-      palauttaa **404**, koska reittiä ei ole. Spacemonkey-avustaja ei siis
-      toimi Studiossa ennen kuin tämä haara on viety sinne ja backend on
-      käynnistetty uudelleen. Suositus: aseta `OLLAMA_TIMEOUT_MS=120000`.
-      Mallin ensilataus ja kaksi yritystä voivat lähestyä 60 s:n oletusta.
-- [ ] Sprintti 3: muutossuunnitelmien laatu (tiedostolista, riippuvuudet, turhien muutosten välttäminen)
+- [x] **Käyttöönotto 20.10.2026:** `hearthwood-stable` = `ca65ba65`,
+      backend `wb-node`. Elävä `/api/hearthwood-dev/plan` palauttaa 200 (14B).
+- [x] **Sprintti 3: muutossuunnitelmien laatu.** Haara
+      `feat/spacemonkey-sprint3-planning` (`64ff6168` ja lainauskorjaus),
+      worktree `Wood-Booster-OS-spacemonkey-sprint3`. Ei pushattu.
+      `check:spacemonkey` 171/171.
+  - **Integraatiovika löytyi ja korjattiin:** suunnittelukehote kielsi
+    koodiaidat, mutta SourceTruthGuard ja Safety Supervisor vaativat
+    vähintään yhden aidatun, merkilleen oikean lainauksen. Siksi
+    yksikään `CHANGE_REQUIRED`-suunnitelma ei päässyt Studiossa
+    käyttäjälle (`QUOTATIONS_UNVERIFIED`). Nyt kehote pyytää lainauksen,
+    ja generaattorin neuvoa-antava esitarkistus antaa mallille yhden
+    uuden yrityksen. Portit päättävät edelleen. Elävä 14B-API-testi:
+    2/3 muutossuunnitelmaa läpäisi kaikki portit (`CAUTION`,
+    `executionApproved: false`). Yhden SourceTruthGuard esti oikein.
+  - **Toinen käyttöönoton este:** Supervisor vaatii, että
+    `HEARTHWOOD_PROJECT_ROOT` on asetettu. `wb-node`-palvelulle sitä ei ole
+    asetettu, joten elävässä Studiossa muutossuunnitelmat estyvät
+    (`PROJECT_ROOT_MISMATCH`), kunnes muuttuja asetetaan.
+  - `hearthwoodPlanQuality.js`: konetarkistukset erillään mallin väitteistä.
+    Suunnitelma jaetaan välttämättömiin muutoksiin (tiedosto perustellaan
+    sen omalla luetulla symbolilla), JATKO-ideoihin (eivät koskaan
+    muutoslistalla) ja perusteettomiin tiedostoihin (uusi yritys, sitten
+    hylkäys). Mallin osiot (Riippuvuudet, Testit, Riskit) merkitään
+    `model-claimed`, ja `model-correctness` on `not-verifiable-here`.
+  - `hearthwoodDependencyImpact.js`: muutettavien symbolien määrittely,
+    todennetut kutsukohdat riveineen, rajapintariski, olemassa olevat
+    testit (symbolin mainitseva testi ≠ pelkkä tiedoston import) ja
+    puuttuvat regressiotestit. Tarkistusalue kerrotaan aina, eikä
+    vaikutusanalyysiä väitetä täydelliseksi.
+  - Haku: suomi–englanti-pelisanasto (pelkällä suomella kirjoitettu
+    tehtävä löytää englanniksi nimetyn koodin). Sanastosta päätelty sana
+    painaa puolet käyttäjän kirjoittamasta.
+  - Konteksti: budjetti jaetaan katkelmatasolla kaikkien tiedostojen yli
+    relevanssijärjestyksessä. Pois jääneet nimetään myös silloin, kun
+    tiedostosta ei mahtunut mitään.
+  - Riippumaton arviointi: testiprojekti `server/spacemonkey-eval/fixture`
+    (yrttipeli, ei Guardian) sekä `npm run spacemonkey:eval`.
+    - Ennen sanastoa: **0/12**. Suomenkielinen tehtävä ei löytänyt koodia.
+    - Jälkeen: **12/12 ja 11/12**. Ainoa virhe: malli yritti "luoda" olemassa
+      olevan tiedoston, ja validointi hylkäsi sen turvallisesti.
+    - Guardian (14B): **6/6** `NO_CHANGE_NEEDED`. Puuttuva mekaniikka: 2/2
+      `CHANGE_REQUIRED`, ja yksi ajo kaatui, kun oomd tappoi Ollaman.
+- [ ] Sprintti 4: hallittu toteutus ja verifiointi (UI ja päästä päähän)
 - [ ] Sprintti 4: hallittu toteutus ja verifiointi (UI ja päästä päähän)
 - [ ] Sprintti 5: editorien yhtenäistäminen
 
@@ -87,8 +123,26 @@ Ei pushattu.
 - Haku lukee kaikki noin 274 sallittua tiedostoa joka kerta. Nopeus on toistaiseksi riittävä.
 - Yleiset sanat ("power") tuovat edelleen jonkin verran sivukatkelmia.
 - `hearthwoodCallSiteVerification`-moduulin aaltosulkulaskuri ei löydä funktion loppua sisäkkäisten template-merkkijonojen kohdalla (`caller: null` esimerkiksi `attackUnit`-funktiossa). SourceFacts kiertää tämän rivialueilla, mutta itse moduuli on korjaamatta.
-- Fixture-pohjaiset arviointitapaukset (`cases.json`) puuttuvat. Mittaus tehtiin oikeaa lähdekoodia vasten.
-- `hearthwoodCodeAnalysis.js` käyttää yhä 4096 tokenin kontekstia ja leikkaa lukijan tuloksen vielä omalla tavallaan.
+- **Muisti:** 20.10. systemd-oomd tappoi Ollaman kahdesti: klo 18.28
+  (kaksi mallia muistissa) ja klo 18.44 (vain 14B, swap 10/14 Gt).
+  Rinnakkaisuusrajat vähentävät riskiä, mutta eivät poista koko koneen
+  muistipainetta. Ensimmäinen kaatuminen klo 18.28 (RAM 14 Gt,
+  swap 11/14 Gt käytössä, 14B vie 10,8 Gt). Kahden mallin (14B `/plan` ja
+  7B `/analyze`) yhtäaikainen lataus riittää kaatamaan sen. Suositus
+  (vaatii sudon, Marcin päätös): lisää `OLLAMA_MAX_LOADED_MODELS=1`
+  tiedostoon `/etc/systemd/system/ollama.service.d/override.conf`.
+- **`/analyze` käyttää 7B:tä**, koska `hearthwoodCodeAnalysis.js`:llä on oma
+  `DEFAULT_MODEL` (`CODE_OLLAMA_MODEL || "qwen2.5-coder:7b"`) ja
+  `MODEL_CONTEXT = 4096`. Sprintti 2 muutti vain suunnittelun. Mitattu
+  kehote: 3038 tokenia / 4096, eli se ei katkea, mutta vastaukselle jää noin
+  1000 tokenia. Ehdotus erilliseksi, testattavaksi muutokseksi: oma
+  `HEARTHWOOD_ANALYZE_MODEL`, `assertPromptFits`-tyyppinen vartija ja
+  mittaus kysymysjoukolla 7B vs. 14B ennen vaihtoa. Muistirajan takia
+  sama malli molemmille on turvallisin. **Huom:** Ollama lataa mallin
+  uudelleen, jos `num_ctx` vaihtuu (`/analyze` 4096, `/plan` 8192), joten
+  yhtenäistettäessä myös ikkuna kannattaa yhtenäistää.
+- `hearthwoodCodeAnalysis.js` leikkaa lukijan tuloksen vielä omalla tavallaan.
+- Sanasto on käsin koottu (noin 45 sanarunkoa). Puuttuva termi heikentää hakua. Lisäys tehdään tiedostoon `hearthwoodSourceIndex.js` (`FI_EN_TERMS`).
 
 ## Säännöt jokaiselle AI-istunnolle
 

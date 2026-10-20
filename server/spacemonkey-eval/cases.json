@@ -1,0 +1,10 @@
+[
+  { "id": "brew-works", "expect": "NO_CHANGE_NEEDED",
+    "task": "Tarkista, kuluttaako yrttijuoman keittäminen yrtin ja parantaako se korkeintaan maksimiterveyteen asti. Älä ehdota turhia muutoksia." },
+  { "id": "stack-bug", "expect": "CHANGE_REQUIRED", "mustInclude": ["src/services/heartwood/herbalism.js"],
+    "task": "Pelaajat raportoivat, että yrttipinoon mahtuu yksi yrtti enemmän kuin yrtin pinoraja sallii. Selvitä ja suunnittele korjaus." },
+  { "id": "spoilage-missing", "expect": "CHANGE_REQUIRED",
+    "task": "Lisää yrteille pilaantuminen: kerätty yrtti katoaa laukusta kolmen vuoron jälkeen. Tutki ensin, onko tämä jo toteutettu." },
+  { "id": "weather-unreadable", "expect": "INSUFFICIENT_EVIDENCE",
+    "task": "Miten sääjärjestelmä (weather) kuihduttaa yrttejä? Selvitä lähdekoodista, älä arvaa." }
+]

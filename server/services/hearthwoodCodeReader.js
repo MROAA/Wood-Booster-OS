@@ -91,16 +91,11 @@ function renderExcerpt(lines, definition, terms, names) {
  * that do not fit are reported in omittedSymbols, never hidden.
  */
 export function selectRelevantCode(content, { filePath = "", terms, boosted = new Set() }) {
-  if (content.length <= MAX_CHARACTERS) {
-    return { content: neutralize(content), whole: true,
-      excerpts: [], omittedSymbols: [], calls: new Set() }
-  }
-
   const lines = content.split("\n")
   const names = new Set([...terms.symbols, ...boosted])
   const definitions = extractDefinitions(content)
   const bodies = definitions.map(definition => definitionBody(lines, definition))
-  const weights = termWeights(bodies, terms.words)
+  const weights = termWeights(bodies, terms.words, terms.inferred)
   const scores = definitions.map((definition, i) =>
     scoreDefinition(definition, bodies[i], terms, boosted, weights))
 
@@ -116,6 +111,23 @@ export function selectRelevantCode(content, { filePath = "", terms, boosted = ne
     })
     .filter(item => item.score > 0)
     .sort((a, b) => b.score - a.score || a.definition.startLine - b.definition.startLine)
+
+  // A small file is sent whole; its scored definitions are still listed
+  // so source facts and evidence strength work the same as for excerpts.
+  if (content.length <= MAX_CHARACTERS) {
+    const calls = new Set()
+    for (const { definition } of ranked) {
+      const hitLines = lines.slice(definition.startLine - 1, definition.endLine)
+        .filter(line => isHitLine(line, terms, names))
+      for (const name of calledNames(hitLines.join("\n"))) calls.add(name)
+    }
+    return {
+      content: neutralize(content), whole: true, calls, omittedSymbols: [],
+      excerpts: ranked.slice(0, MAX_EXCERPTS).map(({ definition, score }) => ({
+        symbol: definition.name, startLine: definition.startLine, endLine: definition.endLine,
+        clipped: false, score: Math.round(score * 10) / 10 })),
+    }
+  }
 
   if (!ranked.length) {
     return {
@@ -149,6 +161,16 @@ export function selectRelevantCode(content, { filePath = "", terms, boosted = ne
   }
 
   return { content: blocks.join("\n\n"), excerpts, omittedSymbols, calls }
+}
+
+/**
+ * Whole-file read through the same guards as readHearthwoodCode
+ * (allowlist, realpath inside root, size limit). null when refused.
+ * For deterministic analysis only; never sent to the model whole.
+ */
+export async function readHearthwoodSourceFile(filePath) {
+  const allowedFiles = new Set(await listHearthwoodProjectFiles())
+  return readRawFile(filePath, allowedFiles)
 }
 
 async function readRawFile(filePath, allowedFiles) {
@@ -238,11 +260,16 @@ export async function readHearthwoodCode(prompt, { requiredFiles = [] } = {}) {
   }
 
   const raw = []
+  const skippedFiles = []
   for (const filePath of selected) {
     const originalContent = await readRawFile(filePath, allowedFiles)
     if (originalContent !== null) {
       raw.push({ filePath, originalContent })
-    } else if (requiredFiles.includes(filePath)) {
+    } else if (!requiredFiles.includes(filePath)) {
+      // Selected as relevant but not readable (size, symlink, type):
+      // reported, never presented as inspected.
+      skippedFiles.push(filePath)
+    } else {
       throw new Error("Pakollisen lähdetiedoston turvallinen lukeminen epäonnistui.")
     }
   }
@@ -273,5 +300,6 @@ export async function readHearthwoodCode(prompt, { requiredFiles = [] } = {}) {
     count: files.length,
     // Machine-verified definition and call facts from the read sources.
     sourceFacts: buildSourceFacts(raw, files),
+    skippedFiles,
   }
 }

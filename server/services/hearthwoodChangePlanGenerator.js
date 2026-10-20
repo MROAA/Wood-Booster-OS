@@ -30,6 +30,10 @@ import {
   classifyReferences,
 } from "./hearthwoodSourceFacts.js"
 
+import { assessHearthwoodPlanQuality, planSymbolsFor } from "./hearthwoodPlanQuality.js"
+import { analyzeHearthwoodDependencyImpact } from "./hearthwoodDependencyImpact.js"
+import { readHearthwoodSourceFile } from "./hearthwoodCodeReader.js"
+
 // Measured 20.10.2026 (Guardian Intercept, RTX 3060, 6 runs each):
 // qwen2.5-coder:7b  → NO_CHANGE_NEEDED 2/6, rest INSUFFICIENT/timeout
 // qwen2.5-coder:14b → NO_CHANGE_NEEDED 6/6 with onGuard as evidence,
@@ -203,11 +207,22 @@ VASTAA TÄSMÄLLEEN TÄSSÄ MUODOSSA:
 
 PÄÄTÖS: CHANGE_REQUIRED
 SUUNNITELMA:
-- MUOKKAA: src/services/heartwood/tacticsMana.js | lyhyt syy
+- MUOKKAA: src/services/heartwood/tacticsMana.js | mikä tämän tiedoston funktio muuttuu ja miksi
+- JATKO: hyödyllinen lisäidea, joka EI ole välttämätön tähän tehtävään
 SELITYS: Nykyinen toteutus: ...
-Todiste lähdekoodista: ...
+Todiste lähdekoodista:
+\`\`\`
+(rivit merkilleen luetusta lähdekoodista)
+\`\`\`
 Ehdotettu muutos: ...
+Riippuvuudet: ...
+Testit: ...
+Riskit: ...
 Epävarmuudet: ...
+
+Ota SUUNNITELMA-riveille vain välttämättömät tiedostot. Nimeä jokaisen
+tiedoston syyssä sen tiedoston oikea funktio tai vakio. Lisäideat
+kuuluvat JATKO-riveille, eivät MUOKKAA-riveille.
 
 Yllä oleva polku on vain muotoiluesimerkki.
 Valitse tiedostot käyttäjän tehtävän perusteella.
@@ -226,7 +241,12 @@ PÄÄTÖS: INSUFFICIENT_EVIDENCE
 SUUNNITELMA:
 SELITYS: Mitä pitää vielä tutkia: ...
 
-Älä käytä Markdown-koodiaitoja.
+KOODILAINAUS (pakollinen CHANGE_REQUIRED-päätöksessä):
+Kirjoita kohtaan "Todiste lähdekoodista:" yksi lyhyt (1–6 riviä)
+koodilainaus kolmen backtickin aitaan. Kopioi rivit MERKILLEEN yllä
+luetusta lähdekoodista: ei rivinumeroita, ei "… ohitettu …" -rivejä,
+ei omaa koodia. Ehdotettua uutta koodia ei lainata. Älä käytä
+koodiaitoja muualla.
 `
 }
 
@@ -235,9 +255,9 @@ SELITYS: Mitä pitää vielä tutkia: ...
  * facts, tested behaviour (none unless tests were run), the model's
  * inference, and what remains unknown. Informational, never an approval.
  */
-function buildEvidenceReport({ sourceFacts, codeFiles, decision, references }) {
+function buildEvidenceReport({ sourceFacts, codeFiles, decision, references, skippedFiles = [] }) {
   const { strong, weak } = classifyReferences(references, codeFiles, sourceFacts)
-  const unknown = []
+  const unknown = skippedFiles.map(filePath => `${filePath}: ei voitu lukea (koko- tai polkuraja)`)
   for (const file of codeFiles) {
     if (file.omittedSymbols?.length) {
       unknown.push(`${file.filePath}: lukematta ${file.omittedSymbols.join(", ")}`)
@@ -257,6 +277,34 @@ function buildEvidenceReport({ sourceFacts, codeFiles, decision, references }) {
     unknown: unknown.slice(0, 12),
     qualityNote,
   }
+}
+
+// Same claim format as hearthwoodSourceTruthGuard (the route's gate):
+// fenced blocks before "Ehdotettu muutos:" are claims of existing source.
+function sourceQuoteClaims(explanation) {
+  const sourceSection = String(explanation || "").split(/^[ \t]*Ehdotettu muutos\s*:/im)[0]
+  const re = /^[ \t]*(`{3,}|~{3,})[^\n]*\n([\s\S]*?)^[ \t]*\1[ \t]*$/gm
+  return [...sourceSection.matchAll(re)].map(match => match[2].replace(/\r\n?/g, "\n").trim())
+}
+
+/**
+ * Pre-check, not a replacement for the gate: a change plan needs at least
+ * one verbatim quote of code that was read. Without it the route's Safety
+ * Supervisor blocks the plan anyway (QUOTATIONS_UNVERIFIED); checking here
+ * lets the model retry instead of the user seeing a blocked plan.
+ */
+export async function checkPlanQuotes(explanation, codeFiles) {
+  const claims = sourceQuoteClaims(explanation)
+  if (!claims.length) return "Todiste lähdekoodista -kohdasta puuttuu koodilainaus kolmen backtickin aidassa."
+  const sources = []
+  for (const file of codeFiles) {
+    const content = await readHearthwoodSourceFile(file.filePath)
+    if (content !== null) sources.push(content)
+  }
+  const missing = claims.filter(quote => !quote || !sources.some(source => source.includes(quote)))
+  return missing.length
+    ? "Koodilainaus ei vastaa luettua lähdekoodia merkilleen. Kopioi rivit sellaisenaan ilman rivinumeroita tai omia muutoksia."
+    : null
 }
 
 function validatePlan(files, existingFiles) {
@@ -352,6 +400,7 @@ export async function generateHearthwoodChangePlan({
   }
 
   const sourceFacts = codeResult.sourceFacts || []
+  const skippedFiles = codeResult.skippedFiles || []
 
   const systemPrompt = createSystemPrompt(
     allFiles,
@@ -419,6 +468,17 @@ ${buildHearthwoodFocusedEvidenceIndex(codeFiles, task)}
             codeFiles,
             decision: proposedDecision,
             references: reviewedEvidence.references || [],
+            skippedFiles,
+          }),
+          planQuality: assessHearthwoodPlanQuality({
+            decision: proposedDecision,
+            files: [],
+            explanation: parsed.explanation,
+            response,
+            references: reviewedEvidence.references || [],
+            codeFiles,
+            sourceFacts,
+            evidenceValid: !!reviewedEvidence.valid,
           }),
         }
       } catch (error) {
@@ -449,6 +509,43 @@ ${buildHearthwoodFocusedEvidenceIndex(codeFiles, task)}
         throw new Error(evidence.reason)
       }
 
+      // Advisory: one retry for a missing or inexact quote. The route's
+      // SourceTruthGuard and Safety Supervisor stay the deciding gates.
+      const quoteProblem = await checkPlanQuotes(parsed.explanation, codeFiles)
+      if (quoteProblem && attempt === 0) throw new Error(quoteProblem)
+
+      const touched = planSymbolsFor(validatedFiles, parsed.explanation, codeFiles)
+      const dependencyImpact = touched.length
+        ? await analyzeHearthwoodDependencyImpact({ symbols: touched })
+        : null
+      const planQuality = assessHearthwoodPlanQuality({
+        decision: "CHANGE_REQUIRED",
+        files: validatedFiles,
+        explanation: parsed.explanation,
+        response,
+        references: evidence.references,
+        codeFiles,
+        sourceFacts,
+        dependencyImpact,
+        evidenceValid: evidence.valid,
+      })
+      planQuality.checks.splice(1, 0, {
+        id: "source-quotes",
+        status: quoteProblem ? "failed" : "verified",
+        detail: quoteProblem ||
+          "Koodilainaus löytyy luetusta lähdetiedostosta merkilleen (lopullinen tarkistus reitin SourceTruthGuardissa).",
+      })
+
+      // Minimal change set: a file the plan cannot justify by its own
+      // read code is not added "just in case". Retry, then refuse.
+      if (planQuality.unsupportedFiles.length) {
+        throw new Error(
+          "Suunnitelmassa on perusteettomia tiedostoja: " +
+          planQuality.unsupportedFiles.map(f => f.filePath).join(", ") +
+          ". Poista ne tai nimeä syyssä tiedoston oma funktio; lisäideat JATKO-riveille.",
+        )
+      }
+
       return {
         success: true,
         project: "hearthwood",
@@ -471,7 +568,9 @@ ${buildHearthwoodFocusedEvidenceIndex(codeFiles, task)}
           codeFiles,
           decision: "CHANGE_REQUIRED",
           references: evidence.references,
+          skippedFiles,
         }),
+        planQuality,
       }
     } catch (error) {
       lastError = error

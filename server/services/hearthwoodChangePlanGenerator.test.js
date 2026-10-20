@@ -124,7 +124,9 @@ test("change required goes through the existing plan gates and is not approved",
   if (!(await realSourcePresent(t))) return
   responses.push("PÄÄTÖS: CHANGE_REQUIRED\nSUUNNITELMA:\n" +
     "- MUOKKAA: src/services/heartwood/tacticsMana.js | onGuard rajaa kertymän\n" +
-    "SELITYS: Nykyinen toteutus: onGuard antaa resurssia. Ehdotettu muutos: lisää raja. Epävarmuudet: testit.")
+    "SELITYS: Nykyinen toteutus: onGuard antaa resurssia.\n" +
+    "Todiste lähdekoodista:\n```\nexport function onGuard(state, guardianId) {\n```\n" +
+    "Ehdotettu muutos: lisää raja. Epävarmuudet: testit.")
   const plan = await generator.generateHearthwoodChangePlan({ prompt: GUARDIAN_TASK })
   assert.equal(plan.status, "plan_ready")
   assert.equal(plan.files[0].filePath, "src/services/heartwood/tacticsMana.js")

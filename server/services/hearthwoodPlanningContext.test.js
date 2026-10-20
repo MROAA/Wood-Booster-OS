@@ -39,14 +39,17 @@ test('evidence index bounded',()=> {
  const many=Array.from({length:200},(_,i)=>({filePath:`src/services/heartwood/x${i}.js`,content:`export function f${i}(){}`}))
  assert.ok(buildHearthwoodFocusedEvidenceIndex(many,'x').length<=2400)
 })
-test('reader excerpts stay whole and unread symbols are named',()=> {
- const block = n => `// src/services/heartwood/e.js:${n}-${n+5} fn${n}\nexport function fn${n}(){ ${'x'.repeat(1000)} }`
- const file = { filePath:'src/services/heartwood/e.js', truncated:true,
-   content:[block(1),block(10),block(20)].join('\n\n'),
-   excerpts:[{symbol:'fn1'},{symbol:'fn10'},{symbol:'fn20'}], omittedSymbols:['later'] }
- const ctx = buildHearthwoodFocusedPlanningContext([file],'fn')
- assert.match(ctx,/export function fn1\(\)/)
- assert.match(ctx,/LUKEMATTA JÄI: .*fn20.*later/)
- assert.match(ctx,/HUOM: lähteen luku on katkaistu/)
+test('budget goes to the strongest excerpts across files; dropped ones are named',()=> {
+ const block = (f, n) => `// src/services/heartwood/${f}.js:${n}-${n+5} ${f}${n}\nexport function ${f}${n}(){ ${'x'.repeat(1400)} }`
+ const file = (f, scores) => ({ filePath:`src/services/heartwood/${f}.js`, truncated:true,
+   content: scores.map((_, i) => block(f, i * 10 + 1)).join('\n\n'),
+   excerpts: scores.map((score, i) => ({ symbol:`${f}${i * 10 + 1}`, score })), omittedSymbols:[] })
+ // "weak" comes first in reader order but every excerpt of "strong" outranks it.
+ const files = [file('weak', [3, 2, 1]), file('strong', [20, 19, 18, 17])]
+ const ctx = buildHearthwoodFocusedPlanningContext(files, 'x')
+ for (const n of [1, 11, 21, 31]) assert.match(ctx, new RegExp(`export function strong${n}\\(`))
+ assert.doesNotMatch(ctx, /export function weak21\(/)
+ assert.match(ctx, /LUKEMATTA JÄI: .*weak21/)
+ assert.match(ctx, /HUOM: lähteen luku on katkaistu/)
  assert.ok(ctx.length<=8000)
 })

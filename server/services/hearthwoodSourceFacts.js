@@ -83,7 +83,7 @@ export function buildSourceFacts(rawFiles, files) {
     .map(item => ({ kind: "definition", filePath: item.filePath, line: item.startLine, symbol: item.symbol }))
 
   calls.sort((a, b) => b.relevance - a.relevance)
-  const topCalls = calls.slice(0, MAX_FACTS / 2).map(({ relevance, ...fact }) => fact)
+  const topCalls = calls.slice(0, MAX_FACTS / 2).map(({ relevance: _relevance, ...fact }) => fact)
   return [...topCalls, ...definitions].slice(0, MAX_FACTS)
 }
 

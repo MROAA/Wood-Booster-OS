@@ -37,6 +37,26 @@ const STOP_WORDS = new Set([
   "function", "const",
 ])
 
+// Finnish game-development vocabulary → English identifier words, so a
+// task written in plain Finnish finds code named in English. Search aid
+// only: expanded words never count as evidence. Stems match inside
+// inflected and compound words ("yrttipinoon" → yrtti + pino).
+const FI_EN_TERMS = [
+  ["yrtt", ["herb"]], ["keittä", ["brew"]], ["juoma", ["potion"]], ["pino", ["stack"]],
+  ["kerä", ["gather"]], ["vuoro", ["turn"]], ["pilaantu", ["spoil"]], ["terveys", ["health"]],
+  ["paran", ["heal"]], ["sää", ["weather"]], ["laukku", ["satchel", "bag"]],
+  ["vahin", ["damage"]], ["hyökkä", ["attack"]], ["puolust", ["defend", "defense"]],
+  ["suoja", ["shield", "guard", "block"]], ["liikku", ["move"]], ["kyky", ["ability", "skill"]],
+  ["kyvy", ["ability", "skill"]], ["luoka", ["class"]], ["luokk", ["class"]],
+  ["viholli", ["enemy"]], ["sankari", ["hero"]], ["esine", ["item"]], ["varust", ["gear", "equipment"]],
+  ["kauppa", ["shop", "market"]], ["kartta", ["map"]], ["resurssi", ["resource"]],
+  ["palkin", ["reward"]], ["kulta", ["gold"]], ["kokemus", ["experience"]], ["taso", ["level"]],
+  ["myrky", ["poison"]], ["tainnut", ["stun"]], ["kuolema", ["death"]], ["elvyt", ["revive"]],
+  ["maasto", ["terrain"]], ["ansa", ["trap"]], ["pomo", ["boss"]], ["tehtäv", ["quest"]],
+  ["lyhty", ["lantern"]], ["valo", ["light"]], ["ääni", ["sound"]], ["kortti", ["card"]],
+  ["raja", ["max", "limit"]], ["kesto", ["duration"]], ["nopeus", ["speed"]],
+]
+
 const KEYWORDS = new Set([
   "if", "for", "while", "switch", "catch", "function", "return", "typeof",
   "new", "await", "super", "import",
@@ -57,12 +77,20 @@ export function nameWords(name) {
 /** Task → { words, symbols }. Symbols are camelCase names as written. */
 export function taskTerms(task) {
   const text = String(task || "")
-  const words = (text.toLowerCase().match(/[\p{L}\p{N}_]+/gu) || [])
+  const base = (text.toLowerCase().match(/[\p{L}\p{N}_]+/gu) || [])
     .filter(word => word.length >= 4 && !STOP_WORDS.has(word))
+  const expanded = base.flatMap(word => FI_EN_TERMS
+    .filter(([stem]) => word.includes(stem))
+    .flatMap(([, english]) => english))
+  // English expansions first: they are what identifiers are made of.
+  const words = [...expanded, ...base]
   const symbols = (text.match(/\b[A-Za-z_$][\w$]*\b/g) || [])
     .filter(word => /[a-z][A-Z]/.test(word))
+  const kept = [...new Set(words)].slice(0, 20)
   return {
-    words: [...new Set(words)].slice(0, 16),
+    words: kept,
+    // Glossary guesses about intent weigh half of what the user wrote.
+    inferred: kept.filter(word => expanded.includes(word) && !base.includes(word)),
     symbols: [...new Set(symbols)].slice(0, 8),
   }
 }
@@ -154,11 +182,12 @@ export function definitionBody(lines, definition) {
  * Rarity weight per term within one file: a term mentioned by most
  * definitions ("power") says little; a rare one ("intercept") a lot.
  */
-export function termWeights(bodies, words) {
+export function termWeights(bodies, words, inferred = []) {
   const weights = new Map()
   for (const term of words) {
     const df = bodies.filter(body => termHits(body, [term]).length).length
-    weights.set(term, df <= 2 ? 1 : df <= 8 ? 0.6 : df <= 25 ? 0.35 : 0.2)
+    const rarity = df <= 2 ? 1 : df <= 8 ? 0.6 : df <= 25 ? 0.35 : 0.2
+    weights.set(term, inferred.includes(term) ? rarity / 2 : rarity)
   }
   return weights
 }
