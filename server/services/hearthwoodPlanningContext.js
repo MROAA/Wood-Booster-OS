@@ -53,6 +53,27 @@ function focusedExcerpt(content, terms, maxChars = 1250) {
   return '[LÄHDEKATKELMA, EI KOKO TIEDOSTO]\n' + content.slice(start, start + maxChars)
 }
 
+const EXCERPT_HEADER = /\n\n(?=\/\/ \S+:\d+-\d+ )/
+
+/** Reader excerpts are kept whole, in priority order; dropped ones are named. */
+function excerptBlocks(file, maxChars = 1400) {
+  const blocks = String(file.content || '').split(EXCERPT_HEADER)
+  const kept = []
+  const dropped = []
+  let used = 0
+  blocks.forEach((block, i) => {
+    if (used + block.length + 2 <= maxChars) {
+      kept.push(block)
+      used += block.length + 2
+    } else if (file.excerpts[i]) {
+      dropped.push(file.excerpts[i].symbol)
+    }
+  })
+  const unread = [...dropped, ...(file.omittedSymbols || [])].slice(0, 12)
+  return kept.join('\n\n') +
+    (unread.length ? `\nLUKEMATTA JÄI: ${unread.join(', ')}` : '')
+}
+
 /** Keep relevant, bounded source context near the end of the system prompt. */
 export function buildHearthwoodFocusedPlanningContext(codeFiles, task) {
   const terms = termsFor(task)
@@ -60,7 +81,9 @@ export function buildHearthwoodFocusedPlanningContext(codeFiles, task) {
   return ordered.slice(0, 5).map(file => [
     `TIEDOSTO: ${file.filePath}`,
     file.truncated ? 'HUOM: lähteen luku on katkaistu; älä väitä tuntevasi loppuosaa.' : 'Luettu lähde:',
-    focusedExcerpt(String(file.content || ''), terms),
+    Array.isArray(file.excerpts) && file.excerpts.length
+      ? excerptBlocks(file)
+      : focusedExcerpt(String(file.content || ''), terms),
     'LÄHDEKATKELMA PÄÄTTYY.',
   ].join('\n')).join('\n\n').slice(0, 8000)
 }

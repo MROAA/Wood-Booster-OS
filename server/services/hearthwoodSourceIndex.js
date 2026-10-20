@@ -77,7 +77,9 @@ export function wordMatches(word, term) {
 
 /** Distinct task terms appearing in a text. */
 export function termHits(text, words) {
-  const tokens = String(text || "").toLowerCase().match(/[\p{L}\p{N}]+/gu) || []
+  const tokens = String(text || "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .toLowerCase().match(/[\p{L}\p{N}]+/gu) || []
   const unique = new Set(tokens)
   return words.filter(term => [...unique].some(token => wordMatches(token, term)))
 }
@@ -149,19 +151,34 @@ export function definitionBody(lines, definition) {
 }
 
 /**
- * Relevance of one definition. Explicit symbol > name words > leading
- * comment > body mentions. A name match alone never comes from the
- * file name: it is the definition's own identifier.
+ * Rarity weight per term within one file: a term mentioned by most
+ * definitions ("power") says little; a rare one ("intercept") a lot.
  */
-export function scoreDefinition(definition, body, terms, boosted = new Set()) {
+export function termWeights(bodies, words) {
+  const weights = new Map()
+  for (const term of words) {
+    const df = bodies.filter(body => termHits(body, [term]).length).length
+    weights.set(term, df <= 2 ? 1 : df <= 8 ? 0.6 : df <= 25 ? 0.35 : 0.2)
+  }
+  return weights
+}
+
+/**
+ * Relevance of one definition. Explicit symbol > name words > leading
+ * comment > body mentions, each weighted by term rarity. A name match
+ * is the definition's own identifier, never the file name.
+ */
+export function scoreDefinition(definition, body, terms, boosted = new Set(), weights = new Map()) {
   const { words = [], symbols = [] } = terms || {}
+  const weight = term => weights.get(term) ?? 1
+  const sum = list => list.reduce((n, term) => n + weight(term), 0)
   let score = 0
   if (symbols.includes(definition.name)) score += 100
-  if (boosted.has(definition.name)) score += 15
+  if (boosted.has(definition.name)) score += 6
   const ownWords = nameWords(definition.name)
-  score += 12 * words.filter(term => ownWords.some(word => wordMatches(word, term))).length
-  score += 4 * termHits(definition.leadingComment, words).length
-  score += Math.min(6, termHits(body, words).length)
+  score += 12 * sum(words.filter(term => ownWords.some(word => wordMatches(word, term))))
+  score += 4 * sum(termHits(definition.leadingComment, words))
+  score += 3 * sum(termHits(body, words))
   return score
 }
 

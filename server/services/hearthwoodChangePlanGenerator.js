@@ -60,7 +60,7 @@ function formatCodeContext(files) {
   return files
     .map(file => {
       const note = file.truncated
-        ? "Tiedostosta on luettu vain alkuosa."
+        ? "Tiedostosta on luettu vain valikoidut katkelmat, ei koko tiedostoa."
         : "Tiedosto on luettu kokonaan."
 
       return [

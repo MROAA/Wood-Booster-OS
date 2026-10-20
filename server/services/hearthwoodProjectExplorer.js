@@ -4,6 +4,16 @@ import path from "node:path"
 
 import PROJECT_ROOT from "./hearthwoodProjectRoot.js"
 import FileSearchSkill from "./spacemonkey/skills/filesystem/FileSearchSkill.js"
+import {
+  taskTerms,
+  nameWords,
+  wordMatches,
+  termHits,
+  extractDefinitions,
+} from "./hearthwoodSourceIndex.js"
+
+const MAX_FILE_BYTES = 512000
+const MAX_CONTENT_SCORE = 80
 
 const SOURCE_DIRECTORIES = [
   "src/data/heartwood",
@@ -178,6 +188,33 @@ function scoreFile(filePath, topics, words) {
   }
 }
 
+/**
+ * Content relevance: definition names and their leading comments that
+ * mention task terms. A file name match alone no longer decides.
+ */
+async function contentScore(filePath, terms) {
+  if (!terms.words.length && !terms.symbols.length) return { score: 0, symbols: [] }
+  try {
+    const absolute = path.join(PROJECT_ROOT, filePath)
+    const stats = await fs.stat(absolute)
+    if (!stats.isFile() || stats.size > MAX_FILE_BYTES) return { score: 0, symbols: [] }
+    const content = await fs.readFile(absolute, "utf8")
+    let score = 2 * termHits(content, terms.words).length
+    const symbols = []
+    for (const definition of extractDefinitions(content)) {
+      const own = nameWords(definition.name)
+      const nameHits = terms.symbols.includes(definition.name) ? 3 :
+        terms.words.filter(term => own.some(word => wordMatches(word, term))).length
+      const commentHits = termHits(definition.leadingComment, terms.words).length
+      if (nameHits) symbols.push(definition.name)
+      score += 12 * nameHits + 4 * commentHits
+    }
+    return { score: Math.min(MAX_CONTENT_SCORE, score), symbols: symbols.slice(0, 5) }
+  } catch {
+    return { score: 0, symbols: [] }
+  }
+}
+
 export async function listHearthwoodProjectFiles() {
   const skill = new FileSearchSkill()
   const files = new Set()
@@ -253,10 +290,15 @@ export async function findHearthwoodProjectFiles(
   const topics = activeTopicsFor(prompt)
   const words = promptWords(prompt)
 
-  const ranked = files
-    .map(filePath =>
-      scoreFile(filePath, topics, words)
-    )
+  const terms = taskTerms(prompt)
+  const scored = []
+  for (const filePath of files) {
+    const item = scoreFile(filePath, topics, words)
+    const content = await contentScore(filePath, terms)
+    scored.push({ ...item, score: item.score + content.score, matchedSymbols: content.symbols })
+  }
+
+  const ranked = scored
     .filter(item => item.score > 0)
     .sort((a, b) =>
       b.score - a.score ||
