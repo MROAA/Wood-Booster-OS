@@ -81,7 +81,10 @@ async function main() {
 
   let missing = []
   if (options.expect.length) {
-    missing = options.expect.filter(symbol => !context.includes(symbol) || !index.includes(symbol))
+    // The definition's source must be in the context, not just its name
+    // (a name on a "LUKEMATTA JÄI" line is not evidence).
+    const defined = symbol => new RegExp(`(?:function|const|let|class)\\s+${symbol}\\b`).test(context)
+    missing = options.expect.filter(symbol => !defined(symbol) || !index.includes(symbol))
     out.push("")
     out.push(`Odotetut symbolit: ${options.expect.map(s => `${s} ${missing.includes(s) ? "PUUTTUU" : "OK"}`).join(", ")}`)
   }

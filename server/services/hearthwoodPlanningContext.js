@@ -55,14 +55,22 @@ function focusedExcerpt(content, terms, maxChars = 1250) {
 
 const EXCERPT_HEADER = /\n\n(?=\/\/ \S+:\d+-\d+ )/
 
-/** Reader excerpts are kept whole, in priority order; dropped ones are named. */
-function excerptBlocks(file, maxChars = 1400) {
+const CONTEXT_CHARS = 7600
+const FILE_CHARS = 2400
+const MIN_FILE_CHARS = 300
+
+/**
+ * Reader excerpts are kept whole and in strict priority order: once one
+ * does not fit, lower-ranked helpers never take its place. Dropped ones
+ * are named.
+ */
+function excerptBlocks(file, maxChars) {
   const blocks = String(file.content || '').split(EXCERPT_HEADER)
   const kept = []
   const dropped = []
   let used = 0
   blocks.forEach((block, i) => {
-    if (used + block.length + 2 <= maxChars) {
+    if (!dropped.length && used + block.length + 2 <= maxChars) {
       kept.push(block)
       used += block.length + 2
     } else if (file.excerpts[i]) {
@@ -78,14 +86,28 @@ function excerptBlocks(file, maxChars = 1400) {
 export function buildHearthwoodFocusedPlanningContext(codeFiles, task) {
   const terms = termsFor(task)
   const ordered = [...codeFiles].sort((a, b) => matchScore(b, terms) - matchScore(a, terms))
-  return ordered.slice(0, 5).map(file => [
-    `TIEDOSTO: ${file.filePath}`,
-    file.truncated ? 'HUOM: lähteen luku on katkaistu; älä väitä tuntevasi loppuosaa.' : 'Luettu lähde:',
-    Array.isArray(file.excerpts) && file.excerpts.length
-      ? excerptBlocks(file)
-      : focusedExcerpt(String(file.content || ''), terms),
-    'LÄHDEKATKELMA PÄÄTTYY.',
-  ].join('\n')).join('\n\n').slice(0, 8000)
+  const sections = []
+  const unreadFiles = []
+  let remaining = CONTEXT_CHARS
+  for (const file of ordered) {
+    const budget = Math.min(FILE_CHARS, remaining - 150)
+    if (budget < MIN_FILE_CHARS) {
+      unreadFiles.push(file.filePath)
+      continue
+    }
+    const section = [
+      `TIEDOSTO: ${file.filePath}`,
+      file.truncated ? 'HUOM: lähteen luku on katkaistu; älä väitä tuntevasi loppuosaa.' : 'Luettu lähde:',
+      Array.isArray(file.excerpts) && file.excerpts.length
+        ? excerptBlocks(file, budget)
+        : focusedExcerpt(String(file.content || ''), terms, Math.min(1250, budget)),
+      'LÄHDEKATKELMA PÄÄTTYY.',
+    ].join('\n')
+    sections.push(section)
+    remaining -= section.length + 2
+  }
+  if (unreadFiles.length) sections.push(`LUKEMATTA JÄIVÄT TIEDOSTOT: ${unreadFiles.join(', ')}`)
+  return sections.join('\n\n').slice(0, 8000)
 }
 
 /** Explicit symbol-and-file index: not proof of model reasoning. */

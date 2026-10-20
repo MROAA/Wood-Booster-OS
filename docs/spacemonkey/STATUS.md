@@ -45,16 +45,33 @@ Haara `feat/spacemonkey-source-reader`, worktree
 `/home/marc/Wood-Booster-AI/Wood-Booster-OS-spacemonkey-reader`. Ei pushattu.
 
 - [x] **Sprintti 1 — lähdekoodin lukija.** `check:spacemonkey` 143/143
-      (baseline 131). Guardian-probe: `attackUnit`, `eligibleGuardian` ja
+      (baseline 131; nyt 146). Guardian-probe: `attackUnit`, `eligibleGuardian` ja
       `onGuard` päätyvät mallin kontekstiin ja todisteindeksiin.
-- [ ] **Sprintti 2 — todisteketju ja malli.** Elävä ajo (qwen2.5-coder:7b)
-      antoi yhä `INSUFFICIENT_EVIDENCE`. Viitteenä oli vain
-      `CLASS_AFFINITY`. Vahvin hypoteesi (ei todennettu): järjestelmäkehote
-      (säännöt + indeksi + 7,7k merkin konteksti + tiedostolistat) ylittää
-      `chatWithOllama`-kutsun oletusarvon `numCtx = 4096`, joten Ollama
-      katkaisee kehotteen alun. Ensimmäinen askel: mittaa kehotteen
-      token-määrä. Sen jälkeen joko budjetoi kehote tai nosta `numCtx`
-      todennetusti, ja aja `--guardian --llm` uudelleen.
+- [x] **Sprintti 2 (osittain): todisteketju ja malli.** Löydetyt ja korjatut viat:
+      1. Kehote oli 4505 tokenia, kun `num_ctx` oli 4096, joten Ollama pudotti
+         kehotteen alun hiljaa. Nyt `PLAN_CONTEXT_TOKENS = 8192`, ja
+         `assertPromptFits` hylkää liian pitkän kehotteen.
+      2. Suunnittelukonteksti pudotti `attackUnit`-katkelman, ja sen tilalle
+         tulivat apufunktiot `emit` ja `getUnit`. Nyt katkelmat otetaan
+         tiukassa tärkeysjärjestyksessä, tiedostokohtainen budjetti on 2400
+         merkkiä ja kokonaisbudjetti 7600.
+      3. Testi hyväksyi pelkän nimen `LUKEMATTA JÄI` -rivillä. Nyt vaaditaan
+         määrittelyn lähdekoodi, ja probe vaatii saman.
+      4. Malli kopioi vastauspohjan ("Mitä pitää vielä tutkia: ..."), ja se
+         hyväksyttiin. Nyt `isPlaceholderExplanation` hylkää sen, ja malli
+         saa uuden yrityksen.
+      5. Haku painotti kaikkialla esiintyviä sanoja ("power"). Nyt sanat
+         painotetaan harvinaisuuden mukaan koko projektissa (idf).
+- **Mitattu 20.10.2026 (qwen2.5-coder:7b, RTX 3060):** oikea lähdekoodi
+  menee mallille joka ajossa, ja yksi ajo kestää 3–6 s. Päätös vaihtelee
+  kuitenkin: 1–2/6 ajosta `NO_CHANGE_NEEDED`, muut `INSUFFICIENT_EVIDENCE`.
+  Oikea HTTP-ajo `POST /api/hearthwood-dev/plan`: 200,
+  `human_review_required`, 0 tiedostoa, `executionApproved: false`.
+  **Turvallisuus pitää:** väärää muutosta tai hyväksyntää ei syntynyt
+  missään ajossa. **Päätöksen laatua rajoittaa 7B-malli.** Seuraava askel:
+  vahvempi malli, esim. `qwen2.5-coder:14b` (noin 9 Gt, mahtuu 12 Gt
+  näyttömuistiin), ja `--guardian --llm` ajetaan 6 kertaa uudelleen.
+- [ ] Sprintti 2 (loput): Guardian-tapaus mallilla, joka antaa vakaasti `NO_CHANGE_NEEDED`
 - [ ] Sprintti 3 — Guardian pysyvänä laatutapauksena (`--guardian --llm` → perusteltu `NO_CHANGE_NEEDED`)
 - [ ] Sprintti 4 — HTTP/API- ja UI-päästä päähän -testit
 - [ ] Sprintti 5 — kokonaisvaltainen kehityskumppani (pelin luominen Dev Studion kautta)
@@ -63,7 +80,7 @@ Haara `feat/spacemonkey-source-reader`, worktree
 
 - Haku lukee kaikki noin 274 sallittua tiedostoa joka kerta. Nopeus on toistaiseksi riittävä.
 - Yleiset sanat ("power") tuovat edelleen jonkin verran sivukatkelmia.
-- `hearthwoodCodeAnalysis.js` leikkaa lukijan tuloksen vielä omalla tavallaan.
+- `hearthwoodCodeAnalysis.js` käyttää yhä 4096 tokenin kontekstia ja leikkaa lukijan tuloksen vielä omalla tavallaan.
 
 ## Säännöt jokaiselle AI-istunnolle
 

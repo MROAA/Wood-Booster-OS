@@ -40,7 +40,7 @@ test('evidence index bounded',()=> {
  assert.ok(buildHearthwoodFocusedEvidenceIndex(many,'x').length<=2400)
 })
 test('reader excerpts stay whole and unread symbols are named',()=> {
- const block = n => `// src/services/heartwood/e.js:${n}-${n+5} fn${n}\nexport function fn${n}(){ ${'x'.repeat(600)} }`
+ const block = n => `// src/services/heartwood/e.js:${n}-${n+5} fn${n}\nexport function fn${n}(){ ${'x'.repeat(1000)} }`
  const file = { filePath:'src/services/heartwood/e.js', truncated:true,
    content:[block(1),block(10),block(20)].join('\n\n'),
    excerpts:[{symbol:'fn1'},{symbol:'fn10'},{symbol:'fn20'}], omittedSymbols:['later'] }

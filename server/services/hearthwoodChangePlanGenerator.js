@@ -30,6 +30,40 @@ const DEFAULT_MODEL =
   process.env.OLLAMA_MODEL ||
   "qwen2.5-coder:7b"
 
+// The planning prompt is ~4.5k tokens (measured 13.8k chars → 4505
+// tokens on qwen2.5-coder). At num_ctx 4096 Ollama silently dropped the
+// start of the prompt: the rules, answer format and evidence index.
+export const PLAN_CONTEXT_TOKENS = 8192
+const RESPONSE_TOKENS = 1024
+const CHARS_PER_TOKEN = 3
+
+/** Refuse instead of letting Ollama truncate the prompt silently. */
+export function assertPromptFits(systemPrompt, userMessage) {
+  const estimated = Math.ceil(
+    (systemPrompt.length + userMessage.length) / CHARS_PER_TOKEN,
+  ) + RESPONSE_TOKENS
+  if (estimated > PLAN_CONTEXT_TOKENS) {
+    throw new Error(
+      `Suunnittelukehote ei mahdu mallin kontekstiin (${estimated}/${PLAN_CONTEXT_TOKENS} tokenia).`,
+    )
+  }
+  return estimated
+}
+
+const TEMPLATE_LABELS =
+  /(Mitä pitää vielä tutkia|Nykyinen toteutus|Todiste lähdekoodista|Ehdotettu muutos|Epävarmuudet)\s*:/gi
+
+/**
+ * A small model may copy the answer template ("Mitä pitää vielä tutkia:
+ * ...") verbatim. Such an answer carries no reasoning and is rejected.
+ */
+export function isPlaceholderExplanation(explanation) {
+  const substance = String(explanation || "")
+    .replace(TEMPLATE_LABELS, "")
+    .replace(/[.…\s]/g, "")
+  return substance.length < 30
+}
+
 const ALLOWED_PATHS = [
   /^src\/data\/heartwood\/.+\.(js|jsx|ts|tsx)$/,
   /^src\/services\/heartwood\/.+\.(js|jsx|ts|tsx)$/,
@@ -296,10 +330,14 @@ ${buildHearthwoodFocusedEvidenceIndex(codeFiles, task)}
 `
       : ""
 
+    const userMessage = task + retryInstruction
+    assertPromptFits(systemPrompt, userMessage)
+
     const response = await chatWithOllama({
       model,
       systemPrompt,
-      userMessage: task + retryInstruction,
+      userMessage,
+      numCtx: PLAN_CONTEXT_TOKENS,
     })
 
     const parsed = parseChangePlanText(response)
@@ -312,6 +350,10 @@ ${buildHearthwoodFocusedEvidenceIndex(codeFiles, task)}
         proposedDecision === "INSUFFICIENT_EVIDENCE") {
       if (parsed.files.length || !parsed.explanation.trim()) {
         lastError = new Error("Arviointipäätöksessä ei saa olla tiedostomuutoksia, ja perustelu vaaditaan.")
+        continue
+      }
+      if (isPlaceholderExplanation(parsed.explanation)) {
+        lastError = new Error("Vastaus kopioi pelkän mallipohjan. Perustele päätös luetun lähdekoodin symboleilla tai nimeä täsmällisesti, mitä puuttuu.")
         continue
       }
       const reviewedEvidence = validateHearthwoodEvidence(parsed.explanation, codeFiles)

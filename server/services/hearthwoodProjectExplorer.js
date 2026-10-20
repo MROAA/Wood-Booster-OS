@@ -192,26 +192,48 @@ function scoreFile(filePath, topics, words) {
  * Content relevance: definition names and their leading comments that
  * mention task terms. A file name match alone no longer decides.
  */
-async function contentScore(filePath, terms) {
-  if (!terms.words.length && !terms.symbols.length) return { score: 0, symbols: [] }
+async function readSource(filePath) {
   try {
     const absolute = path.join(PROJECT_ROOT, filePath)
     const stats = await fs.stat(absolute)
-    if (!stats.isFile() || stats.size > MAX_FILE_BYTES) return { score: 0, symbols: [] }
-    const content = await fs.readFile(absolute, "utf8")
-    let score = 2 * termHits(content, terms.words).length
-    const symbols = []
-    for (const definition of extractDefinitions(content)) {
-      const own = nameWords(definition.name)
-      const nameHits = terms.symbols.includes(definition.name) ? 3 :
-        terms.words.filter(term => own.some(word => wordMatches(word, term))).length
-      const commentHits = termHits(definition.leadingComment, terms.words).length
-      if (nameHits) symbols.push(definition.name)
-      score += 12 * nameHits + 4 * commentHits
-    }
-    return { score: Math.min(MAX_CONTENT_SCORE, score), symbols: symbols.slice(0, 5) }
+    if (!stats.isFile() || stats.size > MAX_FILE_BYTES) return ""
+    return await fs.readFile(absolute, "utf8")
   } catch {
-    return { score: 0, symbols: [] }
+    return ""
+  }
+}
+
+/**
+ * Project-wide term rarity (idf in 0..1): a word found in most files
+ * ("power") says little about which file implements the task.
+ */
+function projectTermWeights(contents, words) {
+  const total = contents.length
+  const weights = new Map()
+  for (const term of words) {
+    const df = contents.filter(content => termHits(content, [term]).length).length
+    weights.set(term, Math.log((total + 1) / (df + 1)) / Math.log(total + 1))
+  }
+  return weights
+}
+
+function contentScore(content, terms, weights) {
+  if (!content) return { score: 0, symbols: [] }
+  const sum = list => list.reduce((n, term) => n + (weights.get(term) ?? 1), 0)
+  let score = 6 * sum(termHits(content, terms.words))
+  const symbols = []
+  for (const definition of extractDefinitions(content)) {
+    const own = nameWords(definition.name)
+    const nameHits = terms.symbols.includes(definition.name) ? 3 :
+      sum(terms.words.filter(term => own.some(word => wordMatches(word, term))))
+    const commentHits = sum(termHits(definition.leadingComment, terms.words))
+    if (nameHits) symbols.push({ name: definition.name, nameHits })
+    score += 24 * nameHits + 8 * commentHits
+  }
+  symbols.sort((x, y) => y.nameHits - x.nameHits)
+  return {
+    score: Math.round(Math.min(MAX_CONTENT_SCORE, score)),
+    symbols: symbols.slice(0, 5).map(symbol => symbol.name),
   }
 }
 
@@ -291,10 +313,13 @@ export async function findHearthwoodProjectFiles(
   const words = promptWords(prompt)
 
   const terms = taskTerms(prompt)
+  const contents = []
+  for (const filePath of files) contents.push(await readSource(filePath))
+  const weights = projectTermWeights(contents, terms.words)
   const scored = []
-  for (const filePath of files) {
+  for (const [index, filePath] of files.entries()) {
     const item = scoreFile(filePath, topics, words)
-    const content = await contentScore(filePath, terms)
+    const content = contentScore(contents[index], terms, weights)
     scored.push({ ...item, score: item.score + content.score, matchedSymbols: content.symbols })
   }
 

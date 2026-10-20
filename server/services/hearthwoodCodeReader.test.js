@@ -232,7 +232,7 @@ test("Guardian Intercept: the real combat engine and resource system reach the m
 
   for (const symbol of ["attackUnit", "eligibleGuardian", "onGuard"]) {
     assert.match(allContent, new RegExp(`function ${symbol}\\(`), `${symbol} read`)
-    assert.match(chain.context, new RegExp(symbol), `${symbol} in planning context`)
+    assert.match(chain.context, new RegExp(`function ${symbol}\\(`), `${symbol} source in planning context`)
     assert.match(chain.index, new RegExp(`→ ${symbol}$`, "m"), `${symbol} in evidence index`)
   }
 

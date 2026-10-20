@@ -32,6 +32,7 @@ import SystemCenter from "./pages/SystemCenter"
 import Tools from "./pages/Tools"
 import DevStudio from "./pages/DevStudio"
 import HearthwoodStudio from "./pages/HearthwoodStudio"
+import HearthwoodDevStudio from "./pages/HearthwoodDevStudio"
 import BloodmoorStudio from "./pages/BloodmoorStudio"
 import SpiderSolitaire from "./pages/SpiderSolitaire"
 import HeartwoodBattle from "./pages/HeartwoodBattle"
@@ -249,6 +250,7 @@ function App() {
             <HearthwoodStudio />
           }
         />
+        <Route path="/hearthwood-dev-studio" element={<HearthwoodDevStudio />} />
         <Route
           path="/bloodmoor-studio"
           element={
