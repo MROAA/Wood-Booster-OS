@@ -39,47 +39,55 @@ tehtävä
 Porttikoodia ei muuteta testien helpottamiseksi. Pelikoodiin (`src/`) ei
 kosketa Dev Studion korjausten yhteydessä.
 
-## Tilanne 20.10.2026
+## Tilanne 20.10.2026 (ilta)
 
 Haara `feat/spacemonkey-source-reader`, worktree
-`/home/marc/Wood-Booster-AI/Wood-Booster-OS-spacemonkey-reader`. Ei pushattu.
+`/home/marc/Wood-Booster-AI/Wood-Booster-OS-spacemonkey-reader`, PR #681
+(**draft**, ei mergetty). `check:spacemonkey`: **154/154** (baseline 131).
 
-- [x] **Sprintti 1 — lähdekoodin lukija.** `check:spacemonkey` 143/143
-      (baseline 131; nyt 146). Guardian-probe: `attackUnit`, `eligibleGuardian` ja
-      `onGuard` päätyvät mallin kontekstiin ja todisteindeksiin.
-- [x] **Sprintti 2 (osittain): todisteketju ja malli.** Löydetyt ja korjatut viat:
-      1. Kehote oli 4505 tokenia, kun `num_ctx` oli 4096, joten Ollama pudotti
-         kehotteen alun hiljaa. Nyt `PLAN_CONTEXT_TOKENS = 8192`, ja
-         `assertPromptFits` hylkää liian pitkän kehotteen.
-      2. Suunnittelukonteksti pudotti `attackUnit`-katkelman, ja sen tilalle
-         tulivat apufunktiot `emit` ja `getUnit`. Nyt katkelmat otetaan
-         tiukassa tärkeysjärjestyksessä, tiedostokohtainen budjetti on 2400
-         merkkiä ja kokonaisbudjetti 7600.
-      3. Testi hyväksyi pelkän nimen `LUKEMATTA JÄI` -rivillä. Nyt vaaditaan
-         määrittelyn lähdekoodi, ja probe vaatii saman.
-      4. Malli kopioi vastauspohjan ("Mitä pitää vielä tutkia: ..."), ja se
-         hyväksyttiin. Nyt `isPlaceholderExplanation` hylkää sen, ja malli
-         saa uuden yrityksen.
-      5. Haku painotti kaikkialla esiintyviä sanoja ("power"). Nyt sanat
-         painotetaan harvinaisuuden mukaan koko projektissa (idf).
-- **Mitattu 20.10.2026 (qwen2.5-coder:7b, RTX 3060):** oikea lähdekoodi
-  menee mallille joka ajossa, ja yksi ajo kestää 3–6 s. Päätös vaihtelee
-  kuitenkin: 1–2/6 ajosta `NO_CHANGE_NEEDED`, muut `INSUFFICIENT_EVIDENCE`.
-  Oikea HTTP-ajo `POST /api/hearthwood-dev/plan`: 200,
-  `human_review_required`, 0 tiedostoa, `executionApproved: false`.
-  **Turvallisuus pitää:** väärää muutosta tai hyväksyntää ei syntynyt
-  missään ajossa. **Päätöksen laatua rajoittaa 7B-malli.** Seuraava askel:
-  vahvempi malli, esim. `qwen2.5-coder:14b` (noin 9 Gt, mahtuu 12 Gt
-  näyttömuistiin), ja `--guardian --llm` ajetaan 6 kertaa uudelleen.
-- [ ] Sprintti 2 (loput): Guardian-tapaus mallilla, joka antaa vakaasti `NO_CHANGE_NEEDED`
-- [ ] Sprintti 3 — Guardian pysyvänä laatutapauksena (`--guardian --llm` → perusteltu `NO_CHANGE_NEEDED`)
-- [ ] Sprintti 4 — HTTP/API- ja UI-päästä päähän -testit
-- [ ] Sprintti 5 — kokonaisvaltainen kehityskumppani (pelin luominen Dev Studion kautta)
+- [x] **Sprintti 1: lähdekoodin lukija.** Sisältöperusteinen haku,
+      rivinumeroidut katkelmat, yhden askeleen kutsuketju, `omittedSymbols`.
+- [x] **Sprintti 2: todisteet ja päätökset.**
+  - Kehote katkesi hiljaa (4505 tokenia / 4096). Nyt ikkuna on 8192, ja
+    `assertPromptFits` hylkää liian pitkän kehotteen.
+  - Konevahvistetut lähdefaktat (`hearthwoodSourceFacts.js`) lisätään
+    kehotteeseen. Guardianin kärkifaktat: `attackUnit` kutsuu
+    `eligibleGuardian` (rivi 2417) ja `onGuard` (rivi 2428).
+  - `evidenceReport` erottaa lähdefaktat, testatun toiminnan, mallin
+    päätelmän (vahvat ja heikot viitteet) ja tuntemattoman. Lisäksi
+    `qualityNote`, kun perustelu nojaa vain sivulähteisiin.
+  - Kopioitu vastauspohja hylätään. Testit kattavat kaikki kolme päätöstä
+    sekä väärennetyt syötteet.
+  - **Mallivalinta todisteilla** (`spacemonkey:probe --repeat 6`):
+
+    | Malli | Guardian (odotus NO_CHANGE) | Puuttuva mekaniikka (odotus CHANGE) | Kesto |
+    |---|---|---|---|
+    | qwen2.5-coder:7b | 2/6, muut INSUFFICIENT / aikaraja | – | 4–7 s |
+    | qwen2.5-coder:14b | **6/6**, vahva viite `onGuard` | **3/3**, viitteinä `attackUnit` ja `eligibleGuardian` | 9–31 s, ensimmäinen ajo 36 s |
+
+    Oletusmalli on nyt `qwen2.5-coder:14b`. Sen voi vaihtaa muuttujalla `HEARTHWOOD_PLAN_MODEL`.
+- [ ] **Käyttöönotto (vahvistettava).** Marcin Studio
+      (`localhost:5173/hearthwood-studio`) pyörii päächeckoutista
+      (`hearthwood-stable`). Siellä `GET /api/hearthwood-dev/status`
+      palauttaa **404**, koska reittiä ei ole. Spacemonkey-avustaja ei siis
+      toimi Studiossa ennen kuin tämä haara on viety sinne ja backend on
+      käynnistetty uudelleen. Suositus: aseta `OLLAMA_TIMEOUT_MS=120000`.
+      Mallin ensilataus ja kaksi yritystä voivat lähestyä 60 s:n oletusta.
+- [ ] Sprintti 3: muutossuunnitelmien laatu (tiedostolista, riippuvuudet, turhien muutosten välttäminen)
+- [ ] Sprintti 4: hallittu toteutus ja verifiointi (UI ja päästä päähän)
+- [ ] Sprintti 5: editorien yhtenäistäminen
+
+Erillinen haara `feat/hearthwood-heroes-studio-edit` (`2cbdad01`, worktree
+`Wood-Booster-OS-hw-heroes-studio`): Marcin Dev Studiossa tekemät
+sankarimuutokset (`units.js` ja 67 kuvaa), lähtöisin `hearthwood-stable`-haarasta.
+Ei pushattu.
 
 ## Tunnetut rajoitukset
 
 - Haku lukee kaikki noin 274 sallittua tiedostoa joka kerta. Nopeus on toistaiseksi riittävä.
 - Yleiset sanat ("power") tuovat edelleen jonkin verran sivukatkelmia.
+- `hearthwoodCallSiteVerification`-moduulin aaltosulkulaskuri ei löydä funktion loppua sisäkkäisten template-merkkijonojen kohdalla (`caller: null` esimerkiksi `attackUnit`-funktiossa). SourceFacts kiertää tämän rivialueilla, mutta itse moduuli on korjaamatta.
+- Fixture-pohjaiset arviointitapaukset (`cases.json`) puuttuvat. Mittaus tehtiin oikeaa lähdekoodia vasten.
 - `hearthwoodCodeAnalysis.js` käyttää yhä 4096 tokenin kontekstia ja leikkaa lukijan tuloksen vielä omalla tavallaan.
 
 ## Säännöt jokaiselle AI-istunnolle

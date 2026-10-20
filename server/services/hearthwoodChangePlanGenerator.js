@@ -30,10 +30,16 @@ import {
   classifyReferences,
 } from "./hearthwoodSourceFacts.js"
 
+// Measured 20.10.2026 (Guardian Intercept, RTX 3060, 6 runs each):
+// qwen2.5-coder:7b  → NO_CHANGE_NEEDED 2/6, rest INSUFFICIENT/timeout
+// qwen2.5-coder:14b → NO_CHANGE_NEEDED 6/6 with onGuard as evidence,
+//                     and CHANGE_REQUIRED 3/3 for a missing mechanic.
+// Override with HEARTHWOOD_PLAN_MODEL.
 const DEFAULT_MODEL =
+  process.env.HEARTHWOOD_PLAN_MODEL ||
   process.env.CODE_OLLAMA_MODEL ||
   process.env.OLLAMA_MODEL ||
-  "qwen2.5-coder:7b"
+  "qwen2.5-coder:14b"
 
 // The planning prompt is ~4.5k tokens (measured 13.8k chars → 4505
 // tokens on qwen2.5-coder). At num_ctx 4096 Ollama silently dropped the

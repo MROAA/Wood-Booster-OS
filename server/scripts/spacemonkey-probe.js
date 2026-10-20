@@ -10,6 +10,7 @@
  *   npm run spacemonkey:probe -- --expect attackUnit,onGuard "tehtävä"
  *   npm run spacemonkey:probe -- --llm "tehtävä"     # also asks Ollama
  *   npm run spacemonkey:probe -- --guardian           # standing regression case
+ *   npm run spacemonkey:probe -- --guardian --llm --repeat 6 --model qwen2.5-coder:14b
  *
  * --expect: exit code 1 if a named symbol does not reach the model context.
  * --llm: runs generateHearthwoodChangePlan (still review-only; gates apply).
@@ -28,7 +29,7 @@ const GUARDIAN_TASK =
   "Älä ehdota turhia muutoksia. Jos todisteet eivät riitä, ilmoita epävarmuus. Älä muuta tiedostoja."
 
 function parseArgs(argv) {
-  const options = { llm: false, expect: [], task: "" }
+  const options = { llm: false, expect: [], task: "", repeat: 1, model: undefined }
   const rest = []
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]
@@ -36,7 +37,10 @@ function parseArgs(argv) {
     else if (arg === "--guardian") {
       options.task = GUARDIAN_TASK
       options.expect = ["attackUnit", "eligibleGuardian", "onGuard"]
-    } else if (arg === "--expect") options.expect = String(argv[++i] || "").split(",").filter(Boolean)
+    } else if (arg === "--repeat") options.repeat = Math.max(1, Math.min(20, Number(argv[++i]) || 1))
+    else if (arg === "--model") options.model = argv[++i]
+    else if (arg.startsWith("--") && arg !== "--expect") throw new Error(`Tuntematon valinta: ${arg}`)
+    else if (arg === "--expect") options.expect = String(argv[++i] || "").split(",").filter(Boolean)
     else rest.push(arg)
   }
   if (rest.length) options.task = rest.join(" ")
@@ -91,16 +95,26 @@ async function main() {
 
   if (options.llm) {
     const { generateHearthwoodChangePlan } = await import("../services/hearthwoodChangePlanGenerator.js")
+    const tally = new Map()
     out.push("")
-    try {
-      const plan = await generateHearthwoodChangePlan({ prompt: task })
-      out.push(`AI-päätös: ${plan.proposedDecision || "CHANGE_REQUIRED"} (status ${plan.status})`)
-      out.push(`Todisteviitteet: ${(plan.evidence?.references || []).map(r => r.symbol).join(", ") || "-"}`)
-      out.push(`Tiedostomuutoksia ehdotettu: ${plan.files.length}`)
-      out.push(`Selitys: ${plan.explanation}`)
-    } catch (error) {
-      out.push(`AI-ajo epäonnistui: ${error.message}`)
+    for (let run = 1; run <= options.repeat; run += 1) {
+      const started = Date.now()
+      let line
+      try {
+        const plan = await generateHearthwoodChangePlan({ prompt: task, model: options.model })
+        const decision = plan.proposedDecision || "CHANGE_REQUIRED"
+        const inference = plan.evidenceReport?.inference || {}
+        tally.set(decision, (tally.get(decision) || 0) + 1)
+        line = `${decision}  vahvat: ${(inference.strongReferences || []).join(", ") || "-"}` +
+          `  heikot: ${(inference.weakReferences || []).join(", ") || "-"}  tiedostoja: ${plan.files.length}`
+        if (plan.evidenceReport?.qualityNote) line += `\n      huom: ${plan.evidenceReport.qualityNote}`
+      } catch (error) {
+        tally.set("HYLÄTTY", (tally.get("HYLÄTTY") || 0) + 1)
+        line = `HYLÄTTY: ${error.message.slice(0, 160)}`
+      }
+      out.push(`AI-ajo ${run}/${options.repeat} (${((Date.now() - started) / 1000).toFixed(1)} s): ${line}`)
     }
+    out.push(`Jakauma (${options.model || "oletusmalli"}): ${[...tally].map(([k, v]) => `${k} ${v}/${options.repeat}`).join(", ")}`)
   }
 
   console.log(out.join("\n"))
