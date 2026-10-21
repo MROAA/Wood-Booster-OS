@@ -65,7 +65,8 @@ test("Guardian: a real flow, conditions and Holy Power data - every quoted line 
   assert.ok(data.includes('guardian: "holy",'))
   for (const fact of e.data) assert.equal(await fileLine(fact.filePath, fact.line), fact.code)
 
-  assert.match(e.sections.summary, /Funktio attackUnit käyttää ensin `classGuardFor` ja `eligibleGuardian`, sitten `onGuard`/)
+  // two separate ways on one line (`a || b`), in the code's order - never merged
+  assert.match(e.sections.summary, /Funktio attackUnit kokeilee ensin `eligibleGuardian`; jos se ei palauta tulosta, se käyttää `classGuardFor` \(2 erillistä polkua samassa kohdassa, rivi 2417\); sitten `onGuard` \(rivi 2428\)/)
   assert.doesNotMatch(e.text, /keksitty/, "model prose never enters the explanation")
 })
 

@@ -194,8 +194,19 @@ export function nameAnchors(task) {
     current.push(token.word)
   })
   flush()
-  return [...new Set(phrases)]
+  // One name, many Finnish forms: "Guardianin" / "Guardiania" are the name
+  // "Guardian" when the user also wrote that exact base form. Different
+  // names are never merged, however similar ("Guard" is not "Guardian").
+  const unique = [...new Set(phrases)]
+  const baseOf = phrase => unique.find(other => other !== phrase && phrase.startsWith(other) && FINNISH_ENDINGS.has(phrase.slice(other.length))) || phrase
+  return [...new Set(unique.map(baseOf))]
 }
+
+const FINNISH_ENDINGS = new Set([
+  "n", "in", "a", "ä", "ia", "iä", "na", "nä", "ina", "inä", "ksi", "iksi",
+  "lle", "ille", "lla", "llä", "illa", "illä", "lta", "ltä", "ilta", "iltä",
+  "ssa", "ssä", "issa", "issä", "sta", "stä", "ista", "istä", "an", "en", "iin",
+])
 
 function sameLine(content, line, code) {
   return (content.split("\n")[line - 1] ?? "").trim() === code
@@ -268,8 +279,10 @@ export async function buildVerifiedExplanation({ task, verifiedSources = [] }) {
     for (const item of described.skips) item.plain = translateCondition(item.condition, { subject: null, helpers })
     for (const item of described.effects) item.plain = translateEffect(item.code, { helpers })
     for (const item of described.computations) item.plain = translateComputation(item.code)
-    for (const match of source.source.matchAll(/\.([a-zA-Z_$][\w$]*)\b/g)) propertyKeys.add(match[1])
+    const ownKeys = new Set([...source.source.matchAll(/\.([a-zA-Z_$][\w$]*)\b/g)].map(match => match[1]))
+    for (const key of ownKeys) propertyKeys.add(key)
     functions.push({
+      propertyKeys: ownKeys,
       symbol: source.symbol,
       filePath: source.filePath,
       startLine: definition.startLine,
@@ -381,7 +394,10 @@ export async function buildVerifiedExplanation({ task, verifiedSources = [] }) {
   if (scriptGroups.some(group => group.checks.length)) {
     uncertainties.push("Tarkistusskriptin kuvaus kertoo, mitä skripti sanoo tarkistavansa. Skriptejä ei ajettu, eikä niiden yhteyttä juuri näihin funktioihin ole todennettu.")
   }
-  const untranslated = functions.flatMap(fn => [...fn.conditions, ...fn.guards, ...fn.skips].filter(item => item.plain && !item.plain.verified))
+  // With a chain, side hits are not part of the explanation: their
+  // conditions are not counted here (they are listed as side hits above).
+  const explained = functions.some(fn => !fn.unlinked) ? functions.filter(fn => !fn.unlinked) : functions
+  const untranslated = explained.flatMap(fn => [...fn.conditions, ...fn.guards, ...fn.skips].filter(item => item.plain && !item.plain.verified))
   if (untranslated.length) {
     uncertainties.push(untranslated.length === 1
       ? "1 ehto näytetään vain koodina: sen merkitystä ei voitu vahvistaa (esim. apufunktio, jonka lähdettä ei ole tarkistettu)."
@@ -400,11 +416,68 @@ export async function buildVerifiedExplanation({ task, verifiedSources = [] }) {
   if (uniqueData.some(fact => fact.kind === "field")) {
     uncertainties.push("Pelidatan rivit ja funktioiden kenttäluvut on näytetty rinnakkain; sitä, mitä datariviä funktio käyttää ajon aikana, ei ole todennettu.")
   }
+  // A data field listing several cases ("gain: { block: 1, guard: 1, heal: 1 }")
+  // where the explained code reads only some of them: say which are open.
+  const readKeys = new Set(explained.flatMap(fn => [...fn.propertyKeys]))
+  for (const fact of uniqueData.filter(item => item.kind === "field")) {
+    const inner = fact.code.match(/^([\w$]+)\s*:\s*\{(.*)\}\s*,?$/)
+    if (!inner) continue
+    const keys = [...inner[2].matchAll(/([\w$]+)\s*:/g)].map(match => match[1])
+    const used = keys.filter(key => readKeys.has(key))
+    const open = keys.filter(key => !readKeys.has(key))
+    if (used.length && open.length) {
+      uncertainties.push(`Pelidatan kentässä ${inner[1]} (${where(fact.filePath, fact.line)}) on myös ${open.join(", ")}. Selitetty koodi lukee niistä vain kohdan ${used.join(", ")}; muita tapauksia käsittelevää koodia ei tarkistettu tässä selityksessä.`)
+    }
+  }
   const explanation = { status: "VERIFIED_FACTS", flow, functions, data: uniqueData.slice(0, MAX_DATA_LINES), coverage, uncertainties }
   return { ...explanation, text: renderVerifiedExplanation(explanation), sections: renderVerifiedExplanationSections(explanation) }
 }
 
 const where = (filePath, line) => `${filePath.split("/").pop()}:${line}`
+
+/** Callees of one call line joined by a top-level `||` / `??`, in order. */
+function alternativesOf(step) {
+  if (step.callees.length < 2) return null
+  const parts = splitTopLevel(step.code.replace(/\?\?/g, "||"), "||")
+  if (parts.length < 2) return null
+  const ordered = []
+  for (const part of parts) {
+    const own = step.callees.filter(name => new RegExp(`(^|[^\\w$])${name.replace(/\$/g, "\\$")}\\s*\\(`).test(part))
+    if (own.length !== 1) return null
+    ordered.push(own[0])
+  }
+  return new Set(ordered).size === ordered.length ? ordered : null
+}
+
+/** One function in plain Finnish, its parts in the order the code runs. */
+function functionSteps(fn, say) {
+  const blocks = []
+  const add = (line, kind, text, item) => {
+    const last = blocks[blocks.length - 1]
+    if (item && last?.kind === kind) last.items.push(item)
+    else blocks.push({ line, kind, text, items: item ? [item] : [] })
+  }
+  const parts = [
+    ...fn.guards.map(item => ({ line: item.line, item, kind: item.stops ? (/^state$/.test(item.result.trim()) ? "same" : "none") : "return" })),
+    ...fn.skips.map(item => ({ line: item.line, item, kind: "skip" })),
+    ...(fn.conditions.length ? [{ line: fn.conditions[0].line, kind: "find" }] : []),
+    ...fn.computations.map(item => ({ line: item.line, item, kind: "compute" })),
+    ...fn.effects.map(item => ({ line: item.line, item, kind: "effect" })),
+  ].sort((a, b) => a.line - b.line)
+  const HEAD = {
+    same: "Ei muuta mitään, jos:",
+    none: "Lopettaa ilman tulosta, jos:",
+    skip: "Ohittaa yksikön, jos:",
+  }
+  for (const part of parts) {
+    if (part.kind === "find") blocks.push({ kind: "find", text: "Hyväksyy yksikön vain, kun kaikki nämä pätevät:", items: fn.conditions })
+    else if (HEAD[part.kind]) add(part.line, part.kind, HEAD[part.kind], part.item)
+    else if (part.kind === "return") blocks.push({ kind: "return", text: `Palauttaa tuloksen suoraan, jos: ${say(part.item)}`, items: [] })
+    else if (part.kind === "compute") blocks.push({ kind: "compute", text: `Laskee: ${say(part.item)}`, items: [] })
+    else blocks.push({ kind: "effect", text: `Muutos: ${say(part.item)}`, items: [] })
+  }
+  return blocks.flatMap(block => [block.text, ...block.items.map(item => `- ${say(item)}`)])
+}
 const list = names => names.map(name => `\`${name}\``).join(", ").replace(/, ([^,]*)$/, " ja $1")
 
 /** Plain Finnish, built only from the verified structure above. */
@@ -432,6 +505,22 @@ export function renderVerifiedExplanationSections(explanation) {
     if (same) same.callees.push(step.callee)
     else steps.push({ ...step, callees: [step.callee] })
   }
+  // `a(...) || b(...)` on one line: two separate ways, tried in that order.
+  for (const step of steps) step.alternatives = alternativesOf(step)
+  const pathOf = new Map()
+  for (const step of steps) {
+    step.alternatives?.forEach((name, index) => pathOf.set(name, { index, step, of: step.alternatives }))
+  }
+  // With a verified chain, functions outside it are side hits: technical
+  // details only, never part of "what happens". Without any chain, nothing
+  // is set apart and every structured function is shown.
+  const chain = shown.filter(fn => !fn.unlinked)
+  const side = chain.length ? shown.filter(fn => fn.unlinked) : []
+  const main = (chain.length ? chain : shown).slice().sort((a, b) => order(a) - order(b))
+  function order(fn) {
+    const at = steps.findIndex(step => step.callees.includes(fn.symbol))
+    return (at < 0 ? steps.length : at) * 10 + (pathOf.get(fn.symbol)?.index || 0)
+  }
 
   // --- summary: plain Finnish, no JavaScript needed ---------------------
   const out = []
@@ -441,28 +530,19 @@ export function renderVerifiedExplanationSections(explanation) {
     const hubs = [...new Set(steps.map(s => s.caller).filter(Boolean))]
     for (const hub of hubs) {
       const own = steps.filter(s => s.caller === hub)
-      out.push(`- Funktio ${hub} käyttää ensin ${own.map(s => list(s.callees)).join(", sitten ")}.`)
+      const parts = own.map(s => (s.alternatives
+        ? `kokeilee ensin ${list([s.alternatives[0]])}; jos se ei palauta tulosta, se käyttää ${list(s.alternatives.slice(1))} (${s.alternatives.length} erillistä polkua samassa kohdassa, rivi ${s.line})`
+        : `${list(s.callees)} (rivi ${s.line})`))
+      out.push(`- Funktio ${hub} ${own[0].alternatives ? "" : "käyttää ensin "}${parts.join("; sitten ")}.`)
     }
   }
-  for (const fn of shown) {
-    out.push("", `**${fn.symbol}**${fn.unlinked ? " (ei kutsuyhteyttä muihin löydettyihin osiin)" : ""}`)
-    if (fn.conditions.length) {
-      out.push("Hyväksyy yksikön vain, kun kaikki nämä pätevät:")
-      for (const item of fn.conditions) out.push(`- ${say(item)}`)
-    }
-    const stops = fn.guards.filter(g => g.stops)
-    const returns = fn.guards.filter(g => !g.stops)
-    if (stops.length) {
-      out.push("Ei tee mitään, jos:")
-      for (const item of stops) out.push(`- ${say(item)}`)
-    }
-    for (const item of returns) out.push(`Palauttaa tuloksen suoraan, jos: ${say(item)}`)
-    if (fn.skips.length) {
-      out.push("Ohittaa yksikön, jos:")
-      for (const item of fn.skips) out.push(`- ${say(item)}`)
-    }
-    for (const item of fn.computations) out.push(`Laskee: ${say(item)}`)
-    for (const item of fn.effects) out.push(`Muutos: ${say(item)}`)
+  for (const fn of main) {
+    const path = pathOf.get(fn.symbol)
+    const label = path
+      ? (path.index === 0 ? ` – polku 1` : ` – polku ${path.index + 1} (käytetään, jos ${list(path.of.slice(0, path.index))} ei palauta tulosta)`)
+      : ""
+    out.push("", `**${fn.symbol}**${label}`)
+    out.push(...functionSteps(fn, say))
   }
   const readable = data.filter(fact => fact.kind !== "entry" && !/^id\s*:/.test(fact.code))
   if (readable.length) {
@@ -471,7 +551,10 @@ export function renderVerifiedExplanationSections(explanation) {
       const plain = fact.code.replace(/,\s*$/, "").replace(/["'`]/g, "").replace(/[{}]/g, "").replace(/\s*:\s*/g, ": ").replace(/\s+/g, " ").trim()
       out.push(`- ${plain}`)
     }
+    out.push("Datarivit näytetään koodin rinnalla. Sitä, että juuri nämä rivit ovat käytössä pelin aikana, ei ole todennettu.")
   }
+  if (side.length === 1) out.push("", `Haku löysi myös kohdan ${list(side.map(fn => fn.symbol))}, jonka yhteyttä tähän toimintaketjuun ei voitu todentaa. Se näkyy vain lisätiedoissa, eikä se ole osa tätä selitystä.`)
+  if (side.length > 1) out.push("", `Haku löysi myös ${side.length} kohtaa (${list(side.map(fn => fn.symbol))}), joiden yhteyttä tähän toimintaketjuun ei voitu todentaa. Ne näkyvät vain lisätiedoissa, eivätkä ne ole osa tätä selitystä.`)
   const anyTests = coverage.scripts?.groups?.some(group => group.checks.length) || coverage.found.length
   out.push("", anyTests
     ? "**Testit:** olemassa olevia tarkistuksia löytyi (alla), mutta mitään ei ajettu tässä analyysissä."
@@ -482,8 +565,11 @@ export function renderVerifiedExplanationSections(explanation) {
   out.length = 0
   out.push("Koodirivit, joihin selitys perustuu (tiedosto:rivi).")
   for (const step of steps) out.push(`- ${step.caller ? `${step.caller} → ` : ""}${step.callees.join(", ")} (${where(step.filePath, step.line)}): \`${step.code}\``)
-  for (const fn of shown) {
-    out.push("", `**${fn.symbol}** (${fn.filePath.split("/").pop()}, rivit ${fn.startLine}–${fn.endLine})`)
+  for (const fn of [...main, ...side]) {
+    if (fn === side[0]) {
+      out.push("", "**Muut löydetyt kohdat** – vahvistettua lähdekoodia, mutta ei todennettua yhteyttä yllä olevaan toimintaketjuun. Nämä eivät ole osa selitystä:")
+    }
+    out.push("", `**${fn.symbol}** (${fn.filePath.split("/").pop()}, rivit ${fn.startLine}–${fn.endLine})${side.includes(fn) ? " – sivuosuma" : ""}`)
     if (fn.leadingComment.length) out.push(`- Koodin kommentti (ei todennettua toimintaa): “${clip(fn.leadingComment.join(" "))}”`)
     for (const item of fn.conditions) out.push(`- ehto: \`${item.code}\` (rivi ${item.line})`)
     for (const item of fn.guards) out.push(`- ${item.stops ? "lopettaa" : "palauttaa"}, jos: \`${item.condition}\` (rivi ${item.line}${item.outer ? `, ympäröivä ehto rivillä ${item.outer.line}` : ""})`)
@@ -502,7 +588,14 @@ export function renderVerifiedExplanationSections(explanation) {
   out.push("**Testikattavuus**")
   const scripts = coverage.scripts
   if (scripts?.examined) {
-    out.push(`Tarkistusskriptit (${scripts.pattern}, versionhallinnassa ${scripts.scanned} kpl). Kuvaus on skriptin oma; ei ajettu tässä analyysissä:`)
+    const related = new Set(scripts.groups.flatMap(group => group.checks.map(check => `${check.file}:${check.line}`)))
+    const files = new Set(scripts.groups.flatMap(group => group.checks.map(check => check.file)))
+    out.push("Tila:")
+    out.push(`- Skripti löytyi: ${files.size ? `kyllä, ${files.size} skriptiä` : "ei"}`)
+    out.push(`- Skripti sisältää asiaan liittyvän tarkistuksen: ${related.size ? `kyllä, ${related.size} tarkistuksen kuvausta` : "ei"}`)
+    out.push("- Skriptin suoritus vahvistettu: ei (tämä analyysi ei aja skriptejä)")
+    out.push("- Testin onnistuminen vahvistettu: ei (ajotulosta ei ole)")
+    out.push("", `Tarkistusskriptit (${scripts.pattern}, versionhallinnassa ${scripts.scanned} kpl). Kuvaus on skriptin oma; ei ajettu tässä analyysissä:`)
     // a name the user gave is always answered; a plain search word only if found
     for (const group of scripts.groups.filter(g => g.named || g.checks.length)) {
       if (!group.checks.length) {

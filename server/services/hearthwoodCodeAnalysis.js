@@ -32,25 +32,50 @@ const MAX_FILE_CHARS = 1000
 // The best matches, then functions with a verified call to or from one of
 // the three best ("attackUnit calls onGuard": the same mechanic), then the
 // rest by relevance. A loose chain elsewhere does not jump the queue.
+// A function called on the SAME line as a best match is part of the same
+// step ("eligibleGuardian(...) || classGuardFor(...)"): it joins the chain.
 async function readerCandidates(files, sourceFacts = [], task = "") {
   const byScore = files
     .flatMap(file => (file.excerpts || []).map(excerpt => ({ ...excerpt, filePath: file.filePath })))
     .sort((a, b) => (b.score || 0) - (a.score || 0))
   const best = new Set(byScore.slice(0, 3).map(item => item.symbol))
-  const linked = new Set(sourceFacts
-    .filter(fact => fact.kind === "call" && (best.has(fact.symbol) || best.has(fact.callee)))
+  const calls = sourceFacts.filter(fact => fact.kind === "call")
+  const linked = new Set(calls
+    .filter(fact => best.has(fact.symbol) || best.has(fact.callee))
     .flatMap(fact => [fact.symbol, fact.callee]))
-  const rank = item => (best.has(item.symbol) ? 2 : linked.has(item.symbol) ? 1 : 0)
-  const ranked = [...byScore]
+  const stepLines = new Set(calls.filter(fact => best.has(fact.callee)).map(fact => `${fact.filePath}:${fact.line}`))
+  const siblings = new Set(calls.filter(fact => stepLines.has(`${fact.filePath}:${fact.line}`)).map(fact => fact.callee))
+  const contents = new Map()
+  const read = async filePath => {
+    if (!contents.has(filePath)) contents.set(filePath, await readHearthwoodSourceFile(filePath))
+    return contents.get(filePath)
+  }
+  // The same step may try an ALTERNATIVE the reader did not excerpt:
+  // `a(...) || b(...)` on a chain call line, with `a` defined in that same
+  // file, is offered too (verification still extracts and checks it).
+  const known = new Set(byScore.map(item => item.symbol))
+  const extra = []
+  for (const fact of calls.filter(fact => linked.has(fact.callee) && linked.has(fact.symbol))) {
+    const content = await read(fact.filePath)
+    const line = content?.split("\n")[fact.line - 1] || ""
+    const defined = new Set(extractDefinitions(content || "").map(d => d.name))
+    const parts = line.split(/\|\||\?\?/)
+    if (parts.length < 2 || !parts.some(part => part.includes(`${fact.callee}(`))) continue
+    for (const [, name] of parts.filter(part => !part.includes(`${fact.callee}(`)).join(" ").matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*)\s*\(/g)) {
+      if (known.has(name) || !defined.has(name) || name === fact.symbol) continue
+      known.add(name)
+      siblings.add(name)
+      extra.push({ symbol: name, filePath: fact.filePath, score: 0 })
+    }
+  }
+  for (const name of siblings) linked.add(name)
+  const rank = item => (best.has(item.symbol) || siblings.has(item.symbol) ? 2 : linked.has(item.symbol) ? 1 : 0)
+  const ranked = [...byScore, ...extra]
     .sort((a, b) => rank(b) - rank(a) || (b.score || 0) - (a.score || 0))
     .slice(0, 12)
-  const contents = new Map()
   const pool = []
   for (const item of ranked) {
-    if (!contents.has(item.filePath)) {
-      contents.set(item.filePath, await readHearthwoodSourceFile(item.filePath))
-    }
-    const content = contents.get(item.filePath)
+    const content = await read(item.filePath)
     if (!content) continue
     const lines = content.split("\n")
     const definition = extractDefinitions(content).find(d => d.name === item.symbol)
@@ -78,6 +103,16 @@ async function readerCandidates(files, sourceFacts = [], task = "") {
     ordered.push({ symbol: chosen.symbol, filePath: chosen.filePath, content: chosen.content })
   }
   return ordered
+}
+
+export const MODEL_TIMEOUT_NOTICE =
+  "Ollama ei vastannut ajoissa. Alla näytetään vain lähdekoodista vahvistetut havainnot. Analyysi voi olla puutteellinen."
+export const MODEL_TIMEOUT_NO_FACTS =
+  "Ollama ei vastannut ajoissa, eikä lähdekoodista löytynyt vahvistettuja havaintoja näytettäväksi. Yritä myöhemmin uudelleen."
+
+// ollamaClient reports its own time limit as "Ollama ei vastannut N sekunnissa."
+function isModelTimeout(error) {
+  return /^Ollama ei vastannut \d+ sekunnissa\.$/.test(String(error?.message || ""))
 }
 
 function searchTerms(question) {
@@ -699,13 +734,26 @@ export async function analyzeHearthwoodCode({
   const callSiteVerification = isHearthwoodCallSiteQuestion(task)
     ? await verifyHearthwoodCallSites(verification.verified)
     : null
-  const rawAnswer = callSiteVerification ? "" : await chatWithOllama({
-    model,
-    systemPrompt: buildSystemPrompt(),
-    userMessage,
-    numCtx: MODEL_CONTEXT,
-  })
-  const unverifiedInterpretation = callSiteVerification ? null :
+  // The model may time out (cold load under memory pressure). Its prose is
+  // never shown anyway, so when the verified sources are already in hand
+  // the deterministic explanation is still given - clearly marked as such.
+  // Any other model error still fails the analysis.
+  let modelTimedOut = false
+  let rawAnswer = ""
+  if (!callSiteVerification) {
+    try {
+      rawAnswer = await chatWithOllama({
+        model,
+        systemPrompt: buildSystemPrompt(),
+        userMessage,
+        numCtx: MODEL_CONTEXT,
+      })
+    } catch (error) {
+      if (!isModelTimeout(error)) throw error
+      modelTimedOut = true
+    }
+  }
+  const unverifiedInterpretation = callSiteVerification || modelTimedOut ? null :
     removeContradictoryMissingClaims(
       sanitizeAIAnswer(rawAnswer), verification, resolution,
     )
@@ -734,6 +782,21 @@ export async function analyzeHearthwoodCode({
     console.warn("[Hearthwood Code Analysis] Verified explanation skipped:", error.message)
   }
 
+  let fallback = null
+  if (modelTimedOut) {
+    if (verifiedExplanation?.status !== "VERIFIED_FACTS") {
+      const timeout = new Error(MODEL_TIMEOUT_NO_FACTS)
+      timeout.code = "OLLAMA_TIMEOUT_NO_VERIFIED_FACTS"
+      throw timeout
+    }
+    fallback = { reason: "OLLAMA_TIMEOUT", notice: MODEL_TIMEOUT_NOTICE }
+    verifiedExplanation = {
+      ...verifiedExplanation,
+      notice: MODEL_TIMEOUT_NOTICE,
+      sections: { ...verifiedExplanation.sections, notice: MODEL_TIMEOUT_NOTICE },
+    }
+  }
+
   return {
     success: true,
     project: "hearthwood",
@@ -742,6 +805,8 @@ export async function analyzeHearthwoodCode({
     answer,
     answerProvenance: "verified-evidence-only",
     answerTrust,
+    modelStatus: callSiteVerification ? "not-used" : modelTimedOut ? "timeout" : "answered",
+    fallback,
     verifiedExplanation,
     unverifiedInterpretation,
     verifiedCallSites: callSiteVerification?.matches || [],

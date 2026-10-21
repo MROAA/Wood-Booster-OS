@@ -80,8 +80,9 @@ function MessageContent({ content }) {
           )
         }
 
+        // A list marker needs a space after it: "**Otsikko**" is bold, not a bullet.
         const bullet = trimmed.match(
-          /^(?:[-*•]|\d+[.)])\s*(.+)/,
+          /^(?:[-*•]|\d+[.)])\s+(.+)/,
         )
 
         if (bullet) {
@@ -471,13 +472,14 @@ export default function SpacemonkeyAssistant({ context = null }) {
     setMessages(previous => [...previous, { id: nextId.current++, role, content, ...extra }])
   }
 
-  async function send(event) {
+  // `retryText`: the same question again after an error (nothing else changes).
+  async function send(event, retryText) {
     event?.preventDefault()
-    const text = input.trim()
+    const text = (retryText ?? input).trim()
     if (!text || busy.current) return
 
     busy.current = true
-    setInput("")
+    if (retryText === undefined) setInput("")
     const extra = attachContext && context ? contextLine(context) : ""
     addMessage("user", text, extra ? { contextNote: extra.trim() } : {})
 
@@ -508,11 +510,13 @@ export default function SpacemonkeyAssistant({ context = null }) {
         // Verified Explanation V1: the readable answer is built only from
         // machine-verified facts. The model's own interpretation is never
         // shown (it is not verified and has contained invented claims).
+        // If the model timed out, the server still gives the explanation
+        // built from verified sources only - and says so (shown first).
         const sections = result.verifiedExplanation?.sections
         addMessage(
           "assistant",
           sections?.summary || result.answer || "Analyysia ei voitu muodostaa.",
-          { analysis: result, explanation: sections || null },
+          { analysis: result, explanation: sections || null, notice: result.fallback?.notice || null },
         )
         return
       }
@@ -535,7 +539,7 @@ export default function SpacemonkeyAssistant({ context = null }) {
         blocked
           ? `${error.message} Vastausta ei näytetä, koska sen lähteitä ei voitu todentaa. Pelin tiedostoja ei muutettu.`
           : `${error.message} Pelin tiedostoja ei muutettu.`,
-        { error: true, blockedBody: blocked ? error.body : null },
+        { error: true, blockedBody: blocked ? error.body : null, retryText: blocked ? null : text },
       )
     } finally {
       busy.current = false
@@ -557,9 +561,19 @@ export default function SpacemonkeyAssistant({ context = null }) {
         {messages.map(message => (
           <div key={message.id} className={`hws-msg ${message.role === "user" ? "is-user" : ""}`}>
             <p className="hws-msg-who">{message.role === "user" ? "Sinä" : "Spacemonkey"}</p>
+            {message.notice && (
+              <p className="mb-2 rounded-md border border-[#c9a14a] bg-[#3a2f17] p-2 text-xs text-[#f3dfa8]" role="status" data-testid="assistant-fallback-notice">
+                {message.notice}
+              </p>
+            )}
             <div className={message.error ? "text-[#f0b39c]" : "text-[var(--wood-text)]"}>
               <MessageContent content={message.content} />
             </div>
+            {message.retryText && (
+              <button type="button" className="hws-button mt-2" disabled={working} onClick={() => send(null, message.retryText)} data-testid="assistant-retry">
+                Yritä uudelleen
+              </button>
+            )}
             {message.contextNote && <p className="mt-1 text-[11px] text-[var(--wood-muted)]">{message.contextNote}</p>}
             <PlanResult plan={message.plan} />
             <BlockedDetails body={message.blockedBody} />

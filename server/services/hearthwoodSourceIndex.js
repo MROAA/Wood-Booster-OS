@@ -49,7 +49,8 @@ const FI_EN_TERMS = [
   ["kerä", ["gather"]], ["vuoro", ["turn"]], ["pilaantu", ["spoil"]], ["terveys", ["health"]],
   ["paran", ["heal"]], ["sää", ["weather"]], ["laukku", ["satchel", "bag"]],
   ["vahin", ["damage"]], ["hyökkä", ["attack"]], ["puolust", ["defend", "defense"]],
-  ["suoja", ["shield", "guard", "block"]], ["liikku", ["move"]], ["kyky", ["ability", "skill"]],
+  ["suoja", ["shield", "guard", "block"]], ["suojel", ["guard", "protect"]],
+  ["liittola", ["ally"]], ["liikku", ["move"]], ["kyky", ["ability", "skill"]],
   ["kyvy", ["ability", "skill"]], ["luoka", ["class"]], ["luokk", ["class"]],
   ["viholli", ["enemy"]], ["sankari", ["hero"]], ["esine", ["item"]], ["varust", ["gear", "equipment"]],
   ["kauppa", ["shop", "market"]], ["kartta", ["map"]], ["resurssi", ["resource"]],
@@ -107,9 +108,14 @@ export function taskTerms(task) {
   // One term per word: inflected forms of the same word ("Power",
   // "Poweria"; "guardian", "guardianin") count once, as the shortest form,
   // so a word the user repeated does not weigh twice.
+  // A word the user wrote beats a glossary guess of the same stem: "guard"
+  // (guessed from "suojata") must not swallow the name "Guardian".
+  const written = new Set(base)
   const unique = []
   for (const word of [...new Set(words)].sort((a, b) => a.length - b.length)) {
-    if (!unique.some(kept => wordMatches(kept, word))) unique.push(word)
+    const same = unique.findIndex(kept => wordMatches(kept, word))
+    if (same < 0) unique.push(word)
+    else if (!written.has(unique[same]) && written.has(word)) unique[same] = word
   }
   const order = new Map(words.map((word, index) => [word, words.indexOf(word) === index ? index : words.indexOf(word)]))
   const kept = unique.sort((a, b) => order.get(a) - order.get(b)).slice(0, 20)

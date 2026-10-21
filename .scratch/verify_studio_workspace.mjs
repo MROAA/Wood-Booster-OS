@@ -47,6 +47,18 @@ await ctx.route("http://localhost:3001/**", route => {
       const skill = /suunnittele/i.test(body.prompt) ? "change-planning" : "code-analysis"
       return route.fulfill({ json: { success: true, matched: true, apiReady: true, skill: { id: skill } } })
     }
+    // V1.1.2: Ollama timed out - verified findings only, with the notice
+    if (endpoint === "analyze" && /AIKARAJA/.test(body.prompt)) {
+      return route.fulfill({ json: {
+        success: true, modelStatus: "timeout", unverifiedInterpretation: null,
+        fallback: { reason: "OLLAMA_TIMEOUT", notice: "Ollama ei vastannut ajoissa. Alla näytetään vain lähdekoodista vahvistetut havainnot. Analyysi voi olla puutteellinen." },
+        verifiedExplanation: { status: "VERIFIED_FACTS", sections: { summary: "**eligibleGuardian** – polku 1", details: "", coverage: "**Testikattavuus**", uncertainties: "**Epävarmuudet**" } },
+      } })
+    }
+    // ...and timed out with nothing verified: an error the user can retry
+    if (endpoint === "analyze" && /TYHJÄ/.test(body.prompt)) {
+      return route.fulfill({ status: 422, json: { success: false, error: "Ollama ei vastannut ajoissa, eikä lähdekoodista löytynyt vahvistettuja havaintoja näytettäväksi. Yritä myöhemmin uudelleen." } })
+    }
     if (endpoint === "analyze" && /ESTÄ/.test(body.prompt)) {
       return route.fulfill({ status: 422, json: { success: false, error: "Lähdetarkistus epäonnistui. AI-vastausta ei näytetä.", reliability: { issues: [{ code: "EVIDENCE_COUNT" }] } } })
     }
@@ -149,6 +161,26 @@ await page.locator('[data-testid="assistant-input"]').fill("ESTÄ tämä")
 await page.locator('[data-testid="assistant-send"]').click()
 await page.waitForFunction(() => document.querySelector('[data-testid="assistant-stage"]')?.dataset.stage === "blocked", null, { timeout: 15000 })
 check(/Estetty turvallisuustarkistuksessa/.test(await page.locator('[data-testid="assistant-stage"]').innerText()), "a gate block is shown as blocked, not as an answer")
+check(await page.locator('.hws-msg').last().locator('[data-testid="assistant-retry"]').count() === 0, "a gate block offers no retry (the same sources would be blocked again)")
+await page.locator('[data-testid="assistant-input"]').fill("AIKARAJA Guardian")
+await page.locator('[data-testid="assistant-send"]').click()
+await page.waitForFunction(() => document.querySelector('[data-testid="assistant-stage"]')?.dataset.stage === "done", null, { timeout: 15000 })
+const timedOut = page.locator('.hws-msg').last()
+check((await timedOut.locator('[data-testid="assistant-fallback-notice"]').innerText()) === "Ollama ei vastannut ajoissa. Alla näytetään vain lähdekoodista vahvistetut havainnot. Analyysi voi olla puutteellinen.", "a timed-out analysis says so, word for word")
+check(await timedOut.evaluate(el => [...el.querySelectorAll("strong")].some(s => s.textContent === "eligibleGuardian") && !el.innerText.includes("*eligibleGuardian")), "a bold heading line is bold, not a broken bullet")
+check(await timedOut.evaluate(el => { const notice = el.querySelector('[data-testid="assistant-fallback-notice"]'); const body = [...el.querySelectorAll("strong")].find(s => s.textContent.includes("eligibleGuardian")); return !!notice && !!body && !!(notice.compareDocumentPosition(body) & Node.DOCUMENT_POSITION_FOLLOWING) }), "the notice comes before the findings")
+const callsBefore = devCalls.filter(c => c.endpoint === "analyze").length
+await page.locator('[data-testid="assistant-input"]').fill("TYHJÄ kysymys")
+await page.locator('[data-testid="assistant-send"]').click()
+await page.waitForFunction(() => document.querySelector('[data-testid="assistant-stage"]')?.dataset.stage === "error", null, { timeout: 15000 })
+const empty = page.locator('.hws-msg').last()
+check(/Yritä myöhemmin uudelleen\. Pelin tiedostoja ei muutettu\./.test(await empty.innerText()), "no findings + timeout: an understandable error")
+check(await empty.locator('[data-testid="assistant-fallback-notice"]').count() === 0, "and no fallback notice pretending there are findings")
+const messagesBefore = await page.locator('.hws-msg').count()
+await empty.locator('[data-testid="assistant-retry"]').click()
+await page.waitForFunction(n => document.querySelectorAll('.hws-msg').length >= n + 2, messagesBefore, { timeout: 15000 })
+const retried = devCalls.filter(c => c.endpoint === "analyze").slice(callsBefore)
+check(retried.length === 2 && retried[1].prompt === retried[0].prompt, "Yritä uudelleen sends the same question once more", retried)
 await page.locator('[data-testid="assistant-input"]').fill("Suunnittele Guardianille raja")
 await page.locator('[data-testid="assistant-send"]').click()
 await page.waitForFunction(() => document.querySelector('[data-testid="assistant-stage"]')?.dataset.stage === "approval", null, { timeout: 15000 })
