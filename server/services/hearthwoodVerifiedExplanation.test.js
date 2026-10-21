@@ -65,7 +65,7 @@ test("Guardian: a real flow, conditions and Holy Power data - every quoted line 
   assert.ok(data.includes('guardian: "holy",'))
   for (const fact of e.data) assert.equal(await fileLine(fact.filePath, fact.line), fact.code)
 
-  assert.match(e.sections.summary, /`attackUnit` käyttää löydettyjä osia/)
+  assert.match(e.sections.summary, /Funktio attackUnit käyttää ensin `classGuardFor` ja `eligibleGuardian`, sitten `onGuard`/)
   assert.doesNotMatch(e.text, /keksitty/, "model prose never enters the explanation")
 })
 
@@ -83,7 +83,7 @@ test("test coverage is stated exactly: none run, not found here does not mean mi
   assert.deepEqual(e.coverage.executed, [])
   assert.match(e.sections.coverage, /Suoritettuja testejä: ei yhtään/)
   assert.match(e.sections.coverage, /Tämä ei tarkoita, ettei testiä olisi muualla/)
-  assert.match(e.sections.coverage, /Tarkistetut hakemistot: src\/data\/heartwood/)
+  assert.match(e.sections.coverage, /Tarkistetut lähdehakemistot: src\/data\/heartwood/)
   assert.match(e.sections.coverage, /Ei tutkittu:/)
   assert.doesNotMatch(e.text, /testit kattavat|testattu/i, "no coverage claim beyond what was found")
 })
@@ -128,4 +128,49 @@ test("describeFunction reads structure only: return values vs stops, inline find
   const d = describe(lines, { startLine: 1, endLine: 6 })
   assert.deepEqual(d.guards.map(g => [g.condition, g.stops]), [["!target", true], ["target.boss", false]])
   assert.deepEqual(d.conditions.map(c => c.code), ["u.hp > 0", 'has(u, "x")', "u.id !== target.id"])
+})
+
+// --- V1.1: plain Finnish and real check scripts ---------------------------
+
+test("V1.1 Guardian: the summary needs no JavaScript, code stays in the details", async t => {
+  if (!(await realSource(t))) return
+  const e = (await analyze({ prompt: "Tutki Guardianin Intercept-kykyä ja Holy Power -resurssia oikeasta lähdekoodista. Kerro miten ne toimivat ja mitä testejä niille löytyy. Älä muuta tiedostoja." })).verifiedExplanation
+  const summary = e.sections.summary
+  for (const sentence of ["Yksikkö on luokkaa Guardian", "Yksiköllä on vähintään 1 toimintapiste", "Yksiköllä ei ole aktiivista Suppressed-vaikutusta", "Pelissä ei ole resurssisääntöjä käytössä", "saa resurssia määrän g.guard"]) {
+    assert.ok(summary.includes(sentence), sentence)
+  }
+  assert.doesNotMatch(summary, /u\.className|u\.ap >=|!\(u\.suppressed/, "the eligibility code is not in the summary")
+  assert.match(e.sections.details, /`u\.className === "Guardian"` \(rivi 2294\)/)
+  // a nested guard is shown with its enclosing condition, never alone
+  const classGuard = e.functions.find(fn => fn.symbol === "classGuardFor")
+  const nested = classGuard.guards.find(g => g.line === 290)
+  assert.equal(nested.outer.line, 288)
+  assert.match(nested.plain.text, /^Kohteella on aktiivinen Guard-suojaus ja kohteella on nimetty suojaaja/)
+})
+
+test("V1.1 Guardian: real check scripts are found, quoted as their own words, and not run", async t => {
+  if (!(await realSource(t))) return
+  const e = (await analyze({ prompt: "Tutki Guardianin Intercept-kykyä ja Holy Power -resurssia oikeasta lähdekoodista. Kerro miten ne toimivat ja mitä testejä niille löytyy. Älä muuta tiedostoja." })).verifiedExplanation
+  const groups = Object.fromEntries(e.coverage.scripts.groups.map(g => [g.name, g.checks]))
+  assert.ok(groups.Intercept.some(c => c.file === ".scratch/verify_tactics_prototype.mjs" && /check157 an ineligible Guardian/.test(c.label)))
+  assert.ok(groups["Holy Power"].some(c => c.file === ".scratch/verify_melee.mjs" && /Holy/.test(c.label)))
+  for (const group of e.coverage.scripts.groups) {
+    for (const check of group.checks) {
+      const line = (await fs.readFile(path.join(ROOT, check.file), "utf8")).split("\n")[check.line - 1]
+      assert.ok(line.includes(check.label), `${check.file}:${check.line} really says that`)
+    }
+  }
+  assert.deepEqual(e.coverage.executed, [])
+  assert.match(e.sections.coverage, /Kuvaus on skriptin oma; ei ajettu tässä analyysissä/)
+  assert.doesNotMatch(e.sections.coverage, /Downloads\//, "files outside the repository are never read")
+  assert.match(e.sections.coverage, /versionhallinnan ulkopuoliset tiedostot \(esim\. Downloads\)/)
+})
+
+test("V1.1 a coverage claim is never made from a name mention alone", async t => {
+  if (!(await realSource(t))) return
+  const e = (await analyze({ prompt: "Miten myrkky toimii taistelussa?" })).verifiedExplanation
+  const listed = e.coverage.scripts.groups.flatMap(g => g.checks)
+  assert.ok(listed.length > 0)
+  assert.ok(listed.every(check => /poison/i.test(check.label)), "every listed check's own description names the asked thing")
+  assert.ok(!listed.some(check => e.coverage.scripts.mentionsOnly.some(m => m.file === check.file)))
 })

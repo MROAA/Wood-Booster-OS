@@ -37,7 +37,7 @@ test("a found test is listed as existing but not run; same-file-only tests are k
   assert.deepEqual(e.coverage.found, [{ symbol: "brewPotion", file: "src/services/heartwood/herbalism.test.js" }])
   assert.deepEqual(e.coverage.notFound, ["gatherHerb"])
   assert.deepEqual(e.coverage.executed, [])
-  assert.match(e.sections.coverage, /olemassaolo varmistettu, ei ajettu/)
+  assert.match(e.sections.coverage, /testit, jotka mainitsevat funktion \(ei ajettu\)/)
   assert.match(e.sections.coverage, /eivät todista näitä funktioita/)
   const flow = e.flow.find(step => step.caller === "endTurn")
   assert.equal(flow, undefined, "endTurn calls only one verified function: not a meeting point")

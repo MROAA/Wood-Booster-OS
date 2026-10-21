@@ -425,7 +425,7 @@ function ExplanationParts({ parts }) {
     <div className="mt-2 space-y-2 text-xs" data-testid="assistant-explanation">
       {parts.details && (
         <details className="rounded-lg border border-[var(--wood-border)] p-2" data-testid="explanation-details">
-          <summary className="cursor-pointer font-semibold text-[var(--wood-accent)]">Ehdot ja tilamuutokset koodissa</summary>
+          <summary className="cursor-pointer font-semibold text-[var(--wood-accent)]">Koodi ja rivinumerot (lisätiedot)</summary>
           <div className="mt-2"><MessageContent content={parts.details} /></div>
         </details>
       )}
