@@ -46,7 +46,13 @@ export function describeToolRun(toolRun) {
     parts.push(outcome)
   }
 
-  parts.push(toolRun.mutated === false ? "mitään ei muutettu" : "muutokset tarkistettava")
+  if (toolRun.mutated === false) {
+    parts.push("mitään ei muutettu")
+  } else if (toolRun.changedOnly === "spacemonkey-workspace" && toolRun.projectDataChanged === false) {
+    parts.push("vain Spacemonkeyn oma työtila muuttui")
+  } else {
+    parts.push("muutokset tarkistettava")
+  }
 
   if (toolRun.agentId) {
     parts.push(`agentti ${toolRun.agentId}`)

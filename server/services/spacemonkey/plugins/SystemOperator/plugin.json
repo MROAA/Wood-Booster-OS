@@ -1,0 +1,33 @@
+{
+  "id": "system-operator",
+  "name": "System Operator",
+  "version": "1.0.0",
+  "description": "Spacemonkey's own workspace (Workspace Root) and read-only observation of the machine and HQ services. No root, no free-form commands.",
+  "author": "Wood-Booster",
+  "enabled": true,
+  "category": "system",
+  "workspace": "hq",
+  "dependencies": [],
+  "capabilities": [
+    "system.status.check",
+    "spacemonkey.workspace.overview"
+  ],
+  "skills": [
+    "check-system-status",
+    "describe-workspace"
+  ],
+  "tools": [
+    "system-observer",
+    "spacemonkey-workspace"
+  ],
+  "workflows": [
+    "check-system-status-workflow",
+    "describe-workspace-workflow"
+  ],
+  "permissions": [
+    "system.observe",
+    "workspace.read",
+    "workspace.write"
+  ],
+  "entry": "index.js"
+}

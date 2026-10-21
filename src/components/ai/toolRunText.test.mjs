@@ -36,3 +36,17 @@ test("no toolRun means no note", () => {
   assert.equal(describeToolRun(undefined), null)
   assert.equal(describeToolRun("x"), null)
 })
+
+test("a workspace-level run says only Spacemonkey's own workspace changed", () => {
+  assert.match(
+    describeToolRun({
+      name: "Koneen ja palveluiden tila",
+      access: "workspace",
+      outcome: "ok",
+      mutated: true,
+      changedOnly: "spacemonkey-workspace",
+      projectDataChanged: false,
+    }).summary,
+    /oma työtila · vain Spacemonkeyn oma työtila muuttui$/,
+  )
+})

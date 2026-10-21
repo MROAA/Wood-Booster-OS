@@ -7,7 +7,8 @@
  * kielimallilta. Kulku on BOOSTERVERSE_SPEC.md:n mukainen:
  *
  *   Planner (tämä tiedosto, deterministinen)
- *   -> Permission (vain workspace "hq" + oikeustaso "observe")
+ *   -> Permission (vain workspace "hq" + oikeustaso "observe" tai
+ *      "workspace" = Spacemonkeyn oma työtila)
  *   -> Workflow -> Skill -> Tool -> ToolBus (plugins/HqAssistant,
  *      plugins/PythonDeveloper)
  *   tai -> Agent Runtime -> agentti (kyvykkyyden "agent"-kenttä,
@@ -19,12 +20,16 @@
  * kirjoittaville poluille, joilla on oma hyväksyntäkiertonsa.
  */
 
+import os from "node:os"
+import path from "node:path"
+
 import {
   getSpacemonkeyAgentRuntime,
   getSpacemonkeyCapabilityRegistry,
   getSpacemonkeyPluginManager,
   getSpacemonkeyToolBus,
   getSpacemonkeyWorkflowEngine,
+  getSpacemonkeyWorkspace,
 } from "../spacemonkey/spacemonkeyRuntimeBootstrap.js"
 import { DEFAULT_PROJECT_ROOT } from "../spacemonkey/agents/runtime/registerAgents.js"
 import { isAccessAllowed } from "../spacemonkey/security/accessLevels.js"
@@ -37,9 +42,11 @@ import { createCachedModelResolver } from "../ollamaModelResolver.js"
 
 export const HQ_WORKSPACE = "hq"
 
-// Keskustelu suorittaa toistaiseksi vain observe-tason (vain luku)
-// kyvykkyyksiä - ks. security/accessLevels.js.
-const ALLOWED_ACCESS = ["observe"]
+// Keskustelu suorittaa toistaiseksi vain observe-tason (vain luku) ja
+// workspace-tason (kirjoitus vain Spacemonkeyn omaan työtilaan)
+// kyvykkyyksiä - ks. security/accessLevels.js. Projektin, palveluiden
+// tai ulkoisten järjestelmien muuttaminen ei ole sallittua.
+const ALLOWED_ACCESS = ["observe", "workspace"]
 
 const AGENT_TASK_TIMEOUT_MS = 20000
 
@@ -82,6 +89,10 @@ const WRITE_INTENT_PATTERN = wholeWord([
   "lähetä", "lähettää", "lähetätkö",
   "hyväksy", "hyväksyä", "julkaise", "julkaista",
   "tallenna", "tallentaa", "nimeä",
+  // Palveluiden käynnistys ja pysäytys ovat ylläpitotoimia
+  // (privileged-os), eivät tilan lukemista.
+  "käynnistä", "käynnistää", "käynnistätkö", "uudelleenkäynnistä",
+  "pysäytä", "pysäyttää", "sammuta", "sammuttaa", "tapa",
 ].join("|"))
 
 const PROJECT_WORD = wordStart("projekt")
@@ -125,6 +136,21 @@ const AGENT_WORD = wordStart("agent|aliagent")
 
 // Project Atlas: "mitä HQ:ssa on rakennettu", "mikä on kehitystilanne",
 // "mitä Wood-Booster HQ osaa".
+// Koneen ja palveluiden tila: "tarkista koneen tila", "onko Ollama
+// käynnissä", "paljonko muistia on vapaana".
+const SYSTEM_SUBJECT = new RegExp(
+  `${wordStart("kone|tietokone|palveli|palvelu|levytil|prosessor|swap|ollama").source}` +
+  `|${wholeWord("muisti|muistia|muistin|muistinkäyttö|cpu|järjestelmän tila").source}`,
+  "iu",
+)
+
+const SYSTEM_QUESTION = wholeWord([
+  "tarkista", "tarkistatko", "näytä", "kerro", "mikä", "miten", "paljonko",
+  "onko", "tila", "tilanne", "käynnissä", "vapaana", "voi",
+].join("|"))
+
+const WORKSPACE_WORD = wordStart("työtila")
+
 const ATLAS_BUILT_WORD = wordStart("rakennettu|rakentanut|rakentamani|toteutettu|toteuttanut|kehitystilan")
 
 const ATLAS_CAN_WORD = wholeWord("osaa|osaako")
@@ -190,6 +216,20 @@ export function planHqAssistantTurn({ text } = {}) {
     }
   }
 
+  if (WORKSPACE_WORD.test(value) && AGENT_QUESTION.test(value)) {
+    return {
+      capabilityId: "spacemonkey.workspace.overview",
+      input: {},
+    }
+  }
+
+  if (SYSTEM_SUBJECT.test(value) && SYSTEM_QUESTION.test(value)) {
+    return {
+      capabilityId: "system.status.check",
+      input: {},
+    }
+  }
+
   if (ATLAS_BUILT_WORD.test(value) || (ATLAS_CAN_WORD.test(value) && ATLAS_SUBJECT.test(value))) {
     return {
       capabilityId: "hq.atlas.overview",
@@ -239,15 +279,20 @@ export function checkCapabilityPermission(capability, { workspace = HQ_WORKSPACE
     return { allowed: false, reason: "other-workspace" }
   }
 
+  // observe ei saa muuttaa mitään; workspace saa muuttaa vain
+  // Spacemonkeyn omaa työtilaa (accessLevels: mutates).
   if (
     !isAccessAllowed(capability.access, ALLOWED_ACCESS) ||
-    capability.mutates !== false ||
+    (capability.access === "observe" && capability.mutates !== false) ||
     capability.requiresApproval !== false
   ) {
     return { allowed: false, reason: "needs-write-access" }
   }
 
-  return { allowed: true, reason: "read-only" }
+  return {
+    allowed: true,
+    reason: capability.access === "observe" ? "read-only" : "own-workspace-only",
+  }
 }
 
 function workflowIsRegistered(workflowEngine, id) {
@@ -274,6 +319,10 @@ export function checkCapabilityHealth(capability, { engines, prisma } = {}) {
     missing.push("database")
   }
 
+  if ((capability?.requires || []).includes("workspace") && !engines?.workspace) {
+    missing.push("workspace")
+  }
+
   if (capability?.agent) {
     if (!engines?.agentRuntime) {
       missing.push("agent-runtime")
@@ -292,6 +341,7 @@ function defaultEngines() {
     capabilityRegistry: getSpacemonkeyCapabilityRegistry(),
     agentRuntime: getSpacemonkeyAgentRuntime(),
     pluginManager: getSpacemonkeyPluginManager(),
+    workspace: getSpacemonkeyWorkspace(),
     projectRoot: DEFAULT_PROJECT_ROOT,
   }
 }
@@ -524,7 +574,11 @@ function toolRunFor(capability, extra = {}) {
     workflows: capability.workflows || [],
     agent: capability.agent || null,
     sources: capability.sources || [],
-    mutated: false,
+    // observe ei muuta mitään. workspace-tason kyvykkyys voi muuttaa vain
+    // Spacemonkeyn omaa työtilaa - projektin tietoja ei koskaan.
+    mutated: capability.access === "workspace" && capability.mutates === true,
+    changedOnly: capability.access === "workspace" ? "spacemonkey-workspace" : null,
+    projectDataChanged: false,
     ...extra,
   }
 }
@@ -798,6 +852,14 @@ const ACCESS_TEXT = {
   "external-publishing": "ulkoinen julkaisu",
 }
 
+const TASK_STATE_FI = {
+  open: "kesken",
+  done: "valmis",
+  failed: "epäonnistui",
+  interrupted: "keskeytyi",
+  unreadable: "tietoja ei voi lukea",
+}
+
 const TASK_STATE_TEXT = {
   rejected: "agenttia ei voitu valita",
   failed: "agentin tehtävä epäonnistui",
@@ -866,6 +928,83 @@ const CAPABILITY_HANDLERS = {
     return reply({
       answer: formatSummary(result.project),
       toolRun: toolRunFor(capability, { outcome: "ok", projectId }),
+    })
+  },
+
+  async "system.status.check"({ capability, engines, deps }) {
+    const result = await runWorkflowSkill(
+      engines.workflowEngine,
+      "check-system-status-workflow",
+      {
+        toolBus: engines.toolBus,
+        workspace: engines.workspace,
+        projectRoot: engines.projectRoot,
+        observerDeps: deps.observerDeps,
+      },
+    )
+
+    if (!result.success) {
+      return reply({
+        success: false,
+        answer: `Koneen tilan tarkistus epäonnistui: ${result.error}`,
+        toolRun: toolRunFor(capability, { outcome: "failed", code: result.code }),
+      })
+    }
+
+    const reportFile = result.files.find(file => file.endsWith(".md"))
+
+    return reply({
+      answer: `${result.text}\n\nRaportti tallennettu Spacemonkeyn työtilaan: ${reportFile}`,
+      toolRun: toolRunFor(capability, {
+        outcome: "ok",
+        taskId: result.taskId,
+        workspaceFiles: result.files,
+        warnings: result.report.warnings.length,
+      }),
+    })
+  },
+
+  async "spacemonkey.workspace.overview"({ capability, engines }) {
+    const result = await runWorkflowSkill(
+      engines.workflowEngine,
+      "describe-workspace-workflow",
+      { toolBus: engines.toolBus, workspace: engines.workspace },
+    )
+
+    if (!result.success) {
+      return reply({
+        success: false,
+        answer: `Työtilan lukeminen epäonnistui: ${result.error}`,
+        toolRun: toolRunFor(capability, { outcome: "failed", code: result.code }),
+      })
+    }
+
+    const home = os.homedir()
+    const root = result.root.startsWith(home + path.sep)
+      ? `~${result.root.slice(home.length)}`
+      : result.root
+
+    const megabytes = bytes => (bytes / 1024 ** 2).toFixed(1).replace(".", ",")
+
+    const lines = [
+      `Spacemonkeyn työtila: ${root}`,
+      `Käytössä ${megabytes(result.usage.bytes)} / ${megabytes(result.usage.maxTotalBytes)} Mt, ` +
+      `${plural(result.usage.files, "tiedosto", "tiedostoa")}.`,
+    ]
+
+    if (result.tasks.length === 0) {
+      lines.push("Tehtäviä ei vielä ole.")
+    } else {
+      lines.push("", `Viimeisimmät tehtävät (${Math.min(result.tasks.length, 10)}/${result.tasks.length}):`)
+
+      for (const task of result.tasks.slice(0, 10)) {
+        lines.push(`- ${task.id}: ${TASK_STATE_FI[task.state] || task.state}`)
+      }
+    }
+
+    return reply({
+      answer: lines.join("\n"),
+      toolRun: toolRunFor(capability, { outcome: "ok", count: result.tasks.length }),
     })
   },
 

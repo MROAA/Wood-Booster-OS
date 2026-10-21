@@ -1,5 +1,8 @@
-import { test } from "node:test"
+import { after, test } from "node:test"
 import assert from "node:assert/strict"
+import fs from "node:fs"
+import os from "node:os"
+import path from "node:path"
 
 import ToolBus from "../spacemonkey/toolbus/ToolBus.js"
 import CapabilityRegistry from "../spacemonkey/toolbus/CapabilityRegistry.js"
@@ -11,6 +14,8 @@ import { registerHqAssistantPlugin } from "../spacemonkey/plugins/HqAssistant/in
 import { createFakePrisma } from "../spacemonkey/plugins/HqAssistant/tests/fakePrisma.js"
 import AgentRuntime from "../spacemonkey/agents/runtime/AgentRuntime.js"
 import registerAgents, { DEFAULT_PROJECT_ROOT } from "../spacemonkey/agents/runtime/registerAgents.js"
+import { registerSystemOperatorPlugin } from "../spacemonkey/plugins/SystemOperator/index.js"
+import SpacemonkeyWorkspace from "../spacemonkey/workspace/SpacemonkeyWorkspace.js"
 import {
   checkCapabilityHealth,
   checkCapabilityPermission,
@@ -21,6 +26,28 @@ import {
 
 const silent = { info() {}, warn() {} }
 
+const workspaceParents = []
+
+after(() => {
+  for (const parent of workspaceParents) {
+    fs.rmSync(parent, { recursive: true, force: true })
+  }
+})
+
+// Koneen tilan lähteet korvattuina, jotta testi ei riipu koneesta.
+const observerDeps = {
+  readFile: async file => {
+    if (file === "/proc/meminfo") return "MemTotal: 16000000 kB\nMemAvailable: 8000000 kB\nSwapTotal: 0 kB\nSwapFree: 0 kB\n"
+    throw new Error("ENOENT")
+  },
+  readdir: async () => [],
+  statfs: async () => ({ bavail: 100, bsize: 1024 ** 3, blocks: 500 }),
+  execFile: async () => "ActiveState=active\nSubState=running\n",
+  fetch: async () => ({ status: 200, body: null }),
+  gitStamp: async () => ({ branch: "feat/x", commit: "abc1234" }),
+  uncommittedPaths: async () => [],
+}
+
 function createEngines() {
   const toolBus = new ToolBus({ logger: silent })
   const skillEngine = new SkillEngine({ logger: silent })
@@ -28,6 +55,8 @@ function createEngines() {
   const pluginManager = new PluginManager({ logger: silent })
   const capabilityRegistry = new CapabilityRegistry({ logger: silent })
   const agentRuntime = registerAgents({ agentRuntime: new AgentRuntime({ logger: silent }), logger: silent })
+  const parent = fs.mkdtempSync(path.join(os.tmpdir(), "hq-chat-ws-"))
+  workspaceParents.push(parent)
   const engines = {
     toolBus,
     skillEngine,
@@ -35,11 +64,13 @@ function createEngines() {
     pluginManager,
     capabilityRegistry,
     agentRuntime,
+    workspace: new SpacemonkeyWorkspace({ root: path.join(parent, "spacemonkey"), projectRoot: DEFAULT_PROJECT_ROOT }),
     projectRoot: DEFAULT_PROJECT_ROOT,
   }
 
   registerPythonDeveloperPlugin(engines)
   registerHqAssistantPlugin(engines)
+  registerSystemOperatorPlugin(engines)
 
   return engines
 }
@@ -90,6 +121,11 @@ test("permission allows only read capabilities of the HQ workspace", () => {
   const read = { id: "x", workspace: "hq", access: "observe", mutates: false, requiresApproval: false }
 
   assert.equal(checkCapabilityPermission(read).allowed, true)
+  assert.deepEqual(
+    checkCapabilityPermission({ ...read, access: "workspace", mutates: true }),
+    { allowed: true, reason: "own-workspace-only" },
+  )
+  assert.equal(checkCapabilityPermission({ ...read, access: "privileged-os", mutates: true }).reason, "needs-write-access")
   assert.equal(checkCapabilityPermission({ ...read, access: "project-draft" }).reason, "needs-write-access")
   assert.equal(checkCapabilityPermission({ ...read, access: "approved-execution" }).reason, "needs-write-access")
   assert.equal(checkCapabilityPermission({ ...read, access: "external-publishing" }).reason, "needs-write-access")
@@ -322,10 +358,12 @@ test("capability listing shows access level and health for the HQ workspace", ()
     "dev.project.find-files",
     "spacemonkey.agents.inventory",
     "hq.atlas.overview",
+    "system.status.check",
+    "spacemonkey.workspace.overview",
   ])
 
   for (const item of listed) {
-    assert.equal(item.access, "observe")
+    assert.ok(["observe", "workspace"].includes(item.access), item.id)
     assert.equal(item.permission.allowed, true)
     assert.equal(item.health.ready, true, item.id)
   }
@@ -511,4 +549,62 @@ test("'what is happening in my project' without an open project lists unfinished
 
   assert.equal(result.body.toolRun.capabilityId, "hq.projects.unfinished")
   assert.match(result.body.answer, /Keskeneräisiä projekteja on 1/)
+})
+
+test("planner sends machine and service questions to the system status check", () => {
+  for (const text of ["Tarkista koneen tila", "Onko Ollama käynnissä?", "Paljonko muistia on vapaana?", "Mikä on palvelimen tila?"]) {
+    assert.equal(planHqAssistantTurn({ text })?.capabilityId, "system.status.check", text)
+  }
+  assert.equal(planHqAssistantTurn({ text: "Mitä työtilassasi on?" }).capabilityId, "spacemonkey.workspace.overview")
+  for (const text of [
+    "käynnistä ollama uudelleen",
+    "käynnistä ollama uudelleen ja kerro sen tila",
+    "pysäytä palvelin ja näytä tila",
+    "sammuta kone",
+    "näytä projektin muistiinpanot",
+  ]) {
+    assert.notEqual(planHqAssistantTurn({ text })?.capabilityId, "system.status.check", text)
+  }
+})
+
+test("the system status check reports the machine and saves the report only in the workspace", async () => {
+  const engines = createEngines()
+
+  const result = await runHqAssistantTurn({
+    plan: planHqAssistantTurn({ text: "Tarkista koneen tila" }),
+    engines,
+    deps: { observerDeps },
+  })
+
+  assert.equal(result.body.success, true, result.body.answer)
+  assert.match(result.body.answer, /^Koneen tila \(luettu nyt, tavallisena käyttäjänä, ilman root-oikeuksia\):/)
+  assert.match(result.body.answer, /- HQ-palvelin \(wb-node\): käynnissä/)
+  assert.match(result.body.answer, /Raportti tallennettu Spacemonkeyn työtilaan: tasks\/\d{8}T\d{6}Z-system-status-[0-9a-f]{8}\/system-status\.md$/)
+  assert.equal(result.body.toolRun.access, "workspace")
+  assert.equal(result.body.toolRun.mutated, true)
+  assert.equal(result.body.toolRun.changedOnly, "spacemonkey-workspace")
+  assert.equal(result.body.toolRun.projectDataChanged, false)
+
+  const task = await engines.workspace.readTask(result.body.toolRun.taskId)
+  assert.equal(task.state, "done")
+
+  const overview = await runHqAssistantTurn({
+    plan: planHqAssistantTurn({ text: "Mitä työtilassasi on?" }),
+    engines,
+  })
+
+  assert.match(overview.body.answer, /^Spacemonkeyn työtila: /)
+  assert.match(overview.body.answer, new RegExp(`- ${result.body.toolRun.taskId}: valmis`))
+  assert.equal(overview.body.toolRun.mutated, false)
+})
+
+test("without a workspace the status check is unavailable rather than writing elsewhere", async () => {
+  const result = await runHqAssistantTurn({
+    plan: { capabilityId: "system.status.check", input: {} },
+    engines: { ...createEngines(), workspace: null },
+    deps: { observerDeps },
+  })
+
+  assert.equal(result.body.toolRun.outcome, "unavailable")
+  assert.match(result.body.answer, /workspace/)
 })

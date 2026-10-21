@@ -272,6 +272,25 @@ const HQ_SYSTEMS = [
         ],
     },
     {
+        id: "workspace-root",
+        name: "Spacemonkeyn työtila (Workspace Root)",
+        project: "shared",
+        domain: "ai",
+        purpose: "Spacemonkeyn oma eristetty työtila: tehtävät, raportit ja luonnokset.",
+        code: ["server/services/spacemonkey/workspace/SpacemonkeyWorkspace.js"],
+    },
+    {
+        id: "system-operator",
+        name: "Koneen tilan tarkkailu (OS Operator, vain luku)",
+        project: "shared",
+        domain: "trust",
+        purpose: "Muisti, kuorma, levytila, sallitut palvelut ja terveysreitit ilman root-oikeuksia.",
+        code: [
+            "server/services/spacemonkey/os/systemObserver.js",
+            "server/services/spacemonkey/plugins/SystemOperator",
+        ],
+    },
+    {
         id: "identity",
         name: "Identiteetti ja Godfilet",
         project: "shared",

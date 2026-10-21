@@ -66,6 +66,12 @@ import { registerCodeChangeDeveloperPlugin } from "./plugins/CodeChangeDeveloper
 
 import { registerHqAssistantPlugin } from "./plugins/HqAssistant/index.js"
 
+import { registerSystemOperatorPlugin } from "./plugins/SystemOperator/index.js"
+
+import SpacemonkeyWorkspace from "./workspace/SpacemonkeyWorkspace.js"
+
+import { DEFAULT_PROJECT_ROOT } from "./agents/runtime/registerAgents.js"
+
 
 
 let booted = false
@@ -83,6 +89,8 @@ let activeWorkflowEngine = null
 let activePluginManager = null
 
 let activeCapabilityRegistry = null
+
+let activeWorkspace = null
 
 
 
@@ -201,6 +209,22 @@ function startSpacemonkeyRuntimeBootstrap({
         capabilityRegistry,
         logger,
     })
+
+    registerSystemOperatorPlugin({
+        toolBus,
+        skillEngine,
+        workflowEngine,
+        pluginManager,
+        capabilityRegistry,
+        logger,
+    })
+
+    // Spacemonkeyn oma työtila (XDG-tila, ei projektin sisällä). Ei luo
+    // hakemistoa vielä - se tehdään ensimmäisellä käytöllä.
+    activeWorkspace =
+        new SpacemonkeyWorkspace({
+            projectRoot: DEFAULT_PROJECT_ROOT,
+        })
 
     activeToolBus = toolBus
 
@@ -363,6 +387,14 @@ function getSpacemonkeyAgentRuntime() {
 
 
 
+function getSpacemonkeyWorkspace() {
+
+    return activeWorkspace
+
+}
+
+
+
 export {
 
     startSpacemonkeyRuntimeBootstrap,
@@ -380,5 +412,7 @@ export {
     getSpacemonkeyCapabilityRegistry,
 
     getSpacemonkeyAgentRuntime,
+
+    getSpacemonkeyWorkspace,
 
 }

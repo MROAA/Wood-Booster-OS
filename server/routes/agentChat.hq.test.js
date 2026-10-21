@@ -14,6 +14,14 @@ import assert from "node:assert/strict"
 process.env.OLLAMA_URL = "http://127.0.0.1:9"
 process.env.AHMA_URL = "http://127.0.0.1:9"
 
+const { default: fs } = await import("node:fs")
+const { default: os } = await import("node:os")
+const { default: path } = await import("node:path")
+
+// Spacemonkeyn työtila väliaikaiseen hakemistoon, ei käyttäjän oikeaan.
+const workspaceParent = fs.mkdtempSync(path.join(os.tmpdir(), "hq-route-ws-"))
+process.env.SPACEMONKEY_WORKSPACE_ROOT = path.join(workspaceParent, "spacemonkey")
+
 const { default: express } = await import("express")
 const { default: createAgentChatRouter, runAgentChat } = await import("./agentChat.js")
 const { startSpacemonkeyRuntimeBootstrap } = await import(
@@ -50,6 +58,7 @@ before(async () => {
 
 after(() => {
   server?.close()
+  fs.rmSync(workspaceParent, { recursive: true, force: true })
 })
 
 async function chat(message, extra = {}) {
@@ -132,6 +141,8 @@ test("the capability list shows what Spacemonkey can do right now", async () => 
       ["dev.project.find-files", "observe", true],
       ["spacemonkey.agents.inventory", "observe", true],
       ["hq.atlas.overview", "observe", true],
+      ["system.status.check", "workspace", true],
+      ["spacemonkey.workspace.overview", "observe", true],
     ],
   )
 })
@@ -181,6 +192,17 @@ test("the Atlas question answers from source evidence and adds the user's projec
 
   assert.equal(response.status, 200)
   assert.ok(json.atlas.systems.some(system => system.id === "projects" && system.status === "implemented"))
+})
+
+test("the machine status check runs for real without root and writes only to the workspace", async () => {
+  const { body } = await chat("Tarkista koneen tila")
+
+  assert.equal(body.toolRun.capabilityId, "system.status.check")
+  assert.match(body.answer, /Koneen tila \(luettu nyt, tavallisena käyttäjänä, ilman root-oikeuksia\)/)
+  assert.equal(body.toolRun.projectDataChanged, false)
+
+  const reportFile = path.join(process.env.SPACEMONKEY_WORKSPACE_ROOT, body.toolRun.workspaceFiles[1])
+  assert.match(fs.readFileSync(reportFile, "utf8"), /^Koneen tila/)
 })
 
 test("no project data was written during the whole chat session", () => {
