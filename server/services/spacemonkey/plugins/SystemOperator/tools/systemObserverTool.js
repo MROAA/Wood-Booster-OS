@@ -10,7 +10,11 @@
  * ToolBusin runtime-argumenttina.
  */
 
-import { checkService, observeSystem } from "../../../os/systemObserver.js"
+import {
+    checkHealthEndpoints,
+    checkService,
+    observeSystem,
+} from "../../../os/systemObserver.js"
 
 const systemObserverTool = {
 
@@ -25,7 +29,7 @@ const systemObserverTool = {
 
     readOnly: true,
 
-    actions: ["snapshot", "service"],
+    actions: ["snapshot", "service", "endpoints"],
 
     async execute(input = {}, runtime = null) {
 
@@ -35,6 +39,15 @@ const systemObserverTool = {
             return service.allowed
                 ? { success: true, service }
                 : { success: false, code: "unknown_service", error: `Palvelua ${input.serviceId} ei ole sallittu.` }
+        }
+
+        if (input.action === "endpoints") {
+            const endpoints = await checkHealthEndpoints(
+                Array.isArray(input.endpointIds) ? input.endpointIds : [],
+                { deps: runtime?.observerDeps || {} },
+            )
+
+            return { success: true, endpoints }
         }
 
         if (input.action !== "snapshot") {

@@ -196,6 +196,24 @@ async function checkEndpoint(endpoint, deps) {
 
 }
 
+/**
+ * Vain sallitut terveysreitit tunnisteen perusteella. Tuntematon
+ * tunniste palautetaan hylättynä ilman verkkokutsua.
+ */
+export async function checkHealthEndpoints(ids, { deps: overrides = {} } = {}) {
+
+    const deps = { ...defaultDeps, ...overrides }
+
+    return Promise.all(ids.map(id => {
+        const endpoint = HEALTH_ENDPOINTS.find(item => item.id === id)
+
+        return endpoint
+            ? checkEndpoint(endpoint, deps)
+            : { id, allowed: false, ok: false, error: "unknown-endpoint" }
+    }))
+
+}
+
 async function readProcesses(deps) {
 
     const groups = {}

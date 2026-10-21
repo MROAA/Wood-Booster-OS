@@ -1,0 +1,27 @@
+{
+  "id": "browser-operator",
+  "name": "Browser Operator",
+  "version": "1.0.0",
+  "description": "Runs predefined UI checks of Wood-Booster HQ in an isolated Playwright browser: local HQ origins only, read-only requests, reports and screenshots in Spacemonkey's workspace.",
+  "author": "Wood-Booster",
+  "enabled": true,
+  "category": "browser",
+  "workspace": "hq",
+  "dependencies": ["system-operator"],
+  "capabilities": [
+    "browser.ui.check"
+  ],
+  "skills": [
+    "run-ui-check"
+  ],
+  "tools": [
+    "browser-operator"
+  ],
+  "workflows": [
+    "run-ui-check-workflow"
+  ],
+  "permissions": [
+    "browser.local.read"
+  ],
+  "entry": "index.js"
+}

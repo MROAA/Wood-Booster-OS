@@ -291,6 +291,17 @@ const HQ_SYSTEMS = [
         ],
     },
     {
+        id: "browser-operator",
+        name: "Selainoperaattori (Playwright)",
+        project: "shared",
+        domain: "development",
+        purpose: "Ennalta määritellyt käyttöliittymätestit eristetyssä selaimessa, vain lukevat pyynnöt.",
+        code: [
+            "server/services/spacemonkey/browser/BrowserOperator.js",
+            "server/services/spacemonkey/plugins/BrowserOperator",
+        ],
+    },
+    {
         id: "identity",
         name: "Identiteetti ja Godfilet",
         project: "shared",

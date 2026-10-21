@@ -68,6 +68,8 @@ import { registerHqAssistantPlugin } from "./plugins/HqAssistant/index.js"
 
 import { registerSystemOperatorPlugin } from "./plugins/SystemOperator/index.js"
 
+import { registerBrowserOperatorPlugin } from "./plugins/BrowserOperator/index.js"
+
 import SpacemonkeyWorkspace from "./workspace/SpacemonkeyWorkspace.js"
 
 import { DEFAULT_PROJECT_ROOT } from "./agents/runtime/registerAgents.js"
@@ -211,6 +213,15 @@ function startSpacemonkeyRuntimeBootstrap({
     })
 
     registerSystemOperatorPlugin({
+        toolBus,
+        skillEngine,
+        workflowEngine,
+        pluginManager,
+        capabilityRegistry,
+        logger,
+    })
+
+    registerBrowserOperatorPlugin({
         toolBus,
         skillEngine,
         workflowEngine,

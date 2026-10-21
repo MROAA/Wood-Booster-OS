@@ -143,6 +143,7 @@ test("the capability list shows what Spacemonkey can do right now", async () => 
       ["hq.atlas.overview", "observe", true],
       ["system.status.check", "workspace", true],
       ["spacemonkey.workspace.overview", "observe", true],
+      ["browser.ui.check", "workspace", true],
     ],
   )
 })

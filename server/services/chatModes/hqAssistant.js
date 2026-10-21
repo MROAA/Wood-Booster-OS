@@ -38,6 +38,7 @@ import {
   reviewPythonCode,
 } from "../pythonCodeReviewer.js"
 import { isValidPythonSyntax } from "../pythonSyntaxValidator.js"
+import { listScenarios } from "../spacemonkey/browser/scenarios.js"
 import { createCachedModelResolver } from "../ollamaModelResolver.js"
 
 export const HQ_WORKSPACE = "hq"
@@ -139,7 +140,7 @@ const AGENT_WORD = wordStart("agent|aliagent")
 // Koneen ja palveluiden tila: "tarkista koneen tila", "onko Ollama
 // käynnissä", "paljonko muistia on vapaana".
 const SYSTEM_SUBJECT = new RegExp(
-  `${wordStart("kone|tietokone|palveli|palvelu|levytil|prosessor|swap|ollama").source}` +
+  `${wordStart("kone|tietokone|palveli|kehityspalveli|palvelu|levytil|prosessor|swap|ollama").source}` +
   `|${wholeWord("muisti|muistia|muistin|muistinkäyttö|cpu|järjestelmän tila").source}`,
   "iu",
 )
@@ -150,6 +151,39 @@ const SYSTEM_QUESTION = wholeWord([
 ].join("|"))
 
 const WORKSPACE_WORD = wordStart("työtila")
+
+// Käyttöliittymätesti: "testaa projektinäkymä", "avaa projektit
+// selaimessa". Testi valitaan aina ennalta määritellyistä skenaarioista.
+const BROWSER_TEST_VERB = wholeWord([
+  "testaa", "testaisitko", "testaatko", "kokeile", "kokeilisitko", "tarkista",
+].join("|"))
+
+// "avaa projektit" on HQ:n navigointikomento - selaintesti vain jos
+// selain tai käyttöliittymä mainitaan erikseen.
+const BROWSER_OPEN_VERB = wholeWord("avaa|avaisitko")
+
+const BROWSER_WORD = wordStart("selaim|käyttöliittym")
+
+const BROWSER_SCENARIO_WORDS = [
+  { pattern: wordStart("projektinäkym|projektisivu|projektilist"), scenarioId: "projects-view" },
+]
+
+// Pelkkä "projektit" valitsee skenaarion vain selaimen yhteydessä.
+const BROWSER_LOOSE_SCENARIO_WORDS = [
+  { pattern: wholeWord("projektit|projekteja|projektien"), scenarioId: "projects-view" },
+]
+
+function browserScenarioFor(value) {
+  const strong = BROWSER_SCENARIO_WORDS.find(item => item.pattern.test(value))
+
+  if (strong) {
+    return strong.scenarioId
+  }
+
+  return BROWSER_WORD.test(value)
+    ? BROWSER_LOOSE_SCENARIO_WORDS.find(item => item.pattern.test(value))?.scenarioId || null
+    : null
+}
 
 const ATLAS_BUILT_WORD = wordStart("rakennettu|rakentanut|rakentamani|toteutettu|toteuttanut|kehitystilan")
 
@@ -213,6 +247,21 @@ export function planHqAssistantTurn({ text } = {}) {
     return {
       capabilityId: "spacemonkey.agents.inventory",
       input: {},
+    }
+  }
+
+  const scenarioId = browserScenarioFor(value)
+
+  if (
+    (BROWSER_TEST_VERB.test(value) && (scenarioId || BROWSER_WORD.test(value))) ||
+    (BROWSER_OPEN_VERB.test(value) && BROWSER_WORD.test(value))
+  ) {
+    return {
+      capabilityId: "browser.ui.check",
+      input: {
+        scenarioId,
+        withSystemStatus: SYSTEM_SUBJECT.test(value),
+      },
     }
   }
 
@@ -960,6 +1009,84 @@ const CAPABILITY_HANDLERS = {
         taskId: result.taskId,
         workspaceFiles: result.files,
         warnings: result.report.warnings.length,
+      }),
+    })
+  },
+
+  // Operaattorin kierros: (valinnaisesti) koneen ja palveluiden tila,
+  // sitten käyttöliittymätesti eristetyssä selaimessa. Tulokset ja
+  // kuvakaappaukset tallentuvat työtilaan.
+  async "browser.ui.check"({ capability, engines, input, deps, runtimeContext, prisma }) {
+    if (!input.scenarioId) {
+      return reply({
+        answer:
+          "Mitä käyttöliittymää testaan? Tunnen nämä testit: " +
+          listScenarios().map(item => `${item.name} ("testaa ${item.name.toLowerCase()}")`).join(", ") + ".",
+        toolRun: toolRunFor(capability, { outcome: "needs-scenario" }),
+      })
+    }
+
+    const parts = []
+    const extra = {}
+
+    if (input.withSystemStatus) {
+      const status = await runHqAssistantTurn({
+        plan: { capabilityId: "system.status.check", input: {} },
+        runtimeContext,
+        prisma,
+        engines,
+        deps,
+      })
+
+      parts.push(status.body.answer)
+      extra.systemStatus = {
+        outcome: status.body.toolRun?.outcome || null,
+        taskId: status.body.toolRun?.taskId || null,
+      }
+    }
+
+    const result = await runWorkflowSkill(
+      engines.workflowEngine,
+      "run-ui-check-workflow",
+      {
+        toolBus: engines.toolBus,
+        workspace: engines.workspace,
+        scenarioId: input.scenarioId,
+        browserRuntime: deps.browserRuntime || {},
+        observerDeps: deps.observerDeps,
+      },
+    )
+
+    if (!result.success) {
+      parts.push(`Käyttöliittymätestiä ei ajettu: ${result.error}`)
+
+      return reply({
+        success: false,
+        answer: parts.join("\n\n"),
+        toolRun: toolRunFor(capability, {
+          outcome: "failed",
+          code: result.code,
+          taskId: result.taskId || null,
+          ...extra,
+        }),
+      })
+    }
+
+    const passed = result.report.steps.filter(step => step.ok === true).length
+
+    parts.push(
+      `${result.text}\n\nRaportti ja kuvakaappaukset Spacemonkeyn työtilassa: tasks/${result.taskId}/`,
+    )
+
+    return reply({
+      success: result.report.ok,
+      answer: parts.join("\n\n"),
+      toolRun: toolRunFor(capability, {
+        outcome: result.report.ok ? "ok" : "failed",
+        taskId: result.taskId,
+        workspaceFiles: result.files,
+        steps: `${passed}/${result.report.steps.length}`,
+        ...extra,
       }),
     })
   },

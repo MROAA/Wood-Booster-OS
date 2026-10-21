@@ -15,6 +15,8 @@ import { createFakePrisma } from "../spacemonkey/plugins/HqAssistant/tests/fakeP
 import AgentRuntime from "../spacemonkey/agents/runtime/AgentRuntime.js"
 import registerAgents, { DEFAULT_PROJECT_ROOT } from "../spacemonkey/agents/runtime/registerAgents.js"
 import { registerSystemOperatorPlugin } from "../spacemonkey/plugins/SystemOperator/index.js"
+import { registerBrowserOperatorPlugin } from "../spacemonkey/plugins/BrowserOperator/index.js"
+import { PROJECT_SITE, createFakeLauncher } from "../spacemonkey/browser/tests/fakeBrowser.js"
 import SpacemonkeyWorkspace from "../spacemonkey/workspace/SpacemonkeyWorkspace.js"
 import {
   checkCapabilityHealth,
@@ -71,6 +73,7 @@ function createEngines() {
   registerPythonDeveloperPlugin(engines)
   registerHqAssistantPlugin(engines)
   registerSystemOperatorPlugin(engines)
+  registerBrowserOperatorPlugin(engines)
 
   return engines
 }
@@ -360,6 +363,7 @@ test("capability listing shows access level and health for the HQ workspace", ()
     "hq.atlas.overview",
     "system.status.check",
     "spacemonkey.workspace.overview",
+    "browser.ui.check",
   ])
 
   for (const item of listed) {
@@ -607,4 +611,77 @@ test("without a workspace the status check is unavailable rather than writing el
 
   assert.equal(result.body.toolRun.outcome, "unavailable")
   assert.match(result.body.answer, /workspace/)
+})
+
+test("planner picks the browser check only for UI tests, and leaves HQ navigation alone", () => {
+  assert.deepEqual(planHqAssistantTurn({ text: "testaa projektinäkymä" }), {
+    capabilityId: "browser.ui.check",
+    input: { scenarioId: "projects-view", withSystemStatus: false },
+  })
+  assert.deepEqual(
+    planHqAssistantTurn({ text: "Spacemonkey, tarkista Wood-Booster HQ:n kehityspalvelimen tila ja testaa projektinäkymä." }),
+    { capabilityId: "browser.ui.check", input: { scenarioId: "projects-view", withSystemStatus: true } },
+  )
+  assert.equal(planHqAssistantTurn({ text: "avaa projektit selaimessa" }).input.scenarioId, "projects-view")
+  assert.equal(planHqAssistantTurn({ text: "avaa projektit" }), null, "existing navigation command")
+  assert.equal(planHqAssistantTurn({ text: "avaa projekti Aurora" }), null)
+  assert.equal(planHqAssistantTurn({ text: "testaa käyttöliittymä" }).input.scenarioId, null)
+})
+
+const browserRuntime = () => ({
+  launcher: createFakeLauncher(PROJECT_SITE).launcher,
+  memoryGuard: async () => ({ ok: true, availableBytes: 8 * 1024 ** 3 }),
+})
+
+test("the operator loop: status check, then the UI test, both saved in the workspace", async () => {
+  const engines = createEngines()
+
+  const result = await runHqAssistantTurn({
+    plan: planHqAssistantTurn({ text: "Tarkista kehityspalvelimen tila ja testaa projektinäkymä" }),
+    engines,
+    deps: { observerDeps, browserRuntime: browserRuntime() },
+  })
+
+  assert.equal(result.body.success, true, result.body.answer)
+  assert.match(result.body.answer, /^Koneen tila/)
+  assert.match(result.body.answer, /Käyttöliittymätesti: Projektinäkymä - LÄPÄISTY \(8\/8 askelta\)/)
+  assert.match(result.body.answer, /Estetyt pyynnöt: 2/)
+  assert.match(result.body.answer, /- Estetty: DELETE http:\/\/localhost:3001\/api\/projects\/35/)
+  assert.match(result.body.answer, /Raportti ja kuvakaappaukset Spacemonkeyn työtilassa: tasks\/\d{8}T\d{6}Z-ui-check-[0-9a-f]{8}\//)
+  assert.equal(result.body.toolRun.steps, "8/8")
+  assert.equal(result.body.toolRun.systemStatus.outcome, "ok")
+  assert.equal(result.body.toolRun.projectDataChanged, false)
+
+  const tasks = await engines.workspace.listTasks()
+  assert.deepEqual(tasks.map(task => task.kind).sort(), ["system-status", "ui-check"])
+  assert.ok(tasks.every(task => task.state === "done"))
+})
+
+test("a failing UI test is reported as failed, with the failing step", async () => {
+  const site = { pages: { "/projects": { headings: [{ level: 1, text: "Jotain muuta" }], links: [] } } }
+
+  const result = await runHqAssistantTurn({
+    plan: planHqAssistantTurn({ text: "testaa projektinäkymä" }),
+    engines: createEngines(),
+    deps: {
+      observerDeps,
+      browserRuntime: { launcher: createFakeLauncher(site).launcher, memoryGuard: async () => ({ ok: true }) },
+    },
+  })
+
+  assert.equal(result.body.success, false)
+  assert.match(result.body.answer, /EPÄONNISTUI \(1\/8 askelta\)/)
+  assert.match(result.body.answer, /2\. heading - EPÄONNISTUI: /)
+  assert.match(result.body.answer, /3\. screenshot - ohitettu/)
+  assert.equal(result.body.toolRun.outcome, "failed")
+})
+
+test("without a known scenario the browser check asks which test to run", async () => {
+  const result = await runHqAssistantTurn({
+    plan: planHqAssistantTurn({ text: "testaa käyttöliittymä" }),
+    engines: createEngines(),
+  })
+
+  assert.equal(result.body.toolRun.outcome, "needs-scenario")
+  assert.match(result.body.answer, /Projektinäkymä/)
 })
