@@ -45,6 +45,9 @@ function buildAnalysisResult({ fabricated }) {
       },
     ],
     dependencySources: [],
+    // Verified Explanation V1 travels with the analysis; when the gate
+    // blocks, it must be withheld exactly like the answer text.
+    verifiedExplanation: { status: "VERIFIED_FACTS", text: fabricated ? "computeFixtureValue palauttaa 42 (keksitty)" : "ok" },
     unresolvedDependencies: [],
     missingSymbols: [],
     inspectedFiles: [
@@ -154,6 +157,7 @@ test("a fabricated analysis is BLOCKed by the gate and the API returns 422, hidi
 
   // The fabricated answer text must never reach the client.
   assert.equal(body.answer, undefined)
+  assert.equal(body.verifiedExplanation, undefined, "no explanation from rejected sources")
 })
 
 test("a missing prompt is rejected with 400 before any analysis runs", async () => {

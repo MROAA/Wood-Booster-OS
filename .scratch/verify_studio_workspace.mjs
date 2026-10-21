@@ -50,7 +50,17 @@ await ctx.route("http://localhost:3001/**", route => {
     if (endpoint === "analyze" && /ESTÄ/.test(body.prompt)) {
       return route.fulfill({ status: 422, json: { success: false, error: "Lähdetarkistus epäonnistui. AI-vastausta ei näytetä.", reliability: { issues: [{ code: "EVIDENCE_COUNT" }] } } })
     }
-    if (endpoint === "analyze") return route.fulfill({ json: { success: true, answer: "onGuard antaa resurssia (mocked)." } })
+    if (endpoint === "analyze") return route.fulfill({ json: {
+      success: true,
+      answer: "Funktion onGuard määritelmä löytyy (vanha luettelo).",
+      unverifiedInterpretation: "VALHE: testit kattavat kaiken",
+      verifiedExplanation: { status: "VERIFIED_FACTS", sections: {
+        summary: "**Lyhyesti**\n- `attackUnit` käyttää löydettyjä osia: `onGuard` (tacticsEngine.js:2428).",
+        details: "**`onGuard`** (tacticsMana.js, rivit 1004–1010)\n- Lopettaa muuttamatta mitään, jos `!manaOn(state)` (rivi 1005)",
+        coverage: "**Testikattavuus**\n- Suoritettuja testejä: ei yhtään – tämä analyysi ei aja testejä.",
+        uncertainties: "**Epävarmuudet**\n- attackUnit: funktiosta näytetään vain todennetut kutsurivit.",
+      } },
+    } })
     if (endpoint === "plan") return route.fulfill({ json: PLAN })
   }
   if (req.method() !== "GET") { blocked += 1; return route.abort() }
@@ -128,6 +138,13 @@ const routeCall = devCalls.find(c => c.endpoint === "route")
 const analyzeCall = devCalls.find(c => c.endpoint === "analyze")
 check(routeCall && !routeCall.prompt.includes("Studion konteksti"), "routing sees only the user's words", routeCall?.prompt)
 check(analyzeCall && analyzeCall.prompt.includes(`units/${heroId}`), "analysis receives the real editor context", analyzeCall?.prompt)
+const lastMessage = page.locator('[data-testid="assistant-log"] .hws-msg').last()
+check((await lastMessage.innerText()).includes("käyttää löydettyjä osia"), "verified explanation is the main answer")
+check(!(await lastMessage.innerText()).includes("vanha luettelo"), "the old function list is not the main answer")
+check(await lastMessage.locator('[data-testid="explanation-coverage"]').isVisible(), "test coverage is visible")
+check(!(await lastMessage.locator('[data-testid="explanation-details"]').evaluate(el => el.open)), "details folded by default")
+check(!(await lastMessage.locator('[data-testid="explanation-uncertainties"]').evaluate(el => el.open)), "uncertainties folded by default")
+check(!(await page.locator('[data-testid="assistant-panel"]').innerText()).includes("VALHE"), "the unverified model interpretation is never shown")
 await page.locator('[data-testid="assistant-input"]').fill("ESTÄ tämä")
 await page.locator('[data-testid="assistant-send"]').click()
 await page.waitForFunction(() => document.querySelector('[data-testid="assistant-stage"]')?.dataset.stage === "blocked", null, { timeout: 15000 })

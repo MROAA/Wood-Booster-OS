@@ -9,6 +9,7 @@
 import { chatWithOllama } from "./ollamaClient.js"
 import { readHearthwoodCode, readHearthwoodSourceFile } from "./hearthwoodCodeReader.js"
 import { extractDefinitions, taskTerms, termHits } from "./hearthwoodSourceIndex.js"
+import { buildVerifiedExplanation } from "./hearthwoodVerifiedExplanation.js"
 import { extractHearthwoodEvidence } from "./hearthwoodEvidenceValidator.js"
 import { verifyHearthwoodSources } from "./hearthwoodSourceVerification.js"
 import { resolveHearthwoodImports } from "./hearthwoodImportResolver.js"
@@ -719,6 +720,20 @@ export async function analyzeHearthwoodCode({
     callSiteVerification,
   })
 
+  // Verified Explanation V1: the user-facing answer, built only from the
+  // verified sources re-read from their files (never from model prose).
+  // If building it fails, the analysis still stands without it (the UI
+  // falls back to the source-only answer); the gates are unaffected.
+  let verifiedExplanation = null
+  try {
+    verifiedExplanation = await buildVerifiedExplanation({
+      task,
+      verifiedSources: verification.verified,
+    })
+  } catch (error) {
+    console.warn("[Hearthwood Code Analysis] Verified explanation skipped:", error.message)
+  }
+
   return {
     success: true,
     project: "hearthwood",
@@ -727,6 +742,7 @@ export async function analyzeHearthwoodCode({
     answer,
     answerProvenance: "verified-evidence-only",
     answerTrust,
+    verifiedExplanation,
     unverifiedInterpretation,
     verifiedCallSites: callSiteVerification?.matches || [],
     callSiteVerification,

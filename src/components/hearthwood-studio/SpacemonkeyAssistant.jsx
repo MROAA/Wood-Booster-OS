@@ -196,7 +196,7 @@ function SourceDetails({ analysis }) {
   return (
     <details className="mt-3 rounded-xl border border-[var(--wood-border)] p-3 text-xs">
       <summary className="cursor-pointer font-semibold text-[var(--wood-accent)]">
-        Näytä lähdekoodin tarkistustiedot
+        Vahvistetut lähteet (tiedostot, funktiot ja rivit)
       </summary>
 
       <div className="mt-3 space-y-4">
@@ -417,6 +417,33 @@ function PlanResult({ plan }) {
   )
 }
 
+// The rest of a verified explanation: coverage stays visible (it answers
+// "which tests"), the long details and the uncertainties fold away.
+function ExplanationParts({ parts }) {
+  if (!parts) return null
+  return (
+    <div className="mt-2 space-y-2 text-xs" data-testid="assistant-explanation">
+      {parts.details && (
+        <details className="rounded-lg border border-[var(--wood-border)] p-2" data-testid="explanation-details">
+          <summary className="cursor-pointer font-semibold text-[var(--wood-accent)]">Ehdot ja tilamuutokset koodissa</summary>
+          <div className="mt-2"><MessageContent content={parts.details} /></div>
+        </details>
+      )}
+      {parts.coverage && (
+        <div className="rounded-lg border border-[var(--wood-border)] p-2" data-testid="explanation-coverage">
+          <MessageContent content={parts.coverage} />
+        </div>
+      )}
+      {parts.uncertainties && (
+        <details className="rounded-lg border border-[var(--wood-border)] p-2" data-testid="explanation-uncertainties">
+          <summary className="cursor-pointer font-semibold text-[var(--wood-accent)]">Epävarmuudet</summary>
+          <div className="mt-2"><MessageContent content={parts.uncertainties.replace(/^\*\*Epävarmuudet\*\*\n?/, "")} /></div>
+        </details>
+      )}
+    </div>
+  )
+}
+
 function BlockedDetails({ body }) {
   if (!body) return null
   const gate = body.safety || body.sourceTruth || body.reliability
@@ -478,7 +505,15 @@ export default function SpacemonkeyAssistant({ context = null }) {
         setStage("analyzing")
         const result = await postJson("analyze", { prompt: text + extra })
         setStage("done")
-        addMessage("assistant", result.answer || "Analyysia ei voitu muodostaa.", { analysis: result })
+        // Verified Explanation V1: the readable answer is built only from
+        // machine-verified facts. The model's own interpretation is never
+        // shown (it is not verified and has contained invented claims).
+        const sections = result.verifiedExplanation?.sections
+        addMessage(
+          "assistant",
+          sections?.summary || result.answer || "Analyysia ei voitu muodostaa.",
+          { analysis: result, explanation: sections || null },
+        )
         return
       }
 
@@ -528,6 +563,7 @@ export default function SpacemonkeyAssistant({ context = null }) {
             {message.contextNote && <p className="mt-1 text-[11px] text-[var(--wood-muted)]">{message.contextNote}</p>}
             <PlanResult plan={message.plan} />
             <BlockedDetails body={message.blockedBody} />
+            <ExplanationParts parts={message.explanation} />
             <SourceDetails analysis={message.analysis} />
           </div>
         ))}

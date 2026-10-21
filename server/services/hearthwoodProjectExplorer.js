@@ -16,7 +16,7 @@ import {
 const MAX_FILE_BYTES = 512000
 const MAX_CONTENT_SCORE = 80
 
-const SOURCE_DIRECTORIES = [
+export const SOURCE_DIRECTORIES = [
   "src/data/heartwood",
   "src/services/heartwood",
   "src/components/heartwood",
