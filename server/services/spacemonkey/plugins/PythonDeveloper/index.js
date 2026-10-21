@@ -31,6 +31,10 @@ import reviewPythonCodeSkill from "./skills/reviewPythonCodeSkill.js"
 
 import reviewPythonCodeWorkflow from "./workflows/reviewPythonCodeWorkflow.js"
 
+import inspectPythonCodeSkill from "./skills/inspectPythonCodeSkill.js"
+
+import inspectPythonCodeWorkflow from "./workflows/inspectPythonCodeWorkflow.js"
+
 import refactorPythonCodeSkill from "./skills/refactorPythonCodeSkill.js"
 
 import refactorPythonCodeWorkflow from "./workflows/refactorPythonCodeWorkflow.js"
@@ -112,6 +116,10 @@ function registerPythonDeveloperPlugin({
     )
 
     skillEngine.register(
+        inspectPythonCodeSkill,
+    )
+
+    skillEngine.register(
         refactorPythonCodeSkill,
     )
 
@@ -153,6 +161,10 @@ function registerPythonDeveloperPlugin({
 
     workflowEngine.register(
         reviewPythonCodeWorkflow,
+    )
+
+    workflowEngine.register(
+        inspectPythonCodeWorkflow,
     )
 
     workflowEngine.register(

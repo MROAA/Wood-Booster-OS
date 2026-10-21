@@ -1,0 +1,42 @@
+{
+  "id": "hq-assistant",
+  "name": "HQ Assistant",
+  "version": "1.0.0",
+  "description": "Lets Spacemonkey answer Wood-Booster HQ questions in chat through registered, read-only capabilities: unfinished projects, a project summary and a Python file check.",
+  "author": "Wood-Booster",
+  "enabled": true,
+  "category": "business",
+  "workspace": "hq",
+  "dependencies": ["python-developer"],
+  "capabilities": [
+    "hq.projects.unfinished",
+    "hq.projects.summary",
+    "dev.python.inspect",
+    "dev.project.find-files",
+    "spacemonkey.agents.inventory",
+    "hq.atlas.overview"
+  ],
+  "skills": [
+    "hq-list-unfinished-projects",
+    "hq-summarize-project",
+    "list-spacemonkey-agents",
+    "hq-atlas-overview"
+  ],
+  "tools": [
+    "hq-projects",
+    "spacemonkey-agents",
+    "hq-atlas"
+  ],
+  "workflows": [
+    "hq-list-unfinished-projects-workflow",
+    "hq-summarize-project-workflow",
+    "list-spacemonkey-agents-workflow",
+    "hq-atlas-overview-workflow"
+  ],
+  "permissions": [
+    "hq.projects.read",
+    "spacemonkey.agents.read",
+    "hq.atlas.read"
+  ],
+  "entry": "index.js"
+}

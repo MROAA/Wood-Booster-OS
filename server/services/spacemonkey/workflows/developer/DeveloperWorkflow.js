@@ -7,7 +7,11 @@
  * Hallittu ohjelmistokehityksen työnkulku.
  */
 
+import path from "node:path"
+
 import DeveloperWorkflowState from "./DeveloperWorkflowState.js"
+
+import { isProtectedPath } from "../../security/protectedPaths.js"
 
 
 class DeveloperWorkflow {
@@ -90,6 +94,96 @@ class DeveloperWorkflow {
 
         this.logger =
             logger
+
+    }
+
+
+
+    /*
+     * Vain luku -polku (oikeustaso observe): sama tiedostohaku ja samat
+     * analysoijat kuin execute():n alussa, mutta EI hyväksyntää,
+     * kirjoitusta, testikomentoa eikä committia, eikä tiedostojen
+     * sisältöä lueta lainkaan. Suojatut polut (salaisuudet, avaimet,
+     * tietokannat...) jätetään tuloksista pois ja niiden määrä kerrotaan.
+     */
+    async inspect({
+        projectPath,
+        search,
+        maxResults = 50,
+    } = {}) {
+
+
+        const files =
+            await this.fileSearchSkill.execute({
+
+                directory:
+                    projectPath,
+
+                search,
+
+            })
+
+
+        const visible =
+            files.results.filter(
+                file =>
+                    !isProtectedPath(
+                        path.relative(projectPath, file)
+                    )
+            )
+
+
+        const structure =
+            this.projectStructureAnalyzer.analyze(
+                visible
+            )
+
+
+        const understanding =
+            this.projectUnderstandingAnalyzer.analyze(
+                structure
+            )
+
+
+        const codeIntelligence =
+            this.codeIntelligenceAnalyzer.analyze(
+                visible.slice(0, maxResults)
+            )
+
+
+        return {
+
+            success: true,
+
+            status:
+                "inspected",
+
+            readOnly: true,
+
+            search,
+
+            total:
+                visible.length,
+
+            hiddenProtected:
+                files.results.length - visible.length,
+
+            files:
+                codeIntelligence.files.map(
+                    item => ({
+                        path:
+                            path.relative(projectPath, item.file),
+                        role:
+                            item.role,
+                    })
+                ),
+
+            structure,
+
+            understanding,
+
+        }
+
 
     }
 

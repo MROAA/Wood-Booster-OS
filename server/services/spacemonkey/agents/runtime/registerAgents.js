@@ -30,6 +30,90 @@ import GitCommitSkill from "../../skills/git/GitCommitSkill.js"
 
 import SecureFileWriteWorkflow from "../../workflows/filesystem/SecureFileWriteWorkflow.js"
 
+import path from "node:path"
+
+import { fileURLToPath } from "node:url"
+
+
+// Repositorion juuri (agents/runtime -> server/services/spacemonkey ->
+// repo). Developer Agentin vain luku -haku pysyy tämän sisällä.
+const DEFAULT_PROJECT_ROOT = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../../../..",
+)
+
+
+/*
+ * Agenttien kuvaukset Agent Runtimelle (kyvykkyydet, työympäristö,
+ * oikeustaso, työkalut, lähde). Oikeustasot: security/accessLevels.js.
+ * Keskustelu sallii toistaiseksi vain observe-tason, joten julkaisu-
+ * kyvykkyydet näkyvät inventaariossa mutta eivät ole valittavissa.
+ */
+const AGENT_DESCRIPTORS = {
+
+    "developer-agent": {
+        purpose:
+            "Ohjelmistokehityksen työnkulku. Keskustelusta käytössä vain " +
+            "tiedostohaku (observe); kirjoitus-, testi- ja commit-vaiheet " +
+            "eivät ole valittavissa, ja ApprovalSkill hylkää ne aina.",
+        source: "server/services/spacemonkey/agents/developer/DeveloperAgent.js",
+        workspaces: ["hq"],
+        capabilities: [
+            {
+                id: "dev.project.find-files",
+                name: "Tiedostohaku projektista",
+                access: "observe",
+            },
+        ],
+        tools: [
+            "file-search",
+            "project-structure-analyzer",
+            "code-intelligence-analyzer",
+        ],
+        permissions: ["project.files.list"],
+        tests: [
+            "server/services/spacemonkey/agents/tests/developerAgentReadOnly.test.js",
+            "server/services/spacemonkey/tests/test-developer-agent.js",
+        ],
+        overlapsWith: ["python-developer", "code-change-developer"],
+    },
+
+    "wordpress-agent": {
+        purpose: "WordPress-tehtävät plannerin ja ToolBusin kautta.",
+        source: "server/services/spacemonkey/agents/wordpress/WordPressAgent.js",
+        workspaces: ["hq"],
+        capabilities: [
+            {
+                id: "marketing.wordpress.publish",
+                name: "WordPress-julkaisu",
+                access: "external-publishing",
+            },
+        ],
+        tools: ["planner", "toolBus"],
+        permissions: [],
+        tests: [],
+        overlapsWith: ["wordpress-publisher"],
+    },
+
+    "instagram-agent": {
+        purpose: "Instagram-tehtävät plannerin ja ToolBusin kautta.",
+        source: "server/services/spacemonkey/agents/instagram/InstagramAgent.js",
+        workspaces: ["hq"],
+        capabilities: [
+            {
+                id: "marketing.instagram.publish",
+                name: "Instagram-julkaisu",
+                access: "external-publishing",
+            },
+        ],
+        tools: ["planner", "toolBus"],
+        permissions: [],
+        tests: [],
+        overlapsWith: ["instagram-publisher"],
+    },
+
+}
+
 
 function registerAgents({
 
@@ -40,6 +124,8 @@ function registerAgents({
     toolBus,
 
     memory,
+
+    projectRoot = DEFAULT_PROJECT_ROOT,
 
     logger = console,
 
@@ -147,6 +233,8 @@ projectStructureAnalyzer,
 
             memory,
 
+            projectRoot,
+
             logger,
 
         })
@@ -183,17 +271,20 @@ projectStructureAnalyzer,
 
 
     agentRuntime.register(
-        developerAgent
+        developerAgent,
+        AGENT_DESCRIPTORS["developer-agent"],
     )
 
 
     agentRuntime.register(
-        wordpressAgent
+        wordpressAgent,
+        AGENT_DESCRIPTORS["wordpress-agent"],
     )
 
 
     agentRuntime.register(
-        instagramAgent
+        instagramAgent,
+        AGENT_DESCRIPTORS["instagram-agent"],
     )
 
 
@@ -203,3 +294,5 @@ projectStructureAnalyzer,
 
 
 export default registerAgents
+
+export { AGENT_DESCRIPTORS, DEFAULT_PROJECT_ROOT }

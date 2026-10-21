@@ -26,6 +26,26 @@ class WordPressAgent {
 
     }
 
+    /*
+     * Agent Runtime kysyy tätä ennen valintaa. execute() tarvitsee
+     * plannerin ja ToolBusin - ilman niitä agentti ei ole toimintakunnossa.
+     */
+    health() {
+
+        const missing = []
+
+        if (typeof this.planner?.createPlan !== "function") {
+            missing.push("planner")
+        }
+
+        if (typeof this.toolBus?.execute !== "function") {
+            missing.push("toolBus")
+        }
+
+        return { ready: missing.length === 0, missing }
+
+    }
+
     canHandle(task) {
 
         const keywords = [

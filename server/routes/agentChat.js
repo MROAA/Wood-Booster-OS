@@ -79,6 +79,18 @@ import {
   runHeartwoodTurn,
 } from "../services/chatModes/heartwoodAssistant.js"
 
+import {
+  describeHqCapabilities,
+  planHqAssistantTurn,
+  readAgentInventory,
+  readAtlas,
+  runHqAssistantTurn,
+} from "../services/chatModes/hqAssistant.js"
+
+import {
+  createCachedModelResolver,
+} from "../services/ollamaModelResolver.js"
+
 
 
 
@@ -87,6 +99,25 @@ import {
 
 const liveContextModule =
   createLiveContextModule()
+
+
+
+/*
+AI Brainin oletusmalli (qwen2.5:7b) ei ole aina asennettu - silloin
+jokainen vapaa kysymys päättyi "model not found" -virheeseen ja
+tyhjään vastaukseen. Malli valitaan nyt asennetuista: OLLAMA_MODEL jos
+se on asennettu, muuten ensimmäinen asennettu tästä listasta.
+*/
+const resolveChatModel =
+  createCachedModelResolver({
+    configured:
+      process.env.OLLAMA_MODEL ||
+      null,
+    preferred: [
+      "qwen2.5:7b",
+      "qwen2.5-coder:7b",
+    ],
+  })
 
 
 
@@ -1086,6 +1117,8 @@ async function runAgentChat({
 
   prisma,
 
+  resolveModel = resolveChatModel,
+
 }){
 
 
@@ -1512,6 +1545,59 @@ async function runAgentChat({
 
 
 
+  /*
+  =====================================
+
+  CHAT MODEL
+
+  Ei kutsuta Ollamaa mallilla jota ei ole asennettu.
+
+  =====================================
+  */
+
+
+  const chatModel =
+    await resolveModel()
+
+
+  if(
+    !chatModel.model
+  ){
+
+    return {
+
+      status: 200,
+
+      body: {
+
+        success:false,
+
+        agent:
+          agent.agent,
+
+        reason:
+          "chat model unavailable",
+
+        answer:
+          `Spacemonkeyn kielimalli ei ole nyt käytettävissä: ${chatModel.message} ` +
+          "Projektitiedot ja Python-tiedostojen tarkistus toimivat silti - " +
+          "kysy esimerkiksi \"Mitkä projektini ovat keskeneräisiä?\".",
+
+        modelStatus:
+          chatModel,
+
+        ...createEmptyActionResponse(),
+
+      },
+
+    }
+
+  }
+
+
+
+
+
   const knowledge = [
 
     {
@@ -1668,7 +1754,46 @@ async function runAgentChat({
 
       prisma,
 
+
+      model:
+        chatModel.model,
+
     })
+
+
+
+
+
+  // runAIBrain palauttaa virheessä { success:false, error } ilman
+  // answer-kenttää - aiemmin käyttäjä näki silloin vain "Ei vastausta."
+  if(
+    !result.success
+  ){
+
+    return {
+
+      status: 200,
+
+      body: {
+
+        success:false,
+
+        agent:
+          agent.agent,
+
+        reason:
+          "chat model failed",
+
+        answer:
+          `Kielimalli ${chatModel.model} ei vastannut: ${result.error || "tuntematon virhe"}`,
+
+        ...createEmptyActionResponse(),
+
+      },
+
+    }
+
+  }
 
 
 
@@ -1760,6 +1885,16 @@ export default function createAgentChatRouter(
           detectMode(message)
 
 
+        // HQ:n vain luku -kyvykkyydet (projektit, Python-tiedoston
+        // tarkistus) - ks. services/chatModes/hqAssistant.js. Ajetaan
+        // ennen koodimuutostunnistusta, koska "tarkista agent.py"
+        // sisältää tiedostopäätteen mutta ei ole muutospyyntö.
+        const hqPlan =
+          mode === "spacemonkey"
+            ? planHqAssistantTurn({ text })
+            : null
+
+
         let result
 
         if(mode === "altrako"){
@@ -1810,6 +1945,34 @@ export default function createAgentChatRouter(
               prisma,
 
             })
+
+        }
+        else if(hqPlan){
+
+          const hqResult =
+            await runHqAssistantTurn({
+
+              plan: hqPlan,
+
+              runtimeContext,
+
+              prisma,
+
+            })
+
+          result = {
+
+            ...hqResult,
+
+            body: {
+
+              ...createEmptyActionResponse(),
+
+              ...hqResult.body,
+
+            },
+
+          }
 
         }
         else if(
@@ -1943,6 +2106,131 @@ export default function createAgentChatRouter(
 
       }
 
+
+    },
+
+  )
+
+
+
+  /*
+  GET /api/agents/capabilities - mitä Spacemonkey voi HQ-keskustelussa
+  oikeasti tehdä juuri nyt: rekisteröidyt kyvykkyydet, niiden
+  oikeustaso ja toimintakunto. Vain luku.
+  */
+  router.get(
+
+    "/capabilities",
+
+    (
+      req,
+      res,
+    )=>{
+
+      return res.json({
+
+        success: true,
+
+        workspace: "hq",
+
+        capabilities:
+          describeHqCapabilities({ prisma }),
+
+      })
+
+    },
+
+  )
+
+
+
+  /*
+  GET /api/agents/atlas - Project Atlas: mitä HQ:ssa on rakennettu,
+  todisteista laskettuna ja haaralla/commitilla leimattuna. Sama
+  rekisteröity vain luku -workflow kuin keskustelussa.
+  */
+  router.get(
+
+    "/atlas",
+
+    async (
+      req,
+      res,
+    )=>{
+
+      try {
+
+        const result =
+          await readAtlas()
+
+        if(!result.success){
+
+          return res
+            .status(503)
+            .json(result)
+
+        }
+
+        return res.json(result)
+
+      }
+      catch(error){
+
+        return res
+          .status(500)
+          .json({
+            success: false,
+            error: error.message,
+          })
+
+      }
+
+    },
+
+  )
+
+
+
+  /*
+  GET /api/agents/inventory - Spacemonkeyn agentit lähteistään
+  (Agent Runtime, kehotepersoonat, pluginit, agenttiluokat koodissa).
+  Sama rekisteröity vain luku -workflow kuin keskustelussa.
+  */
+  router.get(
+
+    "/inventory",
+
+    async (
+      req,
+      res,
+    )=>{
+
+      try {
+
+        const result =
+          await readAgentInventory()
+
+        if(!result.success){
+
+          return res
+            .status(503)
+            .json(result)
+
+        }
+
+        return res.json(result)
+
+      }
+      catch(error){
+
+        return res
+          .status(500)
+          .json({
+            success: false,
+            error: error.message,
+          })
+
+      }
 
     },
 

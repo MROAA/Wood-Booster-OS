@@ -41,6 +41,8 @@ import {
   hasAIActions,
 } from "../../services/aiActionDispatcher"
 
+import { describeToolRun } from "./toolRunText"
+
 
 
 const MODE_SENDER = {
@@ -758,6 +760,8 @@ function ChatPanel() {
                   data.mode,
                 innerVoice:
                   data.innerVoice,
+                toolRun:
+                  describeToolRun(data.toolRun),
                 safetyWarnings:
                   filterSafetyWarnings(data.debug?.qualityWarnings),
               }
@@ -1272,6 +1276,36 @@ function ChatPanel() {
                       }
 
                       {item.content}
+
+                      {
+                        item.toolRun && (
+
+                          /* Mitä rekisteröityä työkalua vastaukseen
+                             käytettiin ja muuttiko se mitään. */
+                          <div
+                            className="
+                              mt-2
+                              border-t
+                              border-[var(--wood-border)]
+                              pt-2
+                              text-xs
+                              text-[var(--wood-muted)]
+                            "
+                            data-testid="spacemonkey-tool-run"
+                          >
+
+                            {item.toolRun.summary}
+
+                            {
+                              item.toolRun.sources && (
+                                <div>{item.toolRun.sources}</div>
+                              )
+                            }
+
+                          </div>
+
+                        )
+                      }
 
                       {
                         item.innerVoice && (

@@ -1,13 +1,21 @@
 import fs from "fs/promises"
 import path from "path"
+import { fileURLToPath } from "url"
 
 
 
 
 
+// Godfilet ovat tämän tiedoston vieressä. Polku lasketaan moduulin
+// sijainnista eikä kovakoodata päächeckoutiin: muuten jokainen
+// worktree ja siirretty kopio luki päächeckoutin (tai puuttuvan)
+// identiteetin. Päächeckoutissa polku on täsmälleen sama kuin ennen.
 const SPACEMONKEY_ROOT =
 
-  "/home/marc/Wood-Booster-AI/Wood-Booster-OS/server/services/aiBrainV2/system/spacemonkey/godfiles"
+  path.join(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "godfiles",
+  )
 
 
 

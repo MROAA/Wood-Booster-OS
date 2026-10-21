@@ -5,6 +5,9 @@ const DEFAULT_MODEL =
   process.env.OLLAMA_MODEL ||
   "kahnwong/poro-2:8b-it"
 
+// HQ-keskustelu tarkistaa ennen kutsua että juuri tämä malli on asennettu.
+export { DEFAULT_MODEL as PYTHON_REVIEW_MODEL }
+
 function buildSystemPrompt() {
   return (
     "TEHTÄVÄ: Arvioi annettu Python-koodi ja anna rakentava " +

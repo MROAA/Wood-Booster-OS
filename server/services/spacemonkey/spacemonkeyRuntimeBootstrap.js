@@ -46,6 +46,8 @@ import {
 
 import ToolBus from "./toolbus/ToolBus.js"
 
+import CapabilityRegistry from "./toolbus/CapabilityRegistry.js"
+
 import SkillEngine from "./skills/SkillEngine.js"
 
 import WorkflowEngine from "./workflows/WorkflowEngine.js"
@@ -62,6 +64,8 @@ import { registerPythonDeveloperPlugin } from "./plugins/PythonDeveloper/index.j
 
 import { registerCodeChangeDeveloperPlugin } from "./plugins/CodeChangeDeveloper/index.js"
 
+import { registerHqAssistantPlugin } from "./plugins/HqAssistant/index.js"
+
 
 
 let booted = false
@@ -77,6 +81,8 @@ let activeSkillEngine = null
 let activeWorkflowEngine = null
 
 let activePluginManager = null
+
+let activeCapabilityRegistry = null
 
 
 
@@ -144,6 +150,9 @@ function startSpacemonkeyRuntimeBootstrap({
     const pluginManager =
         new PluginManager({ logger })
 
+    const capabilityRegistry =
+        new CapabilityRegistry({ logger })
+
     registerInstagramPublisherPlugin({
         toolBus,
         skillEngine,
@@ -184,6 +193,15 @@ function startSpacemonkeyRuntimeBootstrap({
         logger,
     })
 
+    registerHqAssistantPlugin({
+        toolBus,
+        skillEngine,
+        workflowEngine,
+        pluginManager,
+        capabilityRegistry,
+        logger,
+    })
+
     activeToolBus = toolBus
 
     activeSkillEngine = skillEngine
@@ -191,6 +209,8 @@ function startSpacemonkeyRuntimeBootstrap({
     activeWorkflowEngine = workflowEngine
 
     activePluginManager = pluginManager
+
+    activeCapabilityRegistry = capabilityRegistry
 
 
 
@@ -327,6 +347,22 @@ function getSpacemonkeyPluginManager() {
 
 
 
+function getSpacemonkeyCapabilityRegistry() {
+
+    return activeCapabilityRegistry
+
+}
+
+
+
+function getSpacemonkeyAgentRuntime() {
+
+    return agentRuntime
+
+}
+
+
+
 export {
 
     startSpacemonkeyRuntimeBootstrap,
@@ -340,5 +376,9 @@ export {
     getSpacemonkeyWorkflowEngine,
 
     getSpacemonkeyPluginManager,
+
+    getSpacemonkeyCapabilityRegistry,
+
+    getSpacemonkeyAgentRuntime,
 
 }
